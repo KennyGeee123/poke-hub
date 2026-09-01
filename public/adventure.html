@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>PokéRegions — Mini Adventure</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { touch-action: manipulation; -webkit-user-select: none; user-select: none; overscroll-behavior: none; }
+  body {
+    background: #1a1a1a;
+    color: #e8f5e9;
+    font-family: 'Courier New', monospace;
+    display: flex;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    image-rendering: pixelated;
+  }
+  #app { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; justify-content: center; }
+
+  /* On-screen D-pad for mobile/touch */
+  #dpad {
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    width: 168px;
+    height: 168px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 6px;
+    z-index: 50;
+    touch-action: none;
+  }
+  #dpad button {
+    background: rgba(76,175,80,0.9);
+    border: 3px solid #0f380f;
+    color: #0f380f;
+    font-size: 28px;
+    font-weight: bold;
+    border-radius: 8px;
+    font-family: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+  }
+  #dpad button:active { background: #fff176; transform: scale(0.95); }
+  #dpad .up    { grid-column: 2; grid-row: 1; }
+  #dpad .left  { grid-column: 1; grid-row: 2; }
+  #dpad .mid   { grid-column: 2; grid-row: 2; background: transparent; border: none; pointer-events: none; }
+  #dpad .right { grid-column: 3; grid-row: 2; }
+  #dpad .down  { grid-column: 2; grid-row: 3; }
+  @media (min-width: 900px) and (hover: hover) and (pointer: fine) {
+    #dpad { display: none; }
+  }
+  @media (max-width: 560px) {
+    canvas { width: 320px !important; height: 320px !important; }
+    #sidebar { width: 100%; max-width: 340px; max-height: 220px; }
+    body { padding: 8px; padding-bottom: 200px; align-items: flex-start; }
+  }
+  #game-wrap {
+    position: relative;
+    border: 4px solid #4caf50;
+    border-radius: 8px;
+    background: #0d1b0d;
+    box-shadow: 0 0 24px rgba(76,175,80,0.4);
+  }
+  #region-label {
+    position: absolute;
+    top: 8px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.75);
+    color: #fff176;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .4s;
+    text-shadow: 1px 1px 0 #000;
+    z-index: 10;
+  }
+  #region-label.show { opacity: 1; }
+  canvas { display: block; background: #2e3b2e; }
+  #sidebar {
+    width: 240px;
+    background: #1f2a1f;
+    border: 4px solid #4caf50;
+    border-radius: 8px;
+    padding: 12px;
+    max-height: 480px;
+    overflow-y: auto;
+    color: #e8f5e9;
+  }
+  #sidebar h2 {
+    color: #fff176;
+    font-size: 18px;
+    margin-bottom: 10px;
+    text-align: center;
+    border-bottom: 2px solid #4caf50;
+    padding-bottom: 6px;
+  }
+  #pokedex-list { list-style: none; }
+  #pokedex-list li {
+    padding: 6px 4px;
+    border-bottom: 1px dashed #3c4a3c;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #pokedex-list li .dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: #fff176;
+    display: inline-block;
+  }
+  #empty { color: #888; font-style: italic; text-align: center; padding: 12px; }
+  #controls {
+    margin-top: 10px;
+    font-size: 11px;
+    color: #aaa;
+    text-align: center;
+  }
+  #controls button {
+    margin-top: 6px;
+    background: #c62828;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  /* Encounter modal */
+  #modal-bg {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  #modal-bg.active { display: flex; }
+  #modal {
+    background: #f5f5dc;
+    color: #222;
+    border: 6px solid #333;
+    border-radius: 12px;
+    padding: 24px;
+    width: 320px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    font-family: 'Courier New', monospace;
+  }
+  #modal h3 { font-size: 20px; margin-bottom: 12px; }
+  #poke-sprite {
+    font-size: 80px;
+    margin: 10px 0;
+    line-height: 1;
+    min-height: 96px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #poke-sprite img {
+    width: 96px;
+    height: 96px;
+    image-rendering: pixelated;
+    object-fit: contain;
+    filter: drop-shadow(2px 2px 0 rgba(0,0,0,.35));
+  }
+  #pokedex-list li img {
+    width: 28px;
+    height: 28px;
+    image-rendering: pixelated;
+    object-fit: contain;
+  }
+  #modal-msg { margin: 10px 0; min-height: 22px; font-weight: bold; }
+  #modal-buttons { display: flex; gap: 12px; justify-content: center; margin-top: 12px; }
+  #modal-buttons button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+  }
+  #btn-fight { background: #d32f2f; color: white; }
+  #btn-run { background: #1976d2; color: white; }
+  #btn-close { background: #388e3c; color: white; width: 100%; }
+  .hidden { display: none !important; }
+  #flash {
+    position: absolute; inset: 0;
+    background: #fff176;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s;
+  }
+  #flash.on { opacity: .5; }
+</style>
+</head>
+<body>
+  <div id="app">
+    <div id="game-wrap">
+      <div id="region-label">KANTO</div>
+      <canvas id="game" width="480" height="480"></canvas>
+      <div id="flash"></div>
+    </div>
+    <div id="sidebar">
+      <h2>📕 Pokédex</h2>
+      <ul id="pokedex-list"></ul>
+      <div id="empty">No Pokémon caught yet.<br>Walk in tall grass!</div>
+      <div id="controls">
+        Arrows / WASD to move<br>
+        <button id="reset-btn">Reset Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="dpad" aria-label="Movement pad">
+    <button class="up"    data-dir="up"    aria-label="Up">▲</button>
+    <button class="left"  data-dir="left"  aria-label="Left">◀</button>
+    <button class="mid"   tabindex="-1"></button>
+    <button class="right" data-dir="right" aria-label="Right">▶</button>
+    <button class="down"  data-dir="down"  aria-label="Down">▼</button>
+  </div>
+
+  <div id="modal-bg">
+    <div id="modal">
+      <h3 id="modal-title">A wild Pokémon appeared!</h3>
+      <div id="poke-sprite">❓</div>
+      <div id="poke-name" style="font-size:18px;font-weight:bold;"></div>
+      <div id="modal-msg"></div>
+      <div id="modal-buttons">
+        <button id="btn-fight">Fight</button>
+        <button id="btn-run">Run</button>
+      </div>
+      <button id="btn-close" class="hidden">Continue</button>
+    </div>
+  </div>
+
+<script>
+/* ============================================================
+   PokéRegions — single-file mini overworld + encounter game
+   ============================================================ */
+
+const TILE = 32;
+const VIEW_TILES = 15;          // 15x15 viewport
+const MAP_SIZE = 20;            // each region is 20x20
+const CANVAS_PX = VIEW_TILES * TILE; // 480
+
+/* ---------- Pokémon roster (>=20) ---------- */
+const POKEMON = [
+  { name: "Bulbasaur",  emoji: "🌱", color: "#78c850" },
+  { name: "Charmander", emoji: "🔥", color: "#f08030" },
+  { name: "Squirtle",   emoji: "💧", color: "#6890f0" },
+  { name: "Pikachu",    emoji: "⚡", color: "#f8d030" },
+  { name: "Caterpie",   emoji: "🐛", color: "#a8b820" },
+  { name: "Pidgey",     emoji: "🕊️", color: "#a890f0" },
+  { name: "Rattata",    emoji: "🐀", color: "#a8a878" },
+  { name: "Jigglypuff", emoji: "🎀", color: "#f8b8d0" },
+  { name: "Meowth",     emoji: "🐱", color: "#e0c068" },
+  { name: "Psyduck",    emoji: "🦆", color: "#f0d048" },
+  { name: "Machop",     emoji: "💪", color: "#c03028" },
+  { name: "Geodude",    emoji: "🪨", color: "#b8a038" },
+  { name: "Gastly",     emoji: "👻", color: "#705898" },
+  { name: "Eevee",      emoji: "🦊", color: "#c8a878" },
+  { name: "Snorlax",    emoji: "🐻", color: "#7038f8" },
+  { name: "Dratini",    emoji: "🐉", color: "#7038f8" },
+  { name: "Mewtwo",     emoji: "🧬", color: "#a890f0" },
+  { name: "Chikorita",  emoji: "🍃", color: "#9bcc50" },
+  { name: "Totodile",   emoji: "🐊", color: "#3dc7ef" },
+  { name: "Cyndaquil",  emoji: "🔥", color: "#fb6c6c" },
+  { name: "Treecko",    emoji: "🦎", color: "#5acf3c" },
+  { name: "Mudkip",     emoji: "💦", color: "#3aa5e0" },
+];
+
+/* ---------- Real sprite URL (Pokémon Showdown animated GIFs) ---------- */
+function spriteUrl(name) {
+  const slug = String(name).toLowerCase()
+    .replace(/[♀♂.'']/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
+  return `https://play.pokemonshowdown.com/sprites/ani/${slug}.gif`;
+}
+function staticSpriteUrl(name) {
+  const slug = String(name).toLowerCase().replace(/[^a-z0-9-]/g, '');
+  return `https://play.pokemonshowdown.com/sprites/gen5/${slug}.png`;
+}
+
+/* ---------- Region generation ----------
+   tile: 0 path, 1 grass, 2 obstacle, 3 exit
+*/
+function genRegion(seed) {
+  // Deterministic pseudo-random per region
+  let s = seed * 9301 + 49297;
+  const rand = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+
+  const map = [];
+  for (let y = 0; y < MAP_SIZE; y++) {
+    const row = [];
+    for (let x = 0; x < MAP_SIZE; x++) {
+      // Border = trees
+      if (x === 0 || y === 0 || x === MAP_SIZE-1 || y === MAP_SIZE-1) {
+        row.push(2);
+      } else {
+        const r = rand();
+        if (r < 0.30) row.push(1);      // grass
+        else if (r < 0.40) row.push(2); // tree
+        else row.push(0);               // path
+      }
+    }
+    map.push(row);
+  }
+  // Carve 4 exits on the borders (N/S/E/W)
+  const mid = Math.floor(MAP_SIZE / 2);
+  map[0][mid] = 3;
+  map[MAP_SIZE-1][mid] = 3;
+  map[mid][0] = 3;
+  map[mid][MAP_SIZE-1] = 3;
+  // Ensure tiles next to exits are walkable
+  map[1][mid] = 0;
+  map[MAP_SIZE-2][mid] = 0;
+  map[mid][1] = 0;
+  map[mid][MAP_SIZE-2] = 0;
+  // Ensure spawn area clear
+  map[mid][mid] = 0;
+  map[mid+1][mid] = 0; map[mid-1][mid] = 0;
+  map[mid][mid+1] = 0; map[mid][mid-1] = 0;
+  return map;
+}
+
+const REGION_NAMES = ["Kanto", "Johto", "Hoenn", "Sinnoh", "Unova"];
+
+/* ============================================================
+   MapManager
+   ============================================================ */
+const MapManager = {
+  regions: REGION_NAMES.map((_, i) => genRegion(i + 1)),
+  current: 0,
+  get map() { return this.regions[this.current]; },
+  name() { return REGION_NAMES[this.current]; },
+  tileAt(x, y) {
+    if (x < 0 || y < 0 || x >= MAP_SIZE || y >= MAP_SIZE) return 2;
+    return this.map[y][x];
+  },
+  switchRegion(dir) {
+    // dir: 'N','S','E','W' — moves to next region in list, places player at opposite edge
+    this.current = (this.current + 1) % this.regions.length;
+    const mid = Math.floor(MAP_SIZE / 2);
+    if (dir === 'N') return { x: mid, y: MAP_SIZE - 2 };
+    if (dir === 'S') return { x: mid, y: 1 };
+    if (dir === 'W') return { x: MAP_SIZE - 2, y: mid };
+    if (dir === 'E') return { x: 1, y: mid };
+    return { x: mid, y: mid };
+  }
+};
+
+/* ============================================================
+   Player
+   ============================================================ */
+const Player = {
+  x: 10, y: 10,
+  frozen: false,
+  tryMove(dx, dy) {
+    if (this.frozen) return;
+    const nx = this.x + dx, ny = this.y + dy;
+    const t = MapManager.tileAt(nx, ny);
+    if (t === 2) return; // obstacle
+    if (t === 3) {
+      // Determine direction of exit
+      let dir = 'N';
+      if (ny >= MAP_SIZE - 1) dir = 'S';
+      else if (ny <= 0) dir = 'N';
+      else if (nx >= MAP_SIZE - 1) dir = 'E';
+      else if (nx <= 0) dir = 'W';
+      const spawn = MapManager.switchRegion(dir);
+      this.x = spawn.x; this.y = spawn.y;
+      UIManager.showRegionLabel(MapManager.name());
+      SaveSystem.save();
+      return;
+    }
+    this.x = nx; this.y = ny;
+    if (t === 1) EncounterSystem.tryEncounter();
+    SaveSystem.save();
+  }
+};
+
+/* ============================================================
+   Audio — short Web Audio "rustle"
+   ============================================================ */
+const AudioFX = {
+  ctx: null,
+  ensure() {
+    if (!this.ctx) {
+      try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch(e) { this.ctx = null; }
+    }
+  },
+  rustle() {
+    this.ensure();
+    if (!this.ctx) return;
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    o.type = 'square';
+    o.frequency.setValueAtTime(880, this.ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(220, this.ctx.currentTime + 0.25);
+    g.gain.setValueAtTime(0.15, this.ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.3);
+    o.connect(g); g.connect(this.ctx.destination);
+    o.start(); o.stop(this.ctx.currentTime + 0.3);
+  }
+};
+
+/* ============================================================
+   EncounterSystem
+   ============================================================ */
+const EncounterSystem = {
+  current: null,
+  tryEncounter() {
+    if (Math.random() < 0.30) {
+      const poke = POKEMON[Math.floor(Math.random() * POKEMON.length)];
+      this.current = poke;
+      Player.frozen = true;
+      AudioFX.rustle();
+      UIManager.flash();
+      // Hand off to host app — open a real Game Boy battle
+      try {
+        window.parent && window.parent.postMessage(
+          { type: "pv-adventure-encounter", name: poke.name, region: MapManager.name() },
+          "*"
+        );
+      } catch (_) {}
+      // Track caught (any encounter counts as a sighting in the Pokédex)
+      if (!SaveSystem.state.caught.find(c => c.name === poke.name)) {
+        SaveSystem.state.caught.push({ name: poke.name, emoji: poke.emoji, color: poke.color });
+        SaveSystem.save();
+        UIManager.renderPokedex();
+      }
+      UIManager.openBattleHandoff(poke);
+    }
+  },
+  close() {
+    this.current = null;
+    Player.frozen = false;
+    UIManager.closeModal();
+  },
+  fight() { this.close(); },
+  run()   { this.close(); },
+};
+
+/* ============================================================
+   UIManager
+   ============================================================ */
+const UIManager = {
+  canvas: document.getElementById('game'),
+  ctx: null,
+  modal: document.getElementById('modal-bg'),
+  init() {
+    this.ctx = this.canvas.getContext('2d');
+    document.getElementById('btn-fight').onclick = () => EncounterSystem.fight();
+    document.getElementById('btn-run').onclick   = () => EncounterSystem.run();
+    document.getElementById('btn-close').onclick = () => EncounterSystem.close();
+    document.getElementById('reset-btn').onclick = () => {
+      if (confirm('Reset all progress?')) {
+        localStorage.removeItem('pokeregions-save');
+        location.reload();
+      }
+    };
+  },
+  showRegionLabel(name) {
+    const el = document.getElementById('region-label');
+    el.textContent = name.toUpperCase();
+    el.classList.add('show');
+    clearTimeout(this._rt);
+    this._rt = setTimeout(() => el.classList.remove('show'), 1800);
+  },
+  flash() {
+    const f = document.getElementById('flash');
+    f.classList.add('on');
+    setTimeout(() => f.classList.remove('on'), 200);
+  },
+  openModal(poke) {
+    document.getElementById('modal-title').textContent = 'A wild Pokémon appeared!';
+    const sp1 = document.getElementById('poke-sprite');
+    sp1.innerHTML = `<img src="${spriteUrl(poke.name)}" alt="${poke.name}" onerror="this.onerror=null;this.src='${staticSpriteUrl(poke.name)}';" />`;
+    document.getElementById('poke-name').textContent = poke.name;
+    document.getElementById('modal-msg').textContent = '';
+    document.getElementById('btn-fight').classList.remove('hidden');
+    document.getElementById('btn-run').classList.remove('hidden');
+    document.getElementById('modal-buttons').classList.remove('hidden');
+    document.getElementById('btn-close').classList.add('hidden');
+    this.modal.classList.add('active');
+  },
+  openBattleHandoff(poke) {
+    // Game Boy style green takeover before host opens the real battle
+    document.getElementById('modal-title').textContent = '⚔ GAME BOY BATTLE!';
+    const sp2 = document.getElementById('poke-sprite');
+    sp2.innerHTML = `<img src="${spriteUrl(poke.name)}" alt="${poke.name}" onerror="this.onerror=null;this.src='${staticSpriteUrl(poke.name)}';" />`;
+    document.getElementById('poke-name').textContent = `Wild ${poke.name}`;
+    document.getElementById('modal-msg').textContent = 'Launching Game Boy…';
+    document.getElementById('modal-buttons').classList.add('hidden');
+    document.getElementById('btn-close').classList.remove('hidden');
+    document.getElementById('btn-close').textContent = 'Continue Exploring';
+    const m = document.getElementById('modal');
+    m.style.background = '#9bbc0f';
+    m.style.color = '#0f380f';
+    m.style.borderColor = '#0f380f';
+    this.modal.classList.add('active');
+  },
+  afterFight(poke) {
+    document.getElementById('modal-msg').textContent = `You defeated ${poke.name}!`;
+    document.getElementById('modal-buttons').classList.add('hidden');
+    document.getElementById('btn-close').classList.remove('hidden');
+  },
+  closeModal() {
+    this.modal.classList.remove('active');
+    const m = document.getElementById('modal');
+    m.style.background = ''; m.style.color = ''; m.style.borderColor = '';
+  },
+  renderPokedex() {
+    const ul = document.getElementById('pokedex-list');
+    const empty = document.getElementById('empty');
+    ul.innerHTML = '';
+    const caught = SaveSystem.state.caught;
+    if (!caught.length) { empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    caught.forEach((p, i) => {
+      const li = document.createElement('li');
+      const url = spriteUrl(p.name);
+      const fallback = staticSpriteUrl(p.name);
+      li.innerHTML = `<span class="dot" style="background:${p.color}"></span>
+                      <img src="${url}" alt="" onerror="this.onerror=null;this.src='${fallback}';" />
+                      <span>${String(i+1).padStart(3,'0')} ${p.name}</span>`;
+      ul.appendChild(li);
+    });
+  },
+  draw() {
+    const ctx = this.ctx;
+    ctx.fillStyle = '#2e3b2e';
+    ctx.fillRect(0, 0, CANVAS_PX, CANVAS_PX);
+
+    // Camera centered on player
+    const halfV = Math.floor(VIEW_TILES / 2);
+    const camX = Player.x - halfV;
+    const camY = Player.y - halfV;
+
+    for (let vy = 0; vy < VIEW_TILES; vy++) {
+      for (let vx = 0; vx < VIEW_TILES; vx++) {
+        const mx = camX + vx;
+        const my = camY + vy;
+        const px = vx * TILE;
+        const py = vy * TILE;
+        const t = MapManager.tileAt(mx, my);
+        this.drawTile(ctx, t, px, py, mx, my);
+      }
+    }
+
+    // Player sprite (always centered)
+    const ppx = halfV * TILE;
+    const ppy = halfV * TILE;
+    // body
+    ctx.fillStyle = '#e53935';
+    ctx.fillRect(ppx + 6, ppy + 12, 20, 16);
+    // head
+    ctx.fillStyle = '#ffe0b2';
+    ctx.fillRect(ppx + 10, ppy + 4, 12, 12);
+    // cap
+    ctx.fillStyle = '#c62828';
+    ctx.fillRect(ppx + 8, ppy + 2, 16, 6);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(ppx + 14, ppy + 4, 4, 2);
+    // outline
+    ctx.strokeStyle = '#000';
+    ctx.strokeRect(ppx + 6, ppy + 2, 20, 26);
+  },
+  drawTile(ctx, t, px, py, mx, my) {
+    if (mx < 0 || my < 0 || mx >= MAP_SIZE || my >= MAP_SIZE) {
+      ctx.fillStyle = '#0a0a0a';
+      ctx.fillRect(px, py, TILE, TILE);
+      return;
+    }
+    if (t === 0) {
+      ctx.fillStyle = '#8d6e3a'; // path
+      ctx.fillRect(px, py, TILE, TILE);
+      ctx.fillStyle = '#7a5e2e';
+      ctx.fillRect(px + 4, py + 6, 3, 3);
+      ctx.fillRect(px + 20, py + 18, 3, 3);
+    } else if (t === 1) {
+      ctx.fillStyle = '#2e7d32'; // grass
+      ctx.fillRect(px, py, TILE, TILE);
+      ctx.fillStyle = '#66bb6a';
+      ctx.fillRect(px + 4, py + 6, 4, 4);
+      ctx.fillRect(px + 14, py + 16, 4, 4);
+      ctx.fillRect(px + 22, py + 8, 4, 4);
+      ctx.fillRect(px + 8, py + 22, 4, 4);
+    } else if (t === 2) {
+      ctx.fillStyle = '#1b5e20'; // tree base
+      ctx.fillRect(px, py, TILE, TILE);
+      ctx.fillStyle = '#2e7d32';
+      ctx.beginPath();
+      ctx.arc(px + 16, py + 14, 12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#4e342e';
+      ctx.fillRect(px + 13, py + 22, 6, 8);
+    } else if (t === 3) {
+      ctx.fillStyle = '#fff176'; // exit
+      ctx.fillRect(px, py, TILE, TILE);
+      ctx.fillStyle = '#f57f17';
+      ctx.font = 'bold 18px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('▶', px + 16, py + 16);
+    }
+  }
+};
+
+/* ============================================================
+   SaveSystem
+   ============================================================ */
+const SaveSystem = {
+  KEY: 'pokeregions-save',
+  state: { x: 10, y: 10, region: 0, caught: [] },
+  load() {
+    try {
+      const raw = localStorage.getItem(this.KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        this.state = Object.assign(this.state, s);
+        Player.x = s.x ?? 10;
+        Player.y = s.y ?? 10;
+        MapManager.current = s.region ?? 0;
+      }
+    } catch (e) { console.warn('Load failed', e); }
+  },
+  save() {
+    this.state.x = Player.x;
+    this.state.y = Player.y;
+    this.state.region = MapManager.current;
+    try { localStorage.setItem(this.KEY, JSON.stringify(this.state)); } catch(e){}
+  }
+};
+
+/* ============================================================
+   Input
+   ============================================================ */
+const Input = {
+  lastMove: 0,
+  init() {
+    document.addEventListener('keydown', (e) => {
+      const now = Date.now();
+      if (now - this.lastMove < 90) return;
+      let handled = true;
+      switch (e.key) {
+        case 'ArrowUp': case 'w': case 'W': Player.tryMove(0, -1); break;
+        case 'ArrowDown': case 's': case 'S': Player.tryMove(0, 1); break;
+        case 'ArrowLeft': case 'a': case 'A': Player.tryMove(-1, 0); break;
+        case 'ArrowRight': case 'd': case 'D': Player.tryMove(1, 0); break;
+        default: handled = false;
+      }
+      if (handled) {
+        this.lastMove = now;
+        e.preventDefault();
+      }
+    });
+
+    // On-screen D-pad — tap & hold to repeat
+    const dirMap = { up: [0,-1], down: [0,1], left: [-1,0], right: [1,0] };
+    const move = (dir) => {
+      const v = dirMap[dir]; if (!v) return;
+      const now = Date.now();
+      if (now - this.lastMove < 90) return;
+      this.lastMove = now;
+      Player.tryMove(v[0], v[1]);
+    };
+    document.querySelectorAll('#dpad button[data-dir]').forEach(btn => {
+      const dir = btn.getAttribute('data-dir');
+      let holdTimer = null, repeatTimer = null;
+      const start = (e) => {
+        e.preventDefault();
+        move(dir);
+        holdTimer = setTimeout(() => {
+          repeatTimer = setInterval(() => move(dir), 110);
+        }, 220);
+      };
+      const stop = (e) => {
+        if (e) e.preventDefault();
+        clearTimeout(holdTimer); clearInterval(repeatTimer);
+        holdTimer = repeatTimer = null;
+      };
+      btn.addEventListener('touchstart', start, { passive: false });
+      btn.addEventListener('touchend', stop, { passive: false });
+      btn.addEventListener('touchcancel', stop, { passive: false });
+      btn.addEventListener('mousedown', start);
+      btn.addEventListener('mouseup', stop);
+      btn.addEventListener('mouseleave', stop);
+    });
+  }
+};
+
+/* ============================================================
+   Boot
+   ============================================================ */
+function loop() {
+  UIManager.draw();
+  requestAnimationFrame(loop);
+}
+
+window.addEventListener('load', () => {
+  UIManager.init();
+  SaveSystem.load();
+  UIManager.renderPokedex();
+  UIManager.showRegionLabel(MapManager.name());
+  Input.init();
+  loop();
+});
+
+// Host (parent app) tells us the Game Boy battle is over → close takeover modal
+window.addEventListener('message', (e) => {
+  const d = e.data;
+  if (!d) return;
+  if (d.type === 'pv-adventure-resume') {
+    EncounterSystem.close();
+  }
+});
+</script>
+</body>
+</html>

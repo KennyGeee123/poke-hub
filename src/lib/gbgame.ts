@@ -1,0 +1,174 @@
+import { supabase } from "@/integrations/supabase/client";
+import type { TCGCard } from "./pokemon-api";
+import { animatedSpriteUrl, staticSpriteUrl } from "./sprites";
+
+export type GBMove = {
+  name: string;
+  damage: number;
+  text?: string;
+  type?: string;
+};
+
+export type GBMon = {
+  id: string;
+  card_id: string;
+  name: string;
+  types: string[];
+  level: number;
+  xp: number;
+  max_hp: number;
+  attacks: GBMove[];
+  sprite_url: string | null;
+  image_url: string | null;
+  wins: number;
+  losses: number;
+  slot: number | null;
+};
+
+const parseDmg = (s?: string) => {
+  const n = parseInt((s || "").replace(/\D/g, ""));
+  return isNaN(n) ? 0 : n;
+};
+
+export function movesFromCard(card: TCGCard): GBMove[] {
+  const atks = (card.attacks ?? []).map((a) => ({
+    name: a.name,
+    damage: parseDmg(a.damage) || 10,
+    text: a.text,
+    type: card.types?.[0],
+  }));
+  if (!atks.length) {
+    atks.push({ name: "Tackle", damage: 10, text: undefined, type: card.types?.[0] });
+  }
+  return atks.slice(0, 4);
+}
+
+export function baseHpFromCard(card: TCGCard): number {
+  const hp = parseInt(card.hp || "") || 60;
+  return Math.max(30, Math.min(200, hp));
+}
+
+export function makeMonFromCard(card: TCGCard, level = 5): Omit<GBMon, "id"> {
+  const baseHp = baseHpFromCard(card);
+  return {
+    card_id: card.id,
+    name: card.name,
+    types: card.types ?? ["Colorless"],
+    level,
+    xp: 0,
+    max_hp: Math.round(baseHp * (0.5 + level * 0.05)),
+    attacks: movesFromCard(card),
+    sprite_url: animatedSpriteUrl(card.name),
+    image_url: card.images?.small ?? null,
+    wins: 0,
+    losses: 0,
+    slot: null,
+  };
+}
+
+export function xpForNext(level: number): number {
+  return level * 50;
+}
+
+export function levelDamage(move: GBMove, attackerLvl: number, defenderTypes: string[], attackerTypes: string[]): { dmg: number; eff: "normal" | "super" | "weak" } {
+  let dmg = Math.round(move.damage * (0.8 + attackerLvl * 0.04));
+  // Use crude type matchup: shared type → weak, fire vs grass etc → super
+  let eff: "normal" | "super" | "weak" = "normal";
+  if (defenderTypes.some((t) => attackerTypes.includes(t))) {
+    dmg = Math.round(dmg * 0.5);
+    eff = "weak";
+  } else if (TYPE_ADV[attackerTypes[0]]?.includes(defenderTypes[0])) {
+    dmg = Math.round(dmg * 2);
+    eff = "super";
+  }
+  return { dmg: Math.max(1, dmg), eff };
+}
+
+const TYPE_ADV: Record<string, string[]> = {
+  Fire: ["Grass", "Metal"],
+  Water: ["Fire", "Fighting"],
+  Grass: ["Water"],
+  Lightning: ["Water"],
+  Psychic: ["Fighting"],
+  Fighting: ["Darkness", "Colorless"],
+  Darkness: ["Psychic"],
+  Metal: ["Fairy", "Psychic"],
+  Fairy: ["Darkness", "Dragon"],
+  Dragon: ["Dragon"],
+};
+
+export function gainXP(mon: GBMon, gained: number): { mon: GBMon; leveled: boolean } {
+  let xp = mon.xp + gained;
+  let level = mon.level;
+  let max_hp = mon.max_hp;
+  let leveled = false;
+  while (xp >= xpForNext(level)) {
+    xp -= xpForNext(level);
+    level += 1;
+    max_hp += Math.round(5 + Math.random() * 6);
+    leveled = true;
+  }
+  return { mon: { ...mon, xp, level, max_hp }, leveled };
+}
+
+/* ---------- Persistence ---------- */
+
+export async function fetchParty(): Promise<GBMon[]> {
+  const { data, error } = await supabase
+    .from("gb_party")
+    .select("*")
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map((r: any) => ({
+    id: r.id,
+    card_id: r.card_id,
+    name: r.name,
+    types: r.types ?? [],
+    level: r.level,
+    xp: r.xp,
+    max_hp: r.max_hp,
+    attacks: r.attacks ?? [],
+    sprite_url: r.sprite_url,
+    image_url: r.image_url,
+    wins: r.wins,
+    losses: r.losses,
+    slot: r.slot,
+  }));
+}
+
+export async function addToParty(card: TCGCard, level = 5): Promise<GBMon> {
+  const { data: u } = await supabase.auth.getUser();
+  const uid = u.user?.id;
+  if (!uid) throw new Error("Not signed in");
+  const m = makeMonFromCard(card, level);
+  const { data, error } = await supabase
+    .from("gb_party")
+    .insert({ ...m, user_id: uid })
+    .select()
+    .single();
+  if (error) throw error;
+  return { ...m, id: data.id } as GBMon;
+}
+
+export async function saveMonStats(mon: GBMon): Promise<void> {
+  const { error } = await supabase
+    .from("gb_party")
+    .update({
+      level: mon.level,
+      xp: mon.xp,
+      max_hp: mon.max_hp,
+      wins: mon.wins,
+      losses: mon.losses,
+      attacks: mon.attacks as any,
+    })
+    .eq("id", mon.id);
+  if (error) throw error;
+}
+
+export async function releaseMon(id: string): Promise<void> {
+  await supabase.from("gb_party").delete().eq("id", id);
+}
+
+export function spriteFor(name: string): string {
+  return staticSpriteUrl(name);
+}
