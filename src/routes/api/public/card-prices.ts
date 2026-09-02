@@ -23,17 +23,25 @@ export type SourceResult = {
   lowest: Listing | null;
   listings: Listing[];
   error?: string;
+  shopUrl?: string;
+  kind?: "price" | "shop";
 };
 
 export type AggregateResponse = {
   query: string;
   cheapest: Listing | null;
+  queue: Listing[];
   sources: SourceResult[];
   generatedAt: string;
 };
 
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0 Safari/537.36";
+
+function tcgIoHeaders(): Record<string, string> {
+  const key = process.env.POKEMONTCG_API_KEY || process.env.VITE_POKEMONTCG_API_KEY;
+  return key ? { "X-Api-Key": key } : {};
+}
 
 const enc = encodeURIComponent;
 
@@ -131,23 +139,67 @@ async function ebayActive(q: string): Promise<Listing[]> {
 }
 
 // ─── TCGplayer (via pokemontcg.io card data) ─────────────────────────────
+
+function parseCardQuery(q: string): { firstToken: string; number: string | null; setTokens: string[]; lucene: string } {
+  const tokens = q.trim().split(/\s+/).filter(Boolean);
+  const firstToken = (tokens[0] || "").replace(/[*"\\]/g, "");
+  let number: string | null = null;
+  let rest = tokens.slice(1);
+  if (rest.length) {
+    const last = rest[rest.length - 1];
+    const m = last.match(/^#?(\d{1,4}[a-zA-Z]?)(?:\/\d{1,4})?$/);
+    if (m) {
+      number = m[1];
+      rest = rest.slice(0, -1);
+    }
+  }
+  const setTokens = rest.map((tok) => tok.replace(/[*"\\]/g, "")).filter(Boolean);
+  let lucene = firstToken ? `name:"${firstToken}"` : "";
+  if (number) lucene = `${lucene} number:${number}`.trim();
+  return { firstToken, number, setTokens, lucene };
+}
+
+function sameCardNumber(a: unknown, b: string | null): boolean {
+  if (!b) return true;
+  const n = String(a ?? "").replace(/^0+/, "") || "0";
+  const m = b.replace(/^0+/, "") || "0";
+  return n.toLowerCase() === m.toLowerCase();
+}
+
+function filterExactPrintings(cards: any[], q: string): any[] {
+  const { firstToken, number, setTokens } = parseCardQuery(q);
+  const first = firstToken.toLowerCase();
+  return cards.filter((c) => {
+    const name = String(c?.name || "").toLowerCase();
+    if (first && !name.startsWith(first)) return false;
+    if (!sameCardNumber(c?.number, number)) return false;
+    if (setTokens.length) {
+      const setName = String(c?.set?.name || "").toLowerCase();
+      if (!setTokens.every((tok) => setName.includes(tok.toLowerCase()))) return false;
+    }
+    return true;
+  });
+}
+
 async function tcgplayer(q: string): Promise<Listing[]> {
-  const params = new URLSearchParams({ q: `name:"${q.split(/\s+/)[0]}*"`, pageSize: "12" });
-  // If a number like 199/198 is in q, narrow it
-  const numMatch = q.match(/(\d{1,3})\s*\/\s*(\d{1,3})/);
-  if (numMatch) params.set("q", `${params.get("q")} number:${numMatch[1]}`);
-  const r = await fetch(`https://api.pokemontcg.io/v2/cards?${params}`);
+  const parsed = parseCardQuery(q);
+  const lucene = parsed.lucene || `name:"${(q.split(/\s+/)[0] || q).replace(/[*"\\]/g, "")}"`;
+  const params = new URLSearchParams({ q: lucene, pageSize: "20" });
+  const r = await fetch(`https://api.pokemontcg.io/v2/cards?${params}`, {
+    headers: tcgIoHeaders(),
+    signal: AbortSignal.timeout(8000),
+  });
   if (!r.ok) throw new Error(`${r.status}`);
   const j: any = await r.json();
   const out: Listing[] = [];
-  for (const c of (j?.data ?? []) as any[]) {
+  for (const c of filterExactPrintings((j?.data ?? []) as any[], q)) {
     const tp = c.tcgplayer;
     if (!tp?.url || !tp?.prices) continue;
     const variants = Object.entries(tp.prices) as [string, any][];
     let bestPrice = Infinity;
     let variantName = "";
     for (const [name, p] of variants) {
-      const val = p?.market ?? p?.mid ?? p?.low;
+      const val = p?.low ?? p?.directLow;
       if (typeof val === "number" && val > 0 && val < bestPrice) {
         bestPrice = val;
         variantName = name;
@@ -169,14 +221,17 @@ async function tcgplayer(q: string): Promise<Listing[]> {
 
 // ─── Cardmarket (EU) via card index ───────────────────────────────────────
 async function cardmarket(q: string): Promise<Listing[]> {
-  const params = new URLSearchParams({ q: `name:"${q.split(/\s+/)[0]}*"`, pageSize: "12" });
-  const numMatch = q.match(/(\d{1,3})\s*\/\s*(\d{1,3})/);
-  if (numMatch) params.set("q", `${params.get("q")} number:${numMatch[1]}`);
-  const r = await fetch(`https://api.pokemontcg.io/v2/cards?${params}`);
+  const parsed = parseCardQuery(q);
+  const lucene = parsed.lucene || `name:"${(q.split(/\s+/)[0] || q).replace(/[*"\\]/g, "")}"`;
+  const params = new URLSearchParams({ q: lucene, pageSize: "20" });
+  const r = await fetch(`https://api.pokemontcg.io/v2/cards?${params}`, {
+    headers: tcgIoHeaders(),
+    signal: AbortSignal.timeout(8000),
+  });
   if (!r.ok) throw new Error(`${r.status}`);
   const j: any = await r.json();
   const out: Listing[] = [];
-  for (const c of (j?.data ?? []) as any[]) {
+  for (const c of filterExactPrintings((j?.data ?? []) as any[], q)) {
     const cm = c.cardmarket;
     if (!cm?.url || !cm?.prices) continue;
     const eur = cm.prices.lowPrice ?? cm.prices.trendPrice ?? cm.prices.averageSellPrice;
@@ -572,115 +627,243 @@ async function walmart(q: string): Promise<Listing[]> {
 }
 
 // ─── Source registry ──────────────────────────────────────────────────────
-// "fast"   = used for lightweight cheapest-only mode (vault rows).
-// "sealed" = stocks booster boxes / ETBs / bundles; queried in sealed mode.
-const SOURCES: { name: string; fn: (q: string) => Promise<Listing[]>; fast?: boolean; sealed?: boolean }[] = [
-  { name: "eBay",             fn: ebayActive,      fast: true, sealed: true },
-  { name: "TCGplayer",        fn: tcgplayer,       fast: true },
-  { name: "Cardmarket",       fn: cardmarket,      fast: true },
-  { name: "TrollAndToad",     fn: trollAndToad,                sealed: true },
-  { name: "CardKingdom",      fn: cardKingdom,                 sealed: true },
-  { name: "Mercari",          fn: mercari,                     sealed: true },
-  { name: "PriceCharting",    fn: priceCharting },
-  { name: "123Pokemon",       fn: pokemon123,                  sealed: true },
-  { name: "Pokemon Center",   fn: pokemonCenter,               sealed: true },
-  { name: "CoolStuffInc",     fn: coolStuffInc,                sealed: true },
-  { name: "Amazon",           fn: amazon,                      sealed: true },
-  { name: "Whatnot",          fn: whatnot,                     sealed: true },
-  { name: "Dave & Adam's",    fn: daveAndAdams,                sealed: true },
-  { name: "Steel City",       fn: steelCity,                   sealed: true },
-  { name: "Miniature Market", fn: miniatureMarket,             sealed: true },
-  { name: "ChannelFireball",  fn: channelFireball,             sealed: true },
-  { name: "Target",           fn: target,                      sealed: true },
-  { name: "Walmart",          fn: walmart,                     sealed: true },
+// Priced sources use public APIs that work from Vercel. Storefront HTML
+// scrapes (eBay 403, etc.) are shop-links only — cloud IPs are blocked.
+const PRICED: { name: string; fn: (q: string) => Promise<Listing[]>; sealed?: boolean }[] = [
+  { name: "TCGplayer", fn: tcgplayer },
+  { name: "Cardmarket", fn: cardmarket },
+  { name: "Target", fn: target, sealed: true },
 ];
 
-async function requireAuth(request: Request): Promise<Response | null> {
-  const auth = request.headers.get("authorization") ?? request.headers.get("Authorization");
-  if (!auth?.toLowerCase().startsWith("bearer ")) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+function shopUrl(name: string, q: string): string {
+  const nkw = enc(q);
+  switch (name) {
+    case "eBay":
+      return `https://www.ebay.com/sch/i.html?_nkw=${enc(q + " pokemon card")}&_sacat=183454&LH_BIN=1&_sop=15`;
+    case "TrollAndToad":
+      return `https://www.trollandtoad.com/category.php?selected-cat=0&search-words=${nkw}`;
+    case "CardKingdom":
+      return `https://www.cardkingdom.com/catalog/search?search=header&filter%5Bname%5D=${nkw}`;
+    case "Mercari":
+      return `https://www.mercari.com/search/?keyword=${nkw}`;
+    case "PriceCharting":
+      return `https://www.pricecharting.com/search-products?q=${nkw}&type=prices`;
+    case "123Pokemon":
+      return `https://123pokemon.com/search?q=${nkw}`;
+    case "Pokemon Center":
+      return `https://www.pokemoncenter.com/search/${nkw}`;
+    case "CoolStuffInc":
+      return `https://www.coolstuffinc.com/main_search.php?pa=searchOnLoad&page=1&resultsPerPage=25&q=${nkw}`;
+    case "Amazon":
+      return `https://www.amazon.com/s?k=${nkw}`;
+    case "Whatnot":
+      return `https://www.whatnot.com/search?q=${nkw}`;
+    case "Dave & Adam's":
+      return `https://www.dacardworld.com/search?q=${nkw}`;
+    case "Steel City":
+      return `https://www.steelcitycollectibles.com/search?q=${nkw}`;
+    case "Miniature Market":
+      return `https://www.miniaturemarket.com/catalogsearch/result/?q=${nkw}`;
+    case "ChannelFireball":
+      return `https://store.channelfireball.com/search?q=${nkw}`;
+    case "Walmart":
+      return `https://www.walmart.com/search?q=${enc(q + " pokemon")}`;
+    default:
+      return `https://www.google.com/search?q=${enc(q + " " + name)}`;
   }
-  const token = auth.slice(7).trim();
-  if (!token) return Response.json({ error: "Unauthorized" }, { status: 401 });
-  try {
-    const { createClient } = await import("@supabase/supabase-js");
-    const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
-      auth: { persistSession: false, autoRefreshToken: false },
-      global: { headers: { Authorization: `Bearer ${token}` } },
-    });
-    const { data, error } = await sb.auth.getUser(token);
-    if (error || !data.user) return Response.json({ error: "Unauthorized" }, { status: 401 });
-    return null;
-  } catch {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+}
+
+const SHOP_NAMES = [
+  "eBay", "TrollAndToad", "CardKingdom", "Mercari", "PriceCharting",
+  "123Pokemon", "Pokemon Center", "CoolStuffInc", "Amazon", "Whatnot",
+  "Dave & Adam's", "Steel City", "Miniature Market", "ChannelFireball", "Walmart",
+];
+
+async function tcgIoById(id: string): Promise<Listing[]> {
+  let last = "error";
+  for (let i = 0; i < 4; i++) {
+    try {
+      const r = await fetch(`https://api.pokemontcg.io/v2/cards/${enc(id)}`, {
+        headers: tcgIoHeaders(),
+        signal: AbortSignal.timeout(8000),
+      });
+      if (r.status === 429 || r.status >= 500) {
+        last = String(r.status);
+        await new Promise((res) => setTimeout(res, 400 * (i + 1)));
+        continue;
+      }
+      if (!r.ok) throw new Error(`${r.status}`);
+      const j: any = await r.json();
+      const c = j?.data;
+      if (!c) return [];
+      const q = `${c.name} ${c.set?.name ?? ""} ${c.number ?? ""}`.trim();
+      const [tp, cm] = await Promise.all([
+        (async () => {
+          const fakeQ = q;
+          // Reuse parsers by synthesizing from this card only
+          const listings: Listing[] = [];
+          const tcg = c.tcgplayer;
+          if (tcg?.url && tcg?.prices) {
+            for (const [name, p] of Object.entries(tcg.prices) as [string, any][]) {
+              const val = p?.low ?? p?.directLow; // listed buy-now, never 24h market avg
+              if (typeof val !== "number" || val <= 0) continue;
+              listings.push({
+                source: "TCGplayer",
+                title: `${c.name} — ${c.set?.name ?? ""} #${c.number ?? ""} (${name})`.trim(),
+                price: Math.round(val * 100) / 100,
+                priceRaw: `$${val.toFixed(2)}`,
+                currency: "USD",
+                url: tcg.url,
+                image: c.images?.small ?? null,
+                condition: name,
+              });
+            }
+          }
+          const cmkt = c.cardmarket;
+          if (cmkt?.url && cmkt?.prices) {
+            const eur = cmkt.prices.lowPrice ?? cmkt.prices.trendPrice ?? cmkt.prices.averageSellPrice;
+            if (typeof eur === "number" && eur > 0) {
+              listings.push({
+                source: "Cardmarket",
+                title: `${c.name} — ${c.set?.name ?? ""} #${c.number ?? ""}`,
+                price: Math.round(eur * (FX.EUR ?? 1) * 100) / 100,
+                priceRaw: `€${eur.toFixed(2)}`,
+                currency: "EUR",
+                url: cmkt.url,
+                image: c.images?.small ?? null,
+              });
+            }
+          }
+          return listings;
+        })(),
+        Promise.resolve([] as Listing[]),
+      ]);
+      return tp;
+    } catch (e) {
+      last = String((e as Error).message || e);
+    }
   }
+  throw new Error(last);
 }
 
 export const Route = createFileRoute("/api/public/card-prices")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const unauthorized = await requireAuth(request);
-        if (unauthorized) return unauthorized;
-
         const url = new URL(request.url);
         const q = (url.searchParams.get("q") ?? "").slice(0, 200).trim();
-        if (!q) return Response.json({ error: "Missing q parameter" }, { status: 400 });
+        const cardId = (url.searchParams.get("id") ?? "").trim();
+        if (!q && !cardId) return Response.json({ error: "Missing q parameter" }, { status: 400 });
         const cheapOnly = url.searchParams.get("cheap") === "1";
+        const fresh = url.searchParams.get("fresh") === "1";
         const sealed = url.searchParams.get("sealed") === "1" || /booster\s*box|elite\s*trainer|booster\s*bundle|booster\s*display/i.test(q);
 
-        // In sealed mode the pokemontcg.io-backed sources only know individual
-        // cards, so they pollute results with single-card hits. Drop them.
-        let sourceList = cheapOnly ? SOURCES.filter(s => s.fast) : SOURCES;
-        if (sealed) sourceList = SOURCES.filter(s => s.sealed);
+        const sources: SourceResult[] = [];
 
-        const SEALED_OK = /(booster\s*box|booster\s*display|elite\s*trainer\s*box|\betb\b|booster\s*bundle|case\b)/i;
-        const SEALED_BAD = /(single|singles|\bpsa\b|\bcgc\b|\bbgs\b|graded|proxy|sleeves?\b|playmat|deck\s*box|binder|card\s*#)/i;
-
-        const settled = await Promise.allSettled(
-          sourceList.map(async (src) => {
-            try {
-              const listings = await withTimeout(src.fn(q), cheapOnly ? 5000 : 8000);
-              const filtered = sealed
-                ? listings.filter(l => SEALED_OK.test(l.title) && !SEALED_BAD.test(l.title))
-                : listings;
-              return { src, listings: filtered };
-            } catch (e) {
-              return { src, listings: [] as Listing[], error: String((e as Error).message || e) };
+        if (cardId && !sealed) {
+          try {
+            const listings = await withTimeout(tcgIoById(cardId), 10000);
+            const bySrc = new Map<string, Listing[]>();
+            for (const l of listings) {
+              const arr = bySrc.get(l.source) ?? [];
+              arr.push(l);
+              bySrc.set(l.source, arr);
             }
-          })
-        );
-
-        const sources: SourceResult[] = settled.map((s) => {
-          if (s.status === "rejected") {
-            return { source: "?", ok: false, count: 0, lowest: null, listings: [], error: String(s.reason) };
+            for (const [name, ls] of bySrc) {
+              const ranked = ls.slice().sort((a, b) => (a.price + (a.shipping ?? 0)) - (b.price + (b.shipping ?? 0)));
+              sources.push({
+                source: name,
+                ok: ranked.length > 0,
+                count: ranked.length,
+                lowest: ranked[0] ?? null,
+                listings: ranked,
+              });
+            }
+          } catch (e) {
+            sources.push({
+              source: "TCGplayer",
+              ok: false,
+              count: 0,
+              lowest: null,
+              listings: [],
+              error: String((e as Error).message || e),
+            });
           }
-          const { src, listings, error } = s.value as any;
-          return {
-            source: src.name,
-            ok: listings.length > 0,
-            count: listings.length,
-            lowest: listings[0] ?? null,
-            listings,
-            error,
-          };
-        });
+        } else {
+          let priced = sealed ? PRICED.filter((s) => s.sealed) : PRICED;
+          if (cheapOnly) priced = PRICED.filter((s) => s.name === "TCGplayer" || s.name === "Cardmarket");
+          const settled = await Promise.allSettled(
+            priced.map(async (src) => {
+              try {
+                const listings = await withTimeout(src.fn(q || cardId), cheapOnly ? 5000 : 8000);
+                return { src, listings };
+              } catch (e) {
+                return { src, listings: [] as Listing[], error: String((e as Error).message || e) };
+              }
+            }),
+          );
+          for (const s of settled) {
+            if (s.status === "rejected") {
+              sources.push({ source: "?", ok: false, count: 0, lowest: null, listings: [], error: String(s.reason) });
+              continue;
+            }
+            const { src, listings, error } = s.value as any;
+            const ranked = listings.slice().sort(
+              (a: Listing, b: Listing) => (a.price + (a.shipping ?? 0)) - (b.price + (b.shipping ?? 0)),
+            );
+            sources.push({
+              source: src.name,
+              ok: ranked.length > 0,
+              count: ranked.length,
+              lowest: ranked[0] ?? null,
+              listings: ranked,
+              error,
+            });
+          }
+        }
 
-        const all = sources.flatMap((s) => s.listings);
-        // Booster boxes shouldn't be $5 — drop suspiciously cheap noise in sealed mode.
-        const considered = sealed ? all.filter(l => (l.price + (l.shipping ?? 0)) >= 40) : all;
-        const cheapest = considered.length
-          ? considered.slice().sort((a, b) => (a.price + (a.shipping ?? 0)) - (b.price + (b.shipping ?? 0)))[0]
-          : null;
+        if (!cheapOnly) {
+          for (const name of SHOP_NAMES) {
+            if (sealed && name === "PriceCharting") continue;
+            sources.push({
+              source: name,
+              ok: true,
+              count: 0,
+              lowest: null,
+              listings: [],
+              shopUrl: shopUrl(name, q || cardId),
+              kind: "shop",
+            } as SourceResult);
+          }
+        }
+
+        const all = sources.flatMap((s) => s.listings).filter((l) => l.price > 0);
+        const considered = sealed ? all.filter((l) => (l.price + (l.shipping ?? 0)) >= 40) : all;
+        const ranked = considered.slice().sort(
+          (a, b) => (a.price + (a.shipping ?? 0)) - (b.price + (b.shipping ?? 0)),
+        );
+        const seen = new Set<string>();
+        const queue: Listing[] = [];
+        for (const l of ranked) {
+          const id = `${l.source}::${(l.url || "").split("?")[0]}::${l.condition || ""}`;
+          if (!id || seen.has(id)) continue;
+          seen.add(id);
+          queue.push(l);
+          if (queue.length >= 8) break;
+        }
+        const cheapest = queue[0] ?? null;
 
         const body: AggregateResponse = {
-          query: q,
+          query: q || cardId,
           cheapest,
+          queue,
           sources,
           generatedAt: new Date().toISOString(),
         };
         return Response.json(body, {
-          headers: { "Cache-Control": "public, max-age=600" },
+          headers: {
+            "Cache-Control": fresh ? "no-store" : "private, max-age=20",
+          },
         });
       },
     },

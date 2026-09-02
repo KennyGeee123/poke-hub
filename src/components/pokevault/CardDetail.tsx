@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { TCGCard } from "@/lib/pokemon-api";
-import { getCard, getMarketPrice, getRarityColor } from "@/lib/pokemon-api";
+import { getCard, getMarketPrice, getRarityColor, stubCardFromId } from "@/lib/pokemon-api";
 import { formatPrice } from "@/lib/vault";
 import { CardActions } from "./CardTile";
 import { getPokedex, type Pokedex } from "@/lib/pokeapi";
@@ -8,20 +8,51 @@ import { getAltArtworks, type AltArt } from "@/lib/tcgdex";
 import { getEbaySold, type EbayResponse } from "@/lib/ebay";
 import { fetchBulbapedia, type BulbaInfo } from "@/lib/bulbapedia";
 import { PriceComparePanel } from "./PriceCompare";
+import { QuickStrike } from "./QuickStrike";
+import { fallbackCardImages, resolveHDImage } from "@/lib/card-images";
 
 export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack: () => void; onToast: (m: string) => void }) {
-  const [card, setCard] = useState<TCGCard | null>(null);
+  const [card, setCard] = useState<TCGCard | null>(() => stubCardFromId(cardId));
   const [loaded, setLoaded] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
+  const [degraded, setDegraded] = useState(false);
+  const [imgSrc, setImgSrc] = useState("");
+  const failedImgs = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    setCard(null);
+    const stub = stubCardFromId(cardId);
+    setCard(stub);
     setLoaded(false);
-    setErr(null);
-    getCard(cardId).then(setCard).catch(e => setErr(String(e)));
+    setDegraded(false);
+    setImgSrc(stub.images?.large || stub.images?.small || "");
+    failedImgs.current = new Set();
+    let live = true;
+    getCard(cardId)
+      .then((c) => {
+        if (!live || !c) return;
+        setCard(c);
+        setDegraded(c.name === stub.name && c.name === cardId.replace(/-/g, " "));
+      })
+      .catch(() => {
+        if (live) setDegraded(true);
+      });
+    return () => {
+      live = false;
+    };
   }, [cardId]);
 
-  if (err) return <div className="pv-empty"><div className="pv-empty-title">Error loading card</div><div>{err}</div></div>;
+  useEffect(() => {
+    if (!card) return;
+    failedImgs.current = new Set();
+    setLoaded(false);
+    const list = fallbackCardImages(card);
+    setImgSrc(list[0] || card.images?.large || card.images?.small || "");
+    resolveHDImage(card).then((url) => {
+      if (url && url !== (card.images?.large || "") && !failedImgs.current.has(url)) {
+        setImgSrc(url);
+      }
+    }).catch(() => {});
+  }, [card]);
+
   if (!card) return <div className="pv-empty">Loading…</div>;
 
   const market = getMarketPrice(card);
@@ -31,25 +62,37 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
   return (
     <div className="pad">
       <button className="pv-back" onClick={onBack}>← Back</button>
+      {degraded && (
+        <div style={{ fontSize: 11, color: "var(--t3)", margin: "0 0 10px", padding: "8px 10px", background: "rgba(255,215,0,.08)", border: "1px solid var(--gold-brd)", borderRadius: 8 }}>
+          Showing scan from image CDN while the catalog API recovers. Prices may be delayed.
+        </div>
+      )}
       <div className="pv-detail-layout">
         <div className="pv-detail-left">
           <div className="pv-detail-img-wrap">
             <div className="pv-card-skel" style={{ opacity: loaded ? 0 : 1 }} />
             <img
               className={`pv-detail-img ${loaded ? "loaded" : ""}`}
-              src={card.images.large}
+              src={imgSrc || card.images.large}
               alt={card.name}
               onLoad={() => setLoaded(true)}
+              onError={() => {
+                failedImgs.current.add(imgSrc);
+                setLoaded(true);
+                const next = fallbackCardImages(card).find((u) => u && !failedImgs.current.has(u));
+                if (next) setImgSrc(next);
+              }}
             />
           </div>
           <CardActions card={card} onAfterAction={onToast} />
+          <QuickStrike card={card} />
           {market > 0 && (
             <div style={{
-              marginTop: 12, padding: 14, background: "rgba(255,215,0,.05)",
+              marginTop: 10, padding: "8px 12px", background: "rgba(255,215,0,.05)",
               border: "1px solid var(--gold-brd)", borderRadius: 10, textAlign: "center"
             }}>
               <div style={{ fontSize: 9, letterSpacing: 2, color: "var(--t3)", fontWeight: 700 }}>FAIR MARKET</div>
-              <div style={{ fontFamily: "Bebas Neue", fontSize: 36, color: "var(--gold)", letterSpacing: 1 }}>{formatPrice(market)}</div>
+              <div style={{ fontFamily: "Bebas Neue", fontSize: 22, color: "var(--gold)", letterSpacing: 1 }}>{formatPrice(market)}</div>
             </div>
           )}
           <div className="flex flex-col gap-1 mt-3">
@@ -174,7 +217,7 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
           <PokedexPanel cardName={card.name} />
           <BulbapediaPanel cardName={card.name} />
           <AltArtworksPanel card={card} />
-          <PriceComparePanel query={`${card.name} ${card.set.name} ${card.number ?? ""}`.trim()} />
+          <PriceComparePanel query={`${card.name} ${card.set.name} ${card.number ?? ""}`.trim()} cardId={card.id} />
           <EbaySoldPanel query={`${card.name} ${card.set.name} ${card.number ?? ""}`.trim()} />
         </div>
       </div>

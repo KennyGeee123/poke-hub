@@ -25,6 +25,8 @@ export type GBMon = {
   slot: number | null;
 };
 
+const LS_PARTY = "pv.gb.party.v1";
+
 const parseDmg = (s?: string) => {
   const n = parseInt((s || "").replace(/\D/g, ""));
   return isNaN(n) ? 0 : n;
@@ -111,15 +113,46 @@ export function gainXP(mon: GBMon, gained: number): { mon: GBMon; leveled: boole
   return { mon: { ...mon, xp, level, max_hp }, leveled };
 }
 
-/* ---------- Persistence ---------- */
+/* ---------- Persistence (guest localStorage · signed-in supabase) ---------- */
 
-export async function fetchParty(): Promise<GBMon[]> {
-  const { data, error } = await supabase
-    .from("gb_party")
-    .select("*")
-    .order("created_at", { ascending: true });
-  if (error) throw error;
-  return (data ?? []).map((r: any) => ({
+async function currentUserId(): Promise<string | null> {
+  try {
+    const { data } = await supabase.auth.getUser();
+    return data.user?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function newGuestId(): string {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return `gb-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+}
+
+function readLocalParty(): GBMon[] {
+  try {
+    const raw = localStorage.getItem(LS_PARTY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLocalParty(party: GBMon[]): void {
+  try {
+    localStorage.setItem(LS_PARTY, JSON.stringify(party));
+  } catch {
+    /* quota / private mode */
+  }
+}
+
+function rowToMon(r: any): GBMon {
+  return {
     id: r.id,
     card_id: r.card_id,
     name: r.name,
@@ -133,14 +166,28 @@ export async function fetchParty(): Promise<GBMon[]> {
     wins: r.wins,
     losses: r.losses,
     slot: r.slot,
-  }));
+  };
+}
+
+export async function fetchParty(): Promise<GBMon[]> {
+  const uid = await currentUserId();
+  if (!uid) return readLocalParty();
+  const { data, error } = await supabase
+    .from("gb_party")
+    .select("*")
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map(rowToMon);
 }
 
 export async function addToParty(card: TCGCard, level = 5): Promise<GBMon> {
-  const { data: u } = await supabase.auth.getUser();
-  const uid = u.user?.id;
-  if (!uid) throw new Error("Not signed in");
   const m = makeMonFromCard(card, level);
+  const uid = await currentUserId();
+  if (!uid) {
+    const mon: GBMon = { ...m, id: newGuestId() };
+    writeLocalParty([...readLocalParty(), mon]);
+    return mon;
+  }
   const { data, error } = await supabase
     .from("gb_party")
     .insert({ ...m, user_id: uid })
@@ -151,6 +198,11 @@ export async function addToParty(card: TCGCard, level = 5): Promise<GBMon> {
 }
 
 export async function saveMonStats(mon: GBMon): Promise<void> {
+  const uid = await currentUserId();
+  if (!uid) {
+    writeLocalParty(readLocalParty().map((x) => (x.id === mon.id ? { ...x, ...mon } : x)));
+    return;
+  }
   const { error } = await supabase
     .from("gb_party")
     .update({
@@ -166,6 +218,11 @@ export async function saveMonStats(mon: GBMon): Promise<void> {
 }
 
 export async function releaseMon(id: string): Promise<void> {
+  const uid = await currentUserId();
+  if (!uid) {
+    writeLocalParty(readLocalParty().filter((x) => x.id !== id));
+    return;
+  }
   await supabase.from("gb_party").delete().eq("id", id);
 }
 

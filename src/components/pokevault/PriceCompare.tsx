@@ -31,7 +31,7 @@ function Price({ l }: { l: Listing }) {
   );
 }
 
-export function PriceComparePanel({ query }: { query: string }) {
+export function PriceComparePanel({ query, cardId }: { query: string; cardId?: string }) {
   const [data, setData] = useState<AggregateResponse | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -41,7 +41,7 @@ export function PriceComparePanel({ query }: { query: string }) {
     setLoading(true);
     setErr(null);
     try {
-      const r = await getCardPrices(query);
+      const r = await getCardPrices(query, { cardId });
       setData(r);
     } catch (e: any) {
       setErr(e?.message ?? String(e));
@@ -55,7 +55,7 @@ export function PriceComparePanel({ query }: { query: string }) {
     setErr(null);
     run();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query]);
+  }, [query, cardId]);
 
   const sortedSources = data?.sources
     ?.slice()
@@ -70,13 +70,15 @@ export function PriceComparePanel({ query }: { query: string }) {
       <div className="pv-panel-hdr">
         <div className="pv-panel-title">💸 BUY IT CHEAPEST</div>
         <div className="pv-panel-tag">
-          {data ? `${data.sources.filter((s) => s.ok).length}/${data.sources.length} sources` : loading ? "Scanning…" : "—"}
+          {data
+            ? `${data.sources.filter((s) => s.lowest).length} priced · ${data.sources.filter((s) => s.kind === "shop").length} shop links`
+            : loading ? "Looking up listed lows…" : "—"}
         </div>
       </div>
 
       {loading && !data && (
         <div style={{ fontSize: 11, color: "var(--t3)" }}>
-          Scanning eBay, TCGplayer, Cardmarket, TrollAndToad, CardKingdom, Mercari, PriceCharting, 123Pokemon…
+          Pulling TCGPlayer and Cardmarket listed lows. Other stores are live search links (cloud scrapes are blocked).
         </div>
       )}
 
@@ -147,8 +149,8 @@ export function PriceComparePanel({ query }: { query: string }) {
             }}
           >
             <div
-              style={{ display: "flex", alignItems: "center", gap: 10, cursor: s.ok ? "pointer" : "default" }}
-              onClick={() => s.ok && setExpanded((p) => ({ ...p, [s.source]: !isOpen }))}
+              style={{ display: "flex", alignItems: "center", gap: 10, cursor: s.lowest ? "pointer" : "default" }}
+              onClick={() => s.lowest && setExpanded((p) => ({ ...p, [s.source]: !isOpen }))}
             >
               <span style={{ width: 8, height: 8, borderRadius: "50%", background: color, boxShadow: `0 0 6px ${color}` }} />
               <div style={{ fontWeight: 700, fontSize: 13, color: "var(--t1)", minWidth: 110 }}>{s.source}</div>
@@ -162,9 +164,19 @@ export function PriceComparePanel({ query }: { query: string }) {
                   </div>
                   <span style={{ fontSize: 11, color: "var(--neon-cyan)" }}>{isOpen ? "▾" : "▸"}</span>
                 </>
+              ) : s.kind === "shop" && s.shopUrl ? (
+                <a
+                  href={s.shopUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ fontSize: 12, color: "var(--neon-cyan)", marginLeft: "auto", textDecoration: "none" }}
+                >
+                  Search live ↗
+                </a>
               ) : (
                 <div style={{ fontSize: 11, color: "var(--t3)", flex: 1 }}>
-                  {s.error ? `unreachable (${s.error.slice(0, 30)})` : "no results"}
+                  {s.error ? `listed feed busy (${s.error.slice(0, 24)})` : "no listed low"}
                 </div>
               )}
             </div>

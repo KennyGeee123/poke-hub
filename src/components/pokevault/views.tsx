@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { hdImg } from "@/lib/card-images";
 import type { TCGCard, TCGSet } from "@/lib/pokemon-api";
-import { getMarketPrice, getSets, getTopMarket, getTrending, searchCards, getCardsBySet } from "@/lib/pokemon-api";
+import { getMarketPrice, getSets, getTopMarket, getTrending, getDiscoverFast, searchCards, getCardsBySet, getAllCardsBySet } from "@/lib/pokemon-api";
 import { formatPrice, useVault } from "@/lib/vault";
 import { CardTile, CardSkeleton } from "./CardTile";
 import { CollectionInsightsCard } from "./CollectionInsights";
@@ -16,10 +16,17 @@ export function DiscoverView({ onOpen, onTab }: { onOpen: OnOpen; onTab: (t: str
   const [heroIdx, setHeroIdx] = useState(0);
 
   useEffect(() => {
-    getTrending(60).then(cards => {
+    let cancelled = false;
+    const paint = (cards: TCGCard[]) => {
+      if (cancelled) return;
       const sorted = [...cards].sort((a, b) => getMarketPrice(b) - getMarketPrice(a));
       setTrending(sorted);
-    }).catch(() => setTrending([]));
+    };
+    getDiscoverFast().then(paint).catch(() => {});
+    getTrending(24).then(paint).catch(() => {
+      setTrending(prev => prev ?? []);
+    });
+    return () => { cancelled = true; };
   }, []);
 
   // Rotate hero every 2 minutes
@@ -62,7 +69,14 @@ export function DiscoverView({ onOpen, onTab }: { onOpen: OnOpen; onTab: (t: str
             )}
           </div>
           <div className="pv-hero-img">
-            <img src={hero.images.large} alt={hero.name} />
+            <img
+              src={hero.images.small || hero.images.large}
+              srcSet={hero.images.large ? `${hero.images.small} 245w, ${hero.images.large} 600w` : undefined}
+              sizes="(max-width: 700px) 40vw, 220px"
+              alt={hero.name}
+              fetchPriority="high"
+              decoding="async"
+            />
           </div>
         </div>
       )}
@@ -109,11 +123,23 @@ function Rail({ title, cards, onOpen }: { title: string; cards: TCGCard[] | null
 export function MarketView({ onOpen }: { onOpen: OnOpen }) {
   const [cards, setCards] = useState<TCGCard[] | null>(null);
   const [filter, setFilter] = useState<string>("all");
+  const [err, setErr] = useState<string | null>(null);
   const { addToVault, inVault } = useVault();
 
-  useEffect(() => {
-    getTopMarket().then(setCards).catch(() => setCards([]));
-  }, []);
+  const load = () => {
+    setErr(null);
+    setCards(null);
+    getTopMarket()
+      .then((c) => {
+        setCards(c);
+        if (!c.length) setErr("The card API is busy. Showing nothing — retry in a moment.");
+      })
+      .catch((e: any) => {
+        setCards([]);
+        setErr(e?.message || "Could not load market data.");
+      });
+  };
+  useEffect(() => { load(); }, []);
 
   const filtered = (cards ?? []).filter(c => {
     if (filter === "all") return true;
@@ -136,7 +162,14 @@ export function MarketView({ onOpen }: { onOpen: OnOpen }) {
           <button key={k} className={`pv-pill ${filter === k ? "on" : ""}`} onClick={() => setFilter(k)}>{l}</button>
         ))}
       </div>
-      {!cards && <div className="pv-empty">Loading market data…</div>}
+      {!cards && !err && <div className="pv-empty">Loading market data…</div>}
+      {err && (!cards || cards.length === 0) && (
+        <div className="pv-empty">
+          <div className="pv-empty-title">MARKET DIDN’T LOAD</div>
+          <div>{err}</div>
+          <button className="pv-btn pv-btn-fill" style={{ marginTop: 12 }} onClick={load}>Retry</button>
+        </div>
+      )}
       {filtered.map((c, i) => (
         <div key={c.id} className="pv-lb-row" onClick={() => onOpen(c.id)}>
           <div className="pv-lb-rank">{i + 1}</div>
@@ -163,13 +196,20 @@ export function MarketView({ onOpen }: { onOpen: OnOpen }) {
 export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
   const [sets, setSets] = useState<TCGSet[] | null>(null);
   const [filter, setFilter] = useState("");
+  const [err, setErr] = useState<string | null>(null);
 
-  useEffect(() => {
-    getSets().then(setSets).catch(() => setSets([]));
-  }, []);
+  const load = () => {
+    setErr(null);
+    setSets(null);
+    getSets().then(setSets).catch((e: any) => {
+      setSets([]);
+      setErr(e?.message || "Could not load sets.");
+    });
+  };
+  useEffect(() => { load(); }, []);
 
   const filtered = (sets ?? []).filter(s =>
-    !filter || s.name.toLowerCase().includes(filter.toLowerCase()) || s.series.toLowerCase().includes(filter.toLowerCase())
+    !filter || s.name.toLowerCase().includes(filter.toLowerCase()) || s.series?.toLowerCase().includes(filter.toLowerCase())
   );
 
   return (
@@ -180,19 +220,31 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
         value={filter}
         onChange={e => setFilter(e.target.value)}
       />
-      {!sets && <div className="pv-empty">Loading sets…</div>}
+      {!sets && !err && <div className="pv-empty">Loading every set…</div>}
+      {err && (
+        <div className="pv-empty">
+          <div className="pv-empty-title">SETS DIDN’T LOAD</div>
+          <div>{err}</div>
+          <button className="pv-btn pv-btn-fill" style={{ marginTop: 12 }} onClick={load}>Retry</button>
+        </div>
+      )}
+      {sets && (
+        <div style={{ fontSize: 11, color: "var(--t3)", marginBottom: 10 }}>
+          {filtered.length} of {sets.length} sets
+        </div>
+      )}
       <div className="pv-sets-grid">
         {filtered.map(s => (
           <div key={s.id} className="pv-set-el" onClick={() => onPickSet(s)}>
             {s.images?.logo
-              ? <img className="pv-set-logo" src={s.images.logo} alt={s.name} />
+              ? <img className="pv-set-logo" src={s.images.logo} alt={s.name} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
               : <div className="pv-set-logo" />}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</div>
               <div style={{ fontSize: 10, color: "var(--t3)" }}>{s.series} • {s.releaseDate}</div>
               <div style={{ fontSize: 10, color: "var(--t3)" }}>{s.total} cards</div>
             </div>
-            {s.images?.symbol && <img className="pv-set-sym" src={s.images.symbol} alt="" />}
+            {s.images?.symbol && <img className="pv-set-sym" src={s.images.symbol} alt="" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />}
           </div>
         ))}
       </div>
@@ -204,9 +256,23 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
 export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () => void; onOpen: OnOpen }) {
   const [cards, setCards] = useState<TCGCard[] | null>(null);
   const [showBox, setShowBox] = useState(false);
-  useEffect(() => {
-    getCardsBySet(set.id).then(r => setCards(r.data)).catch(() => setCards([]));
-  }, [set.id]);
+  const [err, setErr] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
+  const load = () => {
+    setErr(null);
+    setCards(null);
+    setTotal(0);
+    getAllCardsBySet(set.id, (page, tot) => {
+      setCards(page);
+      setTotal(tot);
+    }, set.name)
+      .then(r => { setCards(r.data); setTotal(r.totalCount); })
+      .catch((e: any) => {
+        setCards([]);
+        setErr(e?.message || "Could not load this set. Try again.");
+      });
+  };
+  useEffect(() => { load(); }, [set.id]);
   return (
     <div className="pad">
       <button className="pv-back" onClick={onBack}>← All sets</button>
@@ -214,7 +280,7 @@ export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () 
         {set.images?.logo && <img src={set.images.logo} alt={set.name} style={{ height: 44 }} />}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: "Bebas Neue", fontSize: 24, letterSpacing: 2 }}>{set.name.toUpperCase()}</div>
-          <div style={{ color: "var(--t3)", fontSize: 11 }}>{set.series} • {set.total} cards • {set.releaseDate}</div>
+          <div style={{ color: "var(--t3)", fontSize: 11 }}>{set.series} • {cards ? `${cards.length}${total && cards.length < total ? ` / ${total}` : total ? ` / ${total}` : ""}` : set.total} cards • {set.releaseDate}</div>
         </div>
         <button
           className="pv-btn pv-btn-fill"
@@ -229,8 +295,18 @@ export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () 
           <PriceComparePanel query={`${set.name} booster box sealed pokemon`} />
         </div>
       )}
+      {err && (
+        <div className="pv-empty">
+          <div className="pv-empty-title">SET DIDN’T LOAD</div>
+          <div>{err}</div>
+          <button className="pv-btn pv-btn-fill" style={{ marginTop: 12 }} onClick={load}>Retry</button>
+        </div>
+      )}
+      {!err && cards && cards.length === 0 && (
+        <div className="pv-empty">No cards in this set yet.</div>
+      )}
       <div className="pv-card-grid">
-        {!cards && Array.from({ length: 12 }).map((_, i) => <CardSkeleton key={i} />)}
+        {!cards && !err && Array.from({ length: 12 }).map((_, i) => <CardSkeleton key={i} />)}
         {cards?.map(c => <CardTile key={c.id} card={c} onClick={() => onOpen(c.id)} />)}
       </div>
     </div>
@@ -245,20 +321,34 @@ export function SearchView({ onOpen }: { onOpen: OnOpen }) {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   const runSearch = async (query: string, p = 1) => {
     if (!query.trim()) return;
     setLoading(true);
     setActive(query);
+    setErr(null);
+    const raw = query.trim();
+    const queries = /[:*]/.test(raw) ? [raw] : [`name:"${raw}*"`, `name:${raw}*`, `name:${raw}`];
     try {
-      // Build query: name search by default
-      const tcgQuery = /[:*]/.test(query) ? query : `name:"${query}*"`;
-      const res = await searchCards({ q: tcgQuery, page: p, pageSize: 24, orderBy: "-set.releaseDate" });
+      let lastErr: unknown = null;
+      let res: { data: TCGCard[]; totalCount: number } | null = null;
+      for (const tcgQuery of queries) {
+        try {
+          const r = await searchCards({ q: tcgQuery, page: p, pageSize: 50, orderBy: "-set.releaseDate" });
+          res = r;
+          if (r.data.length) break;
+        } catch (e) {
+          lastErr = e;
+        }
+      }
+      if (!res) throw lastErr ?? new Error("Search failed");
       setCards(p === 1 ? res.data : [...(cards ?? []), ...res.data]);
       setTotal(res.totalCount);
       setPage(p);
-    } catch {
+    } catch (e: any) {
       setCards([]);
+      setErr(e?.message || "Search failed. The card API is busy — retry in a moment.");
     } finally {
       setLoading(false);
     }
@@ -302,7 +392,13 @@ export function SearchView({ onOpen }: { onOpen: OnOpen }) {
           )}
         </>
       )}
-      {cards && cards.length === 0 && <div className="pv-empty">No cards found.</div>}
+      {cards && cards.length === 0 && (
+        <div className="pv-empty">
+          <div className="pv-empty-title">{err ? "SEARCH FAILED" : "NO CARDS FOUND"}</div>
+          <div>{err ?? `Nothing matched "${active}".`}</div>
+          {err && <button className="pv-btn pv-btn-fill" style={{ marginTop: 12 }} onClick={() => runSearch(active, 1)}>Retry</button>}
+        </div>
+      )}
     </div>
   );
 }
@@ -371,7 +467,12 @@ export function VaultView({ onOpen }: { onOpen: OnOpen }) {
           <div className="pv-empty">
             <div className="pv-empty-icon">🔒</div>
             <div className="pv-empty-title">VAULT EMPTY</div>
-            <div>Add cards from Discover, Market, or Search</div>
+            <div>Add cards from Discover, Market, Scan, or Search.</div>
+            <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap", marginTop: 12 }}>
+              <button className="pv-btn pv-btn-fill" onClick={() => window.dispatchEvent(new CustomEvent("pv-goto", { detail: "search" }))}>Search cards</button>
+              <button className="pv-btn pv-btn-out" onClick={() => window.dispatchEvent(new CustomEvent("pv-goto", { detail: "discover" }))}>Discover</button>
+              <button className="pv-btn pv-btn-out" onClick={() => window.dispatchEvent(new CustomEvent("pv-goto", { detail: "scan" }))}>Scan a card</button>
+            </div>
           </div>
         </div>
       ) : (
@@ -397,6 +498,7 @@ export function VaultView({ onOpen }: { onOpen: OnOpen }) {
                   <CheapestPill
                     query={`${e.card.name} ${e.card.set.name} ${e.card.number}`}
                     marketPrice={getMarketPrice(e.card)}
+                    cardId={e.card.id}
                   />
                 </div>
               </div>

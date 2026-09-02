@@ -1,4 +1,5 @@
 import { TIERS, usePremium, type Tier } from "@/lib/premium";
+import { useAuth } from "@/lib/auth";
 
 type Props = {
   reason?: string;
@@ -7,14 +8,23 @@ type Props = {
 
 export function Paywall({ reason }: Props) {
   const { tier, setTier } = usePremium();
+  const { user } = useAuth();
 
   const handleSelect = (t: Tier) => {
     if (t === "free") return;
+    if (!user) {
+      window.location.assign("/login");
+      return;
+    }
     // TODO: swap for Paddle checkout once enabled:
     //   await paddle.Checkout.open({ items: [{ priceId: PADDLE_PRICE_IDS[t] }] })
     // For now, simulate a successful subscription locally so the UX is testable.
+    const label =
+      t === "scout" ? "Deal Scout ($4.99/mo)" :
+      t === "pro" ? "Pro Trainer ($9.99/mo)" :
+      "Elite Champion ($19.99/mo)";
     const ok = window.confirm(
-      `Subscribe to ${t === "pro" ? "Pro Trainer ($9.99/mo)" : "Elite Champion ($19.99/mo)"}?\n\n` +
+      `Subscribe to ${label}?\n\n` +
       `(Paddle checkout will activate here once payment setup is finished.)`
     );
     if (ok) setTier(t);
@@ -33,7 +43,7 @@ export function Paywall({ reason }: Props) {
       <div className="pv-tier-grid">
         {TIERS.map((t) => {
           const isCurrent = tier === t.id;
-          const featured = t.id === "pro";
+          const featured = t.id === "scout";
           return (
             <div
               key={t.id}

@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import { battleClipFor } from "@/lib/battle-cine";
+
+const CLASH_MOVES = /flamethrower|thunderbolt|solar beam|hydro pump|hyper beam/i;
 
 /** Visual FX overlay for a Pokémon attack. Rendered absolutely over the target. */
 export type MoveFxData = {
@@ -107,14 +110,17 @@ function pickKit(name: string, type: string): Kit {
 
 export function MoveFx({ fx, onDone }: { fx: MoveFxData; onDone: () => void }) {
   const [, setTick] = useState(0);
+  const [cineOk, setCineOk] = useState(true);
   useEffect(() => {
-    const t = setTimeout(onDone, 1150);
+    const t = setTimeout(onDone, 2400);
     setTick(x => x + 1);
+    setCineOk(true);
     return () => clearTimeout(t);
   }, [fx, onDone]);
 
   const kit = pickKit(fx.name, fx.type);
   const dirClass = fx.side === "player" ? "pv-fx-from-bot" : "pv-fx-from-top";
+  const cine = battleClipFor(fx.name, fx.type);
 
   return (
     <div
@@ -122,8 +128,20 @@ export function MoveFx({ fx, onDone }: { fx: MoveFxData; onDone: () => void }) {
       style={{ "--fx-hue": kit.hue } as React.CSSProperties}
       aria-hidden
     >
+      {cineOk && (
+        <video
+          className="pv-fx-clash-vid"
+          src={cine}
+          autoPlay
+          muted
+          playsInline
+          onError={() => setCineOk(false)}
+        />
+      )}
       <div className="pv-fx-burst" />
+      <div className="pv-fx-core" />
       <div className="pv-fx-ring" />
+      <div className="pv-fx-ring pv-fx-ring-2" />
       <ParticleField kit={kit} />
       <div className="pv-fx-label" style={{ color: kit.hue, textShadow: `0 0 12px ${kit.hue}` }}>
         {fx.name.toUpperCase()}
@@ -134,7 +152,7 @@ export function MoveFx({ fx, onDone }: { fx: MoveFxData; onDone: () => void }) {
 
 function ParticleField({ kit }: { kit: Kit }) {
   // Each pattern arranges glyphs along a different motion path
-  const count = kit.pattern === "rain" || kit.pattern === "swarm" ? 9 : 5;
+  const count = kit.pattern === "rain" || kit.pattern === "swarm" ? 14 : kit.pattern === "beam" || kit.pattern === "spray" ? 11 : 8;
   const parts = Array.from({ length: count }).map((_, i) => kit.glyphs[i % kit.glyphs.length]);
 
   return (

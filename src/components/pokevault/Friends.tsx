@@ -88,6 +88,20 @@ export function FriendsView({ onOpenCard }: { onOpenCard: (id: string) => void }
 
   if (loading) return <div style={{ padding: 20, textAlign: "center", color: "var(--t2)" }}>Loading friends…</div>;
 
+  if (!me) {
+    return (
+      <div style={{ padding: 24, maxWidth: 520, margin: "0 auto" }}>
+        <div className="pv-empty">
+          <div className="pv-empty-icon">🤝</div>
+          <div className="pv-empty-title">SIGN IN TO ADD FRIENDS</div>
+          <div>Friends, vault peek, and PvP need an account. The rest of the beta works as a guest.</div>
+          <button className="pv-btn pv-btn-fill" style={{ marginTop: 16 }} onClick={() => { window.location.href = "/login"; }}>Sign in</button>
+        </div>
+      </div>
+    );
+  }
+
+
   if (view.kind === "vault") {
     return <FriendVaultView friend={view.friend} onBack={() => setView({ kind: "list" })} onOpenCard={onOpenCard} />;
   }

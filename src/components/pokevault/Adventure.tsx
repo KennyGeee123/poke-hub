@@ -7,10 +7,20 @@ import { generateHiggsfieldImage, pollHiggsfieldImage } from "@/lib/higgsfield.f
 
 type Toast = { msg: string; key: number };
 type Scene = { name: string; url?: string; loading: boolean; error?: string; pending?: boolean };
+type PendingWild = {
+  name: string; level: number; region?: string;
+  kind?: "wild" | "gym" | "elite" | "champion";
+  catchable?: boolean; badge?: string; e4Index?: number; leader?: string;
+};
 
 export function AdventureView() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [scene, setScene] = useState<Scene | null>(null);
+  const [region, setRegion] = useState("Kanto");
+  const [pendingWild, setPendingWild] = useState<PendingWild | null>(null);
+  const [sceneVidOk, setSceneVidOk] = useState(true);
+  const [badges, setBadges] = useState<string[]>([]);
+  const [e4, setE4] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const sceneCache = useRef<Map<string, string>>(new Map());
   const higgsfield = useServerFn(generateHiggsfieldImage);
@@ -22,6 +32,18 @@ export function AdventureView() {
     setTimeout(() => setToasts((t) => t.filter((x) => x.key !== key)), 3200);
   }
 
+  function goBattle(w: PendingWild) {
+    window.dispatchEvent(new CustomEvent("pv-goto", { detail: "gb" }));
+    setTimeout(() => {
+      window.dispatchEvent(
+        new CustomEvent("pv-gb-wild", { detail: {
+          name: w.name, level: w.level, kind: w.kind || "wild",
+          catchable: w.catchable !== false, badge: w.badge, e4Index: w.e4Index, leader: w.leader,
+        } })
+      );
+    }, 250);
+  }
+
   async function renderScene(name: string) {
     const cached = sceneCache.current.get(name.toLowerCase());
     if (cached) {
@@ -31,10 +53,9 @@ export function AdventureView() {
     setScene({ name, loading: true });
     try {
       const prompt =
-        `A wild ${name} appears in a lush pixel-art diorama scene, ` +
-        `16-bit retro JRPG cinematic, tall grass, dramatic lighting, ` +
-        `tilt-shift miniature world, vibrant Pokémon adventure, ` +
-        `sharp pixels, painterly background, no text.`;
+        `Photoreal PlayStation 5 cinematic, a wild ${name} emerging from sunlit tall grass, ` +
+        `AAA open-world game still, 24mm anamorphic lens, volumetric golden-hour light, ` +
+        `shallow depth of field, no text, no logos, no watermark.`;
       let r = await higgsfield({ data: { prompt, width: 1024, height: 576 } });
 
       // Keep polling in the background instead of hanging on a spinner forever.
@@ -67,12 +88,36 @@ export function AdventureView() {
   useEffect(() => {
     const onMsg = async (e: MessageEvent) => {
       const d = e.data;
-      if (!d || typeof d.name !== "string") return;
+      if (!d || typeof d !== "object") return;
 
-      if (d.type === "pv-adventure-encounter") {
+      if (d.type === "pv-adventure-region" && typeof d.name === "string") {
+        setRegion(d.name);
+        return;
+      }
+
+      if (d.type === "pv-adventure-status") {
+        if (typeof d.region === "string") setRegion(d.region);
+        if (Array.isArray(d.badges)) setBadges(d.badges);
+        if (typeof d.e4 === "number") setE4(d.e4);
+        return;
+      }
+      if (d.type === "pv-adventure-heal") {
+        push("Healed at the Poké Center");
+        return;
+      }
+      if (d.type === "pv-adventure-encounter" && typeof d.name === "string") {
         const name: string = d.name;
-        // Kick off Higgsfield diorama art immediately
+        if (typeof d.region === "string") setRegion(d.region);
+        const kind = (d.kind as PendingWild["kind"]) || "wild";
+        const level = typeof d.level === "number" ? d.level : 5 + Math.floor(Math.random() * 4);
+        const catchable = d.catchable !== false && kind === "wild";
+        setPendingWild({ name, level, region: d.region, kind, catchable, badge: d.badge, e4Index: d.e4Index, leader: d.leader });
         renderScene(name);
+
+        if (kind !== "wild") {
+          push(kind === "gym" ? `Gym challenge — ${d.leader || name}` : `Elite Four — ${d.leader || name}`);
+          return;
+        }
 
         try {
           const party = await fetchParty();
@@ -84,24 +129,22 @@ export function AdventureView() {
             });
             const card = data.find((c) => Number(c.hp ?? 0) > 0 && (c.attacks?.length ?? 0) > 0) ?? data[0];
             if (card) {
-              const mon = await addToParty(card, 5);
               try {
-                const real = await movesAtLevel(name, 5, mon.attacks);
-                if (real.length) { mon.attacks = real; await saveMonStats(mon); }
-              } catch {}
-              push(`✦ ${name} joined your party!`);
+                const mon = await addToParty(card, 5);
+                try {
+                  const real = await movesAtLevel(name, 5, mon.attacks);
+                  if (real.length) { mon.attacks = real; await saveMonStats(mon); }
+                } catch {}
+                push(`✦ ${name} joined your party!`);
+              } catch (err: any) {
+                console.error(err);
+                push(`Wild ${name} appeared — battle in Game Boy`);
+              }
             }
           }
         } catch (err: any) {
           console.error(err);
         }
-
-        window.dispatchEvent(new CustomEvent("pv-goto", { detail: "gb" }));
-        setTimeout(() => {
-          window.dispatchEvent(
-            new CustomEvent("pv-gb-wild", { detail: { name, level: 5 + Math.floor(Math.random() * 4) } })
-          );
-        }, 250);
         return;
       }
     };
@@ -116,141 +159,97 @@ export function AdventureView() {
       }, 150);
     };
     window.addEventListener("pv-goto", onGoto as EventListener);
+    const onGymWon = (e: Event) => {
+      const badge = (e as CustomEvent).detail?.badge;
+      if (!badge) return;
+      try { iframeRef.current?.contentWindow?.postMessage({ type: "pv-adventure-badge", badge }, "*"); } catch {}
+    };
+    const onE4Won = (e: Event) => {
+      const index = (e as CustomEvent).detail?.index ?? 0;
+      try { iframeRef.current?.contentWindow?.postMessage({ type: "pv-adventure-e4-won", index }, "*"); } catch {}
+    };
+    window.addEventListener("pv-adv-gym-won", onGymWon as EventListener);
+    window.addEventListener("pv-adv-elite-won", onE4Won as EventListener);
     return () => {
       window.removeEventListener("message", onMsg);
       window.removeEventListener("pv-goto", onGoto as EventListener);
+      window.removeEventListener("pv-adv-gym-won", onGymWon as EventListener);
+      window.removeEventListener("pv-adv-elite-won", onE4Won as EventListener);
     };
   }, []);
 
   return (
-    <div style={{ padding: 16 }}>
-      <div style={{ marginBottom: 12, color: "var(--t2)", fontSize: 13, textAlign: "center" }}>
-        Explore Kanto → Unova, walk through tall grass, and <b>Fight</b> wild Pokémon to enlist them
-        into your <b>Game Boy party</b> with their real moves.
-      </div>
-
+    <div className="pv-adv">
       {scene && (
-        <div
-          style={{
-            width: "100%",
-            maxWidth: 780,
-            margin: "0 auto 12px",
-            border: "2px solid var(--brd)",
-            borderRadius: 12,
-            overflow: "hidden",
-            background: "#0b0b0b",
-            position: "relative",
-            aspectRatio: "16 / 9",
-            imageRendering: "pixelated",
-          }}
-        >
-          {scene.url ? (
+        <div className="pv-adv-scene">
+          {sceneVidOk && (
+            <video
+              key={scene.name}
+              className="pv-adv-scene-vid"
+              src="/fx/adventure-encounter.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              onError={() => setSceneVidOk(false)}
+            />
+          )}
+          {(!sceneVidOk && scene.url) ? (
             <img
               src={scene.url}
               alt={`Wild ${scene.name} scene`}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                display: "block",
-                imageRendering: "pixelated",
-                animation: "pv-scene-in .5s ease-out",
-              }}
+              className="pv-adv-scene-img"
             />
-          ) : (
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                display: "grid",
-                placeItems: "center",
-                color: "#FFDE00",
-                fontWeight: 800,
-                fontSize: 13,
-                letterSpacing: 1,
-                background:
-                  "repeating-linear-gradient(45deg,#111 0 12px,#1a1a1a 12px 24px)",
-              }}
-            >
+          ) : (!sceneVidOk && !scene.url) ? (
+            <div className="pv-adv-scene-ph">
               {scene.loading
-                ? `⌁ Rendering ${scene.name} diorama…`
+                ? `Rendering ${scene.name} cinematic…`
                 : scene.error || "scene unavailable"}
             </div>
-          )}
-          <div
-            style={{
-              position: "absolute",
-              left: 10,
-              bottom: 10,
-              background: "rgba(0,0,0,.6)",
-              color: "#FFDE00",
-              padding: "4px 10px",
-              borderRadius: 8,
-              border: "1px solid #FFDE00",
-              fontSize: 12,
-              fontWeight: 800,
-              textTransform: "uppercase",
-              letterSpacing: 1,
-            }}
-          >
-            Wild {scene.name}! · Higgsfield pixel diorama
+          ) : null}
+          <div className="pv-adv-scene-bar">
+            <div>
+              <div className="pv-adv-scene-kicker">{
+                pendingWild?.kind === "gym" ? "Gym battle" :
+                pendingWild?.kind === "elite" ? "Elite Four" :
+                pendingWild?.kind === "champion" ? "Champion" : "Wild encounter"
+              }</div>
+              <div className="pv-adv-scene-name">{pendingWild?.leader ? `${pendingWild.leader} · ${scene.name}` : scene.name}</div>
+            </div>
+            {pendingWild && (
+              <button
+                className="pv-adv-battle"
+                onClick={() => goBattle(pendingWild)}
+              >
+                Battle
+              </button>
+            )}
           </div>
         </div>
       )}
 
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 780,
-          margin: "0 auto",
-          border: "2px solid var(--brd)",
-          borderRadius: 12,
-          overflow: "hidden",
-          background: "#1a1a1a",
-        }}
-      >
+      <div className="pv-adv-stage">
+        <div className="pv-adv-hud">
+          <div className="pv-adv-hud-region">{region}</div>
+          <div className="pv-adv-hud-badges" title="Gym badges">
+            {["Boulder","Cascade","Thunder","Volcano"].map((b) => (
+              <span key={b} className={badges.includes(b) ? "on" : ""}>{b[0]}</span>
+            ))}
+          </div>
+          <div className="pv-adv-hud-hint">Gyms · Poké Center · 4 badges unlocks Indigo</div>
+          <div className="pv-adv-hud-fight">{e4 >= 5 ? "Champion" : e4 ? `Elite Four ${e4}/4` : "Fight goes to Game Boy"}</div>
+        </div>
         <iframe
           ref={iframeRef}
           src="/adventure.html"
           title="Pokémon Adventure"
-          style={{ width: "100%", height: 540, border: 0, display: "block" }}
+          className="pv-adv-frame"
         />
       </div>
 
-      <style>{`
-        @keyframes pv-scene-in {
-          from { opacity: 0; transform: scale(1.03); filter: blur(8px); }
-          to   { opacity: 1; transform: scale(1);    filter: blur(0); }
-        }
-      `}</style>
-
-      <div
-        style={{
-          position: "fixed",
-          bottom: 18,
-          left: "50%",
-          transform: "translateX(-50%)",
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
-          zIndex: 9999,
-          pointerEvents: "none",
-        }}
-      >
+      <div className="pv-adv-toasts">
         {toasts.map((t) => (
-          <div
-            key={t.key}
-            style={{
-              background: "linear-gradient(90deg,#5C73FF,#FFDE00)",
-              color: "#111",
-              fontWeight: 800,
-              padding: "10px 16px",
-              borderRadius: 99,
-              border: "2px solid #111",
-              boxShadow: "0 6px 20px rgba(0,0,0,.4)",
-              fontSize: 13,
-            }}
-          >
+          <div key={t.key} className="pv-adv-toast">
             {t.msg}
           </div>
         ))}

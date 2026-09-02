@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicTcgRouteImport } from './routes/api/public/tcg'
 import { Route as ApiPublicPokeRadioRouteImport } from './routes/api/public/poke-radio'
 import { Route as ApiPublicMcpRouteImport } from './routes/api/public/mcp'
 import { Route as ApiPublicEbaySoldRouteImport } from './routes/api/public/ebay-sold'
@@ -24,6 +25,11 @@ const LoginRoute = LoginRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTcgRoute = ApiPublicTcgRouteImport.update({
+  id: '/api/public/tcg',
+  path: '/api/public/tcg',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicPokeRadioRoute = ApiPublicPokeRadioRouteImport.update({
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/api/public/ebay-sold': typeof ApiPublicEbaySoldRoute
   '/api/public/mcp': typeof ApiPublicMcpRoute
   '/api/public/poke-radio': typeof ApiPublicPokeRadioRoute
+  '/api/public/tcg': typeof ApiPublicTcgRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/api/public/ebay-sold': typeof ApiPublicEbaySoldRoute
   '/api/public/mcp': typeof ApiPublicMcpRoute
   '/api/public/poke-radio': typeof ApiPublicPokeRadioRoute
+  '/api/public/tcg': typeof ApiPublicTcgRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,6 +79,7 @@ export interface FileRoutesById {
   '/api/public/ebay-sold': typeof ApiPublicEbaySoldRoute
   '/api/public/mcp': typeof ApiPublicMcpRoute
   '/api/public/poke-radio': typeof ApiPublicPokeRadioRoute
+  '/api/public/tcg': typeof ApiPublicTcgRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,6 +90,7 @@ export interface FileRouteTypes {
     | '/api/public/ebay-sold'
     | '/api/public/mcp'
     | '/api/public/poke-radio'
+    | '/api/public/tcg'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -89,6 +99,7 @@ export interface FileRouteTypes {
     | '/api/public/ebay-sold'
     | '/api/public/mcp'
     | '/api/public/poke-radio'
+    | '/api/public/tcg'
   id:
     | '__root__'
     | '/'
@@ -97,6 +108,7 @@ export interface FileRouteTypes {
     | '/api/public/ebay-sold'
     | '/api/public/mcp'
     | '/api/public/poke-radio'
+    | '/api/public/tcg'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -106,6 +118,7 @@ export interface RootRouteChildren {
   ApiPublicEbaySoldRoute: typeof ApiPublicEbaySoldRoute
   ApiPublicMcpRoute: typeof ApiPublicMcpRoute
   ApiPublicPokeRadioRoute: typeof ApiPublicPokeRadioRoute
+  ApiPublicTcgRoute: typeof ApiPublicTcgRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -122,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/tcg': {
+      id: '/api/public/tcg'
+      path: '/api/public/tcg'
+      fullPath: '/api/public/tcg'
+      preLoaderRoute: typeof ApiPublicTcgRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/poke-radio': {
@@ -162,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicEbaySoldRoute: ApiPublicEbaySoldRoute,
   ApiPublicMcpRoute: ApiPublicMcpRoute,
   ApiPublicPokeRadioRoute: ApiPublicPokeRadioRoute,
+  ApiPublicTcgRoute: ApiPublicTcgRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

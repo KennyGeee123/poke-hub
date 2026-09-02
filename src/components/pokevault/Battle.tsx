@@ -404,6 +404,7 @@ export function BattleView({ onExit, customDeck, era }: { onExit: () => void; cu
 
       <div className={`pv-board pv-arena${attackFlash ? ` flash-${attackFlash}` : ""}`}>
         <div className="pv-arena-bg" aria-hidden>
+          <video className="pv-arena-vid" src="/fx/battle-arena.mp4" autoPlay muted loop playsInline />
           <div className="pv-arena-grid" />
           <div className="pv-arena-orb pv-arena-orb-top" />
           <div className="pv-arena-orb pv-arena-orb-bot" />

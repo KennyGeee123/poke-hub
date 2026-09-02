@@ -6,18 +6,68 @@ import type { TCGCard } from "@/lib/pokemon-api";
  * Uses `images.small` as the 1x source and `images.large` as the 2x source so
  * retina/zoom views render the high-res official scan instead of the tiny one.
  */
-export function hdImg(card: Pick<TCGCard, "images">): { src: string; srcSet: string } {
+export function hdImg(card: Pick<TCGCard, "images">, opts?: { tile?: boolean }): { src: string; srcSet?: string; sizes?: string } {
   const small = card.images?.small ?? "";
   const large = card.images?.large ?? small;
+  if (opts?.tile) {
+    // Tile CSS width is ~140px. 245w small is enough even on retina; do not
+    // pull the 600w+ official scan for a rail of 16–60 cards.
+    return {
+      src: small || large,
+      srcSet: small && large ? `${small} 245w, ${large} 600w` : undefined,
+      sizes: "140px",
+    };
+  }
   return {
     src: large || small,
-    srcSet: small && large ? `${small} 1x, ${large} 2x` : large || small,
+    srcSet: small && large ? `${small} 245w, ${large} 600w` : undefined,
   };
 }
 
 /** Always returns the largest official artwork available. */
 export function hdLarge(card: Pick<TCGCard, "images">): string {
   return card.images?.large || card.images?.small || "";
+}
+
+type ImgCard = Pick<TCGCard, "id" | "number" | "set" | "images">;
+
+/** Ordered list of image URLs to try when the primary scan 404s. */
+export function fallbackCardImages(card: ImgCard): string[] {
+  const urls: string[] = [];
+  const add = (u?: string | null) => {
+    if (!u) return;
+    const v = u.trim();
+    if (!v || urls.includes(v)) return;
+    urls.push(v);
+  };
+
+  add(card.images?.large);
+  add(card.images?.small);
+
+  const large = card.images?.large || "";
+  if (/assets\.tcgdex\.net/i.test(large)) {
+    const base = large.replace(/\/(high|low)\.(webp|png|jpg)$/i, "");
+    add(`${base}/high.webp`);
+    add(`${base}/low.webp`);
+    add(`${base}/high.png`);
+    add(`${base}/low.png`);
+  }
+
+  const setId = card.set?.id || (card.id || "").split("-")[0];
+  const num = card.number || (card.id || "").split("-").slice(1).join("-");
+  if (setId && num) {
+    add(`https://images.pokemontcg.io/${setId}/${num}_hires.png`);
+    add(`https://images.pokemontcg.io/${setId}/${num}.png`);
+  }
+
+  const id = card.id || (setId && num ? `${setId}-${num}` : "");
+  if (id && /^[a-z0-9.]+-[a-z0-9]+$/i.test(id) && setId && num) {
+    const serie = setId.replace(/[0-9].*$/, "").replace(/\.$/, "") || setId;
+    add(`https://assets.tcgdex.net/en/${serie}/${setId}/${num}/high.webp`);
+    add(`https://assets.tcgdex.net/en/${serie}/${setId}/${num}/low.webp`);
+  }
+
+  return urls;
 }
 
 const HD_CACHE_KEY = "pv-hd-img:";

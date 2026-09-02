@@ -8,7 +8,7 @@ import { FREE_SUBMISSION_LIMIT } from "./owner";
  * - Everyone else = free "Trainer" with FREE_SUBMISSION_LIMIT submissions.
  * - Local upgrades (Pro/Elite) still supported for testing until billing wires in.
  */
-export type Tier = "free" | "pro" | "elite";
+export type Tier = "free" | "scout" | "pro" | "elite";
 
 const SUB_KEY = "pv.sub.tier.v1";
 const SCAN_KEY = "pv.sub.scans.v1";
@@ -17,7 +17,7 @@ const FREE_SCAN_LIMIT = FREE_SUBMISSION_LIMIT;
 function readTier(): Tier {
   if (typeof localStorage === "undefined") return "free";
   const t = localStorage.getItem(SUB_KEY);
-  return t === "pro" || t === "elite" ? t : "free";
+  return t === "scout" || t === "pro" || t === "elite" ? t : "free";
 }
 
 function readScans(): number {
@@ -66,6 +66,8 @@ export function usePremium() {
   const effectiveTier: Tier = isOwner ? "elite" : tier;
   const isPro = effectiveTier === "pro" || effectiveTier === "elite";
   const isElite = effectiveTier === "elite";
+  const isScout = effectiveTier === "scout" || isPro;
+  const hasCheapLoop = isScout;
   const scansLeft = isPro ? Infinity : Math.max(0, FREE_SCAN_LIMIT - scansUsed);
   const scanLocked = !isPro && scansLeft <= 0;
 
@@ -74,6 +76,8 @@ export function usePremium() {
     setTier,
     isPro,
     isElite,
+    isScout,
+    hasCheapLoop,
     isOwner,
     scansUsed,
     scansLeft,
@@ -97,8 +101,24 @@ export const TIERS = [
       `${FREE_SUBMISSION_LIMIT} free submissions (test mode)`,
       "Battle simulator",
       "Wishlist",
+      "See cheapest listed price (Strike locked)",
     ],
     cta: "Current plan",
+  },
+  {
+    id: "scout" as Tier,
+    name: "Deal Scout",
+    price: 4.99,
+    period: "/mo",
+    badge: "Cheap Card Loop",
+    features: [
+      "Cheapest live listing on every card",
+      "Strike → next cheapest auto-loads",
+      "TCGPlayer low + Cardmarket + eBay BIN",
+      "Requires member sign-in",
+      "Included in Pro & Elite",
+    ],
+    cta: "Start Scout",
   },
   {
     id: "pro" as Tier,
@@ -110,6 +130,7 @@ export const TIERS = [
       "Unlimited vault",
       "Unlimited card submissions",
       "Marketplace Buy & Sell tools",
+      "Deal Scout cheap-card loop included",
       "Best-price finder across 11 sites",
       "Priority TCG price refresh",
       "Battle leaderboards",

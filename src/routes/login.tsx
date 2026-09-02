@@ -126,6 +126,10 @@ function LoginPage() {
         <p className="text-center text-xs text-muted-foreground mt-6">
           Free accounts include <strong>2 submissions</strong>. Upgrade for unlimited.
         </p>
+
+        <p className="text-center text-sm mt-3">
+          <button type="button" onClick={() => nav({ to: "/" })} className="text-muted-foreground hover:underline">Skip for now, continue as guest</button>
+        </p>
       </div>
     </div>
   );

@@ -7,19 +7,18 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { touch-action: manipulation; -webkit-user-select: none; user-select: none; overscroll-behavior: none; }
   body {
-    background: #1a1a1a;
-    color: #e8f5e9;
-    font-family: 'Courier New', monospace;
+    background: radial-gradient(ellipse at top, #1a2a18 0%, #0b1220 70%);
+    color: #f4efe4;
+    font-family: 'Barlow', 'Courier New', monospace;
     display: flex;
     min-height: 100vh;
     align-items: center;
     justify-content: center;
-    padding: 16px;
+    padding: 12px;
     image-rendering: pixelated;
   }
-  #app { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; justify-content: center; }
+  #app { display: flex; gap: 16px; align-items: stretch; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 860px; }
 
-  /* On-screen D-pad for mobile/touch */
   #dpad {
     position: fixed;
     left: 16px;
@@ -34,9 +33,9 @@
     touch-action: none;
   }
   #dpad button {
-    background: rgba(76,175,80,0.9);
-    border: 3px solid #0f380f;
-    color: #0f380f;
+    background: rgba(12, 24, 18, 0.92);
+    border: 3px solid #9bbc0f;
+    color: #9bbc0f;
     font-size: 28px;
     font-weight: bold;
     border-radius: 8px;
@@ -45,7 +44,7 @@
     -webkit-tap-highlight-color: transparent;
     touch-action: none;
   }
-  #dpad button:active { background: #fff176; transform: scale(0.95); }
+  #dpad button:active { background: #9bbc0f; color: #0f380f; transform: scale(0.95); }
   #dpad .up    { grid-column: 2; grid-row: 1; }
   #dpad .left  { grid-column: 1; grid-row: 2; }
   #dpad .mid   { grid-column: 2; grid-row: 2; background: transparent; border: none; pointer-events: none; }
@@ -61,51 +60,60 @@
   }
   #game-wrap {
     position: relative;
-    border: 4px solid #4caf50;
-    border-radius: 8px;
-    background: #0d1b0d;
-    box-shadow: 0 0 24px rgba(76,175,80,0.4);
+    border: 4px solid #1a1a1a;
+    border-radius: 10px;
+    background: #142018;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.45), inset 0 0 0 2px #306230;
+    flex: 1 1 512px;
+    max-width: 640px;
   }
   #region-label {
     position: absolute;
-    top: 8px; left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.75);
-    color: #fff176;
-    padding: 6px 14px;
+    top: 14px; left: 50%;
+    transform: translateX(-50%) translateY(-6px);
+    background: #f4efe4;
+    color: #0b1220;
+    padding: 10px 22px;
     border-radius: 4px;
-    font-weight: bold;
-    letter-spacing: 2px;
+    font-weight: 800;
+    letter-spacing: 3px;
     pointer-events: none;
     opacity: 0;
-    transition: opacity .4s;
-    text-shadow: 1px 1px 0 #000;
+    transition: opacity .4s, transform .4s;
     z-index: 10;
+    border: 4px solid #cc2b2b;
+    box-shadow: 0 6px 0 #1a1a1a;
+    font-size: 18px;
+    text-transform: uppercase;
+    font-family: 'Bebas Neue', Impact, sans-serif;
   }
-  #region-label.show { opacity: 1; }
-  canvas { display: block; background: #2e3b2e; }
+  #region-label.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  canvas { display: block; background: #2e3b2e; width: 100%; height: auto; aspect-ratio: 1 / 1; }
   #sidebar {
     width: 240px;
-    background: #1f2a1f;
-    border: 4px solid #4caf50;
-    border-radius: 8px;
+    background: #f4efe4;
+    border: 4px solid #1a1a1a;
+    border-radius: 10px;
     padding: 12px;
-    max-height: 480px;
+    max-height: 512px;
     overflow-y: auto;
-    color: #e8f5e9;
+    color: #1a1a1a;
+    box-shadow: 0 8px 24px rgba(0,0,0,.3);
   }
   #sidebar h2 {
-    color: #fff176;
+    color: #cc2b2b;
     font-size: 18px;
     margin-bottom: 10px;
     text-align: center;
-    border-bottom: 2px solid #4caf50;
+    border-bottom: 3px solid #e2b53a;
     padding-bottom: 6px;
+    letter-spacing: 2px;
+    font-family: 'Bebas Neue', Impact, sans-serif;
   }
   #pokedex-list { list-style: none; }
   #pokedex-list li {
     padding: 6px 4px;
-    border-bottom: 1px dashed #3c4a3c;
+    border-bottom: 1px dashed #cfc6b4;
     font-size: 14px;
     display: flex;
     align-items: center;
@@ -114,31 +122,31 @@
   #pokedex-list li .dot {
     width: 12px; height: 12px;
     border-radius: 50%;
-    background: #fff176;
+    background: #e2b53a;
     display: inline-block;
   }
-  #empty { color: #888; font-style: italic; text-align: center; padding: 12px; }
+  #empty { color: #6b7280; font-style: italic; text-align: center; padding: 12px; }
   #controls {
     margin-top: 10px;
     font-size: 11px;
-    color: #aaa;
+    color: #6b7280;
     text-align: center;
   }
   #controls button {
     margin-top: 6px;
-    background: #c62828;
+    background: #cc2b2b;
     color: white;
     border: none;
-    padding: 4px 10px;
+    padding: 6px 12px;
     border-radius: 4px;
     cursor: pointer;
     font-family: inherit;
+    font-weight: 700;
   }
 
-  /* Encounter modal */
   #modal-bg {
     position: fixed; inset: 0;
-    background: rgba(0,0,0,0.7);
+    background: rgba(11,18,32,0.72);
     display: none;
     align-items: center;
     justify-content: center;
@@ -146,32 +154,41 @@
   }
   #modal-bg.active { display: flex; }
   #modal {
-    background: #f5f5dc;
-    color: #222;
-    border: 6px solid #333;
-    border-radius: 12px;
-    padding: 24px;
-    width: 320px;
+    background: #f4efe4;
+    color: #1a1a1a;
+    border: 5px solid #1a1a1a;
+    border-radius: 6px;
+    padding: 22px 22px 18px;
+    width: 340px;
     text-align: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-    font-family: 'Courier New', monospace;
+    box-shadow: 0 12px 0 #121a2b, 0 22px 40px rgba(0,0,0,0.45);
+    font-family: 'Barlow', 'Courier New', monospace;
+    position: relative;
   }
-  #modal h3 { font-size: 20px; margin-bottom: 12px; }
+  #modal::before {
+    content: "";
+    position: absolute; left: 10px; right: 10px; top: 10px; height: 6px;
+    background: linear-gradient(90deg, #cc2b2b 0 50%, #f4efe4 50% 100%);
+    border-radius: 2px;
+  }
+  #modal h3 { font-size: 15px; margin: 12px 0 8px; letter-spacing: 1px; color: #6b7280; font-weight: 700; text-transform: uppercase; }
   #poke-sprite {
     font-size: 80px;
-    margin: 10px 0;
+    margin: 8px 0;
     line-height: 1;
-    min-height: 96px;
+    min-height: 112px;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: radial-gradient(circle at 50% 70%, #cde8a8, #9bbc0f 60%, transparent 61%);
+    border-radius: 50%;
   }
   #poke-sprite img {
-    width: 96px;
-    height: 96px;
+    width: 112px;
+    height: 112px;
     image-rendering: pixelated;
     object-fit: contain;
-    filter: drop-shadow(2px 2px 0 rgba(0,0,0,.35));
+    filter: drop-shadow(3px 3px 0 rgba(0,0,0,.35));
   }
   #pokedex-list li img {
     width: 28px;
@@ -179,21 +196,23 @@
     image-rendering: pixelated;
     object-fit: contain;
   }
-  #modal-msg { margin: 10px 0; min-height: 22px; font-weight: bold; }
+  #poke-name { font-size: 22px; font-weight: 800; letter-spacing: 1px; margin-top: 4px; }
+  #modal-msg { margin: 10px 0; min-height: 22px; font-weight: 700; color: #0f380f; }
   #modal-buttons { display: flex; gap: 12px; justify-content: center; margin-top: 12px; }
   #modal-buttons button {
     flex: 1;
-    padding: 10px;
-    border: none;
-    border-radius: 6px;
-    font-weight: bold;
+    padding: 12px 10px;
+    border: 3px solid #1a1a1a;
+    border-radius: 4px;
+    font-weight: 800;
     cursor: pointer;
     font-family: inherit;
-    font-size: 14px;
+    font-size: 15px;
+    letter-spacing: 1px;
   }
-  #btn-fight { background: #d32f2f; color: white; }
-  #btn-run { background: #1976d2; color: white; }
-  #btn-close { background: #388e3c; color: white; width: 100%; }
+  #btn-fight { background: #cc2b2b; color: #f4efe4; }
+  #btn-run { background: #121a2b; color: #f4efe4; }
+  #btn-close { background: #306230; color: #9bbc0f; width: 100%; border: 3px solid #0f380f; padding: 12px; font-weight: 800; cursor: pointer; font-family: inherit; }
   .hidden { display: none !important; }
   #flash {
     position: absolute; inset: 0;
@@ -203,21 +222,38 @@
     transition: opacity .2s;
   }
   #flash.on { opacity: .5; }
+
+  #badge-row { display:flex; gap:6px; justify-content:center; margin:8px 0 10px; }
+  .badge-slot { width:28px; height:28px; border-radius:50%; border:2px solid #1a1a1a; background:#d9d0c0; display:grid; place-items:center; font-size:14px; opacity:.35; }
+  .badge-slot.on { opacity:1; box-shadow:0 0 0 2px #e2b53a; }
+  #minimap { width:160px; height:160px; image-rendering:pixelated; border:3px solid #1a1a1a; display:block; margin:0 auto 10px; background:#142018; }
+  #e4-pips { display:flex; gap:4px; justify-content:center; margin:4px 0 8px; }
+  .e4-pip { width:10px; height:10px; border-radius:2px; background:#cfc6b4; border:1px solid #1a1a1a; }
+  .e4-pip.on { background:#7c3aed; }
+  .e4-pip.champ { background:#e2b53a; }
+  #hint { font-size:11px; text-align:center; color:#5a5346; margin-top:8px; line-height:1.35; }
+  #dpad .mid { background:rgba(12,24,18,.92); border:3px solid #e2b53a; color:#e2b53a; pointer-events:auto; font-size:11px; letter-spacing:0; }
+  #dpad .mid:active { background:#e2b53a; color:#0f380f; }
 </style>
 </head>
 <body>
   <div id="app">
     <div id="game-wrap">
       <div id="region-label">KANTO</div>
-      <canvas id="game" width="480" height="480"></canvas>
+      <canvas id="game" width="512" height="512"></canvas>
       <div id="flash"></div>
     </div>
     <div id="sidebar">
+      <h2>REGION MAP</h2>
+      <canvas id="minimap" width="160" height="160"></canvas>
+      <div id="badge-row"></div>
+      <div id="e4-pips"></div>
       <h2>📕 Pokédex</h2>
       <ul id="pokedex-list"></ul>
       <div id="empty">No Pokémon caught yet.<br>Walk in tall grass!</div>
+      <div id="hint">Walk to a GYM door or press A / Space to interact.<br>Tall grass = wild. 4 badges unlocks Indigo.</div>
       <div id="controls">
-        Arrows / WASD to move<br>
+        Arrows / WASD to move · Space interact<br>
         <button id="reset-btn">Reset Save</button>
       </div>
     </div>
@@ -226,7 +262,7 @@
   <div id="dpad" aria-label="Movement pad">
     <button class="up"    data-dir="up"    aria-label="Up">▲</button>
     <button class="left"  data-dir="left"  aria-label="Left">◀</button>
-    <button class="mid"   tabindex="-1"></button>
+    <button class="mid" data-act="interact" aria-label="Interact">A</button>
     <button class="right" data-dir="right" aria-label="Right">▶</button>
     <button class="down"  data-dir="down"  aria-label="Down">▼</button>
   </div>
@@ -246,16 +282,12 @@
   </div>
 
 <script>
-/* ============================================================
-   PokéRegions — single-file mini overworld + encounter game
-   ============================================================ */
 
 const TILE = 32;
-const VIEW_TILES = 15;          // 15x15 viewport
-const MAP_SIZE = 20;            // each region is 20x20
-const CANVAS_PX = VIEW_TILES * TILE; // 480
+const VIEW_TILES = 16;
+const MAP_SIZE = 20;
+const CANVAS_PX = VIEW_TILES * TILE;
 
-/* ---------- Pokémon roster (>=20) ---------- */
 const POKEMON = [
   { name: "Bulbasaur",  emoji: "🌱", color: "#78c850" },
   { name: "Charmander", emoji: "🔥", color: "#f08030" },
@@ -277,16 +309,161 @@ const POKEMON = [
   { name: "Chikorita",  emoji: "🍃", color: "#9bcc50" },
   { name: "Totodile",   emoji: "🐊", color: "#3dc7ef" },
   { name: "Cyndaquil",  emoji: "🔥", color: "#fb6c6c" },
-  { name: "Treecko",    emoji: "🦎", color: "#5acf3c" },
-  { name: "Mudkip",     emoji: "💦", color: "#3aa5e0" },
+  { name: "Jynx",       emoji: "💜", color: "#c084fc" },
+  { name: "Onix",       emoji: "🪨", color: "#a8a878" },
 ];
 
-/* ---------- Real sprite URL (Pokémon Showdown animated GIFs) ---------- */
+const GYMS = [
+  { id: "boulder", name: "Pewter Gym", leader: "Brock", type: "Rock", badge: "Boulder", mon: "Onix", level: 14, emoji: "🪨" },
+  { id: "cascade", name: "Cerulean Gym", leader: "Misty", type: "Water", badge: "Cascade", mon: "Squirtle", level: 16, emoji: "💧" },
+  { id: "thunder", name: "Vermilion Gym", leader: "Lt. Surge", type: "Electric", badge: "Thunder", mon: "Pikachu", level: 18, emoji: "⚡" },
+  { id: "volcano", name: "Cinnabar Gym", leader: "Blaine", type: "Fire", badge: "Volcano", mon: "Charmander", level: 20, emoji: "🔥" },
+];
+const E4 = [
+  { leader: "Lorelei", type: "Ice", mon: "Jynx", level: 24, kind: "elite" },
+  { leader: "Bruno", type: "Fighting", mon: "Machop", level: 26, kind: "elite" },
+  { leader: "Agatha", type: "Ghost", mon: "Gastly", level: 28, kind: "elite" },
+  { leader: "Lance", type: "Dragon", mon: "Dratini", level: 30, kind: "elite" },
+  { leader: "Champion", type: "Psychic", mon: "Mewtwo", level: 32, kind: "champion" },
+];
+
+const CH = { '.':0,'g':1,'T':2,'X':3,'G':4,'P':5,'W':6,'f':7,'H':8,'E':9,'F':10,'s':11,'#':12,'1':13,'2':14,'3':15,'4':16,'5':17 };
+
+function parseMap(str) {
+  const rows = str.trim().split('\n').map(r => r.trim());
+  if (rows.length !== 20) throw new Error('map rows ' + rows.length);
+  return rows.map(r => {
+    if (r.length !== 20) throw new Error('row len ' + r.length + ' ' + r);
+    return [...r].map(c => CH[c] ?? 2);
+  });
+}
+
+const MAPS = [
+parseMap(`
+TTTTTTTTTTTTTTTTTTTT
+TX......gggggg....XT
+T.......gggggg.....T
+T..HH..............T
+T..HH......fffff...T
+T..................T
+T....P.........G...T
+T..................T
+T........ssss......T
+X........ssss......X
+T....gg............T
+T....gg......TTTT..T
+T............TTTT..T
+T..ffffff..........T
+T..................T
+T.......gggg.......T
+T.......gggg.......T
+T..................T
+TX................XT
+TTTTTTTTTTTTTTTTTTTT
+`),
+parseMap(`
+TTTTTTTTTTTTTTTTTTTT
+TX....WWWWWWWW....XT
+T.....WWWWWWWW.....T
+T..ffff............T
+T..........HHHH....T
+T..........HHHH....T
+T....G.............T
+T..................T
+T....gggg..........T
+X....gggg....P.....X
+T.............fffffT
+T..TTTT............T
+T..TTTT...WWWW.....T
+T.........WWWW.....T
+T..................T
+T.......gggggg.....T
+T.......gggggg.....T
+T..................T
+TX................XT
+TTTTTTTTTTTTTTTTTTTT
+`),
+parseMap(`
+####################
+#X....ssssssss....X#
+#.....ssssssss.....#
+#..FFFF............#
+#..HHHH....fffff...#
+#..HHHH............#
+#.............G....#
+#..................#
+#....P.............#
+X........gggg......X
+#........gggg......#
+#..TTTT............#
+#..TTTT...ssss.....#
+#.........ssss.....#
+#..................#
+#.......gggg.......#
+#.......gggg.......#
+#..................#
+#X................X#
+####################
+`),
+parseMap(`
+####################
+#X....ss##ssss....X#
+#.....ss##ssss.....#
+#..HH..............#
+#..HH......fffff...#
+#..................#
+#....P.........G...#
+#..................#
+#........ssss......#
+X........ssss......X
+#....gg............#
+#....gg......TTTT..#
+#............TTTT..#
+#..ffffff..........#
+#..................#
+#.......gggg.......#
+#.......gggg.......#
+#..................#
+#X................X#
+####################
+`),
+parseMap(`
+####################
+##......5555......##
+##......####......##
+##..11..####..22..##
+##..##........##..##
+##................##
+##..33........44..##
+##..##........##..##
+##................##
+X........EE........X
+##................##
+##....########....##
+##....##....##....##
+##................##
+##................##
+##................##
+##................##
+##................##
+#X................X#
+####################
+`),
+];
+
+const REGION_NAMES = ["Pewter", "Cerulean", "Vermilion", "Cinnabar", "Indigo"];
+const REGION_TINT = ["#c4a574", "#7cb342", "#e0a060", "#8d4a32", "#4a5080"];
+
+const NPCS = [
+  { region: 0, x: 8, y: 8, color: "#3b6ea5", quote: "PEWTER GYM is the stone dojo. Beat BROCK for the Boulder Badge." },
+  { region: 1, x: 7, y: 7, color: "#2a9d8f", quote: "MISTY's gym sits by the water. Bring Grass or Electric." },
+  { region: 2, x: 6, y: 8, color: "#e9c46a", quote: "LT. SURGE hits hard. Ground types would help — if you had one." },
+  { region: 3, x: 8, y: 8, color: "#e76f51", quote: "BLAINE's volcano gym is last. Then INDIGO to the north." },
+  { region: 4, x: 10, y: 14, color: "#7c3aed", quote: "Four badges to enter. Lorelei, Bruno, Agatha, Lance, then the Champion." },
+];
+
 function spriteUrl(name) {
-  const slug = String(name).toLowerCase()
-    .replace(/[♀♂.'']/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '');
+  const slug = String(name).toLowerCase().replace(/[♀♂.'']/g, '').replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
   return `https://play.pokemonshowdown.com/sprites/ani/${slug}.gif`;
 }
 function staticSpriteUrl(name) {
@@ -294,65 +471,20 @@ function staticSpriteUrl(name) {
   return `https://play.pokemonshowdown.com/sprites/gen5/${slug}.png`;
 }
 
-/* ---------- Region generation ----------
-   tile: 0 path, 1 grass, 2 obstacle, 3 exit
-*/
-function genRegion(seed) {
-  // Deterministic pseudo-random per region
-  let s = seed * 9301 + 49297;
-  const rand = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
-
-  const map = [];
-  for (let y = 0; y < MAP_SIZE; y++) {
-    const row = [];
-    for (let x = 0; x < MAP_SIZE; x++) {
-      // Border = trees
-      if (x === 0 || y === 0 || x === MAP_SIZE-1 || y === MAP_SIZE-1) {
-        row.push(2);
-      } else {
-        const r = rand();
-        if (r < 0.30) row.push(1);      // grass
-        else if (r < 0.40) row.push(2); // tree
-        else row.push(0);               // path
-      }
-    }
-    map.push(row);
-  }
-  // Carve 4 exits on the borders (N/S/E/W)
-  const mid = Math.floor(MAP_SIZE / 2);
-  map[0][mid] = 3;
-  map[MAP_SIZE-1][mid] = 3;
-  map[mid][0] = 3;
-  map[mid][MAP_SIZE-1] = 3;
-  // Ensure tiles next to exits are walkable
-  map[1][mid] = 0;
-  map[MAP_SIZE-2][mid] = 0;
-  map[mid][1] = 0;
-  map[mid][MAP_SIZE-2] = 0;
-  // Ensure spawn area clear
-  map[mid][mid] = 0;
-  map[mid+1][mid] = 0; map[mid-1][mid] = 0;
-  map[mid][mid+1] = 0; map[mid][mid-1] = 0;
-  return map;
-}
-
-const REGION_NAMES = ["Kanto", "Johto", "Hoenn", "Sinnoh", "Unova"];
-
-/* ============================================================
-   MapManager
-   ============================================================ */
 const MapManager = {
-  regions: REGION_NAMES.map((_, i) => genRegion(i + 1)),
+  regions: MAPS,
   current: 0,
   get map() { return this.regions[this.current]; },
   name() { return REGION_NAMES[this.current]; },
+  gym() { return GYMS[this.current] || null; },
   tileAt(x, y) {
-    if (x < 0 || y < 0 || x >= MAP_SIZE || y >= MAP_SIZE) return 2;
+    if (x < 0 || y < 0 || x >= MAP_SIZE || y >= MAP_SIZE) return 12;
     return this.map[y][x];
   },
   switchRegion(dir) {
-    // dir: 'N','S','E','W' — moves to next region in list, places player at opposite edge
-    this.current = (this.current + 1) % this.regions.length;
+    if (dir === 'N') this.current = Math.min(this.regions.length - 1, this.current + 1);
+    else if (dir === 'S') this.current = Math.max(0, this.current - 1);
+    else this.current = (this.current + (dir === 'E' ? 1 : this.regions.length - 1)) % this.regions.length;
     const mid = Math.floor(MAP_SIZE / 2);
     if (dir === 'N') return { x: mid, y: MAP_SIZE - 2 };
     if (dir === 'S') return { x: mid, y: 1 };
@@ -362,39 +494,67 @@ const MapManager = {
   }
 };
 
-/* ============================================================
-   Player
-   ============================================================ */
+function facingTile() {
+  let dx = 0, dy = 0;
+  if (Player.facing === 'up') dy = -1;
+  else if (Player.facing === 'down') dy = 1;
+  else if (Player.facing === 'left') dx = -1;
+  else dx = 1;
+  return { x: Player.x + dx, y: Player.y + dy, t: MapManager.tileAt(Player.x + dx, Player.y + dy) };
+}
+
 const Player = {
   x: 10, y: 10,
   frozen: false,
+  facing: 'down',
   tryMove(dx, dy) {
     if (this.frozen) return;
+    if (dy < 0) this.facing = 'up';
+    else if (dy > 0) this.facing = 'down';
+    else if (dx < 0) this.facing = 'left';
+    else if (dx > 0) this.facing = 'right';
     const nx = this.x + dx, ny = this.y + dy;
     const t = MapManager.tileAt(nx, ny);
-    if (t === 2) return; // obstacle
+    if ([2, 8, 10, 12, 9].includes(t)) return;
     if (t === 3) {
-      // Determine direction of exit
       let dir = 'N';
       if (ny >= MAP_SIZE - 1) dir = 'S';
       else if (ny <= 0) dir = 'N';
       else if (nx >= MAP_SIZE - 1) dir = 'E';
       else if (nx <= 0) dir = 'W';
+      let next = MapManager.current;
+      if (dir === 'N') next = Math.min(REGION_NAMES.length - 1, next + 1);
+      else if (dir === 'S') next = Math.max(0, next - 1);
+      else next = (next + (dir === 'E' ? 1 : REGION_NAMES.length - 1)) % REGION_NAMES.length;
+      if (next === 4 && MapManager.current !== 4 && (SaveSystem.state.badges || []).length < 4) {
+        UIManager.toastModal("INDIGO PLATEAU", "The Elite Four gates are sealed. Earn 4 gym badges first.");
+        return;
+      }
       const spawn = MapManager.switchRegion(dir);
       this.x = spawn.x; this.y = spawn.y;
       UIManager.showRegionLabel(MapManager.name());
+      postStatus();
       SaveSystem.save();
       return;
     }
     this.x = nx; this.y = ny;
     if (t === 1) EncounterSystem.tryEncounter();
+    else if (t === 4) Sites.gym();
+    else if (t === 5) Sites.center();
+    else if (t >= 13 && t <= 17) Sites.elite(t - 13);
     SaveSystem.save();
+  },
+  interact() {
+    if (this.frozen) return;
+    const { x, y, t } = facingTile();
+    const npc = NPCS.find(n => n.region === MapManager.current && n.x === x && n.y === y);
+    if (npc) { UIManager.toastModal("TOWNSFOLK", npc.quote); return; }
+    if (t === 4) Sites.gym();
+    else if (t === 5) Sites.center();
+    else if (t >= 13 && t <= 17) Sites.elite(t - 13);
   }
 };
 
-/* ============================================================
-   Audio — short Web Audio "rustle"
-   ============================================================ */
 const AudioFX = {
   ctx: null,
   ensure() {
@@ -418,52 +578,107 @@ const AudioFX = {
   }
 };
 
-/* ============================================================
-   EncounterSystem
-   ============================================================ */
+function postParent(msg) {
+  try { window.parent && window.parent.postMessage(msg, "*"); } catch (_) {}
+}
+function postStatus() {
+  postParent({
+    type: "pv-adventure-status",
+    region: MapManager.name(),
+    badges: SaveSystem.state.badges || [],
+    e4: SaveSystem.state.e4 || 0,
+  });
+  postParent({ type: "pv-adventure-region", name: MapManager.name() });
+}
+
 const EncounterSystem = {
   current: null,
   tryEncounter() {
-    if (Math.random() < 0.30) {
-      const poke = POKEMON[Math.floor(Math.random() * POKEMON.length)];
-      this.current = poke;
-      Player.frozen = true;
-      AudioFX.rustle();
-      UIManager.flash();
-      // Hand off to host app — open a real Game Boy battle
-      try {
-        window.parent && window.parent.postMessage(
-          { type: "pv-adventure-encounter", name: poke.name, region: MapManager.name() },
-          "*"
-        );
-      } catch (_) {}
-      // Track caught (any encounter counts as a sighting in the Pokédex)
-      if (!SaveSystem.state.caught.find(c => c.name === poke.name)) {
-        SaveSystem.state.caught.push({ name: poke.name, emoji: poke.emoji, color: poke.color });
-        SaveSystem.save();
-        UIManager.renderPokedex();
-      }
-      UIManager.openBattleHandoff(poke);
+    if (Math.random() > 0.18) return;
+    const poke = POKEMON[Math.floor(Math.random() * (POKEMON.length - 2))];
+    this.current = { ...poke, kind: "wild", level: 5 + MapManager.current * 3 + Math.floor(Math.random() * 4) };
+    Player.frozen = true;
+    AudioFX.rustle();
+    UIManager.flash();
+    if (!SaveSystem.state.caught.find(c => c.name === poke.name)) {
+      SaveSystem.state.caught.push({ name: poke.name, emoji: poke.emoji, color: poke.color });
+      SaveSystem.save();
+      UIManager.renderPokedex();
     }
+    UIManager.openWild(this.current);
   },
   close() {
     this.current = null;
     Player.frozen = false;
     UIManager.closeModal();
   },
-  fight() { this.close(); },
-  run()   { this.close(); },
+  fight() {
+    const poke = this.current;
+    if (!poke) { this.close(); return; }
+    postParent({
+      type: "pv-adventure-encounter",
+      name: poke.name,
+      region: MapManager.name(),
+      level: poke.level,
+      kind: poke.kind || "wild",
+      catchable: poke.kind === "wild",
+      leader: poke.leader,
+      badge: poke.badge,
+    });
+    UIManager.openBattleHandoff(poke);
+  },
+  run() { this.close(); },
 };
 
-/* ============================================================
-   UIManager
-   ============================================================ */
+const Sites = {
+  gym() {
+    const g = MapManager.gym();
+    if (!g) return;
+    if ((SaveSystem.state.badges || []).includes(g.badge)) {
+      UIManager.toastModal(g.name, "The GYM LEADER is out. You already earned the " + g.badge + " Badge.");
+      return;
+    }
+    EncounterSystem.current = { name: g.mon, emoji: g.emoji, color: "#e2b53a", kind: "gym", level: g.level, leader: g.leader, badge: g.badge };
+    Player.frozen = true;
+    UIManager.openTrainer("GYM CHALLENGE", g.leader + " the " + g.type + " trainer", g.mon,
+      "Fight for the " + g.badge + " Badge?");
+  },
+  center() {
+    Player.frozen = true;
+    postParent({ type: "pv-adventure-heal" });
+    UIManager.toastModal("POKé CENTER", "Your party was healed. Take a breath, then get back out there.");
+  },
+  elite(idx) {
+    const badges = SaveSystem.state.badges || [];
+    if (badges.length < 4) {
+      UIManager.toastModal("INDIGO PLATEAU", "Four gym badges are required to challenge the Elite Four.");
+      return;
+    }
+    const beaten = SaveSystem.state.e4 || 0;
+    if (idx > beaten) {
+      UIManager.toastModal("SEALED DOOR", "Beat the previous Elite Four member first.");
+      return;
+    }
+    if (idx < beaten) {
+      UIManager.toastModal("CHAMBER", "Already conquered. The next door waits.");
+      return;
+    }
+    const e = E4[idx];
+    EncounterSystem.current = { name: e.mon, emoji: "◆", color: "#7c3aed", kind: e.kind, level: e.level, leader: e.leader, e4Index: idx };
+    Player.frozen = true;
+    UIManager.openTrainer(e.kind === "champion" ? "CHAMPION BATTLE" : "ELITE FOUR",
+      e.leader + " · " + e.type, e.mon, "This is a trainer battle. You cannot catch their Pokémon.");
+  }
+};
+
 const UIManager = {
   canvas: document.getElementById('game'),
-  ctx: null,
+  mini: document.getElementById('minimap'),
+  ctx: null, mctx: null,
   modal: document.getElementById('modal-bg'),
   init() {
     this.ctx = this.canvas.getContext('2d');
+    this.mctx = this.mini.getContext('2d');
     document.getElementById('btn-fight').onclick = () => EncounterSystem.fight();
     document.getElementById('btn-run').onclick   = () => EncounterSystem.run();
     document.getElementById('btn-close').onclick = () => EncounterSystem.close();
@@ -473,6 +688,7 @@ const UIManager = {
         location.reload();
       }
     };
+    this.renderBadges();
   },
   showRegionLabel(name) {
     const el = document.getElementById('region-label');
@@ -486,25 +702,50 @@ const UIManager = {
     f.classList.add('on');
     setTimeout(() => f.classList.remove('on'), 200);
   },
-  openModal(poke) {
+  setSprite(name) {
+    const sp = document.getElementById('poke-sprite');
+    sp.innerHTML = `<img src="${spriteUrl(name)}" alt="${name}" onerror="this.onerror=null;this.src='${staticSpriteUrl(name)}';" />`;
+  },
+  openWild(poke) {
     document.getElementById('modal-title').textContent = 'A wild Pokémon appeared!';
-    const sp1 = document.getElementById('poke-sprite');
-    sp1.innerHTML = `<img src="${spriteUrl(poke.name)}" alt="${poke.name}" onerror="this.onerror=null;this.src='${staticSpriteUrl(poke.name)}';" />`;
-    document.getElementById('poke-name').textContent = poke.name;
-    document.getElementById('modal-msg').textContent = '';
+    this.setSprite(poke.name);
+    document.getElementById('poke-name').textContent = poke.name + '  Lv' + poke.level;
+    document.getElementById('modal-msg').textContent = 'FIGHT opens Game Boy · RUN stays in the grass';
     document.getElementById('btn-fight').classList.remove('hidden');
     document.getElementById('btn-run').classList.remove('hidden');
     document.getElementById('modal-buttons').classList.remove('hidden');
     document.getElementById('btn-close').classList.add('hidden');
     this.modal.classList.add('active');
   },
+  openTrainer(title, subtitle, mon, msg) {
+    document.getElementById('modal-title').textContent = title;
+    this.setSprite(mon);
+    document.getElementById('poke-name').textContent = subtitle;
+    document.getElementById('modal-msg').textContent = msg;
+    document.getElementById('btn-fight').classList.remove('hidden');
+    document.getElementById('btn-run').classList.remove('hidden');
+    document.getElementById('btn-run').textContent = 'Leave';
+    document.getElementById('modal-buttons').classList.remove('hidden');
+    document.getElementById('btn-close').classList.add('hidden');
+    this.modal.classList.add('active');
+  },
+  toastModal(title, msg) {
+    Player.frozen = true;
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('poke-sprite').textContent = '◆';
+    document.getElementById('poke-name').textContent = '';
+    document.getElementById('modal-msg').textContent = msg;
+    document.getElementById('modal-buttons').classList.add('hidden');
+    document.getElementById('btn-close').classList.remove('hidden');
+    document.getElementById('btn-close').textContent = 'Continue';
+    this.modal.classList.add('active');
+  },
   openBattleHandoff(poke) {
-    // Game Boy style green takeover before host opens the real battle
-    document.getElementById('modal-title').textContent = '⚔ GAME BOY BATTLE!';
-    const sp2 = document.getElementById('poke-sprite');
-    sp2.innerHTML = `<img src="${spriteUrl(poke.name)}" alt="${poke.name}" onerror="this.onerror=null;this.src='${staticSpriteUrl(poke.name)}';" />`;
-    document.getElementById('poke-name').textContent = `Wild ${poke.name}`;
-    document.getElementById('modal-msg').textContent = 'Launching Game Boy…';
+    const trainer = poke.kind && poke.kind !== 'wild';
+    document.getElementById('modal-title').textContent = trainer ? '⚔ TRAINER BATTLE' : '⚔ GAME BOY BATTLE!';
+    this.setSprite(poke.name);
+    document.getElementById('poke-name').textContent = (poke.leader ? poke.leader + "'s " : "Wild ") + poke.name;
+    document.getElementById('modal-msg').textContent = 'Game Boy is opening. Win there to earn the badge.';
     document.getElementById('modal-buttons').classList.add('hidden');
     document.getElementById('btn-close').classList.remove('hidden');
     document.getElementById('btn-close').textContent = 'Continue Exploring';
@@ -514,15 +755,12 @@ const UIManager = {
     m.style.borderColor = '#0f380f';
     this.modal.classList.add('active');
   },
-  afterFight(poke) {
-    document.getElementById('modal-msg').textContent = `You defeated ${poke.name}!`;
-    document.getElementById('modal-buttons').classList.add('hidden');
-    document.getElementById('btn-close').classList.remove('hidden');
-  },
   closeModal() {
     this.modal.classList.remove('active');
     const m = document.getElementById('modal');
     m.style.background = ''; m.style.color = ''; m.style.borderColor = '';
+    document.getElementById('btn-run').textContent = 'Run';
+    Player.frozen = false;
   },
   renderPokedex() {
     const ul = document.getElementById('pokedex-list');
@@ -533,109 +771,257 @@ const UIManager = {
     empty.style.display = 'none';
     caught.forEach((p, i) => {
       const li = document.createElement('li');
-      const url = spriteUrl(p.name);
-      const fallback = staticSpriteUrl(p.name);
       li.innerHTML = `<span class="dot" style="background:${p.color}"></span>
-                      <img src="${url}" alt="" onerror="this.onerror=null;this.src='${fallback}';" />
+                      <img src="${spriteUrl(p.name)}" alt="" onerror="this.onerror=null;this.src='${staticSpriteUrl(p.name)}';" />
                       <span>${String(i+1).padStart(3,'0')} ${p.name}</span>`;
       ul.appendChild(li);
     });
   },
+  renderBadges() {
+    const row = document.getElementById('badge-row');
+    const have = SaveSystem.state.badges || [];
+    row.innerHTML = GYMS.map(g =>
+      `<div class="badge-slot ${have.includes(g.badge) ? 'on' : ''}" title="${g.badge}">${g.emoji}</div>`
+    ).join('');
+    const pips = document.getElementById('e4-pips');
+    const n = SaveSystem.state.e4 || 0;
+    pips.innerHTML = E4.map((e, i) =>
+      `<div class="e4-pip ${i < n ? 'on' : ''} ${i === 4 && i < n ? 'champ' : ''}" title="${e.leader}"></div>`
+    ).join('');
+  },
+  drawMini() {
+    const ctx = this.mctx;
+    if (!ctx) return;
+    const s = 160 / MAP_SIZE;
+    for (let y = 0; y < MAP_SIZE; y++) {
+      for (let x = 0; x < MAP_SIZE; x++) {
+        const t = MapManager.tileAt(x, y);
+        ctx.fillStyle = ({
+          0:'#c4a574',1:'#2e7d32',2:'#1b5e20',3:'#e2b53a',4:'#cc2b2b',5:'#f48fb1',
+          6:'#1e88e5',7:'#ec407a',8:'#6d4c41',9:'#4527a0',10:'#5d4037',11:'#e0c068',
+          12:'#263238',13:'#7c3aed',14:'#fb8c00',15:'#6a1b9a',16:'#c62828',17:'#ffd54f'
+        })[t] || '#142018';
+        ctx.fillRect(x * s, y * s, s, s);
+      }
+    }
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(Player.x * s, Player.y * s, s, s);
+    ctx.fillStyle = '#cc2b2b';
+    ctx.fillRect(Player.x * s + 1, Player.y * s + 1, Math.max(2, s - 2), Math.max(2, s - 2));
+  },
   draw() {
     const ctx = this.ctx;
-    ctx.fillStyle = '#2e3b2e';
+    ctx.fillStyle = '#0b1220';
     ctx.fillRect(0, 0, CANVAS_PX, CANVAS_PX);
-
-    // Camera centered on player
     const halfV = Math.floor(VIEW_TILES / 2);
     const camX = Player.x - halfV;
     const camY = Player.y - halfV;
-
+    const overlays = [];
     for (let vy = 0; vy < VIEW_TILES; vy++) {
       for (let vx = 0; vx < VIEW_TILES; vx++) {
-        const mx = camX + vx;
-        const my = camY + vy;
-        const px = vx * TILE;
-        const py = vy * TILE;
+        const mx = camX + vx, my = camY + vy;
+        const px = vx * TILE, py = vy * TILE;
         const t = MapManager.tileAt(mx, my);
         this.drawTile(ctx, t, px, py, mx, my);
+        if ([2, 4, 5, 8, 9].includes(t) || (t >= 13 && t <= 17)) overlays.push({ t, px, py, mx, my });
       }
     }
-
-    // Player sprite (always centered)
-    const ppx = halfV * TILE;
-    const ppy = halfV * TILE;
-    // body
-    ctx.fillStyle = '#e53935';
-    ctx.fillRect(ppx + 6, ppy + 12, 20, 16);
-    // head
-    ctx.fillStyle = '#ffe0b2';
-    ctx.fillRect(ppx + 10, ppy + 4, 12, 12);
-    // cap
-    ctx.fillStyle = '#c62828';
-    ctx.fillRect(ppx + 8, ppy + 2, 16, 6);
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(ppx + 14, ppy + 4, 4, 2);
-    // outline
-    ctx.strokeStyle = '#000';
-    ctx.strokeRect(ppx + 6, ppy + 2, 20, 26);
+    NPCS.filter(n => n.region === MapManager.current).forEach(n => {
+      const px = (n.x - camX) * TILE, py = (n.y - camY) * TILE;
+      if (px < -32 || py < -32 || px > CANVAS_PX || py > CANVAS_PX) return;
+      this.drawNpc(ctx, px, py, n.color);
+    });
+    this.drawTrainer(ctx, halfV * TILE, halfV * TILE, Player.facing);
+    overlays.forEach(o => {
+      if (o.my < Player.y) return;
+      if (o.t === 2) this.drawTreeTop(ctx, o.px, o.py);
+      if (o.t === 4 || o.t === 5 || o.t === 8) this.drawRoof(ctx, o.t, o.px, o.py);
+    });
+    ctx.fillStyle = 'rgba(10,16,28,.18)';
+    ctx.fillRect(0, 0, CANVAS_PX, 28);
+    this.drawMini();
+  },
+  drawNpc(ctx, px, py, color) {
+    ctx.fillStyle = 'rgba(0,0,0,.2)';
+    ctx.beginPath(); ctx.ellipse(px + 16, py + 30, 8, 3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = color;
+    ctx.fillRect(px + 10, py + 12, 12, 12);
+    ctx.fillStyle = '#f0c8a0';
+    ctx.fillRect(px + 11, py + 4, 10, 9);
+  },
+  drawTrainer(ctx, ppx, ppy, facing) {
+    const bob = (Date.now() / 180) % 2 < 1 ? 0 : 1;
+    ctx.fillStyle = 'rgba(0,0,0,.25)';
+    ctx.beginPath(); ctx.ellipse(ppx + 16, ppy + 30, 10, 4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#1a2744';
+    ctx.fillRect(ppx + 9, ppy + 22 + bob, 6, 8);
+    ctx.fillRect(ppx + 17, ppy + 22 + (1 - bob), 6, 8);
+    ctx.fillStyle = '#cc2b2b';
+    ctx.fillRect(ppx + 8, ppy + 28 + bob, 8, 3);
+    ctx.fillRect(ppx + 16, ppy + 28 + (1 - bob), 8, 3);
+    ctx.fillStyle = '#cc2b2b';
+    ctx.fillRect(ppx + 8, ppy + 12, 16, 12);
+    ctx.fillStyle = '#f4efe4';
+    ctx.fillRect(ppx + 13, ppy + 14, 6, 8);
+    ctx.fillStyle = '#e2b53a';
+    ctx.fillRect(ppx + (facing === 'left' ? 20 : 6), ppy + 14, 6, 9);
+    ctx.fillStyle = '#f0c8a0';
+    ctx.fillRect(ppx + 10, ppy + 4, 12, 10);
+    ctx.fillStyle = '#cc2b2b';
+    ctx.fillRect(ppx + 8, ppy + 1, 16, 6);
+    ctx.fillStyle = '#f4efe4';
+    ctx.fillRect(ppx + 13, ppy + 3, 6, 3);
+    ctx.fillStyle = '#1a1a1a';
+    if (facing === 'down' || facing === 'right') ctx.fillRect(ppx + 18, ppy + 8, 2, 2);
+    if (facing === 'down' || facing === 'left') ctx.fillRect(ppx + 12, ppy + 8, 2, 2);
+  },
+  drawTreeTop(ctx, px, py) {
+    ctx.fillStyle = '#1b5e20';
+    ctx.beginPath(); ctx.arc(px + 16, py + 10, 14, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#2e7d32';
+    ctx.beginPath(); ctx.arc(px + 16, py + 8, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#81c784';
+    ctx.beginPath(); ctx.arc(px + 11, py + 6, 4, 0, Math.PI * 2); ctx.fill();
+  },
+  drawRoof(ctx, t, px, py) {
+    ctx.fillStyle = t === 5 ? '#f48fb1' : t === 4 ? '#cc2b2b' : '#6d4c41';
+    ctx.beginPath();
+    ctx.moveTo(px - 2, py + 10);
+    ctx.lineTo(px + 16, py - 8);
+    ctx.lineTo(px + 34, py + 10);
+    ctx.closePath();
+    ctx.fill();
   },
   drawTile(ctx, t, px, py, mx, my) {
     if (mx < 0 || my < 0 || mx >= MAP_SIZE || my >= MAP_SIZE) {
-      ctx.fillStyle = '#0a0a0a';
+      ctx.fillStyle = '#0b1220';
       ctx.fillRect(px, py, TILE, TILE);
       return;
     }
-    if (t === 0) {
-      ctx.fillStyle = '#8d6e3a'; // path
+    const hash = ((mx * 13) ^ (my * 31)) & 7;
+    const sway = Math.sin(Date.now() / 420 + mx * 0.4 + my * 0.3) * 2;
+    const tint = REGION_TINT[MapManager.current];
+    const ground = (t === 1 || t === 7) ? '#2e7d32' : (t === 6) ? '#1565c0' : (t === 11) ? '#e0c068' : tint;
+    if ([0,1,7,11,3].includes(t)) {
+      ctx.fillStyle = t === 1 || t === 7 ? '#388e3c' : ground;
       ctx.fillRect(px, py, TILE, TILE);
-      ctx.fillStyle = '#7a5e2e';
-      ctx.fillRect(px + 4, py + 6, 3, 3);
-      ctx.fillRect(px + 20, py + 18, 3, 3);
+    }
+    if (t === 0 || t === 3) {
+      ctx.fillStyle = tint;
+      ctx.fillRect(px, py, TILE, TILE);
+      ctx.fillStyle = 'rgba(255,255,255,.12)';
+      ctx.fillRect(px, py, TILE, 2);
+      ctx.fillStyle = 'rgba(0,0,0,.12)';
+      ctx.fillRect(px + 6 + hash, py + 12, 4, 2);
+      if (t === 3) {
+        ctx.fillStyle = '#e2b53a';
+        ctx.fillRect(px + 8, py + 8, 16, 16);
+        ctx.fillStyle = '#0b1220';
+        ctx.font = 'bold 12px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('▶', px + 16, py + 16);
+      }
     } else if (t === 1) {
-      ctx.fillStyle = '#2e7d32'; // grass
-      ctx.fillRect(px, py, TILE, TILE);
+      ctx.fillStyle = '#1b5e20';
+      ctx.fillRect(px, py + 22, TILE, 10);
       ctx.fillStyle = '#66bb6a';
-      ctx.fillRect(px + 4, py + 6, 4, 4);
-      ctx.fillRect(px + 14, py + 16, 4, 4);
-      ctx.fillRect(px + 22, py + 8, 4, 4);
-      ctx.fillRect(px + 8, py + 22, 4, 4);
+      ctx.fillRect(px + 4 + sway, py + 6, 3, 14);
+      ctx.fillRect(px + 12, py + 4, 3, 16);
+      ctx.fillRect(px + 20 - sway, py + 8, 3, 13);
+      ctx.fillStyle = '#c5e1a5';
+      ctx.fillRect(px + 5 + sway, py + 6, 2, 3);
+    } else if (t === 7) {
+      ctx.fillStyle = '#43a047';
+      ctx.fillRect(px, py, TILE, TILE);
+      ctx.fillStyle = hash % 2 ? '#ec407a' : '#ffd54f';
+      ctx.beginPath(); ctx.arc(px + 8, py + 10, 3, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(px + 20, py + 18, 3, 0, Math.PI * 2); ctx.fill();
+    } else if (t === 6) {
+      ctx.fillStyle = '#1565c0';
+      ctx.fillRect(px, py, TILE, TILE);
+      ctx.fillStyle = 'rgba(255,255,255,.25)';
+      const w = (Date.now() / 200 + my) % 16;
+      ctx.fillRect(px, py + w, TILE, 2);
+      ctx.fillRect(px, py + ((w + 8) % 16) + 8, TILE, 2);
+    } else if (t === 11) {
+      ctx.fillStyle = '#e0c068';
+      ctx.fillRect(px, py, TILE, TILE);
+      ctx.fillStyle = '#d4b888';
+      ctx.fillRect(px + hash, py + 8, 3, 3);
     } else if (t === 2) {
-      ctx.fillStyle = '#1b5e20'; // tree base
+      ctx.fillStyle = '#3e2723';
+      ctx.fillRect(px + 13, py + 18, 6, 14);
+      this.drawTreeTop(ctx, px, py);
+    } else if (t === 10) {
+      ctx.fillStyle = tint;
       ctx.fillRect(px, py, TILE, TILE);
-      ctx.fillStyle = '#2e7d32';
-      ctx.beginPath();
-      ctx.arc(px + 16, py + 14, 12, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#4e342e';
-      ctx.fillRect(px + 13, py + 22, 6, 8);
-    } else if (t === 3) {
-      ctx.fillStyle = '#fff176'; // exit
+      ctx.fillStyle = '#5d4037';
+      ctx.fillRect(px, py + 10, TILE, 8);
+      ctx.fillStyle = '#a1887f';
+      ctx.fillRect(px + 4, py + 8, 3, 12);
+      ctx.fillRect(px + 16, py + 8, 3, 12);
+    } else if (t === 12) {
+      ctx.fillStyle = '#37474f';
       ctx.fillRect(px, py, TILE, TILE);
-      ctx.fillStyle = '#f57f17';
-      ctx.font = 'bold 18px monospace';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('▶', px + 16, py + 16);
+      ctx.fillStyle = '#263238';
+      ctx.fillRect(px, py, TILE, 6);
+      ctx.fillStyle = '#90a4ae';
+      ctx.fillRect(px + 2, py + 8, 8, 3);
+    } else if (t === 8) {
+      ctx.fillStyle = '#8d6e63';
+      ctx.fillRect(px + 2, py + 10, 28, 22);
+      ctx.fillStyle = '#5d4037';
+      ctx.fillRect(px + 12, py + 20, 8, 12);
+      ctx.fillStyle = '#81d4fa';
+      ctx.fillRect(px + 6, py + 14, 6, 6);
+      this.drawRoof(ctx, 8, px, py);
+    } else if (t === 4) {
+      ctx.fillStyle = '#bcaaa4';
+      ctx.fillRect(px + 1, py + 8, 30, 24);
+      ctx.fillStyle = '#3e2723';
+      ctx.fillRect(px + 12, py + 18, 8, 14);
+      ctx.fillStyle = '#e2b53a';
+      ctx.fillRect(px + 8, py + 10, 16, 5);
+      this.drawRoof(ctx, 4, px, py);
+    } else if (t === 5) {
+      ctx.fillStyle = '#fafafa';
+      ctx.fillRect(px + 1, py + 8, 30, 24);
+      ctx.fillStyle = '#e53935';
+      ctx.fillRect(px + 13, py + 12, 6, 14);
+      ctx.fillRect(px + 9, py + 16, 14, 6);
+      this.drawRoof(ctx, 5, px, py);
+    } else if (t === 9) {
+      ctx.fillStyle = '#311b92';
+      ctx.fillRect(px, py, TILE, TILE);
+      ctx.fillStyle = '#e2b53a';
+      ctx.fillRect(px + 6, py + 6, 20, 20);
+      ctx.fillStyle = '#0b1220';
+      ctx.fillRect(px + 10, py + 10, 12, 16);
+    } else if (t >= 13 && t <= 17) {
+      const cols = ['#7c3aed','#fb8c00','#6a1b9a','#c62828','#ffd54f'];
+      ctx.fillStyle = '#1a1333';
+      ctx.fillRect(px, py, TILE, TILE);
+      ctx.fillStyle = cols[t - 13];
+      ctx.fillRect(px + 6, py + 4, 20, 24);
+      ctx.fillStyle = '#0b1220';
+      ctx.fillRect(px + 11, py + 12, 10, 16);
     }
   }
 };
 
-/* ============================================================
-   SaveSystem
-   ============================================================ */
 const SaveSystem = {
   KEY: 'pokeregions-save',
-  state: { x: 10, y: 10, region: 0, caught: [] },
+  state: { x: 10, y: 10, region: 0, caught: [], badges: [], e4: 0 },
   load() {
     try {
       const raw = localStorage.getItem(this.KEY);
       if (raw) {
         const s = JSON.parse(raw);
-        this.state = Object.assign(this.state, s);
+        this.state = Object.assign(this.state, { badges: [], e4: 0 }, s);
         Player.x = s.x ?? 10;
         Player.y = s.y ?? 10;
-        MapManager.current = s.region ?? 0;
+        MapManager.current = Math.min(MAPS.length - 1, s.region ?? 0);
       }
     } catch (e) { console.warn('Load failed', e); }
   },
@@ -644,16 +1030,20 @@ const SaveSystem = {
     this.state.y = Player.y;
     this.state.region = MapManager.current;
     try { localStorage.setItem(this.KEY, JSON.stringify(this.state)); } catch(e){}
+    UIManager.renderBadges();
+    postStatus();
   }
 };
 
-/* ============================================================
-   Input
-   ============================================================ */
 const Input = {
   lastMove: 0,
   init() {
     document.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        Player.interact();
+        return;
+      }
       const now = Date.now();
       if (now - this.lastMove < 90) return;
       let handled = true;
@@ -664,13 +1054,8 @@ const Input = {
         case 'ArrowRight': case 'd': case 'D': Player.tryMove(1, 0); break;
         default: handled = false;
       }
-      if (handled) {
-        this.lastMove = now;
-        e.preventDefault();
-      }
+      if (handled) { this.lastMove = now; e.preventDefault(); }
     });
-
-    // On-screen D-pad — tap & hold to repeat
     const dirMap = { up: [0,-1], down: [0,1], left: [-1,0], right: [1,0] };
     const move = (dir) => {
       const v = dirMap[dir]; if (!v) return;
@@ -685,9 +1070,7 @@ const Input = {
       const start = (e) => {
         e.preventDefault();
         move(dir);
-        holdTimer = setTimeout(() => {
-          repeatTimer = setInterval(() => move(dir), 110);
-        }, 220);
+        holdTimer = setTimeout(() => { repeatTimer = setInterval(() => move(dir), 110); }, 220);
       };
       const stop = (e) => {
         if (e) e.preventDefault();
@@ -701,12 +1084,15 @@ const Input = {
       btn.addEventListener('mouseup', stop);
       btn.addEventListener('mouseleave', stop);
     });
+    const act = document.querySelector('#dpad [data-act="interact"]');
+    if (act) {
+      const fire = (e) => { e.preventDefault(); Player.interact(); };
+      act.addEventListener('touchstart', fire, { passive: false });
+      act.addEventListener('mousedown', fire);
+    }
   }
 };
 
-/* ============================================================
-   Boot
-   ============================================================ */
 function loop() {
   UIManager.draw();
   requestAnimationFrame(loop);
@@ -716,19 +1102,31 @@ window.addEventListener('load', () => {
   UIManager.init();
   SaveSystem.load();
   UIManager.renderPokedex();
+  UIManager.renderBadges();
   UIManager.showRegionLabel(MapManager.name());
+  postStatus();
   Input.init();
   loop();
 });
 
-// Host (parent app) tells us the Game Boy battle is over → close takeover modal
 window.addEventListener('message', (e) => {
   const d = e.data;
   if (!d) return;
-  if (d.type === 'pv-adventure-resume') {
-    EncounterSystem.close();
+  if (d.type === 'pv-adventure-resume') EncounterSystem.close();
+  if (d.type === 'pv-adventure-badge' && d.badge) {
+    const b = SaveSystem.state.badges || (SaveSystem.state.badges = []);
+    if (!b.includes(d.badge)) b.push(d.badge);
+    SaveSystem.save();
+    UIManager.toastModal(d.badge.toUpperCase() + " BADGE", "You earned the " + d.badge + " Badge!");
+  }
+  if (d.type === 'pv-adventure-e4-won') {
+    SaveSystem.state.e4 = Math.max(SaveSystem.state.e4 || 0, (d.index ?? 0) + 1);
+    SaveSystem.save();
+    const next = E4[SaveSystem.state.e4];
+    UIManager.toastModal("CHAMBER CLEARED", next ? (next.leader + " is next.") : "You are the Champion.");
   }
 });
+
 </script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
 const BASE = "https://pokeapi.co/api/v2";
+const PAGE = 120;
 
 type PokeListItem = { name: string; url: string };
 
@@ -27,10 +28,29 @@ const typeColors: Record<string, string> = {
   steel: "#B7B7CE", fairy: "#D685AD",
 };
 
-async function j<T>(url: string): Promise<T> {
-  const r = await fetch(url);
+const GENS: { id: number; label: string; min: number; max: number }[] = [
+  { id: 0, label: "All", min: 1, max: 2000 },
+  { id: 1, label: "I", min: 1, max: 151 },
+  { id: 2, label: "II", min: 152, max: 251 },
+  { id: 3, label: "III", min: 252, max: 386 },
+  { id: 4, label: "IV", min: 387, max: 493 },
+  { id: 5, label: "V", min: 494, max: 649 },
+  { id: 6, label: "VI", min: 650, max: 721 },
+  { id: 7, label: "VII", min: 722, max: 809 },
+  { id: 8, label: "VIII", min: 810, max: 905 },
+  { id: 9, label: "IX", min: 906, max: 2000 },
+];
+
+const TYPES = Object.keys(typeColors);
+
+async function j<T>(url: string, signal?: AbortSignal): Promise<T> {
+  const r = await fetch(url, { signal });
   if (!r.ok) throw new Error(`${r.status}`);
   return r.json();
+}
+
+function dexId(p: PokeListItem): number {
+  return Number(p.url.split("/").filter(Boolean).pop()) || 0;
 }
 
 function useDebounce<T>(v: T, ms = 300) {
@@ -43,29 +63,52 @@ export function PokedexHub() {
   const [query, setQuery] = useState("");
   const dq = useDebounce(query, 350);
   const [all, setAll] = useState<PokeListItem[]>([]);
+  const [typeNames, setTypeNames] = useState<string[] | null>(null);
   const [filtered, setFiltered] = useState<PokeListItem[]>([]);
+  const [shown, setShown] = useState(PAGE);
+  const [gen, setGen] = useState(0);
+  const [type, setType] = useState<string | null>(null);
   const [selected, setSelected] = useState<PokeDetail | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [listErr, setListErr] = useState<string | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
-  // Load full list once
   useEffect(() => {
     let mounted = true;
-    fetch(`${BASE}/pokemon?limit=1025`)
-      .then(r => r.json())
-      .then((d: any) => { if (mounted) setAll(d.results); })
-      .catch(() => {});
+    setListErr(null);
+    fetch(`${BASE}/pokemon?limit=2000`)
+      .then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json(); })
+      .then((d: any) => { if (mounted) setAll(d.results ?? []); })
+      .catch(() => { if (mounted) setListErr("PokéAPI didn’t load. Check your connection and retry."); });
     return () => { mounted = false; };
   }, []);
 
-  // Filter locally
   useEffect(() => {
-    if (!dq.trim()) { setFiltered([]); return; }
-    const q = dq.toLowerCase();
-    const out = all.filter(p => p.name.includes(q)).slice(0, 60);
-    setFiltered(out);
-  }, [dq, all]);
+    if (!type) { setTypeNames(null); return; }
+    let mounted = true;
+    j<{ pokemon: { pokemon: { name: string } }[] }>(`${BASE}/type/${type}`)
+      .then((d) => { if (mounted) setTypeNames(d.pokemon.map(p => p.pokemon.name)); })
+      .catch(() => { if (mounted) setTypeNames([]); });
+    return () => { mounted = false; };
+  }, [type]);
+
+  useEffect(() => {
+    const g = GENS.find(x => x.id === gen) ?? GENS[0];
+    let pool = all.filter(p => {
+      const id = dexId(p);
+      return id >= g.min && id <= g.max;
+    });
+    if (typeNames) {
+      const allow = new Set(typeNames);
+      pool = pool.filter(p => allow.has(p.name));
+    }
+    if (dq.trim()) {
+      const q = dq.toLowerCase();
+      pool = pool.filter(p => p.name.includes(q) || String(dexId(p)) === q);
+    }
+    setFiltered(pool);
+    setShown(PAGE);
+  }, [dq, all, gen, typeNames]);
 
   const loadDetail = useCallback(async (name: string) => {
     if (abortRef.current) abortRef.current.abort();
@@ -73,9 +116,9 @@ export function PokedexHub() {
     abortRef.current = ctrl;
     setDetailLoading(true);
     try {
-      const p: any = await j(`${BASE}/pokemon/${name}`);
+      const p: any = await j(`${BASE}/pokemon/${name}`, ctrl.signal);
       let species: any = null;
-      try { species = await j(p.species.url); } catch { /* ignore */ }
+      try { species = await j(p.species.url, ctrl.signal); } catch { /* ignore */ }
       const flavor = species?.flavor_text_entries?.find((e: any) => e.language?.name === "en")?.flavor_text?.replace(/\s+/g, " ") ?? null;
       const genus = species?.genera?.find((g: any) => g.language?.name === "en")?.genus ?? null;
       setSelected({
@@ -92,7 +135,9 @@ export function PokedexHub() {
         genus,
         cries: p.cries?.latest ?? null,
       });
-    } catch { setSelected(null); }
+    } catch (e: any) {
+      if (e?.name !== "AbortError") setSelected(null);
+    }
     setDetailLoading(false);
   }, []);
 
@@ -103,6 +148,9 @@ export function PokedexHub() {
     a.play().catch(() => {});
   }, [selected]);
 
+  const visible = filtered.slice(0, shown);
+  const loadingList = !all.length && !listErr;
+
   return (
     <div className="px-4 py-4 max-w-6xl mx-auto">
       <div className="flex flex-col gap-4">
@@ -112,39 +160,88 @@ export function PokedexHub() {
         </div>
         <input
           className="pv-key-in w-full max-w-md"
-          placeholder="Search Pokémon by name..."
+          placeholder="Search Pokémon by name or number…"
           value={query}
           onChange={e => { setQuery(e.target.value); setSelected(null); }}
         />
-      </div>
-
-      {!query.trim() && (
-        <div className="mt-6 text-sm" style={{ color: "var(--t3)" }}>
-          Start typing to search all 1,000+ Pokémon. Click a result to view details, stats, and shiny form.
-        </div>
-      )}
-
-      {query.trim() && !selected && (
-        <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-          {filtered.map(p => (
+        <div className="flex gap-1 flex-wrap" role="group" aria-label="Generation">
+          {GENS.map(g => (
             <button
-              key={p.name}
-              className="pv-dex-tile"
-              onClick={() => loadDetail(p.name)}
+              key={g.id}
+              className={`pv-pill ${gen === g.id ? "on" : ""}`}
+              onClick={() => { setGen(g.id); setSelected(null); }}
             >
-              <img
-                src={`https://img.pokemondb.net/sprites/home/normal/${p.name}.png`}
-                alt={p.name}
-                className="w-16 h-16 object-contain mx-auto"
-                loading="lazy"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${p.url.split('/').filter(Boolean).pop()}.png`;
-                }}
-              />
-              <div className="capitalize text-xs font-semibold mt-1 truncate">{p.name}</div>
+              {g.label}
             </button>
           ))}
         </div>
+        <div className="flex gap-1 flex-wrap" role="group" aria-label="Type">
+          <button className={`pv-pill ${type === null ? "on" : ""}`} onClick={() => { setType(null); setSelected(null); }}>All types</button>
+          {TYPES.map(t => (
+            <button
+              key={t}
+              className={`pv-pill ${type === t ? "on" : ""}`}
+              style={type === t ? { background: typeColors[t], color: "#111" } : undefined}
+              onClick={() => { setType(t === type ? null : t); setSelected(null); }}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {!selected && (
+        <div className="mt-4 text-sm" style={{ color: "var(--t3)" }}>
+          {loadingList
+            ? "Loading Pokédex…"
+            : `${filtered.length} Pokémon · showing ${visible.length}`}
+        </div>
+      )}
+
+      {listErr && !selected && (
+        <div className="pv-empty mt-4">
+          <div className="pv-empty-title">POKÉDEX DIDN’T LOAD</div>
+          <div>{listErr}</div>
+          <button className="pv-btn pv-btn-fill" style={{ marginTop: 12 }} onClick={() => location.reload()}>Retry</button>
+        </div>
+      )}
+
+      {!selected && !listErr && (
+        <>
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {loadingList && Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="pv-dex-tile" style={{ minHeight: 96 }} />
+            ))}
+            {visible.map(p => (
+              <button
+                key={p.name}
+                className="pv-dex-tile"
+                onClick={() => loadDetail(p.name)}
+              >
+                <img
+                  src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${dexId(p)}.png`}
+                  alt={p.name}
+                  className="w-16 h-16 object-contain mx-auto"
+                  loading="lazy"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${dexId(p)}.png`;
+                  }}
+                />
+                <div className="capitalize text-xs font-semibold mt-1 truncate">#{dexId(p)} {p.name}</div>
+              </button>
+            ))}
+          </div>
+          {!loadingList && filtered.length === 0 && (
+            <div className="pv-empty mt-4">No Pokémon match that search.</div>
+          )}
+          {shown < filtered.length && (
+            <div className="mt-4 flex justify-center">
+              <button className="pv-btn pv-btn-fill" onClick={() => setShown(s => s + PAGE)}>
+                Load more ({filtered.length - shown} left)
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {detailLoading && (
@@ -158,7 +255,7 @@ export function PokedexHub() {
             <div className="flex flex-col md:flex-row gap-6 items-start">
               <div className="flex flex-col items-center gap-3">
                 <img
-                  src={selected.artwork ?? `https://img.pokemondb.net/sprites/home/normal/${selected.name}.png`}
+                  src={selected.artwork ?? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${selected.id}.png`}
                   alt={selected.name}
                   className="w-48 h-48 object-contain drop-shadow-xl"
                 />
@@ -181,9 +278,14 @@ export function PokedexHub() {
                 {selected.genus && <div className="text-sm mt-1" style={{ color: "var(--t2)" }}>{selected.genus}</div>}
                 <div className="flex gap-2 mt-2 flex-wrap">
                   {selected.types.map(t => (
-                    <span key={t} className="px-2 py-0.5 rounded text-xs font-bold uppercase" style={{ background: typeColors[t] ?? "#888", color: "#111" }}>
+                    <button
+                      key={t}
+                      className="px-2 py-0.5 rounded text-xs font-bold uppercase"
+                      style={{ background: typeColors[t] ?? "#888", color: "#111" }}
+                      onClick={() => { setType(t); setSelected(null); }}
+                    >
                       {t}
-                    </span>
+                    </button>
                   ))}
                 </div>
                 {selected.flavorText && (

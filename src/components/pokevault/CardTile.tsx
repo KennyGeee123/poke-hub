@@ -3,13 +3,14 @@ import type { TCGCard } from "@/lib/pokemon-api";
 import { getMarketPrice } from "@/lib/pokemon-api";
 import { formatPrice, useVault } from "@/lib/vault";
 import { fallbackSpriteUrls, spriteSlug } from "@/lib/sprites";
-import { hdImg } from "@/lib/card-images";
+import { fallbackCardImages, hdImg } from "@/lib/card-images";
 
 type Props = {
   card: TCGCard;
   onClick: (card: TCGCard) => void;
   qty?: number;
   onRemove?: () => void;
+  eager?: boolean;
 };
 
 export function CardSpriteOverlay({ card, size = 140, show = true }: { card: TCGCard; size?: number; show?: boolean }) {
@@ -56,10 +57,19 @@ export function CardSpriteOverlay({ card, size = 140, show = true }: { card: TCG
   );
 }
 
-export function CardTile({ card, onClick, qty, onRemove }: Props) {
+export function CardTile({ card, onClick, qty, onRemove, eager }: Props) {
   const [loaded, setLoaded] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [srcIdx, setSrcIdx] = useState(0);
   const price = getMarketPrice(card);
+  const fallbacks = fallbackCardImages(card);
+  const hd = hdImg(card, { tile: true });
+  const src = fallbacks[srcIdx] || hd.src;
+
+  useEffect(() => {
+    setSrcIdx(0);
+    setLoaded(false);
+  }, [card.id]);
 
   return (
     <div
@@ -75,11 +85,17 @@ export function CardTile({ card, onClick, qty, onRemove }: Props) {
         {!loaded && <div className="pv-card-skel" />}
         <img
           className={`pv-card-img ${loaded ? "loaded" : ""}`}
-          {...hdImg(card)}
+          src={src}
+          srcSet={srcIdx === 0 ? hd.srcSet : undefined}
+          sizes={hd.sizes}
           alt={card.name}
-          loading="lazy"
+          loading={eager ? "eager" : "lazy"}
           decoding="async"
           onLoad={() => setLoaded(true)}
+          onError={() => {
+            if (srcIdx + 1 < fallbacks.length) setSrcIdx(srcIdx + 1);
+            setLoaded(true);
+          }}
         />
         <CardSpriteOverlay card={card} size={112} show={hovered} />
         {qty && qty > 1 ? <div className="pv-qty-b">×{qty}</div> : null}
