@@ -3,7 +3,14 @@
 import type { TCGCard, TCGPrice, TCGSet } from "@/lib/pokemon-api";
 
 const BASE = "https://api.tcgdex.net/v2";
-const EN = `${BASE}/en`;
+
+function tcgdexUrl(lang: string, path: string): string {
+  const p = path.startsWith("/") ? path : `/${path}`;
+  if (typeof window !== "undefined") {
+    return `/api/public/tcgdex?lang=${encodeURIComponent(lang)}&path=${encodeURIComponent(p)}`;
+  }
+  return `${BASE}/${lang}${p}`;
+}
 
 export type TCGdexCard = {
   id: string;
@@ -29,7 +36,7 @@ export type TCGdexCard = {
 
 async function j<T>(url: string): Promise<T | null> {
   try {
-    const r = await fetch(url, { signal: AbortSignal.timeout(4000) });
+    const r = await fetch(url, { signal: AbortSignal.timeout(12000) });
     if (!r.ok) return null;
     return r.json();
   } catch { return null; }
@@ -98,7 +105,15 @@ function mapTcgplayerPrices(pricing: any): Record<string, TCGPrice> | undefined 
   return Object.keys(prices).length ? prices : undefined;
 }
 
-export function mapTcgdexSet(s: any): TCGSet {
+const FX: Record<string, number> = { USD: 1, EUR: 1.08, GBP: 1.27, JPY: 0.0067, KRW: 0.00072, CNY: 0.14, TWD: 0.031 };
+
+function toUsd(value: number, unit?: string): number {
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  const rate = FX[(unit || "USD").toUpperCase()] ?? 1;
+  return Math.round(value * rate * 100) / 100;
+}
+
+export function mapTcgdexSet(s: any, lang = "en"): TCGSet {
   const total = Number(s?.cardCount?.total ?? s?.total ?? s?.cardCount?.official ?? 0) || 0;
   const printed = Number(s?.cardCount?.official ?? s?.printedTotal ?? total) || 0;
   return {
@@ -108,6 +123,7 @@ export function mapTcgdexSet(s: any): TCGSet {
     printedTotal: printed,
     total,
     releaseDate: String(s?.releaseDate ?? ""),
+    lang,
     images: {
       symbol: assetUrl(s?.symbol ?? s?.images?.symbol),
       logo: assetUrl(s?.logo ?? s?.images?.logo),
@@ -115,12 +131,22 @@ export function mapTcgdexSet(s: any): TCGSet {
   };
 }
 
-export function mapTcgdexCard(card: any, setOverride?: any): TCGCard {
+export function mapTcgdexCard(card: any, setOverride?: any, lang = "en"): TCGCard {
   const setSrc = setOverride ?? card?.set ?? {};
-  const setMapped = mapTcgdexSet(setSrc);
+  const setMapped = mapTcgdexSet(setSrc, lang);
   const number = String(card?.localId ?? card?.number ?? "");
   const hp = card?.hp == null ? undefined : String(card.hp);
+  const unit = String(card?.pricing?.tcgplayer?.unit || card?.pricing?.cardmarket?.unit || "USD");
   const tpPrices = mapTcgplayerPrices(card?.pricing);
+  if (tpPrices && unit && unit.toUpperCase() !== "USD") {
+    for (const p of Object.values(tpPrices)) {
+      if (p.market) p.market = toUsd(p.market, unit);
+      if (p.mid) p.mid = toUsd(p.mid, unit);
+      if (p.low) p.low = toUsd(p.low, unit);
+      if (p.directLow) p.directLow = toUsd(p.directLow, unit);
+      if (p.high) p.high = toUsd(p.high, unit);
+    }
+  }
   const cm = card?.pricing?.cardmarket;
   const images = cardImages({ ...card, set: setSrc, number });
   const attacks = Array.isArray(card?.attacks)
@@ -135,6 +161,7 @@ export function mapTcgdexCard(card: any, setOverride?: any): TCGCard {
   const out: TCGCard = {
     id: String(card?.id ?? ""),
     name: String(card?.name ?? ""),
+    lang,
     supertype: card?.category,
     hp,
     types: card?.types,
@@ -159,6 +186,7 @@ export function mapTcgdexCard(card: any, setOverride?: any): TCGCard {
   };
   if (tpPrices) {
     out.tcgplayer = {
+      url: card?.pricing?.tcgplayer?.url,
       updatedAt: card?.pricing?.tcgplayer?.updated,
       prices: tpPrices,
     };
@@ -176,6 +204,10 @@ export function mapTcgdexCard(card: any, setOverride?: any): TCGCard {
         reverseHoloTrend: cm["trend-holo"] ?? cm.reverseHoloTrend,
       },
     };
+    if (!out.tcgplayer) {
+      const usd = toUsd(Number(cm.trend ?? cm.avg ?? cm.low ?? 0), String(cm.unit || "EUR"));
+      if (usd > 0) out.tcgplayer = { prices: { normal: { market: usd } } };
+    }
   }
   return out;
 }
@@ -192,44 +224,48 @@ export function tcgdexSearchName(q?: string): string {
   return s.replace(/\s+/g, " ").trim();
 }
 
-export async function tcgdexGetCard(id: string): Promise<TCGCard | null> {
-  const raw = await j<any>(`${EN}/cards/${encodeURIComponent(id)}`);
+export async function tcgdexGetCard(id: string, lang = "en"): Promise<TCGCard | null> {
+  const raw = await j<any>(tcgdexUrl(lang, `/cards/${encodeURIComponent(id)}`));
   if (!raw?.id) return null;
-  return mapTcgdexCard(raw);
+  return mapTcgdexCard(raw, undefined, lang);
 }
 
-export async function tcgdexSearchCards(name: string, limit = 50): Promise<TCGCard[]> {
+export async function tcgdexSearchCards(name: string, limit = 50, lang = "en"): Promise<TCGCard[]> {
   const q = name.trim();
   if (!q) return [];
-  const raw = await j<any[]>(`${EN}/cards?name=${encodeURIComponent(q)}`);
+  const raw = await j<any[]>(tcgdexUrl(lang, `/cards?name=${encodeURIComponent(q)}`));
   if (!Array.isArray(raw) || !raw.length) return [];
-  return raw.slice(0, limit).map((c) => mapTcgdexCard(c));
+  return raw.slice(0, limit).map((c) => mapTcgdexCard(c, undefined, lang));
 }
 
-export async function tcgdexGetSets(): Promise<TCGSet[]> {
-  const raw = await j<any[]>(`${EN}/sets`);
+export async function tcgdexGetSets(lang = "en"): Promise<TCGSet[]> {
+  const raw = await j<any[]>(tcgdexUrl(lang, `/sets`));
   if (!Array.isArray(raw)) return [];
-  return raw.map(mapTcgdexSet).filter((s) => s.id);
+  return raw.map((s) => mapTcgdexSet(s, lang)).filter((s) => s.id);
 }
 
-export async function tcgdexGetSetCards(setId: string): Promise<TCGCard[]> {
-  const raw = await j<any>(`${EN}/sets/${encodeURIComponent(setId)}`);
+export async function tcgdexGetSetCards(setId: string, lang = "en"): Promise<TCGCard[]> {
+  const raw = await j<any>(tcgdexUrl(lang, `/sets/${encodeURIComponent(setId)}`));
   if (!raw) return [];
   const cards = Array.isArray(raw.cards) ? raw.cards : [];
-  return cards.map((c: any) => mapTcgdexCard(c, raw));
+  return cards.map((c: any) => mapTcgdexCard(c, raw, lang));
 }
 
-export async function tcgdexRecentCards(limit = 32): Promise<TCGCard[]> {
-  const sets = await j<any[]>(`${EN}/sets`);
+export async function tcgdexRecentCards(limit = 32, lang = "en"): Promise<TCGCard[]> {
+  const raw = await j<any[]>(tcgdexUrl(lang, `/cards?sort=recent&limit=${limit}`));
+  if (Array.isArray(raw) && raw.length) {
+    return raw.slice(0, limit).map((c) => mapTcgdexCard(c, undefined, lang));
+  }
+  const sets = await j<any[]>(tcgdexUrl(lang, `/sets`));
   if (!Array.isArray(sets) || !sets.length) return [];
   const recent = sets.slice(-8).reverse();
   const out: TCGCard[] = [];
   for (const s of recent) {
     if (!s?.id) continue;
-    const full = await j<any>(`${EN}/sets/${encodeURIComponent(s.id)}`);
+    const full = await j<any>(tcgdexUrl(lang, `/sets/${encodeURIComponent(s.id)}`));
     const cards = full?.cards ?? [];
     for (const c of cards) {
-      out.push(mapTcgdexCard(c, full ?? s));
+      out.push(mapTcgdexCard(c, full ?? s, lang));
       if (out.length >= limit) return out;
     }
   }
@@ -239,18 +275,18 @@ export async function tcgdexRecentCards(limit = 32): Promise<TCGCard[]> {
 // pokemontcg.io IDs look like "swsh4-25". TCGdex uses similar ids but with their own set codes.
 // We try direct lookup; falls back to search-by-name within the same set series.
 export async function getAltArtworks(card: { id: string; name: string; number?: string; set: { id: string; name: string } }): Promise<AltArt[]> {
-  const langs = ["en", "fr", "es", "it", "de", "pt", "ja"];
+  const langs = ["en", "ja", "zh-tw", "zh-cn", "ko", "th", "fr", "de", "es", "it", "pt-br"];
   const results: AltArt[] = [];
 
   const candidateId = card.number ? `${card.id.split("-")[0]}-${card.number}` : card.id;
 
   await Promise.all(langs.map(async (lang) => {
-    const direct = await j<TCGdexCard>(`${BASE}/${lang}/cards/${candidateId}`);
+    const direct = await j<TCGdexCard>(tcgdexUrl(lang, `/cards/${encodeURIComponent(candidateId)}`));
     if (direct?.image) {
       results.push({ lang, url: `${direct.image}/high.webp` });
       return;
     }
-    const search = await j<TCGdexCard[]>(`${BASE}/${lang}/cards?name=${encodeURIComponent(card.name)}`);
+    const search = await j<TCGdexCard[]>(tcgdexUrl(lang, `/cards?name=${encodeURIComponent(card.name)}`));
     const hit = search?.find(c => c.image);
     if (hit?.image) results.push({ lang, url: `${hit.image}/high.webp` });
   }));

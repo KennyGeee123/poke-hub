@@ -321,6 +321,7 @@
 .pv-set-sym { width: 26px; height: 26px; object-fit: contain; opacity: .85; flex-shrink: 0; }
 
 /* Filters */
+.pv-lang-b { position: absolute; top: 8px; left: 8px; z-index: 5; font-size: 9px; font-weight: 800; letter-spacing: .4px; padding: 2px 6px; border-radius: 8px; background: rgba(15,23,42,.82); color: #fde68a; border: 1px solid rgba(253,224,71,.35); }
 .pv-pill { padding: 5px 12px; background: #fff; border: 1px solid var(--brd); border-radius: 20px; color: var(--t2); cursor: pointer; font-size: 11px; font-weight: 600; transition: .15s; }
 .pv-pill:hover { color: var(--t1); }
 .pv-pill.on { background: var(--gold-bg); border-color: var(--gold-brd); color: var(--gold); }
@@ -1870,6 +1871,7 @@ header, nav, main, footer, .pv-settings { position: relative; z-index: 1; }
   border: 1px solid rgba(244,239,228,.28); border-radius: 999px; text-transform: none;
   white-space: nowrap;
 }
+.pv-vb-on { color: #7CFF6B; }
 .pv-gb-footer {
   padding: 18px 16px; text-align: center; color: var(--muted);
   font-size: 11px; font-weight: 600; letter-spacing: .4px;

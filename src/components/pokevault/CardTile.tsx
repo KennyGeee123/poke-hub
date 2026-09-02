@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { TCGCard } from "@/lib/pokemon-api";
-import { getMarketPrice } from "@/lib/pokemon-api";
+import { getMarketPrice, rememberCard } from "@/lib/pokemon-api";
+import { printLangMeta } from "@/lib/print-lang";
 import { formatPrice, useVault } from "@/lib/vault";
 import { fallbackSpriteUrls, spriteSlug } from "@/lib/sprites";
 import { fallbackCardImages, hdImg } from "@/lib/card-images";
@@ -74,7 +75,7 @@ export function CardTile({ card, onClick, qty, onRemove, eager }: Props) {
   return (
     <div
       className="pv-card-wrap"
-      onClick={() => onClick(card)}
+      onClick={() => { rememberCard(card); onClick(card); }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onFocus={() => setHovered(true)}
@@ -98,6 +99,9 @@ export function CardTile({ card, onClick, qty, onRemove, eager }: Props) {
           }}
         />
         <CardSpriteOverlay card={card} size={112} show={hovered} />
+        {card.lang && card.lang !== "en" && (
+          <div className="pv-lang-b" title={printLangMeta(card.lang).name}>{printLangMeta(card.lang).label}</div>
+        )}
         {qty && qty > 1 ? <div className="pv-qty-b">×{qty}</div> : null}
         {onRemove && (
           <button

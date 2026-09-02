@@ -2,6 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { applySecurityHeaders, scanRequest, blockedResponse } from "./lib/virus-buster";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -19,10 +20,10 @@ async function getServerEntry(): Promise<ServerEntry> {
 }
 
 function brandedErrorResponse(): Response {
-  return new Response(renderErrorPage(), {
+  return applySecurityHeaders(new Response(renderErrorPage(), {
     status: 500,
     headers: { "content-type": "text/html; charset=utf-8" },
-  });
+  }));
 }
 
 function isCatastrophicSsrErrorBody(body: string, responseStatus: number): boolean {
@@ -69,9 +70,12 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const hit = await scanRequest(request);
+      if (hit.blocked) return blockedResponse();
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      const normalized = await normalizeCatastrophicSsrResponse(response);
+      return applySecurityHeaders(normalized);
     } catch (error) {
       console.error(error);
       return brandedErrorResponse();

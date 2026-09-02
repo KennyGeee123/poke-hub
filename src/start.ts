@@ -2,6 +2,13 @@ import { createStart, createMiddleware } from "@tanstack/react-start";
 
 import { renderErrorPage } from "./lib/error-page";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
+import { scanRequest, blockedResponse } from "@/lib/virus-buster";
+
+const virusBusterMiddleware = createMiddleware().server(async ({ next, request }) => {
+  const hit = await scanRequest(request);
+  if (hit.blocked) return blockedResponse();
+  return next();
+});
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
@@ -20,5 +27,5 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
 
 export const startInstance = createStart(() => ({
   functionMiddleware: [attachSupabaseAuth],
-  requestMiddleware: [errorMiddleware],
+  requestMiddleware: [virusBusterMiddleware, errorMiddleware],
 }));

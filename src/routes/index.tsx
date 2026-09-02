@@ -137,6 +137,7 @@ function Index() {
               {scansLeft}/{FREE_SCAN_LIMIT} scans
             </div>
           )}
+          <div className="pv-gb-badge pv-vb-on" title="Site shields on. Not desktop antivirus.">Virus Buster</div>
           <button
             onClick={async () => { if (user) { await signOut(); } else { nav({ to: "/login" }); } }}
             className="pv-gb-badge"

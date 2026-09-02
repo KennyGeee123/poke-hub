@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicVirusBusterRouteImport } from './routes/api/public/virus-buster'
+import { Route as ApiPublicTcgdexRouteImport } from './routes/api/public/tcgdex'
 import { Route as ApiPublicTcgRouteImport } from './routes/api/public/tcg'
 import { Route as ApiPublicPokeRadioRouteImport } from './routes/api/public/poke-radio'
 import { Route as ApiPublicMcpRouteImport } from './routes/api/public/mcp'
@@ -25,6 +27,16 @@ const LoginRoute = LoginRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicVirusBusterRoute = ApiPublicVirusBusterRouteImport.update({
+  id: '/api/public/virus-buster',
+  path: '/api/public/virus-buster',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTcgdexRoute = ApiPublicTcgdexRouteImport.update({
+  id: '/api/public/tcgdex',
+  path: '/api/public/tcgdex',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicTcgRoute = ApiPublicTcgRouteImport.update({
@@ -61,6 +73,8 @@ export interface FileRoutesByFullPath {
   '/api/public/mcp': typeof ApiPublicMcpRoute
   '/api/public/poke-radio': typeof ApiPublicPokeRadioRoute
   '/api/public/tcg': typeof ApiPublicTcgRoute
+  '/api/public/tcgdex': typeof ApiPublicTcgdexRoute
+  '/api/public/virus-buster': typeof ApiPublicVirusBusterRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +84,8 @@ export interface FileRoutesByTo {
   '/api/public/mcp': typeof ApiPublicMcpRoute
   '/api/public/poke-radio': typeof ApiPublicPokeRadioRoute
   '/api/public/tcg': typeof ApiPublicTcgRoute
+  '/api/public/tcgdex': typeof ApiPublicTcgdexRoute
+  '/api/public/virus-buster': typeof ApiPublicVirusBusterRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +96,8 @@ export interface FileRoutesById {
   '/api/public/mcp': typeof ApiPublicMcpRoute
   '/api/public/poke-radio': typeof ApiPublicPokeRadioRoute
   '/api/public/tcg': typeof ApiPublicTcgRoute
+  '/api/public/tcgdex': typeof ApiPublicTcgdexRoute
+  '/api/public/virus-buster': typeof ApiPublicVirusBusterRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +109,8 @@ export interface FileRouteTypes {
     | '/api/public/mcp'
     | '/api/public/poke-radio'
     | '/api/public/tcg'
+    | '/api/public/tcgdex'
+    | '/api/public/virus-buster'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +120,8 @@ export interface FileRouteTypes {
     | '/api/public/mcp'
     | '/api/public/poke-radio'
     | '/api/public/tcg'
+    | '/api/public/tcgdex'
+    | '/api/public/virus-buster'
   id:
     | '__root__'
     | '/'
@@ -109,6 +131,8 @@ export interface FileRouteTypes {
     | '/api/public/mcp'
     | '/api/public/poke-radio'
     | '/api/public/tcg'
+    | '/api/public/tcgdex'
+    | '/api/public/virus-buster'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +143,8 @@ export interface RootRouteChildren {
   ApiPublicMcpRoute: typeof ApiPublicMcpRoute
   ApiPublicPokeRadioRoute: typeof ApiPublicPokeRadioRoute
   ApiPublicTcgRoute: typeof ApiPublicTcgRoute
+  ApiPublicTcgdexRoute: typeof ApiPublicTcgdexRoute
+  ApiPublicVirusBusterRoute: typeof ApiPublicVirusBusterRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -135,6 +161,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/virus-buster': {
+      id: '/api/public/virus-buster'
+      path: '/api/public/virus-buster'
+      fullPath: '/api/public/virus-buster'
+      preLoaderRoute: typeof ApiPublicVirusBusterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/tcgdex': {
+      id: '/api/public/tcgdex'
+      path: '/api/public/tcgdex'
+      fullPath: '/api/public/tcgdex'
+      preLoaderRoute: typeof ApiPublicTcgdexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/tcg': {
@@ -183,6 +223,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicMcpRoute: ApiPublicMcpRoute,
   ApiPublicPokeRadioRoute: ApiPublicPokeRadioRoute,
   ApiPublicTcgRoute: ApiPublicTcgRoute,
+  ApiPublicTcgdexRoute: ApiPublicTcgdexRoute,
+  ApiPublicVirusBusterRoute: ApiPublicVirusBusterRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

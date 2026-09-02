@@ -16,6 +16,7 @@ export type TCGPrice = { low?: number; mid?: number; high?: number; market?: num
 export type TCGCard = {
   id: string;
   name: string;
+  lang?: string;
   supertype?: string;
   subtypes?: string[];
   hp?: string;
@@ -66,8 +67,16 @@ export type TCGSet = {
   printedTotal: number;
   total: number;
   releaseDate: string;
+  lang?: string;
   images: { symbol: string; logo: string };
 };
+
+const cardMemo = new Map<string, TCGCard>();
+export function rememberCard(c: TCGCard) {
+  if (!c?.id) return;
+  cardMemo.set(c.id, c);
+  cardMemo.set(`${c.lang || "en"}:${c.id}`, c);
+}
 
 function getApiKey(): string | null {
   if (typeof localStorage === "undefined") return null;
@@ -271,9 +280,19 @@ export async function searchCards(opts: {
   pageSize?: number;
   orderBy?: string;
   select?: string;
+  lang?: string;
 }): Promise<SearchResult> {
   const page = opts.page ?? 1;
   const pageSize = opts.pageSize ?? 24;
+  const lang = opts.lang || "en";
+  const name = tcgdexSearchName(opts.q);
+
+  if (lang !== "en") {
+    const data = name ? await tcgdexSearchCards(name, pageSize, lang) : [];
+    data.forEach(rememberCard);
+    return { data, totalCount: data.length, page, pageSize };
+  }
+
   const params = new URLSearchParams();
   if (opts.q) params.set("q", opts.q);
   params.set("page", String(page));
@@ -284,16 +303,21 @@ export async function searchCards(opts: {
   let res: SearchResult | null = null;
   try {
     res = await tcgFetch<SearchResult>(`/cards?${params}`);
-    if (res?.data?.length) return res;
+    if (res?.data?.length) {
+      res.data.forEach(rememberCard);
+      return res;
+    }
   } catch {
     /* try tcgdex + seed catalog */
   }
 
-  const name = tcgdexSearchName(opts.q);
   if (name) {
     try {
-      const data = await tcgdexSearchCards(name, pageSize);
-      if (data.length) return { data, totalCount: data.length, page, pageSize };
+      const data = await tcgdexSearchCards(name, pageSize, lang);
+      if (data.length) {
+        data.forEach(rememberCard);
+        return { data, totalCount: data.length, page, pageSize };
+      }
     } catch { /* ignore */ }
   }
   const fb = fallbackSearch(opts.q || name || "");
@@ -318,18 +342,42 @@ function firstHit<T>(promises: Promise<T | null>[]): Promise<T | null> {
   });
 }
 
-export async function getCard(id: string): Promise<TCGCard> {
+export async function getCard(id: string, lang?: string): Promise<TCGCard> {
+  const memo = (lang && cardMemo.get(`${lang}:${id}`)) || cardMemo.get(id);
+  const useLang = lang || memo?.lang || (/^[A-Z]/.test(id) ? "ja" : "en");
+  if (memo && (memo.images?.small || memo.tcgplayer || memo.cardmarket)) {
+    firstHit<TCGCard>([
+      useLang === "en"
+        ? tcgFetch<{ data: TCGCard }>(`/cards/${encodeURIComponent(id)}`)
+            .then((res) => (res?.data?.id ? res.data : null))
+            .catch(() => null)
+        : Promise.resolve(null),
+      tcgdexGetCard(id, useLang).catch(() => null),
+    ]).then((hit) => { if (hit?.id) rememberCard(hit); }).catch(() => {});
+    return memo;
+  }
   const hit = await firstHit<TCGCard>([
-    tcgFetch<{ data: TCGCard }>(`/cards/${encodeURIComponent(id)}`)
-      .then((res) => (res?.data?.id ? res.data : null))
-      .catch(() => null),
-    tcgdexGetCard(id).catch(() => null),
+    useLang === "en"
+      ? tcgFetch<{ data: TCGCard }>(`/cards/${encodeURIComponent(id)}`)
+          .then((res) => (res?.data?.id ? res.data : null))
+          .catch(() => null)
+      : Promise.resolve(null),
+    tcgdexGetCard(id, useLang).catch(() => null),
+    useLang !== "en" ? tcgdexGetCard(id, "en").catch(() => null) : Promise.resolve(null),
   ]);
-  if (hit?.id) return hit;
+  if (hit?.id) {
+    rememberCard(hit);
+    return hit;
+  }
+  if (memo) return memo;
   return FALLBACK_CARDS.find((c) => c.id === id) || stubCardFromId(id);
 }
 
-export async function getSets(): Promise<TCGSet[]> {
+export async function getSets(lang = "en"): Promise<TCGSet[]> {
+  if (lang !== "en") {
+    const dx = await tcgdexGetSets(lang);
+    if (dx.length) return dx;
+  }
   const all: TCGSet[] = [];
   let ptcgFailed = false;
   try {
@@ -352,7 +400,7 @@ export async function getSets(): Promise<TCGSet[]> {
 
   if (ptcgFailed || all.length < 50) {
     try {
-      const dx = await tcgdexGetSets();
+      const dx = await tcgdexGetSets(lang);
       const seen = new Set(all.map((s) => s.id));
       for (const s of dx) {
         if (!s.id || seen.has(s.id)) continue;
@@ -366,13 +414,19 @@ export async function getSets(): Promise<TCGSet[]> {
   return all;
 }
 
-export async function getCardsBySet(setId: string, page = 1): Promise<{ data: TCGCard[]; totalCount: number; page: number; pageSize: number }> {
+export async function getCardsBySet(setId: string, page = 1, lang = "en"): Promise<{ data: TCGCard[]; totalCount: number; page: number; pageSize: number }> {
+  if (lang !== "en") {
+    const extra = await tcgdexGetSetCards(setId, lang);
+    extra.forEach(rememberCard);
+    return { data: extra, totalCount: extra.length, page: 1, pageSize: extra.length };
+  }
   return searchCards({
     q: `set.id:${setId}`,
     page,
     pageSize: 250,
     orderBy: "number",
     select: CARD_LIST_SELECT,
+    lang,
   });
 }
 
@@ -380,8 +434,15 @@ export async function getCardsBySet(setId: string, page = 1): Promise<{ data: TC
 export async function getAllCardsBySet(
   setId: string,
   onPage?: (cards: TCGCard[], total: number) => void,
-  setName?: string
+  setName?: string,
+  lang = "en",
 ): Promise<{ data: TCGCard[]; totalCount: number }> {
+  if (lang !== "en") {
+    const extra = await tcgdexGetSetCards(setId, lang);
+    extra.forEach(rememberCard);
+    onPage?.(extra, extra.length);
+    return { data: extra, totalCount: extra.length };
+  }
   let all: TCGCard[] = [];
   let total = 0;
   try {
@@ -406,6 +467,7 @@ export async function getAllCardsBySet(
         pageSize: 250,
         orderBy: "number",
         select: CARD_LIST_SELECT,
+        lang,
       });
       all = fallback.data ?? [];
       total = Math.max(total, fallback.totalCount ?? all.length, all.length);
@@ -414,7 +476,7 @@ export async function getAllCardsBySet(
   }
 
   try {
-    const extra = await tcgdexGetSetCards(setId);
+    const extra = await tcgdexGetSetCards(setId, lang);
     if (extra.length) {
       const seen = new Set(all.map((c) => c.id));
       let added = false;
@@ -434,20 +496,23 @@ export async function getAllCardsBySet(
   return { data: all, totalCount: Math.max(total, all.length) };
 }
 
-export async function getDiscoverFast(): Promise<TCGCard[]> {
+export async function getDiscoverFast(lang = "en"): Promise<TCGCard[]> {
+  if (lang !== "en") return tcgdexRecentCards(32, lang);
   try {
     const res = await searchCards({
       q: "supertype:Pokémon",
       pageSize: 32,
       orderBy: "-set.releaseDate",
       select: CARD_LIST_SELECT,
+      lang,
     });
     if (res.data?.length) return res.data;
   } catch {}
-  return tcgdexRecentCards(32);
+  return tcgdexRecentCards(32, lang);
 }
 
-export async function getTrending(pageSize = 16, page = 1): Promise<TCGCard[]> {
+export async function getTrending(pageSize = 16, page = 1, lang = "en"): Promise<TCGCard[]> {
+  if (lang !== "en") return getDiscoverFast(lang);
   try {
     const res = await searchCards({
       q: "(tcgplayer.prices.holofoil.market:[10 TO *] OR tcgplayer.prices.normal.market:[10 TO *] OR tcgplayer.prices.reverseHolofoil.market:[10 TO *])",
@@ -455,13 +520,20 @@ export async function getTrending(pageSize = 16, page = 1): Promise<TCGCard[]> {
       pageSize,
       orderBy: "-set.releaseDate",
       select: CARD_LIST_SELECT,
+      lang,
     });
     if (res.data?.length) return res.data;
   } catch {}
-  return getDiscoverFast();
+  return getDiscoverFast(lang);
 }
 
-export async function getTopMarket(): Promise<TCGCard[]> {
+export async function getTopMarket(lang = "en"): Promise<TCGCard[]> {
+  if (lang !== "en") {
+    const recent = await tcgdexRecentCards(40, lang);
+    recent.forEach(rememberCard);
+    const priced = recent.filter((c) => getMarketPrice(c) > 0);
+    return (priced.length ? priced : recent).slice(0, 30);
+  }
   try {
     const res = await searchCards({
       q: "supertype:Pokémon",
@@ -474,7 +546,7 @@ export async function getTopMarket(): Promise<TCGCard[]> {
     if (res.data?.length) return res.data.slice(0, 30);
   } catch { /* fall through */ }
   try {
-    const fast = await getDiscoverFast();
+    const fast = await getDiscoverFast(lang);
     if (fast.length) return fast.slice(0, 30);
   } catch { /* fall through */ }
   return FALLBACK_CARDS;

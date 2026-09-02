@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { hdImg } from "@/lib/card-images";
 import type { TCGCard, TCGSet } from "@/lib/pokemon-api";
-import { getMarketPrice, getSets, getTopMarket, getTrending, getDiscoverFast, searchCards, getCardsBySet, getAllCardsBySet } from "@/lib/pokemon-api";
+import { getMarketPrice, getSets, getTopMarket, getTrending, getDiscoverFast, searchCards, getCardsBySet, getAllCardsBySet, rememberCard } from "@/lib/pokemon-api";
 import { formatPrice, useVault } from "@/lib/vault";
 import { CardTile, CardSkeleton } from "./CardTile";
 import { CollectionInsightsCard } from "./CollectionInsights";
 import { CheapestPill } from "./CheapestPill";
 import { PriceComparePanel } from "./PriceCompare";
+import { PrintLangBar } from "./PrintLangBar";
+import { searchChips, searchPlaceholder, usePrintLang } from "@/lib/print-lang";
 
 type OnOpen = (id: string) => void;
 
@@ -14,20 +16,22 @@ type OnOpen = (id: string) => void;
 export function DiscoverView({ onOpen, onTab }: { onOpen: OnOpen; onTab: (t: string) => void }) {
   const [trending, setTrending] = useState<TCGCard[] | null>(null);
   const [heroIdx, setHeroIdx] = useState(0);
+  const [lang] = usePrintLang();
 
   useEffect(() => {
     let cancelled = false;
+    setTrending(null);
     const paint = (cards: TCGCard[]) => {
       if (cancelled) return;
       const sorted = [...cards].sort((a, b) => getMarketPrice(b) - getMarketPrice(a));
       setTrending(sorted);
     };
-    getDiscoverFast().then(paint).catch(() => {});
-    getTrending(24).then(paint).catch(() => {
+    getDiscoverFast(lang).then(paint).catch(() => {});
+    getTrending(24, 1, lang).then(paint).catch(() => {
       setTrending(prev => prev ?? []);
     });
     return () => { cancelled = true; };
-  }, []);
+  }, [lang]);
 
   // Rotate hero every 2 minutes
   useEffect(() => {
@@ -43,6 +47,7 @@ export function DiscoverView({ onOpen, onTab }: { onOpen: OnOpen; onTab: (t: str
 
   return (
     <div>
+      <div className="pad" style={{ paddingBottom: 0 }}><PrintLangBar /></div>
       {hero && (
         <div className="pv-hero" key={hero.id}>
           <div className="pv-hero-bg" style={{
@@ -54,7 +59,7 @@ export function DiscoverView({ onOpen, onTab }: { onOpen: OnOpen; onTab: (t: str
             <div className="pv-hero-sub">{hero.set.name} • {hero.rarity ?? "—"}</div>
             <div className="pv-hero-price">{formatPrice(getMarketPrice(hero))}</div>
             <div className="flex gap-2 flex-wrap">
-              <button className="pv-btn pv-btn-out" onClick={() => onOpen(hero.id)}>View Card</button>
+              <button className="pv-btn pv-btn-out" onClick={() => { rememberCard(hero); onOpen(hero.id); }}>View Card</button>
               <HeroAddBtn card={hero} />
               {total > 1 && (
                 <button className="pv-btn pv-btn-out" onClick={() => setHeroIdx(i => (i + 1) % Math.min(total, 20))}>
@@ -125,11 +130,12 @@ export function MarketView({ onOpen }: { onOpen: OnOpen }) {
   const [filter, setFilter] = useState<string>("all");
   const [err, setErr] = useState<string | null>(null);
   const { addToVault, inVault } = useVault();
+  const [lang] = usePrintLang();
 
   const load = () => {
     setErr(null);
     setCards(null);
-    getTopMarket()
+    getTopMarket(lang)
       .then((c) => {
         setCards(c);
         if (!c.length) setErr("The card API is busy. Showing nothing — retry in a moment.");
@@ -139,7 +145,7 @@ export function MarketView({ onOpen }: { onOpen: OnOpen }) {
         setErr(e?.message || "Could not load market data.");
       });
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [lang]);
 
   const filtered = (cards ?? []).filter(c => {
     if (filter === "all") return true;
@@ -153,6 +159,7 @@ export function MarketView({ onOpen }: { onOpen: OnOpen }) {
 
   return (
     <div className="pad">
+      <PrintLangBar />
       <div className="pv-section-title">📈 MARKET LEADERBOARD</div>
       <div className="flex gap-2 flex-wrap mb-4">
         {[
@@ -175,7 +182,7 @@ export function MarketView({ onOpen }: { onOpen: OnOpen }) {
           <div className="pv-lb-rank">{i + 1}</div>
           <img className="pv-lb-img" {...hdImg(c)} alt={c.name} loading="lazy" />
           <div className="pv-lb-info">
-            <div className="pv-lb-name">{c.name}</div>
+            <div className="pv-lb-name">{c.name}{c.lang && c.lang !== "en" ? ` · ${c.lang}` : ""}</div>
             <div className="pv-lb-rar">{c.set.name} • {c.rarity ?? "—"}</div>
           </div>
           <div className="pv-lb-price">{formatPrice(getMarketPrice(c))}</div>
@@ -197,16 +204,17 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
   const [sets, setSets] = useState<TCGSet[] | null>(null);
   const [filter, setFilter] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  const [lang] = usePrintLang();
 
   const load = () => {
     setErr(null);
     setSets(null);
-    getSets().then(setSets).catch((e: any) => {
+    getSets(lang).then(setSets).catch((e: any) => {
       setSets([]);
       setErr(e?.message || "Could not load sets.");
     });
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [lang]);
 
   const filtered = (sets ?? []).filter(s =>
     !filter || s.name.toLowerCase().includes(filter.toLowerCase()) || s.series?.toLowerCase().includes(filter.toLowerCase())
@@ -214,6 +222,7 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
 
   return (
     <div className="pad">
+      <PrintLangBar />
       <input
         className="pv-input mb-4"
         placeholder="Filter sets by name or series…"
@@ -265,7 +274,7 @@ export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () 
     getAllCardsBySet(set.id, (page, tot) => {
       setCards(page);
       setTotal(tot);
-    }, set.name)
+    }, set.name, set.lang || "en")
       .then(r => { setCards(r.data); setTotal(r.totalCount); })
       .catch((e: any) => {
         setCards([]);
@@ -322,6 +331,7 @@ export function SearchView({ onOpen }: { onOpen: OnOpen }) {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [lang] = usePrintLang();
 
   const runSearch = async (query: string, p = 1) => {
     if (!query.trim()) return;
@@ -329,13 +339,13 @@ export function SearchView({ onOpen }: { onOpen: OnOpen }) {
     setActive(query);
     setErr(null);
     const raw = query.trim();
-    const queries = /[:*]/.test(raw) ? [raw] : [`name:"${raw}*"`, `name:${raw}*`, `name:${raw}`];
+    const queries = lang !== "en" || /[:*]/.test(raw) ? [raw] : [`name:"${raw}*"`, `name:${raw}*`, `name:${raw}`];
     try {
       let lastErr: unknown = null;
       let res: { data: TCGCard[]; totalCount: number } | null = null;
       for (const tcgQuery of queries) {
         try {
-          const r = await searchCards({ q: tcgQuery, page: p, pageSize: 50, orderBy: "-set.releaseDate" });
+          const r = await searchCards({ q: tcgQuery, page: p, pageSize: 50, orderBy: "-set.releaseDate", lang });
           res = r;
           if (r.data.length) break;
         } catch (e) {
@@ -354,18 +364,25 @@ export function SearchView({ onOpen }: { onOpen: OnOpen }) {
     }
   };
 
+  useEffect(() => {
+    if (active) runSearch(active, 1);
+    else setCards(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- re-run current query when print language changes
+  }, [lang]);
+
   return (
     <div className="pad">
+      <PrintLangBar />
       <form onSubmit={e => { e.preventDefault(); runSearch(q, 1); }}>
         <input
           className="pv-input mb-3"
-          placeholder="Search by name (e.g. Charizard) or query (e.g. types:fire)…"
+          placeholder={searchPlaceholder(lang)}
           value={q}
           onChange={e => setQ(e.target.value)}
         />
       </form>
       <div className="flex gap-2 flex-wrap mb-4">
-        {["Charizard", "Pikachu", "Mewtwo", "Lugia", "Rayquaza"].map(n => (
+        {searchChips(lang).map(n => (
           <button key={n} className="pv-pill" onClick={() => { setQ(n); runSearch(n, 1); }}>{n}</button>
         ))}
       </div>

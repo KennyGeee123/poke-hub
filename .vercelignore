@@ -1,0 +1,10 @@
+public/fx
+.netnavi-core
+node_modules
+.git
+.output
+dist
+.tanstack
+.nitro
+.wrangler
+*.log

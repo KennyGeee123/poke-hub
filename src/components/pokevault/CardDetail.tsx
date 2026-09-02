@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { TCGCard } from "@/lib/pokemon-api";
 import { getCard, getMarketPrice, getRarityColor, stubCardFromId } from "@/lib/pokemon-api";
+import { getPrintLang, printLangMeta } from "@/lib/print-lang";
 import { formatPrice } from "@/lib/vault";
 import { CardActions } from "./CardTile";
 import { getPokedex, type Pokedex } from "@/lib/pokeapi";
@@ -26,7 +27,7 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
     setImgSrc(stub.images?.large || stub.images?.small || "");
     failedImgs.current = new Set();
     let live = true;
-    getCard(cardId)
+    getCard(cardId, getPrintLang())
       .then((c) => {
         if (!live || !c) return;
         setCard(c);
@@ -112,6 +113,7 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
         <div className="pv-detail-right">
           <div className="pv-detail-name">{card.name.toUpperCase()}</div>
           <div style={{ color: "var(--t3)", fontSize: 11, marginBottom: 10 }}>
+            {card.lang && card.lang !== "en" ? `${printLangMeta(card.lang).name} print • ` : ""}
             {card.set.name} • #{card.number}/{card.set.printedTotal} {card.artist && `• Illus. ${card.artist}`}
           </div>
           {card.rarity && (
