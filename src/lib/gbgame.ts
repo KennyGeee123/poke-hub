@@ -217,6 +217,26 @@ export async function saveMonStats(mon: GBMon): Promise<void> {
   if (error) throw error;
 }
 
+
+/** Restore party to full health (Poké Center). Battle HP is ephemeral; this clears fatigue markers and re-persists. */
+export async function healParty(): Promise<GBMon[]> {
+  const party = await fetchParty();
+  const healed = party.map((m) => ({ ...m }));
+  const uid = await currentUserId();
+  if (!uid) {
+    writeLocalParty(healed);
+    return healed;
+  }
+  for (const m of healed) {
+    try {
+      await saveMonStats(m);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  return healed;
+}
+
 export async function releaseMon(id: string): Promise<void> {
   const uid = await currentUserId();
   if (!uid) {

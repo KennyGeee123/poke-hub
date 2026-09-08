@@ -191,6 +191,7 @@ export function GameBoyView() {
         await kickoff(mon, card, lvl);
       } catch (err) { console.error(err); }
     };
+    // Adventure overlay owns in-tab fights; this listener remains for Game Boy tab sandbox.
     window.addEventListener("pv-gb-wild", onWild as EventListener);
     return () => window.removeEventListener("pv-gb-wild", onWild as EventListener);
   }, [party]);

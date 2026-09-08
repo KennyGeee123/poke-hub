@@ -1,23 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { searchCards } from "@/lib/pokemon-api";
-import { addToParty, saveMonStats, fetchParty } from "@/lib/gbgame";
-import { movesAtLevel } from "@/lib/pokeapi-moves";
+import { healParty } from "@/lib/gbgame";
 import { generateHiggsfieldImage, pollHiggsfieldImage } from "@/lib/higgsfield.functions";
+import { GBBattleSession, type GBBattleFoe } from "./GBBattleSession";
 
 type Toast = { msg: string; key: number };
 type Scene = { name: string; url?: string; loading: boolean; error?: string; pending?: boolean };
-type PendingWild = {
-  name: string; level: number; region?: string;
-  kind?: "wild" | "gym" | "elite" | "champion";
-  catchable?: boolean; badge?: string; e4Index?: number; leader?: string;
-};
+type PendingWild = GBBattleFoe & { region?: string };
 
 export function AdventureView() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [scene, setScene] = useState<Scene | null>(null);
   const [region, setRegion] = useState("Kanto");
   const [pendingWild, setPendingWild] = useState<PendingWild | null>(null);
+  const [battleOpen, setBattleOpen] = useState(false);
+  const [battleFoe, setBattleFoe] = useState<GBBattleFoe | null>(null);
   const [sceneVidOk, setSceneVidOk] = useState(true);
   const [frameBlocked, setFrameBlocked] = useState(false);
   const [badges, setBadges] = useState<string[]>([]);
@@ -33,16 +30,40 @@ export function AdventureView() {
     setTimeout(() => setToasts((t) => t.filter((x) => x.key !== key)), 3200);
   }
 
+  function postIframe(msg: Record<string, unknown>) {
+    try {
+      iframeRef.current?.contentWindow?.postMessage(msg, "*");
+    } catch {}
+  }
+
   function goBattle(w: PendingWild) {
-    window.dispatchEvent(new CustomEvent("pv-goto", { detail: "gb" }));
-    setTimeout(() => {
-      window.dispatchEvent(
-        new CustomEvent("pv-gb-wild", { detail: {
-          name: w.name, level: w.level, kind: w.kind || "wild",
-          catchable: w.catchable !== false, badge: w.badge, e4Index: w.e4Index, leader: w.leader,
-        } })
-      );
-    }, 250);
+    // Keep Adventure tab + iframe mounted; battle runs as overlay.
+    const foe: GBBattleFoe = {
+      name: w.name,
+      level: w.level,
+      kind: w.kind || "wild",
+      catchable: w.catchable !== false,
+      badge: w.badge,
+      e4Index: w.e4Index,
+      leader: w.leader,
+    };
+    setBattleFoe(foe);
+    setBattleOpen(true);
+    setPendingWild(null);
+    setScene(null);
+    postIframe({ type: "pv-adventure-pause" });
+  }
+
+  function closeBattle(result: "win" | "lose" | "run" | "cancel") {
+    setBattleOpen(false);
+    setBattleFoe(null);
+    setPendingWild(null);
+    setScene(null);
+    // Resume explore in iframe (gym/E4 badge events already posted by session / listeners).
+    postIframe({ type: "pv-adventure-resume" });
+    if (result === "win") push("Victory — back to the overworld");
+    else if (result === "lose") push("White out — heal at a Poké Center");
+    else if (result === "run") push("Got away safely");
   }
 
   async function renderScene(name: string) {
@@ -59,7 +80,6 @@ export function AdventureView() {
         `shallow depth of field, no text, no logos, no watermark.`;
       let r = await higgsfield({ data: { prompt, width: 1024, height: 576 } });
 
-      // Keep polling in the background instead of hanging on a spinner forever.
       let tries = 0;
       while (!r.url && r.pending && r.id && tries < 20) {
         setScene({ name, loading: true, pending: true });
@@ -85,7 +105,6 @@ export function AdventureView() {
     }
   }
 
-
   useEffect(() => {
     const onMsg = async (e: MessageEvent) => {
       const d = e.data;
@@ -103,7 +122,13 @@ export function AdventureView() {
         return;
       }
       if (d.type === "pv-adventure-heal") {
-        push("Healed at the Poké Center");
+        try {
+          await healParty();
+          push("Healed at the Poké Center");
+        } catch (err) {
+          console.error(err);
+          push("Poké Center healed your party");
+        }
         return;
       }
       if (d.type === "pv-adventure-encounter" && typeof d.name === "string") {
@@ -112,40 +137,37 @@ export function AdventureView() {
         const kind = (d.kind as PendingWild["kind"]) || "wild";
         const level = typeof d.level === "number" ? d.level : 5 + Math.floor(Math.random() * 4);
         const catchable = d.catchable !== false && kind === "wild";
-        setPendingWild({ name, level, region: d.region, kind, catchable, badge: d.badge, e4Index: d.e4Index, leader: d.leader });
-        renderScene(name);
-
+        const pending: PendingWild = {
+          name,
+          level,
+          region: d.region,
+          kind,
+          catchable,
+          badge: d.badge,
+          e4Index: typeof d.e4Index === "number" ? d.e4Index : undefined,
+          leader: d.leader,
+        };
         if (kind !== "wild") {
           push(kind === "gym" ? `Gym challenge — ${d.leader || name}` : `Elite Four — ${d.leader || name}`);
-          return;
+        } else {
+          // Honest wilds: do NOT auto-add to party. Catch only in battle when catchable.
+          push(`A wild ${name} appeared!`);
         }
 
-        try {
-          const party = await fetchParty();
-          if (!party.some((m) => m.name.toLowerCase() === name.toLowerCase())) {
-            const { data } = await searchCards({
-              q: `name:"${name}" supertype:Pokémon`,
-              pageSize: 8,
-              orderBy: "-set.releaseDate",
-            });
-            const card = data.find((c) => Number(c.hp ?? 0) > 0 && (c.attacks?.length ?? 0) > 0) ?? data[0];
-            if (card) {
-              try {
-                const mon = await addToParty(card, 5);
-                try {
-                  const real = await movesAtLevel(name, 5, mon.attacks);
-                  if (real.length) { mon.attacks = real; await saveMonStats(mon); }
-                } catch {}
-                push(`✦ ${name} joined your party!`);
-              } catch (err: any) {
-                console.error(err);
-                push(`Wild ${name} appeared — battle in Game Boy`);
-              }
-            }
-          }
-        } catch (err: any) {
-          console.error(err);
-        }
+        // Fight already clicked in iframe — open overlay in-place (no tab switch / no scene race).
+        setScene(null);
+        setPendingWild(null);
+        setBattleFoe({
+          name: pending.name,
+          level: pending.level,
+          kind: pending.kind || "wild",
+          catchable: pending.catchable !== false,
+          badge: pending.badge,
+          e4Index: pending.e4Index,
+          leader: pending.leader,
+        });
+        setBattleOpen(true);
+        postIframe({ type: "pv-adventure-pause" });
         return;
       }
     };
@@ -154,20 +176,20 @@ export function AdventureView() {
       const dest = (e as CustomEvent).detail;
       if (dest !== "adventure") return;
       setTimeout(() => {
-        try {
-          iframeRef.current?.contentWindow?.postMessage({ type: "pv-adventure-resume" }, "*");
-        } catch {}
+        postIframe({ type: "pv-adventure-resume" });
       }, 150);
     };
     window.addEventListener("pv-goto", onGoto as EventListener);
     const onGymWon = (e: Event) => {
       const badge = (e as CustomEvent).detail?.badge;
       if (!badge) return;
-      try { iframeRef.current?.contentWindow?.postMessage({ type: "pv-adventure-badge", badge }, "*"); } catch {}
+      postIframe({ type: "pv-adventure-badge", badge });
+      push(`${badge} Badge earned!`);
     };
     const onE4Won = (e: Event) => {
       const index = (e as CustomEvent).detail?.index ?? 0;
-      try { iframeRef.current?.contentWindow?.postMessage({ type: "pv-adventure-e4-won", index }, "*"); } catch {}
+      postIframe({ type: "pv-adventure-e4-won", index });
+      push(index >= 4 ? "Champion defeated!" : `Elite Four chamber ${index + 1} cleared`);
     };
     window.addEventListener("pv-adv-gym-won", onGymWon as EventListener);
     window.addEventListener("pv-adv-elite-won", onE4Won as EventListener);
@@ -179,9 +201,12 @@ export function AdventureView() {
     };
   }, []);
 
+  const hudFight =
+    e4 >= 5 ? "Champion" : e4 ? `Elite Four ${e4}/4` : battleOpen ? "In battle" : "Battles stay in Adventure";
+
   return (
     <div className="pv-adv">
-      {scene && (
+      {scene && !battleOpen && (
         <div className="pv-adv-scene">
           {sceneVidOk && (
             <video
@@ -195,33 +220,30 @@ export function AdventureView() {
               onError={() => setSceneVidOk(false)}
             />
           )}
-          {(!sceneVidOk && scene.url) ? (
-            <img
-              src={scene.url}
-              alt={`Wild ${scene.name} scene`}
-              className="pv-adv-scene-img"
-            />
-          ) : (!sceneVidOk && !scene.url) ? (
+          {!sceneVidOk && scene.url ? (
+            <img src={scene.url} alt={`Wild ${scene.name} scene`} className="pv-adv-scene-img" />
+          ) : !sceneVidOk && !scene.url ? (
             <div className="pv-adv-scene-ph">
-              {scene.loading
-                ? `Rendering ${scene.name} cinematic…`
-                : scene.error || "scene unavailable"}
+              {scene.loading ? `Rendering ${scene.name} cinematic…` : scene.error || "scene unavailable"}
             </div>
           ) : null}
           <div className="pv-adv-scene-bar">
             <div>
-              <div className="pv-adv-scene-kicker">{
-                pendingWild?.kind === "gym" ? "Gym battle" :
-                pendingWild?.kind === "elite" ? "Elite Four" :
-                pendingWild?.kind === "champion" ? "Champion" : "Wild encounter"
-              }</div>
-              <div className="pv-adv-scene-name">{pendingWild?.leader ? `${pendingWild.leader} · ${scene.name}` : scene.name}</div>
+              <div className="pv-adv-scene-kicker">
+                {pendingWild?.kind === "gym"
+                  ? "Gym battle"
+                  : pendingWild?.kind === "elite"
+                    ? "Elite Four"
+                    : pendingWild?.kind === "champion"
+                      ? "Champion"
+                      : "Wild encounter"}
+              </div>
+              <div className="pv-adv-scene-name">
+                {pendingWild?.leader ? `${pendingWild.leader} · ${scene.name}` : scene.name}
+              </div>
             </div>
             {pendingWild && (
-              <button
-                className="pv-adv-battle"
-                onClick={() => goBattle(pendingWild)}
-              >
+              <button className="pv-adv-battle" onClick={() => goBattle(pendingWild)}>
                 Battle
               </button>
             )}
@@ -233,12 +255,14 @@ export function AdventureView() {
         <div className="pv-adv-hud">
           <div className="pv-adv-hud-region">{region}</div>
           <div className="pv-adv-hud-badges" title="Gym badges">
-            {["Boulder","Cascade","Thunder","Volcano"].map((b) => (
-              <span key={b} className={badges.includes(b) ? "on" : ""}>{b[0]}</span>
+            {["Boulder", "Cascade", "Thunder", "Volcano"].map((b) => (
+              <span key={b} className={badges.includes(b) ? "on" : ""}>
+                {b[0]}
+              </span>
             ))}
           </div>
           <div className="pv-adv-hud-hint">Gyms · Poké Center · 4 badges unlocks Indigo</div>
-          <div className="pv-adv-hud-fight">{e4 >= 5 ? "Champion" : e4 ? `Elite Four ${e4}/4` : "Fight goes to Game Boy"}</div>
+          <div className="pv-adv-hud-fight">{hudFight}</div>
         </div>
         {frameBlocked ? (
           <div className="pv-adv-blocked">
@@ -253,11 +277,11 @@ export function AdventureView() {
             ref={iframeRef}
             src="/adventure.html"
             title="Pokémon Adventure"
-            className="pv-adv-frame"
+            className={`pv-adv-frame${battleOpen ? " pv-adv-frame-paused" : ""}`}
+            style={battleOpen ? { pointerEvents: "none" } : undefined}
             onLoad={() => {
               try {
                 const doc = iframeRef.current?.contentDocument;
-                // Cross-origin / XFO DENY leaves contentDocument null or empty
                 if (!doc || !doc.body || doc.body.childElementCount === 0) {
                   setFrameBlocked(true);
                 }
@@ -266,6 +290,16 @@ export function AdventureView() {
               }
             }}
           />
+        )}
+
+        {battleOpen && battleFoe && (
+          <div className="pv-adv-battle-overlay" role="dialog" aria-label="Adventure battle">
+            <GBBattleSession
+              key={`${battleFoe.name}-${battleFoe.level}-${battleFoe.kind || "wild"}-${battleFoe.e4Index ?? ""}`}
+              foe={battleFoe}
+              onDone={closeBattle}
+            />
+          </div>
         )}
       </div>
 

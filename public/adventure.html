@@ -624,6 +624,7 @@ const EncounterSystem = {
       catchable: poke.kind === "wild",
       leader: poke.leader,
       badge: poke.badge,
+      e4Index: poke.e4Index,
     });
     UIManager.openBattleHandoff(poke);
   },
@@ -710,7 +711,7 @@ const UIManager = {
     document.getElementById('modal-title').textContent = 'A wild Pokémon appeared!';
     this.setSprite(poke.name);
     document.getElementById('poke-name').textContent = poke.name + '  Lv' + poke.level;
-    document.getElementById('modal-msg').textContent = 'FIGHT opens Game Boy · RUN stays in the grass';
+    document.getElementById('modal-msg').textContent = 'FIGHT starts an in-Adventure battle · RUN stays in the grass';
     document.getElementById('btn-fight').classList.remove('hidden');
     document.getElementById('btn-run').classList.remove('hidden');
     document.getElementById('modal-buttons').classList.remove('hidden');
@@ -742,10 +743,10 @@ const UIManager = {
   },
   openBattleHandoff(poke) {
     const trainer = poke.kind && poke.kind !== 'wild';
-    document.getElementById('modal-title').textContent = trainer ? '⚔ TRAINER BATTLE' : '⚔ GAME BOY BATTLE!';
+    document.getElementById('modal-title').textContent = trainer ? '⚔ TRAINER BATTLE' : '⚔ BATTLE STARTING!';
     this.setSprite(poke.name);
     document.getElementById('poke-name').textContent = (poke.leader ? poke.leader + "'s " : "Wild ") + poke.name;
-    document.getElementById('modal-msg').textContent = 'Game Boy is opening. Win there to earn the badge.';
+    document.getElementById('modal-msg').textContent = 'Battle starting… Win here to earn the badge and keep exploring.';
     document.getElementById('modal-buttons').classList.add('hidden');
     document.getElementById('btn-close').classList.remove('hidden');
     document.getElementById('btn-close').textContent = 'Continue Exploring';
@@ -1112,6 +1113,7 @@ window.addEventListener('load', () => {
 window.addEventListener('message', (e) => {
   const d = e.data;
   if (!d) return;
+  if (d.type === 'pv-adventure-pause') { Player.frozen = true; }
   if (d.type === 'pv-adventure-resume') EncounterSystem.close();
   if (d.type === 'pv-adventure-badge' && d.badge) {
     const b = SaveSystem.state.badges || (SaveSystem.state.badges = []);
