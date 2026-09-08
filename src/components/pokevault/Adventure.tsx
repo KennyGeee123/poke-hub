@@ -75,9 +75,9 @@ export function AdventureView() {
     setScene({ name, loading: true });
     try {
       const prompt =
-        `Photoreal PlayStation 5 cinematic, a wild ${name} emerging from sunlit tall grass, ` +
-        `AAA open-world game still, 24mm anamorphic lens, volumetric golden-hour light, ` +
-        `shallow depth of field, no text, no logos, no watermark.`;
+        `Cinematic Pokémon adventure still of a wild ${name} emerging from sunlit tall grass in a vast Kanto-style region, ` +
+        `wide open biomes, Poké Center distant, golden-hour sky, modern Pokémon TCG app vibe, ` +
+        `24mm anamorphic, volumetric light, shallow depth of field, no text, no logos, no watermark.`;
       let r = await higgsfield({ data: { prompt, width: 1024, height: 576 } });
 
       let tries = 0;
