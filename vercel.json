@@ -1,11 +1,4 @@
 {
-  "redirects": [
-    {
-      "source": "/~oauth/initiate",
-      "destination": "https://tcg-vault-master.lovable.app/~oauth/initiate",
-      "permanent": false
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",

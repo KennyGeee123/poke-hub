@@ -49,8 +49,9 @@ export const identifyCard = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ imageDataUrl: z.string().min(32).max(8_000_000) }))
   .handler(async ({ data }) => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) return { ok: false as const, error: "AI gateway not configured" };
+    const key = process.env.AI_GATEWAY_API_KEY;
+    const gateway = (process.env.AI_GATEWAY_URL || "").replace(/\/$/, "");
+    if (!key || !gateway) return { ok: false as const, error: "AI gateway not configured" };
 
     // Google Vision OCR is optional — the scan still works without the key.
     const visionConfigured = !!process.env.GOOGLE_VISION_API_KEY;
@@ -64,7 +65,7 @@ export const identifyCard = createServerFn({ method: "POST" })
         { type: "image_url", image_url: { url: data.imageDataUrl } },
       ];
 
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const res = await fetch(gateway + "/v1/chat/completions", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${key}`,

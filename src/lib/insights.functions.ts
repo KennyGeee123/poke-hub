@@ -1,5 +1,4 @@
-// AI-powered collection insights. Takes a compact vault summary, returns
-// structured analysis from Lovable AI Gateway.
+// AI-powered collection insights via configurable OpenAI-compatible gateway.
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
@@ -40,8 +39,9 @@ export const analyzeCollection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => Input.parse(d))
   .handler(async ({ data }) => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Error("AI gateway not configured");
+    const key = process.env.AI_GATEWAY_API_KEY;
+    const gateway = (process.env.AI_GATEWAY_URL || "").replace(/\/$/, "");
+    if (!key || !gateway) throw new Error("AI gateway not configured");
 
     const userPrompt = `Vault summary (top items by value first):
 Total value: $${data.totalValue.toFixed(2)} across ${data.totalCards} cards.
@@ -49,7 +49,7 @@ Total value: $${data.totalValue.toFixed(2)} across ${data.totalCards} cards.
 Items:
 ${JSON.stringify(data.items, null, 0)}`;
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetch(gateway + "/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({
