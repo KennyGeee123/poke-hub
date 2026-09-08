@@ -1987,8 +1987,16 @@ header, nav, main, footer, .pv-settings { position: relative; z-index: 1; }
   box-shadow: 0 4px 0 #1a1a1a;
 }
 .pv-adv-battle:hover { filter: brightness(1.05); }
+.pv-adv-blocked {
+  min-height: min(70vh, 640px); display: grid; place-content: center; gap: 12px;
+  text-align: center; color: #f4efe4; padding: 28px 16px; background: #0b1220;
+}
+.pv-adv-blocked-title {
+  font-family: 'Bebas Neue', Impact, sans-serif; font-size: 28px; letter-spacing: 2px; color: #e2b53a;
+}
+.pv-adv-blocked a { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
 .pv-adv-toasts {
-  position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+  position: fixed; bottom: calc(var(--pv-tabbar-h, 72px) + var(--pv-safe-b, 0px) + 18px); left: 50%; transform: translateX(-50%);
   display: flex; flex-direction: column; gap: 8px; z-index: 9999; pointer-events: none;
 }
 .pv-adv-toast {

@@ -19,6 +19,7 @@ export function AdventureView() {
   const [region, setRegion] = useState("Kanto");
   const [pendingWild, setPendingWild] = useState<PendingWild | null>(null);
   const [sceneVidOk, setSceneVidOk] = useState(true);
+  const [frameBlocked, setFrameBlocked] = useState(false);
   const [badges, setBadges] = useState<string[]>([]);
   const [e4, setE4] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -239,12 +240,33 @@ export function AdventureView() {
           <div className="pv-adv-hud-hint">Gyms · Poké Center · 4 badges unlocks Indigo</div>
           <div className="pv-adv-hud-fight">{e4 >= 5 ? "Champion" : e4 ? `Elite Four ${e4}/4` : "Fight goes to Game Boy"}</div>
         </div>
-        <iframe
-          ref={iframeRef}
-          src="/adventure.html"
-          title="Pokémon Adventure"
-          className="pv-adv-frame"
-        />
+        {frameBlocked ? (
+          <div className="pv-adv-blocked">
+            <div className="pv-adv-blocked-title">Adventure couldn&apos;t load in-app</div>
+            <p>Open it full-screen to play.</p>
+            <a className="pv-adv-battle" href="/adventure.html" target="_blank" rel="noreferrer">
+              Launch Adventure
+            </a>
+          </div>
+        ) : (
+          <iframe
+            ref={iframeRef}
+            src="/adventure.html"
+            title="Pokémon Adventure"
+            className="pv-adv-frame"
+            onLoad={() => {
+              try {
+                const doc = iframeRef.current?.contentDocument;
+                // Cross-origin / XFO DENY leaves contentDocument null or empty
+                if (!doc || !doc.body || doc.body.childElementCount === 0) {
+                  setFrameBlocked(true);
+                }
+              } catch {
+                setFrameBlocked(true);
+              }
+            }}
+          />
+        )}
       </div>
 
       <div className="pv-adv-toasts">

@@ -19,6 +19,7 @@ import { AdventureView } from "@/components/pokevault/Adventure";
 import { PokedexHub } from "@/components/pokevault/PokedexHub";
 import {
   AppShell,
+  MORE_ITEMS,
   type AppTab,
   type PrimaryTabId,
 } from "@/components/pokevault/AppShell";
@@ -153,7 +154,14 @@ function Index() {
         isPro={isPro}
         onPrimary={onPrimary}
         onMoreClose={() => setMoreOpen(false)}
-        onMorePick={(id) => goTab(id)}
+        onMorePick={(id) => {
+          const item = MORE_ITEMS.find((x) => x.id === id);
+          if (item?.pro && !isPro) {
+            goTab("pricing");
+            return;
+          }
+          goTab(id);
+        }}
         contentKey={contentKey}
         footer={
           <footer className="pv-gb-footer">
