@@ -2584,54 +2584,46 @@ header, nav, main, footer, .pv-settings { position: relative; z-index: 1; }
   bottom: calc(var(--pv-tabbar-h) + var(--pv-safe-b) + 78px) !important;
 }
 
-/* Desktop side rail ≥1024px */
+/* Desktop: keep tabs underneath (no left rail) */
 @media (min-width: 1024px) {
   .pv-app.pv-app-shell {
-    padding: 18px 18px 24px;
-    padding-left: calc(92px + 18px);
+    padding: 18px 18px calc(var(--pv-tabbar-h) + var(--pv-safe-b) + 24px);
   }
   .pv-tabbar {
-    left: 12px;
-    right: auto;
-    top: 50%;
-    bottom: auto;
-    transform: translateY(-50%);
-    padding: 0;
-    width: 84px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    transform: none;
+    width: auto;
+    padding: 0 18px calc(10px + var(--pv-safe-b));
   }
   .pv-tabbar-inner {
-    max-width: none;
-    width: 84px;
-    grid-template-columns: 1fr;
-    gap: 6px;
+    max-width: 560px;
+    width: 100%;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
     padding: 10px 8px;
     border-radius: 24px;
   }
   .pv-tabbar-item {
-    min-height: 64px;
+    min-height: 56px;
     border-radius: 18px;
   }
   .pv-tabbar-glow {
-    top: auto;
-    bottom: 6px;
-    width: 22px;
+    top: 4px;
+    bottom: auto;
+    width: 20px;
   }
   .pv-more-sheet {
-    margin: 0 0 0 100px;
-    align-self: center;
-    border-radius: 22px;
-    max-height: min(80dvh, 680px);
+    margin: 0 18px calc(var(--pv-tabbar-h) + var(--pv-safe-b) + 8px);
+    border-radius: 24px 24px 20px 20px;
+    max-height: min(78dvh, 680px);
   }
   .pv-more-root {
-    align-items: center;
-    justify-content: flex-start;
-    padding-left: 110px;
-  }
-  .pv-music-fab {
-    bottom: 24px !important;
-  }
-  .pv-music-panel {
-    bottom: 88px !important;
+    align-items: flex-end;
+    justify-content: center;
+    padding-left: 0;
   }
 }
 
