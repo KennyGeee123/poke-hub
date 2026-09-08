@@ -150,15 +150,7 @@ export function useToast() {
     setTimeout(() => setMsg(null), 1800);
   };
   const node = msg ? (
-    <div
-      style={{
-        position: "fixed", top: 64, left: "50%", transform: "translateX(-50%)",
-        zIndex: 999, padding: "10px 24px", borderRadius: 50,
-        fontWeight: 700, fontSize: 13, color: "#fff",
-        background: "rgba(34,197,94,.92)", boxShadow: "0 8px 24px rgba(0,0,0,.5)",
-        pointerEvents: "none", whiteSpace: "nowrap"
-      }}
-    >{msg}</div>
+    <div className="pv-toast" role="status">{msg}</div>
   ) : null;
   return { show, node };
 }

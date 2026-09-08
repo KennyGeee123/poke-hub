@@ -2651,3 +2651,480 @@ header, nav, main, footer, .pv-settings { position: relative; z-index: 1; }
     animation: none !important;
   }
 }
+
+
+/* ===== POKEVAULT POLISH PASS 2026-09 ===== */
+
+/* Lab: don't clip card hover lift / sticky header */
+.pv-app-shell .pv-lab {
+  overflow: visible;
+  overflow-x: clip;
+}
+
+.pv-app-shell .pv-lab-body {
+  padding-bottom: 20px;
+}
+
+/* Keep Sign in on narrow screens (badges hide, auth stays) */
+.pv-app-shell .pv-gb-badge.pv-auth-btn {
+  display: inline-flex !important;
+  align-items: center;
+  cursor: pointer;
+  background: rgba(226, 181, 58, 0.14);
+  border-color: rgba(226, 181, 58, 0.55);
+  color: #e2b53a;
+}
+.pv-app-shell .pv-gb-badge.pv-auth-btn:hover {
+  background: rgba(226, 181, 58, 0.28);
+}
+
+/* Global toast — clear header, never under tabbar */
+.pv-toast {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 120;
+  max-width: min(92vw, 420px);
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 13px;
+  color: #0b1220;
+  background: linear-gradient(180deg, #f4efe4, #e2b53a);
+  border: 1px solid rgba(11, 18, 32, 0.35);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 20px rgba(226, 181, 58, 0.35);
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: pv-toast-in 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes pv-toast-in {
+  from { opacity: 0; transform: translate(-50%, -10px) scale(0.94); }
+  to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+
+/* Adventure toasts: sit above music FAB + tabbar */
+.pv-adv-toasts {
+  bottom: calc(var(--pv-tabbar-h, 72px) + var(--pv-safe-b, 0px) + 78px) !important;
+  width: min(92vw, 360px);
+  padding-right: 0;
+  z-index: 95 !important;
+}
+
+/* Music FAB stays clear of tabbar (already offset); spring + gold rim */
+.pv-music-fab {
+  z-index: 105 !important;
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.5),
+    0 0 0 2px rgba(226, 181, 58, 0.35),
+    0 0 18px rgba(204, 43, 43, 0.35) !important;
+}
+.pv-music-panel {
+  z-index: 106 !important;
+  border: 1px solid rgba(226, 181, 58, 0.35);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55), 0 0 28px rgba(226, 181, 58, 0.12);
+}
+
+/* Discover hero elevate */
+.pv-hero.pv-hero-premium {
+  min-height: 260px;
+  gap: 8px;
+  border-radius: 0;
+  box-shadow: inset 0 -1px 0 rgba(226, 181, 58, 0.12);
+}
+.pv-hero.pv-hero-premium .pv-hero-img img {
+  width: min(150px, 38vw);
+  border-radius: 12px;
+  border: 2px solid rgba(226, 181, 58, 0.75);
+  box-shadow:
+    0 14px 36px rgba(0, 0, 0, 0.55),
+    0 0 28px rgba(226, 181, 58, 0.22);
+}
+.pv-hero.pv-hero-premium .pv-hero-badge {
+  box-shadow: 0 0 16px rgba(204, 43, 43, 0.45);
+}
+.pv-hero-loading .pv-skel-line {
+  height: 14px;
+  border-radius: 8px;
+  margin: 8px 0;
+  background: linear-gradient(110deg, #1c2740 20%, #2a3a5c 45%, #1c2740 70%);
+  background-size: 200% 100%;
+  animation: pv-skel-shimmer 1.35s ease-in-out infinite;
+}
+.pv-skel-line.lg { width: 72%; height: 28px; }
+.pv-skel-line.md { width: 48%; }
+.pv-skel-line.sm { width: 36%; height: 36px; margin-top: 14px; }
+
+.pv-qa-row {
+  display: flex;
+  gap: 8px;
+  padding: 14px 16px 6px;
+  flex-wrap: wrap;
+}
+.pv-qa-row .pv-btn {
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 14px rgba(11, 18, 32, 0.08);
+}
+.pv-qa-row .pv-btn-out {
+  background: rgba(255, 253, 248, 0.85);
+  border-color: rgba(11, 18, 32, 0.18);
+}
+.pv-qa-row .pv-btn:active { transform: scale(0.96); }
+
+.pv-rail-hdr {
+  padding-top: 18px;
+}
+.pv-rail-title {
+  letter-spacing: 2.5px;
+}
+
+/* Card tiles in grids fill cell width */
+.pv-card-grid .pv-card-wrap {
+  width: 100%;
+}
+.pv-card-grid .pv-card-img-wrap {
+  border-radius: 12px;
+}
+
+/* Market leaderboard */
+.pv-lb-list { display: flex; flex-direction: column; gap: 8px; }
+.pv-app-shell .pv-lb-row {
+  background: linear-gradient(180deg, #fffdf8, #f7f1e4);
+  border: 1px solid rgba(11, 18, 32, 0.1);
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(11, 18, 32, 0.05);
+  min-height: 72px;
+  padding: 12px 14px;
+  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+.pv-app-shell .pv-lb-row:hover {
+  background: linear-gradient(180deg, #fffef9, #f3ead6);
+  border-color: rgba(226, 181, 58, 0.55);
+  transform: translateY(-1px) translateX(0);
+  box-shadow: 0 10px 24px rgba(11, 18, 32, 0.1), 0 0 0 1px rgba(226, 181, 58, 0.2);
+}
+.pv-app-shell .pv-lb-row:active { transform: scale(0.99); }
+.pv-app-shell .pv-lb-rank {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: 18px;
+  letter-spacing: 1px;
+  width: 28px;
+}
+.pv-app-shell .pv-lb-img {
+  width: 48px;
+  height: 67px;
+  border-radius: 8px;
+  border: 1px solid rgba(11, 18, 32, 0.12);
+  box-shadow: 0 4px 10px rgba(11, 18, 32, 0.12);
+}
+.pv-app-shell .pv-lb-price {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: 20px;
+  letter-spacing: 1px;
+  color: #b8860b;
+}
+
+/* Vault stats + latest rows */
+.pv-app-shell .pv-stat-card {
+  background: linear-gradient(165deg, #fffef9 0%, #f4efe4 100%);
+  border: 1px solid rgba(226, 181, 58, 0.28);
+  border-radius: 18px;
+  box-shadow: 0 10px 24px rgba(11, 18, 32, 0.07);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.pv-app-shell .pv-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(11, 18, 32, 0.1), 0 0 20px rgba(226, 181, 58, 0.12);
+}
+.pv-app-shell .pv-greet-hi {
+  background: linear-gradient(90deg, #0b1220, #3b2f14 60%, #0b1220);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 12px rgba(226, 181, 58, 0.15));
+}
+.pv-app-shell .pv-latest-row {
+  background: linear-gradient(180deg, #fffdf8, #f7f1e4);
+  border-radius: 14px;
+  min-height: 76px;
+}
+.pv-app-shell .pv-latest-row:hover {
+  background: #fffef9;
+  border-color: rgba(226, 181, 58, 0.5);
+  transform: translateY(-1px);
+}
+.pv-app-shell .pv-tool-btn {
+  min-height: 44px;
+  border-radius: 12px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.pv-app-shell .pv-tool-btn:active { transform: scale(0.97); }
+
+/* Search / Sets inputs + pills */
+.pv-app-shell .pv-input {
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(11, 18, 32, 0.14);
+  background: #fffef9;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 4px 12px rgba(11, 18, 32, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.pv-app-shell .pv-input:focus {
+  border-color: rgba(226, 181, 58, 0.7);
+  box-shadow: 0 0 0 3px rgba(226, 181, 58, 0.22), 0 6px 16px rgba(11, 18, 32, 0.06);
+}
+.pv-app-shell .pv-pill {
+  min-height: 36px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: #fffef9;
+  transition: transform 0.14s ease, background 0.14s ease, border-color 0.14s ease;
+}
+.pv-app-shell .pv-pill:active { transform: scale(0.96); }
+.pv-app-shell .pv-pill.on {
+  background: linear-gradient(180deg, rgba(226, 181, 58, 0.28), rgba(226, 181, 58, 0.12));
+  color: #8a6a12;
+  border-color: rgba(226, 181, 58, 0.65);
+  box-shadow: 0 0 14px rgba(226, 181, 58, 0.18);
+}
+
+.pv-load-more {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  margin-bottom: 8px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  color: var(--navy);
+  cursor: pointer;
+  background: linear-gradient(180deg, #fffef9, #f0e8d6);
+  border: 1px solid rgba(226, 181, 58, 0.4);
+  box-shadow: 0 6px 16px rgba(11, 18, 32, 0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.pv-load-more:hover {
+  box-shadow: 0 10px 22px rgba(11, 18, 32, 0.1), 0 0 16px rgba(226, 181, 58, 0.15);
+}
+.pv-load-more:active { transform: scale(0.98); }
+.pv-load-more:disabled { opacity: 0.6; cursor: wait; }
+
+/* Sets tiles */
+.pv-app-shell .pv-set-el {
+  background: linear-gradient(160deg, #fffef9, #f3ead8);
+  border: 1px solid rgba(11, 18, 32, 0.1);
+  border-radius: 16px;
+  min-height: 88px;
+  box-shadow: 0 6px 16px rgba(11, 18, 32, 0.05);
+  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+.pv-app-shell .pv-set-el:hover {
+  border-color: rgba(226, 181, 58, 0.55);
+  background: linear-gradient(160deg, #fffef9, #efe4c8);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(11, 18, 32, 0.1), 0 0 18px rgba(226, 181, 58, 0.12);
+}
+.pv-app-shell .pv-set-el:active { transform: scale(0.985); }
+
+/* Empty states */
+.pv-app-shell .pv-empty {
+  padding: 48px 20px;
+  border-radius: 18px;
+  margin: 8px 0 16px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(226, 181, 58, 0.1), transparent 55%),
+    linear-gradient(180deg, rgba(255, 253, 248, 0.9), rgba(244, 239, 228, 0.65));
+  border: 1px dashed rgba(11, 18, 32, 0.14);
+}
+
+/* More sheet sections */
+.pv-more-sec {
+  margin: 14px 2px 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: rgba(226, 181, 58, 0.75);
+}
+.pv-more-grid + .pv-more-sec { margin-top: 16px; }
+.pv-more-item {
+  min-height: 92px;
+}
+.pv-more-ico {
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+}
+.pv-more-item:hover .pv-more-ico,
+.pv-more-item.on .pv-more-ico {
+  transform: translateY(-2px) scale(1.06);
+  box-shadow: 0 0 16px rgba(226, 181, 58, 0.35);
+}
+
+/* Pricing / paywall on cream lab */
+.pv-app-shell .pv-paywall {
+  padding: 20px 16px 28px;
+}
+.pv-app-shell .pv-paywall-title {
+  background: linear-gradient(180deg, #0b1220 10%, #8a6a12 55%, #e2b53a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 4px 14px rgba(226, 181, 58, 0.2));
+}
+.pv-app-shell .pv-tier {
+  background: linear-gradient(180deg, #fffef9, #f3ead8);
+  border: 1px solid rgba(11, 18, 32, 0.12);
+  color: var(--ink);
+  box-shadow: 0 10px 28px rgba(11, 18, 32, 0.08);
+}
+.pv-app-shell .pv-tier-name { color: var(--navy); }
+.pv-app-shell .pv-tier-list li { color: var(--ink); }
+.pv-app-shell .pv-tier.featured {
+  border-color: rgba(226, 181, 58, 0.7);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(226, 181, 58, 0.22), transparent 55%),
+    linear-gradient(180deg, #fffef9, #efe0b8);
+}
+
+/* Section titles */
+.pv-app-shell .pv-section-title {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: 18px;
+  letter-spacing: 2px;
+  color: var(--navy);
+  margin: 20px 0 12px;
+}
+
+/* Adventure frame breathing room above tabbar */
+.pv-app-shell .pv-adv {
+  padding-bottom: 8px;
+}
+.pv-app-shell .pv-adv-frame,
+.pv-app-shell .pv-adv-blocked {
+  border-radius: 0 0 14px 14px;
+  min-height: min(62dvh, 620px);
+}
+
+/* Footer clarity inside lab */
+.pv-app-shell .pv-gb-footer {
+  padding: 14px 16px 18px;
+  font-size: 11px;
+  color: rgba(11, 18, 32, 0.55);
+  border-top: 1px solid rgba(11, 18, 32, 0.08);
+}
+
+/* Buttons press feedback globally in shell */
+.pv-app-shell .pv-btn {
+  min-height: 40px;
+  border-radius: 10px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.pv-app-shell .pv-btn:active { transform: scale(0.97); }
+
+@media (max-width: 640px) {
+  .pv-hero.pv-hero-premium {
+    min-height: 210px;
+  }
+  .pv-hero.pv-hero-premium .pv-hero-content {
+    padding: 18px 12px 18px 14px;
+  }
+  .pv-hero.pv-hero-premium .pv-hero-price {
+    font-size: 32px;
+    margin-bottom: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-toast,
+  .pv-hero-loading .pv-skel-line {
+    animation: none !important;
+  }
+}
+
+
+/* Login — cream lab card on neon navy */
+.pv-login {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  background:
+    radial-gradient(ellipse at top, rgba(226, 181, 58, 0.12), transparent 45%),
+    radial-gradient(ellipse at bottom, rgba(204, 43, 43, 0.12), transparent 50%),
+    linear-gradient(180deg, #121a2b, #0b1220 60%, #080e18);
+}
+.pv-login-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 28px 24px 22px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #fffdf8, #f4efe4);
+  border: 1px solid rgba(226, 181, 58, 0.4);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.45), 0 0 40px rgba(226, 181, 58, 0.1);
+  color: #1a1a1a;
+}
+.pv-login-head { text-align: center; margin-bottom: 22px; }
+.pv-login-title {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: 34px;
+  letter-spacing: 2px;
+  background: linear-gradient(90deg, #0b1220, #8a6a12 55%, #0b1220);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.pv-login-sub { font-size: 13px; color: #6b7280; margin-top: 4px; }
+.pv-login-google {
+  width: 100%;
+  margin-bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(11, 18, 32, 0.14);
+  background: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.pv-login-google:hover { box-shadow: 0 8px 18px rgba(11, 18, 32, 0.1); }
+.pv-login-google:active { transform: scale(0.98); }
+.pv-login-google:disabled { opacity: 0.55; }
+.pv-login-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(11, 18, 32, 0.14);
+  background: #fffef9;
+  font-size: 14px;
+  outline: none;
+}
+.pv-login-input:focus {
+  border-color: rgba(226, 181, 58, 0.7);
+  box-shadow: 0 0 0 3px rgba(226, 181, 58, 0.22);
+}
+.pv-login-submit {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 4px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #e2b53a, #c8961f);
+  color: #0b1220;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  box-shadow: 0 6px 0 #8a6a12, 0 10px 22px rgba(226, 181, 58, 0.35);
+  transition: transform 0.15s ease;
+}
+.pv-login-submit:hover { filter: brightness(1.03); }
+.pv-login-submit:active { transform: translateY(2px); box-shadow: 0 3px 0 #8a6a12, 0 4px 10px rgba(226, 181, 58, 0.3); }
+.pv-login-submit:disabled { opacity: 0.55; }

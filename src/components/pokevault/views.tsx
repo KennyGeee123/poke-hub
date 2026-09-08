@@ -48,6 +48,30 @@ export function DiscoverView({ onOpen, onTab }: { onOpen: OnOpen; onTab: (t: str
   return (
     <div>
       <div className="pad" style={{ paddingBottom: 0 }}><PrintLangBar /></div>
+      {!trending && (
+        <div className="pv-hero pv-hero-premium pv-hero-loading" aria-busy="true">
+          <div className="pv-hero-content">
+            <span className="pv-hero-badge">LOADING</span>
+            <div className="pv-skel-line lg" />
+            <div className="pv-skel-line md" />
+            <div className="pv-skel-line sm" />
+          </div>
+          <div className="pv-hero-img"><div className="pv-card-skel" style={{ width: 130, paddingTop: "139.5%", borderRadius: 10 }} /></div>
+        </div>
+      )}
+      {trending && trending.length === 0 && (
+        <div className="pad">
+          <div className="pv-empty">
+            <div className="pv-empty-icon">📡</div>
+            <div className="pv-empty-title">DISCOVER IS QUIET</div>
+            <div>Couldn’t load trending cards. Try Search or Market.</div>
+            <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap", marginTop: 12 }}>
+              <button className="pv-btn pv-btn-fill" onClick={() => onTab("search")}>Search</button>
+              <button className="pv-btn pv-btn-out" onClick={() => onTab("market")}>Market</button>
+            </div>
+          </div>
+        </div>
+      )}
       {hero && (
         <div className="pv-hero pv-hero-premium" key={hero.id}>
           <div className="pv-hero-bg" style={{
@@ -86,7 +110,7 @@ export function DiscoverView({ onOpen, onTab }: { onOpen: OnOpen; onTab: (t: str
         </div>
       )}
 
-      <div className="qa-row" style={{ display: "flex", gap: 8, padding: "14px 16px 4px", flexWrap: "wrap" }}>
+      <div className="pv-qa-row">
         <button className="pv-btn pv-btn-out" onClick={() => onTab("market")}>📈 Market Prices</button>
         <button className="pv-btn pv-btn-out" onClick={() => onTab("sets")}>📦 Browse Sets</button>
         <button className="pv-btn pv-btn-out" onClick={() => onTab("search")}>🔍 Search Cards</button>
@@ -185,24 +209,34 @@ export function MarketView({ onOpen }: { onOpen: OnOpen }) {
           <button className="pv-btn pv-btn-fill" style={{ marginTop: 12 }} onClick={load}>Retry</button>
         </div>
       )}
-      {filtered.map((c, i) => (
-        <div key={c.id} className="pv-lb-row" onClick={() => onOpen(c.id)}>
-          <div className="pv-lb-rank">{i + 1}</div>
-          <img className="pv-lb-img" {...hdImg(c)} alt={c.name} loading="lazy" />
-          <div className="pv-lb-info">
-            <div className="pv-lb-name">{c.name}{c.lang && c.lang !== "en" ? ` · ${c.lang}` : ""}</div>
-            <div className="pv-lb-rar">{c.set.name} • {c.rarity ?? "—"}</div>
-          </div>
-          <div className="pv-lb-price">{formatPrice(getMarketPrice(c))}</div>
-          <button
-            className={`pv-btn pv-btn-fill ${inVault(c.id) ? "yes" : ""}`}
-            style={{ padding: "6px 10px", fontSize: 10 }}
-            onClick={(e) => { e.stopPropagation(); addToVault(c); }}
-          >
-            {inVault(c.id) ? "✓" : "+ Add"}
-          </button>
+      {cards && cards.length > 0 && filtered.length === 0 && (
+        <div className="pv-empty">
+          <div className="pv-empty-title">NO MATCHES</div>
+          <div>Nothing in this rarity filter — try All Cards.</div>
+          <button className="pv-btn pv-btn-fill" style={{ marginTop: 12 }} onClick={() => setFilter("all")}>Show all</button>
         </div>
-      ))}
+      )}
+      <div className="pv-lb-list">
+        {filtered.map((c, i) => (
+          <div key={c.id} className="pv-lb-row" onClick={() => onOpen(c.id)} role="button" tabIndex={0}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(c.id); } }}>
+            <div className="pv-lb-rank">{i + 1}</div>
+            <img className="pv-lb-img" {...hdImg(c)} alt={c.name} loading="lazy" />
+            <div className="pv-lb-info">
+              <div className="pv-lb-name">{c.name}{c.lang && c.lang !== "en" ? ` · ${c.lang}` : ""}</div>
+              <div className="pv-lb-rar">{c.set.name} • {c.rarity ?? "—"}</div>
+            </div>
+            <div className="pv-lb-price">{formatPrice(getMarketPrice(c))}</div>
+            <button
+              className={`pv-btn pv-btn-fill ${inVault(c.id) ? "yes" : ""}`}
+              style={{ padding: "6px 10px", fontSize: 10 }}
+              onClick={(e) => { e.stopPropagation(); addToVault(c); }}
+            >
+              {inVault(c.id) ? "✓" : "+ Add"}
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -250,9 +284,16 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
           {filtered.length} of {sets.length} sets
         </div>
       )}
+      {sets && filtered.length === 0 && (
+        <div className="pv-empty">
+          <div className="pv-empty-title">NO SETS MATCH</div>
+          <div>Try a different name or clear the filter.</div>
+        </div>
+      )}
       <div className="pv-sets-grid">
         {filtered.map(s => (
-          <div key={s.id} className="pv-set-el" onClick={() => onPickSet(s)}>
+          <div key={s.id} className="pv-set-el" onClick={() => onPickSet(s)} role="button" tabIndex={0}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPickSet(s); } }}>
             {s.images?.logo
               ? <img className="pv-set-logo" src={s.images.logo} alt={s.name} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
               : <div className="pv-set-logo" />}
@@ -408,9 +449,9 @@ export function SearchView({ onOpen }: { onOpen: OnOpen }) {
           </div>
           {cards.length < total && (
             <button
+              className="pv-load-more"
               onClick={() => runSearch(active, page + 1)}
               disabled={loading}
-              style={{ display: "block", width: "100%", marginTop: 16, padding: 12, background: "rgba(255,255,255,.06)", border: "1px solid var(--brd)", borderRadius: 8, color: "var(--t2)", cursor: "pointer", fontWeight: 600 }}
             >
               {loading ? "Loading…" : "Load more"}
             </button>

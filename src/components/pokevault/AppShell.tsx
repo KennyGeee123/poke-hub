@@ -115,6 +115,45 @@ export function BottomTabBar({ activeTab, moreOpen, onPrimary }: TabBarProps) {
   );
 }
 
+
+function MoreGrid({
+  items,
+  activeTab,
+  isPro,
+  onPick,
+}: {
+  items: typeof MORE_ITEMS;
+  activeTab: AppTab;
+  isPro: boolean;
+  onPick: (id: Exclude<AppTab, "more">) => void;
+}) {
+  if (!items.length) return null;
+  return (
+    <div className="pv-more-grid">
+      {items.map((item) => {
+        const on = activeTab === item.id;
+        return (
+          <button
+            key={item.id}
+            type="button"
+            className={`pv-more-item ${on ? "on" : ""} ${item.cluster ? `cluster-${item.cluster}` : ""}`}
+            onClick={() => onPick(item.id)}
+            title={item.pro && !isPro ? "Pro feature" : undefined}
+          >
+            <span className="pv-more-ico" aria-hidden>
+              <item.Icon size={20} />
+            </span>
+            <span className="pv-more-lbl">
+              {item.label}
+              {item.pro && !isPro ? " 🔒" : ""}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 type MoreSheetProps = {
   open: boolean;
   activeTab: AppTab;
@@ -140,28 +179,11 @@ export function MoreSheet({ open, activeTab, isPro, onClose, onPick }: MoreSheet
           </button>
         </div>
 
-        <div className="pv-more-grid">
-          {MORE_ITEMS.map((item) => {
-            const on = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                className={`pv-more-item ${on ? "on" : ""} ${item.cluster ? `cluster-${item.cluster}` : ""}`}
-                onClick={() => onPick(item.id)}
-                title={item.pro && !isPro ? "Pro feature" : undefined}
-              >
-                <span className="pv-more-ico" aria-hidden>
-                  <item.Icon size={20} />
-                </span>
-                <span className="pv-more-lbl">
-                  {item.label}
-                  {item.pro && !isPro ? " 🔒" : ""}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        <MoreGrid items={MORE_ITEMS.filter((i) => !i.cluster)} activeTab={activeTab} isPro={isPro} onPick={onPick} />
+        <div className="pv-more-sec">Play</div>
+        <MoreGrid items={MORE_ITEMS.filter((i) => i.cluster === "play")} activeTab={activeTab} isPro={isPro} onPick={onPick} />
+        <div className="pv-more-sec">Trade</div>
+        <MoreGrid items={MORE_ITEMS.filter((i) => i.cluster === "trade")} activeTab={activeTab} isPro={isPro} onPick={onPick} />
       </div>
     </div>
   );
