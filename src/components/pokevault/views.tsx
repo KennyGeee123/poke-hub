@@ -49,7 +49,7 @@ export function DiscoverView({ onOpen, onTab }: { onOpen: OnOpen; onTab: (t: str
     <div>
       <div className="pad" style={{ paddingBottom: 0 }}><PrintLangBar /></div>
       {hero && (
-        <div className="pv-hero" key={hero.id}>
+        <div className="pv-hero pv-hero-premium" key={hero.id}>
           <div className="pv-hero-bg" style={{
             background: `linear-gradient(135deg, rgba(255,215,0,.08), transparent 60%), radial-gradient(circle at 70% 50%, rgba(255,80,0,.18), transparent 60%)`,
           }} />
@@ -115,10 +115,18 @@ function Rail({ title, cards, onOpen }: { title: string; cards: TCGCard[] | null
         <div className="pv-rail-title">{title}</div>
         {cards && <div className="pv-rail-cnt">{cards.length}</div>}
       </div>
-      <div className="pv-rail-scroll hide-scroll">
+      <div className="pv-rail-scroll hide-scroll pv-stagger">
         {cards
-          ? cards.map(c => <CardTile key={c.id} card={c} onClick={() => onOpen(c.id)} />)
-          : Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)}
+          ? cards.map((c, i) => (
+              <div key={c.id} className="pv-stagger-item" style={{ ["--i" as any]: i }}>
+                <CardTile card={c} onClick={() => onOpen(c.id)} />
+              </div>
+            ))
+          : Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="pv-stagger-item" style={{ ["--i" as any]: i }}>
+                <CardSkeleton />
+              </div>
+            ))}
       </div>
     </div>
   );

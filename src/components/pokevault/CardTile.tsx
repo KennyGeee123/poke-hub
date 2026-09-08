@@ -74,13 +74,22 @@ export function CardTile({ card, onClick, qty, onRemove, eager }: Props) {
 
   return (
     <div
-      className="pv-card-wrap"
+      className="pv-card-wrap pv-card-press"
       onClick={() => { rememberCard(card); onClick(card); }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onFocus={() => setHovered(true)}
       onBlur={() => setHovered(false)}
       style={{ position: "relative" }}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          rememberCard(card);
+          onClick(card);
+        }
+      }}
     >
       <div className="pv-card-img-wrap" style={{ position: "relative" }}>
         {!loaded && <div className="pv-card-skel" />}

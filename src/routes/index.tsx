@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import type { TCGSet } from "@/lib/pokemon-api";
 import { useVault, formatPrice } from "@/lib/vault";
 import { CardDetail } from "@/components/pokevault/CardDetail";
@@ -17,6 +17,11 @@ import { GameBoyView } from "@/components/pokevault/GameBoy";
 import { FriendsView } from "@/components/pokevault/Friends";
 import { AdventureView } from "@/components/pokevault/Adventure";
 import { PokedexHub } from "@/components/pokevault/PokedexHub";
+import {
+  AppShell,
+  type AppTab,
+  type PrimaryTabId,
+} from "@/components/pokevault/AppShell";
 import { usePremium } from "@/lib/premium";
 import { useAuth } from "@/lib/auth";
 
@@ -30,30 +35,13 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type Tab = "discover" | "market" | "sets" | "vault" | "search" | "wishlist" | "battle" | "scan" | "sell" | "buy" | "pricing" | "gb" | "friends" | "adventure" | "pokedex";
-
-const TABS: { id: Tab; label: string; pro?: boolean; cluster?: "play" }[] = [
-  { id: "pokedex", label: "Pokédex" },
-  { id: "vault", label: "Vault" },
-  { id: "scan", label: "Scan" },
-  { id: "buy", label: "Buy", pro: true },
-  { id: "sell", label: "Sell", pro: true },
-  { id: "discover", label: "Discover" },
-  { id: "market", label: "Market" },
-  { id: "sets", label: "Sets" },
-  { id: "search", label: "Search" },
-  { id: "wishlist", label: "Wishlist" },
-  { id: "adventure", label: "Adventure", cluster: "play" },
-  { id: "gb", label: "Game Boy", cluster: "play" },
-  { id: "battle", label: "Battle", cluster: "play" },
-  { id: "friends", label: "Friends" },
-  { id: "pricing", label: "Pricing" },
-];
+type Tab = Exclude<AppTab, "more">;
 
 function Index() {
   const nav = useNavigate();
   const { user, isOwner, signOut } = useAuth();
-  const [tab, setTab] = useState<Tab>("pokedex");
+  const [tab, setTab] = useState<Tab>("discover");
+  const [moreOpen, setMoreOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [setView, setSetView] = useState<TCGSet | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -61,12 +49,11 @@ function Index() {
   const { isPro, tier, scansLeft, FREE_SCAN_LIMIT } = usePremium();
   const { show, node } = useToast();
 
-
   useEffect(() => { if (detailId) window.scrollTo({ top: 0 }); }, [detailId]);
   useEffect(() => {
     const h = (e: Event) => {
       const t = (e as CustomEvent).detail as Tab;
-      setDetailId(null); setSetView(null); setTab(t);
+      setDetailId(null); setSetView(null); setMoreOpen(false); setTab(t);
     };
     window.addEventListener("pv-goto", h);
     return () => window.removeEventListener("pv-goto", h);
@@ -74,118 +61,110 @@ function Index() {
 
   const openCard = (id: string) => setDetailId(id);
 
-  const renderTabs = () => {
-    const nodes: ReactNode[] = [];
-    let playOpened = false;
-    TABS.forEach((t) => {
-      if (t.cluster === "play" && !playOpened) {
-        playOpened = true;
-        nodes.push(
-          <span key="play-cluster" className="pv-tab-cluster" role="group" aria-label="Play">
-            <span className="pv-tab-cluster-lbl">Play</span>
-            {TABS.filter(x => x.cluster === "play").map(pt => (
-              <button
-                key={pt.id}
-                className={`pv-tab ${tab === pt.id && !detailId ? "on" : ""}`}
-                onClick={() => { setDetailId(null); setSetView(null); setTab(pt.id); }}
-                title={pt.pro && !isPro ? "Pro feature" : undefined}
-              >
-                {pt.label}{pt.pro && !isPro ? " 🔒" : ""}
-              </button>
-            ))}
-          </span>
-        );
-      }
-      if (t.cluster === "play") return;
-      nodes.push(
-        <button
-          key={t.id}
-          className={`pv-tab ${tab === t.id && !detailId ? "on" : ""}`}
-          onClick={() => { setDetailId(null); setSetView(null); setTab(t.id); }}
-          title={t.pro && !isPro ? "Pro feature" : undefined}
-        >
-          {t.label}{t.pro && !isPro ? " 🔒" : ""}
-        </button>
-      );
-    });
-    return nodes;
+  const goTab = (t: Tab) => {
+    setDetailId(null);
+    setSetView(null);
+    setMoreOpen(false);
+    setTab(t);
   };
 
-  return (
-    <div className="pv-app">
-      {node}
-      <div className="pv-lab">
-        <header className="pv-hdr">
-          <div className="pv-hdr-brand">
-            <div className="pv-pokeball" aria-hidden />
-            <button
-              className="pv-logo-text"
-              onClick={() => { setDetailId(null); setSetView(null); setTab("vault"); }}
-              title="PokéVault"
-            >
-              PokéVault
-            </button>
-          </div>
-          <div className="pv-hdr-val">{formatPrice(totalValue)}</div>
-          {isPro && (
-            <div title={tier === "elite" ? "Elite Champion" : "Pro Trainer"} className="pv-gb-badge">
-              ★ {isOwner ? "owner" : tier}
-            </div>
-          )}
-          {!isPro && (
-            <div title="Free trial submissions remaining" className="pv-gb-badge">
-              {scansLeft}/{FREE_SCAN_LIMIT} scans
-            </div>
-          )}
-          <div className="pv-gb-badge pv-vb-on" title="Site shields on. Not desktop antivirus.">Virus Buster</div>
+  const onPrimary = (id: PrimaryTabId) => {
+    if (id === "more") {
+      setMoreOpen((o) => !o);
+      return;
+    }
+    goTab(id);
+  };
+
+  const contentKey = detailId
+    ? `detail:${detailId}`
+    : setView
+      ? `set:${setView.id}`
+      : `tab:${tab}`;
+
+  const header = (
+    <>
+      <header className="pv-hdr pv-hdr-glass">
+        <div className="pv-hdr-brand">
+          <div className="pv-pokeball" aria-hidden />
           <button
-            onClick={async () => { if (user) { await signOut(); } else { nav({ to: "/login" }); } }}
-            className="pv-gb-badge"
-            style={{ cursor: "pointer" }}
-            aria-label={user ? "Sign out" : "Sign in"}
-          >{user ? "Sign out" : "Sign in"}</button>
-          <button className="pv-gear" onClick={() => setSettingsOpen(s => !s)} aria-label="Settings">⚙</button>
-        </header>
-        <div className="pv-energy-strip" aria-hidden />
+            className="pv-logo-text"
+            onClick={() => goTab("discover")}
+            title="PokéVault"
+          >
+            PokéVault
+          </button>
+        </div>
+        <div className="pv-hdr-val">{formatPrice(totalValue)}</div>
+        {isPro && (
+          <div title={tier === "elite" ? "Elite Champion" : "Pro Trainer"} className="pv-gb-badge">
+            ★ {isOwner ? "owner" : tier}
+          </div>
+        )}
+        {!isPro && (
+          <div title="Free trial submissions remaining" className="pv-gb-badge">
+            {scansLeft}/{FREE_SCAN_LIMIT} scans
+          </div>
+        )}
+        <div className="pv-gb-badge pv-vb-on" title="Site shields on. Not desktop antivirus.">Virus Buster</div>
+        <button
+          onClick={async () => { if (user) { await signOut(); } else { nav({ to: "/login" }); } }}
+          className="pv-gb-badge"
+          style={{ cursor: "pointer" }}
+          aria-label={user ? "Sign out" : "Sign in"}
+        >{user ? "Sign out" : "Sign in"}</button>
+        <button className="pv-gear" onClick={() => setSettingsOpen(s => !s)} aria-label="Settings">⚙</button>
+      </header>
+      {settingsOpen && <SettingsPanel onToast={show} />}
+    </>
+  );
 
-        {settingsOpen && <SettingsPanel onToast={show} />}
+  const body = detailId ? (
+    <CardDetail cardId={detailId} onBack={() => setDetailId(null)} onToast={show} />
+  ) : setView ? (
+    <SetCardsView set={setView} onBack={() => setSetView(null)} onOpen={openCard} />
+  ) : (
+    <>
+      {tab === "discover" && <DiscoverView onOpen={openCard} onTab={(t) => goTab(t as Tab)} />}
+      {tab === "market" && <MarketView onOpen={openCard} />}
+      {tab === "sets" && <SetsView onPickSet={setSetView} />}
+      {tab === "vault" && <VaultView onOpen={openCard} />}
+      {tab === "search" && <SearchView onOpen={openCard} />}
+      {tab === "wishlist" && <WishlistView onOpen={openCard} />}
+      {tab === "battle" && <BattleHub onExit={() => goTab("vault")} />}
+      {tab === "gb" && <GameBoyView />}
+      {tab === "friends" && <FriendsView onOpenCard={openCard} />}
+      {tab === "adventure" && <AdventureView />}
+      {tab === "scan" && <ScannerView onOpen={openCard} />}
+      {tab === "pokedex" && <PokedexHub />}
+      {tab === "sell" && <SellView />}
+      {tab === "buy" && <BuyView onOpen={openCard} />}
+      {tab === "pricing" && <Paywall />}
+    </>
+  );
 
-        <nav className="pv-tabs hide-scroll">
-          {renderTabs()}
-        </nav>
-
-        <main className="pv-lab-body">
-          {detailId ? (
-            <CardDetail cardId={detailId} onBack={() => setDetailId(null)} onToast={show} />
-          ) : setView ? (
-            <SetCardsView set={setView} onBack={() => setSetView(null)} onOpen={openCard} />
-          ) : (
-            <>
-              {tab === "discover" && <DiscoverView onOpen={openCard} onTab={(t) => setTab(t as Tab)} />}
-              {tab === "market" && <MarketView onOpen={openCard} />}
-              {tab === "sets" && <SetsView onPickSet={setSetView} />}
-              {tab === "vault" && <VaultView onOpen={openCard} />}
-              {tab === "search" && <SearchView onOpen={openCard} />}
-              {tab === "wishlist" && <WishlistView onOpen={openCard} />}
-              {tab === "battle" && <BattleHub onExit={() => setTab("vault")} />}
-              {tab === "gb" && <GameBoyView />}
-              {tab === "friends" && <FriendsView onOpenCard={openCard} />}
-              {tab === "adventure" && <AdventureView />}
-              {tab === "scan" && <ScannerView onOpen={openCard} />}
-              {tab === "pokedex" && <PokedexHub />}
-              {tab === "sell" && <SellView />}
-              {tab === "buy" && <BuyView onOpen={openCard} />}
-              {tab === "pricing" && <Paywall />}
-            </>
-          )}
-        </main>
-
-        <footer className="pv-gb-footer">
-          Card data &amp; prices from <a href="https://pokemontcg.io" target="_blank" rel="noreferrer">pokemontcg.io</a>
-        </footer>
-      </div>
+  return (
+    <>
+      {node}
+      <AppShell
+        header={header}
+        tab={tab}
+        moreOpen={moreOpen}
+        isPro={isPro}
+        onPrimary={onPrimary}
+        onMoreClose={() => setMoreOpen(false)}
+        onMorePick={(id) => goTab(id)}
+        contentKey={contentKey}
+        footer={
+          <footer className="pv-gb-footer">
+            Card data &amp; prices from <a href="https://pokemontcg.io" target="_blank" rel="noreferrer">pokemontcg.io</a>
+          </footer>
+        }
+      >
+        {body}
+      </AppShell>
       <MusicPlayer />
-    </div>
+    </>
   );
 }
 
