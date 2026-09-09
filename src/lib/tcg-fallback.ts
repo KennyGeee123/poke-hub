@@ -25,6 +25,7 @@ function card(
 
 /** Seed catalog so Discover / Market / Search still paint when pokemontcg.io 502s. */
 export const FALLBACK_CARDS: TCGCard[] = [
+  card("base1sl-004", "Charizard", "base1sl", "Base Set (Shadowless)", "4", "Shadowless Holo Rare", 10000),
   card("base1-4", "Charizard", "base1", "Base", "4", "Rare Holo", 399.99),
   card("base1-2", "Blastoise", "base1", "Base", "2", "Rare Holo", 149.99),
   card("base1-15", "Venusaur", "base1", "Base", "15", "Rare Holo", 129.99),
@@ -76,9 +77,14 @@ export const FALLBACK_SETS: TCGSet[] = [
 export function fallbackSearch(q: string): TCGCard[] {
   const n = q.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim();
   if (!n) return FALLBACK_CARDS;
-  return FALLBACK_CARDS.filter((c) =>
-    c.name.toLowerCase().includes(n) || c.set.name.toLowerCase().includes(n) || c.id.toLowerCase().includes(n),
-  );
+  const sl = n.includes("shadowless") || n.includes("shadeless") || n.includes("1st") || n.includes("first ed");
+  const name = n.replace(/shadowless|shadeless|shaddowless|1st edition|first edition|1sted/g, " ").trim();
+  return FALLBACK_CARDS.filter((c) => {
+    const hay = `${c.name} ${c.set.name} ${c.id} ${c.rarity}`.toLowerCase();
+    if (sl && !hay.includes("shadowless") && c.set.id !== "base1") return false;
+    if (!name) return sl;
+    return hay.includes(name) || c.name.toLowerCase().startsWith(name.slice(0, Math.max(3, name.length - 1)));
+  });
 }
 
 /** Always-paint stub so a 500 from pokemontcg.io never blanks the detail page. */

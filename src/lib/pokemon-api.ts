@@ -9,6 +9,7 @@ import {
   tcgdexSearchName,
 } from "@/lib/tcgdex";
 import { FALLBACK_CARDS, FALLBACK_SETS, fallbackSearch, stubCardFromId } from "@/lib/tcg-fallback";
+import { parseSearchQuery } from "@/lib/card-search";
 
 const BASE = "https://api.pokemontcg.io/v2";
 
@@ -274,6 +275,19 @@ const CARD_LIST_SELECT = "id,name,supertype,subtypes,hp,attacks,rarity,number,im
 
 type SearchResult = { data: TCGCard[]; totalCount: number; page: number; pageSize: number };
 
+function mergeCards(...lists: TCGCard[][]): TCGCard[] {
+  const seen = new Set<string>();
+  const out: TCGCard[] = [];
+  for (const list of lists) {
+    for (const c of list) {
+      if (!c?.id || seen.has(c.id)) continue;
+      seen.add(c.id);
+      out.push(c);
+    }
+  }
+  return out;
+}
+
 export async function searchCards(opts: {
   q?: string;
   page?: number;
@@ -285,16 +299,35 @@ export async function searchCards(opts: {
   const page = opts.page ?? 1;
   const pageSize = opts.pageSize ?? 24;
   const lang = opts.lang || "en";
-  const name = tcgdexSearchName(opts.q);
+  const extracted = tcgdexSearchName(opts.q);
+  const text = extracted || opts.q || "";
+  const parsed = parseSearchQuery(text);
+  const corrected = parsed.name || text;
+
+  let catalog: TCGCard[] = [];
+  if (text.trim()) {
+    try {
+      catalog = await tcgdexSearchCards(text.trim(), pageSize, lang);
+    } catch { /* catalog optional */ }
+  }
 
   if (lang !== "en") {
-    const data = name ? await tcgdexSearchCards(name, pageSize, lang) : [];
-    data.forEach(rememberCard);
-    return { data, totalCount: data.length, page, pageSize };
+    catalog.forEach(rememberCard);
+    return { data: catalog, totalCount: catalog.length, page, pageSize };
+  }
+
+  if (parsed.print) {
+    catalog.forEach(rememberCard);
+    if (catalog.length) return { data: catalog, totalCount: catalog.length, page, pageSize };
   }
 
   const params = new URLSearchParams();
-  if (opts.q) params.set("q", opts.q);
+  const lucene = opts.q && /[\w.]+:/.test(opts.q) && !parsed.print
+    ? opts.q
+    : corrected
+      ? `name:"${corrected.replace(/"/g, "")}*"`
+      : opts.q || "";
+  if (lucene) params.set("q", lucene);
   params.set("page", String(page));
   params.set("pageSize", String(pageSize));
   if (opts.orderBy) params.set("orderBy", opts.orderBy);
@@ -303,24 +336,18 @@ export async function searchCards(opts: {
   let res: SearchResult | null = null;
   try {
     res = await tcgFetch<SearchResult>(`/cards?${params}`);
-    if (res?.data?.length) {
-      res.data.forEach(rememberCard);
-      return res;
-    }
   } catch {
-    /* try tcgdex + seed catalog */
+    /* try catalog + seed */
   }
 
-  if (name) {
-    try {
-      const data = await tcgdexSearchCards(name, pageSize, lang);
-      if (data.length) {
-        data.forEach(rememberCard);
-        return { data, totalCount: data.length, page, pageSize };
-      }
-    } catch { /* ignore */ }
+  const ptcg = res?.data ?? [];
+  const merged = mergeCards(catalog.filter((c) => /shadowless/i.test(c.set?.name || c.rarity || "")), ptcg, catalog);
+  if (merged.length) {
+    merged.forEach(rememberCard);
+    return { data: merged.slice(0, pageSize), totalCount: Math.max(res?.totalCount ?? 0, merged.length), page, pageSize };
   }
-  const fb = fallbackSearch(opts.q || name || "");
+
+  const fb = fallbackSearch(corrected || text);
   if (fb.length) return { data: fb, totalCount: fb.length, page, pageSize };
   return res ?? { data: [], totalCount: 0, page, pageSize };
 }

@@ -388,7 +388,9 @@ export function SearchView({ onOpen }: { onOpen: OnOpen }) {
     setActive(query);
     setErr(null);
     const raw = query.trim();
-    const queries = lang !== "en" || /[:*]/.test(raw) ? [raw] : [`name:"${raw}*"`, `name:${raw}*`, `name:${raw}`];
+    const queries = lang !== "en" || /[:*]/.test(raw)
+      ? [raw]
+      : [raw, `name:"${raw}*"`, `name:${raw}*`];
     try {
       let lastErr: unknown = null;
       let res: { data: TCGCard[]; totalCount: number } | null = null;

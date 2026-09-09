@@ -1,6 +1,7 @@
 // Proxies api.tcgdex.net; if that host is down, serve the bundled print catalog
 // (JP/CN/KO/TH + EN/EU SV) plus live TCGPlayer market prices.
 import { createFileRoute } from "@tanstack/react-router";
+import { cardSearchScore, parseSearchQuery, type SearchableCard } from "../../../lib/card-search";
 
 const UPSTREAM = "https://api.tcgdex.net/v2";
 const LANGS = new Set([
@@ -24,6 +25,8 @@ type CatCard = {
   tcgplayer?: number | null;
   cardmarket?: number | null;
   category?: string;
+  variant?: string;
+  market?: number;
 };
 type CatSet = {
   id: string;
@@ -108,21 +111,25 @@ function cardImage(c: CatCard, lang: string): string {
 
 function toTcgdexCard(c: CatCard, lang: string, setName: string, price?: number | null, catalog?: Catalog | null) {
   const img = cardImage(c, lang);
+  const paid = (typeof price === "number" && price > 0)
+    ? price
+    : (typeof c.market === "number" && c.market > 0 ? c.market : undefined);
   const pricing: any = {};
-  if (typeof price === "number" && price > 0) {
+  if (typeof paid === "number" && paid > 0) {
     pricing.tcgplayer = {
       unit: "USD",
       url: c.tcgplayer ? `https://www.tcgplayer.com/product/${c.tcgplayer}` : undefined,
-      normal: { marketPrice: price, lowPrice: price },
+      normal: { marketPrice: paid, lowPrice: paid },
     };
   }
   const extra = namesForDex(catalog || CAT || { sets: [], cards: [] }, c.dex?.[0]);
+  const rarity = c.variant ? `${c.variant[0].toUpperCase()}${c.variant.slice(1)} ${c.rarity || ""}`.trim() : c.rarity;
   return {
     id: c.id,
     name: pickName(c.names, lang, extra),
     localId: c.localId,
     image: img || undefined,
-    rarity: c.rarity,
+    rarity,
     hp: c.hp,
     types: c.types,
     illustrator: c.illustrator,
@@ -184,22 +191,13 @@ function preferRegion(cards: CatCard[], lang: string): CatCard[] {
   return first.length ? first.concat(cards.filter((c) => (c.region || "asia") !== region)) : cards;
 }
 
-function matchQuery(c: CatCard, q: string, _catalog: Catalog): boolean {
-  if (!q) return false;
-  if (Object.values(c.names || {}).some((n) => String(n).toLowerCase().includes(q))) return true;
-  if (c.id.toLowerCase().includes(q) || c.localId.toLowerCase() === q) return true;
-  const alias = DEX_ALIASES[c.dex?.[0] || 0];
-  if (alias && Object.values(alias).some((n) => String(n).toLowerCase().includes(q))) return true;
-  return false;
-}
-
-function matchScore(c: CatCard, q: string, lang: string): number {
-  const n = pickName(c.names, lang).toLowerCase();
-  if (n === q) return 0;
-  if (n.startsWith(q)) return 1;
-  if (n.includes(q)) return 2;
-  if (Object.values(c.names || {}).some((v) => String(v).toLowerCase() === q)) return 3;
-  return 4;
+function enDict(catalog: Catalog): string[] {
+  const out: string[] = [];
+  for (const names of Object.values(catalog.dexNames || {})) {
+    const en = names?.en;
+    if (en && /^[a-z]/i.test(en)) out.push(en.toLowerCase());
+  }
+  return out;
 }
 
 async function fromCatalog(lang: string, path: string, catalog: Catalog): Promise<Response | null> {
@@ -230,16 +228,27 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
     const limit = Math.min(50, Math.max(1, Number(sp.get("limit") || 40) || 40));
 
     if (name) {
-      const want = ASIA.has(lang) ? "asia" : "intl";
-      const hits = CAT.cards
-        .filter((c) => matchQuery(c, name, CAT))
-        .sort((a, b) => {
-          const ra = (a.region || "asia") === want ? 0 : 1;
-          const rb = (b.region || "asia") === want ? 0 : 1;
-          if (ra !== rb) return ra - rb;
-          return matchScore(a, name, lang) - matchScore(b, name, lang);
-        })
-        .slice(0, 40);
+      const parsed = parseSearchQuery(name, enDict(CAT));
+      const want = parsed.print ? "intl" : (ASIA.has(lang) ? "asia" : "intl");
+      const scored: { c: CatCard; s: number }[] = [];
+      for (const c of CAT.cards) {
+        const enName = (c.names?.en || "").toLowerCase();
+        if (/booster pack|theme deck|elite trainer|sealed/.test(enName)) continue;
+        const sn = setName(c.setId);
+        const extra = namesForDex(CAT, c.dex?.[0]);
+        const s = cardSearchScore(c as SearchableCard, parsed, lang, sn, extra);
+        if (s == null) continue;
+        scored.push({ c, s });
+      }
+      scored.sort((a, b) => {
+        if (parsed.print && !parsed.name) return (b.c.market || 0) - (a.c.market || 0);
+        const ra = (a.c.region || "asia") === want ? 0 : 1;
+        const rb = (b.c.region || "asia") === want ? 0 : 1;
+        if (parsed.print) return a.s - b.s || ra - rb;
+        if (ra !== rb) return ra - rb;
+        return a.s - b.s;
+      });
+      const hits = scored.slice(0, 40).map((x) => x.c);
       const prices = await hydratePrices(hits);
       return json(hits.map((c) => toTcgdexCard(c, lang, setName(c.setId), prices.get(c.id), CAT)));
     }

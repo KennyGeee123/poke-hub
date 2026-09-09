@@ -1,7 +1,7 @@
-FROZEN — launch-ready working state 2026-09-02 (print langs)
+FROZEN — launch-ready working state 2026-09-02 (shadowless + fuzzy search)
 Live: https://pokedex-hub-lime.vercel.app/
 Lock: launch-lock/WORKING-STATE.json
-Tag:  launch-ready-2026-09-02-print-langs
+Tag:  launch-ready-2026-09-02-shadowless-search
 
 Japanese / Traditional Chinese / Simplified Chinese / Korean / Thai / EU
 print-language cards with live TCGPlayer prices.
