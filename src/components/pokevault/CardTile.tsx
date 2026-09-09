@@ -114,6 +114,9 @@ export function CardTile({ card, onClick, qty, onRemove, eager }: Props) {
         {/shadowless/i.test(`${card.set?.name || ""} ${card.rarity || ""}`) && (
           <div className="pv-var-b" title="Base Set Shadowless" style={card.lang && card.lang !== "en" ? { left: 44 } : undefined}>SL</div>
         )}
+        {/\b(error|misprint)/i.test(`${card.set?.name || ""} ${card.rarity || ""} ${card.name || ""}`) && (
+          <div className="pv-err-b" title="Error / misprint">ERR</div>
+        )}
         {qty && qty > 1 ? <div className="pv-qty-b">×{qty}</div> : null}
         {onRemove && (
           <button

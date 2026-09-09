@@ -1,6 +1,6 @@
 /** Shared card search: print-variant keywords + misspelling tolerance. */
 
-export type PrintKind = "shadowless" | "unlimited" | "1st" | null;
+export type PrintKind = "shadowless" | "unlimited" | "1st" | "error" | "promo" | null;
 
 export type ParsedQuery = {
   raw: string;
@@ -125,11 +125,13 @@ export function fuzzyEq(q: string, target: string): boolean {
 
 export function detectPrint(q: string): PrintKind {
   const n = normalize(q);
+  if (/\b(error|misprint|mis-print|black\s*dot)\b/.test(n)) return "error";
   if (/\b(shadow\s*less|shadd?owless|shadeless|shadoless|shadowles)\b/.test(n) || n.includes("shadowless")) {
     return "shadowless";
   }
   if (/\b(1st\s*ed(ition)?|first\s*ed(ition)?|1ed)\b/.test(n)) return "1st";
   if (/\bunlimi?ted\b/.test(n)) return "unlimited";
+  if (/\bpromo(s| card)?\b/.test(n)) return "promo";
   return null;
 }
 
@@ -138,6 +140,8 @@ function stripPrint(q: string): string {
     .replace(/\b(shadow\s*less|shadd?owless|shadeless|shadoless|shadowles|shadowless)\b/g, " ")
     .replace(/\b(1st\s*ed(ition)?|first\s*ed(ition)?|1ed)\b/g, " ")
     .replace(/\bunlimi?ted\b/g, " ")
+    .replace(/\b(error|misprint|mis-print|black\s*dot)\b/g, " ")
+    .replace(/\bpromo(s| card)?\b/g, " ")
     .replace(/\b(holo|holofoil|base\s*set|wotc|unlimited)\b/g, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -186,11 +190,23 @@ export function isShadowlessCard(c: SearchableCard, setName?: string): boolean {
   return false;
 }
 
+export function isErrorCard(c: SearchableCard, setName?: string): boolean {
+  const blob = `${c.variant || ""} ${c.setId || ""} ${c.id || ""} ${setName || ""} ${Object.values(c.names || {}).join(" ")}`.toLowerCase();
+  return /\b(error|misprint|mis-print|black\s*dot)\b/.test(blob) || (c.setId || "") === "error";
+}
+
+export function isPromoCard(c: SearchableCard, setName?: string): boolean {
+  const blob = `${c.variant || ""} ${c.setId || ""} ${setName || ""}`.toLowerCase();
+  return /\bpromo/.test(blob) || /(-p|svp|smp|wp|basep)$/i.test(c.setId || "");
+}
+
 export function cardMatchesPrint(c: SearchableCard, print: PrintKind, setName?: string): boolean {
   if (!print) return true;
   const sl = isShadowlessCard(c, setName);
   if (print === "shadowless" || print === "1st") return sl;
   if (print === "unlimited") return !sl && ((c.setId || "").startsWith("base") || (setName || "").toLowerCase().includes("base"));
+  if (print === "error") return isErrorCard(c, setName);
+  if (print === "promo") return isPromoCard(c, setName);
   return true;
 }
 
@@ -230,5 +246,8 @@ export function cardSearchScore(
 
   const best = Math.min(scoreLabels(own, 0), scoreLabels(extra, 4));
   if (best >= 99) return null;
-  return parsed.print && isShadowlessCard(c, setName) ? Math.max(0, best - 1) : best;
+  if (parsed.print && (isShadowlessCard(c, setName) || isErrorCard(c, setName) || isPromoCard(c, setName))) {
+    return Math.max(0, best - 1);
+  }
+  return best;
 }

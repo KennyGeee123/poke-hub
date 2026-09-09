@@ -50,17 +50,29 @@ function LoginPage() {
     }
   };
 
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const desc = q.get("error_description") || q.get("error");
+    if (desc) setErr(decodeURIComponent(desc.replace(/\+/g, " ")));
+  }, []);
+
   const onGoogle = async () => {
     setErr(null); setBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const redirectTo = `${window.location.origin}/login`;
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: window.location.origin + "/login" },
+        options: {
+          redirectTo,
+          skipBrowserRedirect: true,
+          queryParams: { access_type: "offline", prompt: "select_account" },
+        },
       });
       if (error) throw error;
+      if (!data?.url) throw new Error("Google did not return a sign-in URL. Try again in a moment.");
+      window.location.assign(data.url);
     } catch (e: any) {
       setErr(e?.message ?? "Google sign-in failed");
-    } finally {
       setBusy(false);
     }
   };

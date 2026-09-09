@@ -341,7 +341,7 @@ export async function searchCards(opts: {
   }
 
   const ptcg = res?.data ?? [];
-  const merged = mergeCards(catalog.filter((c) => /shadowless/i.test(c.set?.name || c.rarity || "")), ptcg, catalog);
+  const merged = mergeCards(catalog.filter((c) => /shadowless|error|misprint/i.test(`${c.set?.name || ""} ${c.rarity || ""} ${c.name || ""}`)), ptcg, catalog);
   if (merged.length) {
     merged.forEach(rememberCard);
     return { data: merged.slice(0, pageSize), totalCount: Math.max(res?.totalCount ?? 0, merged.length), page, pageSize };

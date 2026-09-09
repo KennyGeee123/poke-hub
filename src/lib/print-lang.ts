@@ -66,8 +66,8 @@ export const SEARCH_CHIPS: Record<string, string[]> = {
 
 export function searchChips(lang: string): string[] {
   const core = SEARCH_CHIPS[lang] ?? ["Charizard", "Pikachu", "Mewtwo", "Lugia", "Rayquaza"];
-  if (lang === "en") return ["Shadowless", "Shadowless Charizard", ...core];
-  return [...core, "Shadowless"];
+  if (lang === "en") return ["Shadowless", "Error", "Misprint", "Shadowless Charizard", ...core];
+  return [...core, "Shadowless", "Error"];
 }
 
 export function searchPlaceholder(lang: string): string {
@@ -77,5 +77,5 @@ export function searchPlaceholder(lang: string): string {
   if (lang === "th") return "ค้นหาชื่อ (ลิซาร์ดอน, พิคาชู…)";
   if (lang === "fr") return "Rechercher (Dracaufeu, Pikachu…)";
   if (lang === "de") return "Suchen (Glurak, Pikachu…)";
-  return "Search by name — typos ok (charzard, shadowless, pikachu)…";
+  return "Search by name — typos ok (charzard, shadowless, error, pikachu)…";
 }

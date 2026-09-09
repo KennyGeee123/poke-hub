@@ -323,6 +323,7 @@
 /* Filters */
 .pv-lang-b { position: absolute; top: 8px; left: 8px; z-index: 5; font-size: 9px; font-weight: 800; letter-spacing: .4px; padding: 2px 6px; border-radius: 8px; background: rgba(15,23,42,.82); color: #fde68a; border: 1px solid rgba(253,224,71,.35); }
 .pv-var-b { position: absolute; top: 8px; left: 8px; z-index: 5; font-size: 9px; font-weight: 800; letter-spacing: .4px; padding: 2px 6px; border-radius: 8px; background: rgba(124,45,18,.9); color: #ffedd5; border: 1px solid rgba(251,146,60,.55); }
+.pv-err-b { position: absolute; top: 8px; left: 8px; z-index: 5; font-size: 9px; font-weight: 800; letter-spacing: .4px; padding: 2px 6px; border-radius: 8px; background: rgba(127,29,29,.92); color: #fecaca; border: 1px solid rgba(248,113,113,.55); }
 .pv-pill { padding: 5px 12px; background: #fff; border: 1px solid var(--brd); border-radius: 20px; color: var(--t2); cursor: pointer; font-size: 11px; font-weight: 600; transition: .15s; }
 .pv-pill:hover { color: var(--t1); }
 .pv-pill.on { background: var(--gold-bg); border-color: var(--gold-brd); color: var(--gold); }
