@@ -14,6 +14,9 @@ export type Listing = {
   image: string | null;
   condition?: string | null;
   shipping?: number | null;
+  variant?: string | null;
+  kind?: "listing" | "shop";
+  listingId?: string | null;
 };
 
 export type SourceResult = {
@@ -47,6 +50,41 @@ const enc = encodeURIComponent;
 
 // Conservative FX so EUR/GBP listings can still be compared. Updated infrequently.
 const FX: Record<string, number> = { USD: 1, EUR: 1.08, GBP: 1.27, CAD: 0.73, AUD: 0.66, JPY: 0.0064 };
+const QUEUE_CAP = 16;
+
+function landed(l: Listing): number {
+  return (Number(l.price) || 0) + (Number(l.shipping) || 0);
+}
+
+function conditionTier(condition?: string | null): number {
+  const s = (condition || "").toLowerCase();
+  if (/damaged|\bdmg\b/.test(s)) return 3;
+  if (/heavily\s*played|\bhp\b/.test(s)) return 2;
+  if (/moderately\s*played|\bmp\b/.test(s)) return 1;
+  return 0;
+}
+
+function listingIdentity(l: Listing): string {
+  if (l.listingId) return `${l.source}::id::${l.listingId}`;
+  const path = (l.url || "").split("?")[0];
+  const cond = (l.condition || "").toLowerCase();
+  const variant = (l.variant || "").toLowerCase();
+  const cents = Math.round((Number(l.price) || 0) * 100);
+  return `${l.source}::${cond}::${variant}::${cents}::${path}`;
+}
+
+function isShopRow(l: Listing): boolean {
+  if (l.kind === "shop") return true;
+  if ((Number(l.price) || 0) <= 0) return true;
+  if (/ebay\.com\/sch\//i.test(l.url || "")) return true;
+  return false;
+}
+
+function sortByLanded(a: Listing, b: Listing): number {
+  const cond = conditionTier(a.condition) - conditionTier(b.condition);
+  if (cond) return cond;
+  return landed(a) - landed(b);
+}
 
 function stripTags(s: string): string {
   return s
@@ -214,9 +252,12 @@ async function tcgplayer(q: string): Promise<Listing[]> {
       currency: "USD",
       url: tp.url,
       image: c.images?.small ?? null,
+      condition: variantName,
+      variant: variantName,
+      kind: "listing",
     });
   }
-  return out.sort((a, b) => a.price - b.price).slice(0, 10);
+  return out.sort(sortByLanded).slice(0, 10);
 }
 
 // ─── Cardmarket (EU) via card index ───────────────────────────────────────
@@ -244,9 +285,11 @@ async function cardmarket(q: string): Promise<Listing[]> {
       currency: "EUR",
       url: cm.url,
       image: c.images?.small ?? null,
+      variant: "low",
+      kind: "listing",
     });
   }
-  return out.sort((a, b) => a.price - b.price).slice(0, 10);
+  return out.sort(sortByLanded).slice(0, 10);
 }
 
 // ─── TrollAndToad ─────────────────────────────────────────────────────────
@@ -716,6 +759,8 @@ async function tcgIoById(id: string): Promise<Listing[]> {
                 url: tcg.url,
                 image: c.images?.small ?? null,
                 condition: name,
+                variant: name,
+                kind: "listing",
               });
             }
           }
@@ -731,6 +776,8 @@ async function tcgIoById(id: string): Promise<Listing[]> {
                 currency: "EUR",
                 url: cmkt.url,
                 image: c.images?.small ?? null,
+                variant: "low",
+                kind: "listing",
               });
             }
           }
@@ -770,7 +817,7 @@ export const Route = createFileRoute("/api/public/card-prices")({
               bySrc.set(l.source, arr);
             }
             for (const [name, ls] of bySrc) {
-              const ranked = ls.slice().sort((a, b) => (a.price + (a.shipping ?? 0)) - (b.price + (b.shipping ?? 0)));
+              const ranked = ls.slice().sort(sortByLanded);
               sources.push({
                 source: name,
                 ok: ranked.length > 0,
@@ -808,9 +855,7 @@ export const Route = createFileRoute("/api/public/card-prices")({
               continue;
             }
             const { src, listings, error } = s.value as any;
-            const ranked = listings.slice().sort(
-              (a: Listing, b: Listing) => (a.price + (a.shipping ?? 0)) - (b.price + (b.shipping ?? 0)),
-            );
+            const ranked = listings.slice().sort(sortByLanded);
             sources.push({
               source: src.name,
               ok: ranked.length > 0,
@@ -837,19 +882,17 @@ export const Route = createFileRoute("/api/public/card-prices")({
           }
         }
 
-        const all = sources.flatMap((s) => s.listings).filter((l) => l.price > 0);
-        const considered = sealed ? all.filter((l) => (l.price + (l.shipping ?? 0)) >= 40) : all;
-        const ranked = considered.slice().sort(
-          (a, b) => (a.price + (a.shipping ?? 0)) - (b.price + (b.shipping ?? 0)),
-        );
+        const all = sources.flatMap((s) => s.listings).filter((l) => !isShopRow(l) && l.price > 0);
+        const considered = sealed ? all.filter((l) => landed(l) >= 40) : all;
+        const ranked = considered.slice().sort(sortByLanded);
         const seen = new Set<string>();
         const queue: Listing[] = [];
         for (const l of ranked) {
-          const id = `${l.source}::${(l.url || "").split("?")[0]}::${l.condition || ""}`;
+          const id = listingIdentity(l);
           if (!id || seen.has(id)) continue;
           seen.add(id);
           queue.push(l);
-          if (queue.length >= 8) break;
+          if (queue.length >= QUEUE_CAP) break;
         }
         const cheapest = queue[0] ?? null;
 

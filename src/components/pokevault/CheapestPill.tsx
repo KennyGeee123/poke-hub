@@ -4,9 +4,10 @@ import { usePremium } from "@/lib/premium";
 import { useAuth } from "@/lib/auth";
 
 /**
- * Tiny inline pill that lazily fetches the cheapest live listing across
- * fast marketplaces (eBay + TCGplayer + Cardmarket) for a card. Loads only
- * when scrolled into view, and the underlying request is cached for 10min.
+ * Tiny inline pill that lazily fetches the cheapest live listing from the
+ * cheap=1 aggregator (TCGplayer + Cardmarket catalog lows). eBay BIN is not
+ * included unless a real priced listing exists — search URLs are not BINs.
+ * Loads only when scrolled into view; the request is cached briefly.
  */
 export function CheapestPill({ query, marketPrice, cardId }: { query: string; marketPrice?: number; cardId?: string }) {
   const { user } = useAuth();

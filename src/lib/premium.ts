@@ -114,7 +114,7 @@ export const TIERS = [
     features: [
       "Cheapest live listing on every card",
       "Strike → next cheapest auto-loads",
-      "TCGPlayer low + Cardmarket + eBay BIN",
+      "TCGPlayer + Cardmarket landed lows (real eBay BIN only)",
       "Requires member sign-in",
       "Included in Pro & Elite",
     ],
