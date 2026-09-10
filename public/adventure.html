@@ -269,6 +269,9 @@ TEX.grass = loadImg('/adventure-assets/tex-grass.jpg');
 TEX.path = loadImg('/adventure-assets/tex-path.jpg');
 TEX.tall = loadImg('/adventure-assets/tex-tallgrass.jpg');
 TEX.water = loadImg('/adventure-assets/tex-water.jpg');
+TEX.deep = loadImg('/adventure-assets/tex-deep.jpg');
+TEX.sand = loadImg('/adventure-assets/tex-sand.jpg');
+TEX.rock = loadImg('/adventure-assets/tex-rock.jpg');
 TEX.ash = loadImg('/adventure-assets/tex-ash.jpg');
 TEX.wall = loadImg('/adventure-assets/tex-wall.jpg');
 TRAINER.down = loadImg('/adventure-assets/trainer-down.png');
@@ -276,6 +279,12 @@ TRAINER.up = loadImg('/adventure-assets/trainer-up.png');
 TRAINER.left = loadImg('/adventure-assets/trainer-left.png');
 TRAINER.right = loadImg('/adventure-assets/trainer-right.png');
 function texReady(im) { return !!(im && im.complete && im.naturalWidth); }
+function groundTex(region) {
+  if (region === 0 || region === 4) return TEX.rock;
+  if (region === 3) return TEX.ash;
+  return TEX.grass;
+}
+function isWaterTile(t) { return t === 6 || t === 20; }
 function fillWorldTex(ctx, im, px, py, mx, my) {
   if (!texReady(im)) return false;
   ctx.save();
@@ -327,11 +336,11 @@ const E4 = [
 
 const REGION_NAMES = ["Pewter", "Cerulean", "Vermilion", "Cinnabar", "Indigo"];
 const REGION_BIOMES = [
-  "Plains · Mountain foothills",
-  "Shore · Lake wilds",
-  "Sunny plains · Town trails",
-  "Volcanic shore · Ash fields",
-  "Highland fortress · Elite halls",
+  "Rock · Onix foothills",
+  "Ocean · Psyduck coast",
+  "Plains · Pikachu trails",
+  "Volcano · Charmander isle",
+  "Highland · Dragon halls",
 ];
 const REGION_TINT = ["#c4a574", "#7cb342", "#e0a060", "#8d4a32", "#4a5080"];
 const REGION_SKY = ["#87ceeb", "#6ec6ff", "#ffd28a", "#ff8a65", "#5c6bc0"];
@@ -339,13 +348,20 @@ const REGION_SKY = ["#87ceeb", "#6ec6ff", "#ffd28a", "#ff8a65", "#5c6bc0"];
 /** Per-region wild tables (same 20-name roster, different mix). */
 const REGION_POOLS = [
   ["Geodude", "Onix", "Machop", "Rattata", "Pidgey", "Caterpie"],
-  ["Squirtle", "Psyduck", "Pidgey", "Jigglypuff", "Totodile", "Rattata"],
+  ["Squirtle", "Psyduck", "Totodile", "Pidgey", "Jigglypuff", "Rattata"],
   ["Pikachu", "Meowth", "Eevee", "Rattata", "Pidgey", "Jigglypuff"],
-  ["Charmander", "Cyndaquil", "Pidgey", "Rattata", "Meowth", "Eevee"],
+  ["Charmander", "Cyndaquil", "Eevee", "Rattata", "Meowth", "Pidgey"],
   ["Gastly", "Dratini", "Jynx", "Machop", "Snorlax", "Eevee"],
 ];
+const WATER_POOLS = [
+  ["Psyduck", "Squirtle"],
+  ["Squirtle", "Psyduck", "Totodile"],
+  ["Psyduck", "Squirtle"],
+  ["Squirtle", "Totodile"],
+  ["Dratini", "Psyduck"],
+];
 
-/* Tile ids: .0 g1 T2 X3 G4 P5 W6 f7 H8 E9 F10 s11 #12 1-5 => 13-17 */
+/* Tile ids: .0 g1 T2 X3 G4 P5 W6 f7 H8 E9 F10 s11 #12 E4 13-17 walls 18-19 ocean 20 lava 21 */
 function mulberry32(a) {
   return function() {
     let t = a += 0x6D2B79F5;
@@ -391,77 +407,99 @@ function clearAround(map, x, y, r) {
   }
 }
 
+function stampOcean(map, region) {
+  if (region === 1) {
+    for (let y = 0; y < MAP_SIZE; y++) {
+      for (let x = 0; x < MAP_SIZE; x++) {
+        const coast = (x - MAP_SIZE * 0.48) + (y - MAP_SIZE * 0.28) * 0.85;
+        if (coast > 22) map[y][x] = 20;
+        else if (coast > 12) map[y][x] = 6;
+        else if (coast > 7) map[y][x] = 11;
+      }
+    }
+  } else if (region === 2) {
+    for (let y = 0; y < MAP_SIZE; y++) {
+      for (let x = MAP_SIZE - 10; x < MAP_SIZE; x++) {
+        const d = MAP_SIZE - 1 - x;
+        if (d < 3) map[y][x] = 20;
+        else if (d < 6) map[y][x] = 6;
+        else map[y][x] = 11;
+      }
+    }
+  } else if (region === 3) {
+    for (let y = 0; y < MAP_SIZE; y++) {
+      for (let x = 0; x < MAP_SIZE; x++) {
+        const d = Math.min(x, y, MAP_SIZE - 1 - x, MAP_SIZE - 1 - y);
+        if (d < 3) map[y][x] = 20;
+        else if (d < 6) map[y][x] = 6;
+        else if (d < 8) map[y][x] = 11;
+      }
+    }
+  }
+}
+
+function carveWalk(map, x, y) {
+  if (x <= 0 || y <= 0 || x >= MAP_SIZE - 1 || y >= MAP_SIZE - 1) return;
+  const t = map[y][x];
+  if (t === 2 || t === 12 || t === 21) map[y][x] = 0;
+  else if (t === 20) map[y][x] = 6;
+}
+
 function generateWorld(region) {
   const rnd = mulberry32(0xC0FFEE ^ (region * 9973));
   const map = Array.from({ length: MAP_SIZE }, () => Array(MAP_SIZE).fill(0));
-  const wall = region >= 2 ? 12 : 2;
+  const wall = region === 0 ? 12 : region >= 3 ? 12 : 2;
 
   for (let y = 0; y < MAP_SIZE; y++) {
     for (let x = 0; x < MAP_SIZE; x++) {
       if (x === 0 || y === 0 || x === MAP_SIZE - 1 || y === MAP_SIZE - 1) map[y][x] = wall;
       else {
         const n = rnd();
-        if (region === 0) {
-          map[y][x] = n < 0.08 ? 2 : n < 0.14 ? 11 : 0;
-        } else if (region === 1) {
-          map[y][x] = n < 0.06 ? 2 : n < 0.12 ? 7 : 0;
-        } else if (region === 2) {
-          map[y][x] = n < 0.05 ? 2 : n < 0.1 ? 11 : 0;
-        } else if (region === 3) {
-          map[y][x] = n < 0.1 ? 11 : n < 0.14 ? 12 : 0;
-        } else {
-          map[y][x] = n < 0.12 ? 12 : 0;
-        }
+        if (region === 0) map[y][x] = n < 0.12 ? 12 : n < 0.22 ? 11 : n < 0.28 ? 2 : 0;
+        else if (region === 1) map[y][x] = n < 0.04 ? 2 : n < 0.1 ? 7 : 0;
+        else if (region === 2) map[y][x] = n < 0.05 ? 2 : n < 0.09 ? 11 : 0;
+        else if (region === 3) map[y][x] = n < 0.14 ? 11 : n < 0.2 ? 12 : 0;
+        else map[y][x] = n < 0.16 ? 12 : 0;
       }
     }
   }
 
-  // Biome features
+  stampOcean(map, region);
+
   if (region === 0) {
-    stampBlob(map, 12, 14, 7, 11, rnd, 0.85); // sand/rock
-    stampBlob(map, 34, 30, 8, 2, rnd, 0.7);   // forest
-    stampBlob(map, 22, 38, 3, 1, rnd, 0.72);
-    stampBlob(map, 38, 12, 3, 1, rnd, 0.7);
-    stampRect(map, 8, 8, 5, 2, 8); // houses
-    stampRect(map, 9, 10, 1, 1, 0);
+    stampBlob(map, 12, 12, 9, 12, rnd, 0.8);
+    stampBlob(map, 14, 16, 6, 11, rnd, 0.7);
+    stampBlob(map, 34, 32, 6, 2, rnd, 0.65);
+    stampRect(map, 8, 8, 4, 2, 8);
   } else if (region === 1) {
-    stampBlob(map, 28, 24, 10, 6, rnd, 0.95); // lake
-    stampBlob(map, 28, 24, 12, 11, rnd, 0.35); // shore ring
-    stampBlob(map, 10, 34, 7, 1, rnd, 0.9);
-    stampBlob(map, 36, 10, 6, 7, rnd, 0.8);
-    stampBlob(map, 14, 12, 5, 2, rnd, 0.65);
+    stampBlob(map, 12, 14, 5, 2, rnd, 0.55);
+    stampBlob(map, 10, 32, 4, 7, rnd, 0.7);
+    stampBlob(map, 14, 20, 4, 6, rnd, 0.85);
   } else if (region === 2) {
-    stampRect(map, 6, 20, 14, 1, 10); // fences
+    stampRect(map, 6, 20, 14, 1, 10);
     stampRect(map, 28, 14, 1, 12, 10);
-    stampBlob(map, 18, 32, 8, 1, rnd, 0.88);
-    stampBlob(map, 36, 36, 6, 7, rnd, 0.75);
-    stampBlob(map, 10, 10, 4, 11, rnd, 0.7);
     stampRect(map, 32, 8, 4, 2, 8);
+    stampBlob(map, 16, 34, 4, 1, rnd, 0.7);
   } else if (region === 3) {
-    stampBlob(map, 24, 24, 9, 11, rnd, 0.9);
-    stampBlob(map, 14, 14, 5, 12, rnd, 0.7);
-    stampBlob(map, 36, 32, 7, 1, rnd, 0.8);
-    stampBlob(map, 10, 36, 6, 6, rnd, 0.85); // lava-like water
-    stampBlob(map, 34, 10, 5, 2, rnd, 0.5);
+    stampBlob(map, 32, 14, 6, 12, rnd, 0.75);
+    stampBlob(map, 10, 10, 5, 21, rnd, 0.85);
   } else {
-    // Indigo fortress — dense walls + chambers
     for (let y = 1; y < MAP_SIZE - 1; y++) for (let x = 1; x < MAP_SIZE - 1; x++) {
-      if (rnd() < 0.18) map[y][x] = 12;
+      if (rnd() < 0.16 && map[y][x] === 0) map[y][x] = 12;
     }
     stampRect(map, 16, 8, 16, 14, 0);
     stampRect(map, 18, 10, 12, 2, 12);
     stampRect(map, 18, 18, 12, 2, 12);
     stampRect(map, 20, 26, 8, 8, 0);
-    stampRect(map, 22, 28, 4, 1, 9); // elite gate visual
+    stampRect(map, 22, 28, 4, 1, 9);
   }
 
-  // Extra grass patches for denser wilds
   const grassCenters = [
-    [10, 22], [20, 16], [30, 20], [38, 28], [16, 40], [28, 40], [40, 40], [8, 32], [24, 8], [42, 18],
+    [10, 22], [20, 16], [16, 40], [8, 32], [24, 8],
   ];
   grassCenters.forEach(([gx, gy], i) => {
-    if (region === 4 && i > 3) return;
-    stampBlob(map, gx, gy, 2 + (i % 2), 1, rnd, 0.7);
+    if (region === 1 && i > 1) return;
+    stampBlob(map, gx, gy, 2, 1, rnd, 0.65);
   });
 
   // Town square near center-ish
@@ -506,16 +544,10 @@ function generateWorld(region) {
   map[1][mid] = 0; map[MAP_SIZE - 2][mid] = 0;
   map[mid][1] = 0; map[mid][MAP_SIZE - 2] = 0;
 
-  // Paths from town to portals
-  for (let y = Math.min(cy, MAP_SIZE - 2); y <= Math.max(cy, MAP_SIZE - 2); y++) {
-    if (map[y][cx] === 2 || map[y][cx] === 12) map[y][cx] = 0;
-  }
-  for (let x = 1; x < MAP_SIZE - 1; x++) {
-    if (map[mid][x] === 2 || map[mid][x] === 12 || map[mid][x] === 6) map[mid][x] = 0;
-  }
-  for (let y = 1; y < MAP_SIZE - 1; y++) {
-    if (map[y][mid] === 2 || map[y][mid] === 12 || map[y][mid] === 6) map[y][mid] = 0;
-  }
+  // Paths from town to portals — wade through ocean, do not pave it
+  for (let y = Math.min(cy, MAP_SIZE - 2); y <= Math.max(cy, MAP_SIZE - 2); y++) carveWalk(map, cx, y);
+  for (let x = 1; x < MAP_SIZE - 1; x++) carveWalk(map, x, mid);
+  for (let y = 1; y < MAP_SIZE - 1; y++) carveWalk(map, mid, y);
 
   // Re-place key POIs after path clear
   stampBuilding(map, cx, cy, 18, 5);
@@ -535,10 +567,10 @@ const MAPS = GENERATED.map(g => g.map);
 const POI = GENERATED.map(g => ({ center: g.center, gym: g.gym }));
 
 const NPCS = [
-  { region: 0, x: POI[0].center.x + 2, y: POI[0].center.y + 1, color: "#3b6ea5", quote: "PEWTER GYM is the stone dojo. Beat BROCK for the Boulder Badge. The foothills stretch far — keep walking!" },
-  { region: 1, x: POI[1].center.x - 2, y: POI[1].center.y + 1, color: "#2a9d8f", quote: "MISTY's gym sits by the water. Bring Grass or Electric. Watch the lake shore for Psyduck!" },
-  { region: 2, x: POI[2].center.x + 1, y: POI[2].center.y + 2, color: "#e9c46a", quote: "LT. SURGE hits hard. Ground types would help — if you had one. Trails run east and west." },
-  { region: 3, x: POI[3].center.x - 1, y: POI[3].center.y + 2, color: "#e76f51", quote: "BLAINE's volcano gym is last. Then INDIGO to the north through the highland gate." },
+  { region: 0, x: POI[0].center.x + 2, y: POI[0].center.y + 1, color: "#3b6ea5", quote: "PEWTER GYM is the stone dojo. Beat BROCK for the Boulder Badge. Geodude and Onix haunt the rocky foothills." },
+  { region: 1, x: POI[1].center.x - 2, y: POI[1].center.y + 1, color: "#2a9d8f", quote: "MISTY's gym sits by the water. Wade the shallows for Squirtle and Psyduck — the deep ocean blocks the way." },
+  { region: 2, x: POI[2].center.x + 1, y: POI[2].center.y + 2, color: "#e9c46a", quote: "LT. SURGE hits hard. The east coast drops into the sea. Pikachu runs the inland trails." },
+  { region: 3, x: POI[3].center.x - 1, y: POI[3].center.y + 2, color: "#e76f51", quote: "BLAINE's volcano gym is last. The isle is ringed by ocean; stay off the lava. Then INDIGO north." },
   { region: 4, x: 24, y: 32, color: "#7c3aed", quote: "Four badges to enter. Lorelei, Bruno, Agatha, Lance, then the Champion." },
 ];
 
@@ -675,7 +707,7 @@ const Player = {
     updateCompass();
     const nx = this.x + dx, ny = this.y + dy;
     const t = MapManager.tileAt(nx, ny);
-    if ([2, 8, 10, 12, 9, 18, 19].includes(t)) return;
+    if ([2, 8, 10, 12, 9, 18, 19, 20, 21].includes(t)) return;
     if (t === 3) {
       let dir = 'N';
       if (ny >= MAP_SIZE - 1) dir = 'S';
@@ -706,6 +738,8 @@ const Player = {
     this.x = nx; this.y = ny;
     this.step = (this.step + 1) & 3;
     if (t === 1) EncounterSystem.tryEncounter();
+    else if (t === 6) EncounterSystem.tryWater();
+    else if (t === 11 && MapManager.current === 0) EncounterSystem.tryEncounter(0.12);
     else if (t === 4) { if (!this._inGym) { this._inGym = true; Sites.gym(); } }
     else this._inGym = false;
     if (t === 5) { if (!this._inCenter) { this._inCenter = true; Sites.center(); } }
@@ -755,6 +789,19 @@ const AudioFX = {
     g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.3);
     o.connect(g); g.connect(this.ctx.destination);
     o.start(); o.stop(this.ctx.currentTime + 0.3);
+  },
+  splash() {
+    this.ensure();
+    if (!this.ctx) return;
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(420, this.ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(90, this.ctx.currentTime + 0.22);
+    g.gain.setValueAtTime(0.12, this.ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.24);
+    o.connect(g); g.connect(this.ctx.destination);
+    o.start(); o.stop(this.ctx.currentTime + 0.24);
   }
 };
 
@@ -775,8 +822,8 @@ const EncounterSystem = {
   current: null,
   handed: false,
   autoTimer: null,
-  tryEncounter() {
-    if (Math.random() > 0.16) return;
+  tryEncounter(rate) {
+    if (Math.random() > (rate ?? 0.16)) return;
     const pool = REGION_POOLS[MapManager.current] || REGION_POOLS[0];
     const name = pool[Math.floor(Math.random() * pool.length)];
     const poke = POKEMON.find(p => p.name === name) || POKEMON[0];
@@ -794,6 +841,27 @@ const EncounterSystem = {
     }
     UIManager.openWild(this.current);
     // Grass must always start a fight (parent overlay). FIGHT still works if they tap first.
+    clearTimeout(this.autoTimer);
+    this.autoTimer = setTimeout(() => this.fight(), 450);
+  },
+  tryWater() {
+    if (Math.random() > 0.18) return;
+    const pool = WATER_POOLS[MapManager.current] || WATER_POOLS[1];
+    const name = pool[Math.floor(Math.random() * pool.length)];
+    const poke = POKEMON.find(p => p.name === name) || POKEMON[2];
+    this.current = { ...poke, kind: "wild", habitat: "water", level: 6 + MapManager.current * 3 + Math.floor(Math.random() * 4) };
+    this.handed = false;
+    Player.frozen = true;
+    AudioFX.splash();
+    UIManager.flash();
+    const seen = SaveSystem.state.seen || (SaveSystem.state.seen = []);
+    if (!seen.find(c => c.name === poke.name)) {
+      seen.push({ name: poke.name, emoji: poke.emoji, color: poke.color });
+      SaveSystem.save();
+      UIManager.renderPokedex();
+      UIManager.renderPartyHud();
+    }
+    UIManager.openWild(this.current);
     clearTimeout(this.autoTimer);
     this.autoTimer = setTimeout(() => this.fight(), 450);
   },
@@ -1024,10 +1092,13 @@ const UIManager = {
     sp.innerHTML = `<img src="${spriteUrl(name)}" alt="${name}" onerror="this.onerror=null;this.src='${staticSpriteUrl(name)}';" />`;
   },
   openWild(poke) {
-    document.getElementById('modal-title').textContent = 'A wild Pokémon appeared!';
+    const water = poke && poke.habitat === 'water';
+    document.getElementById('modal-title').textContent = water ? 'A wild Pokémon surfaced!' : 'A wild Pokémon appeared!';
     this.setSprite(poke.name);
     document.getElementById('poke-name').textContent = poke.name + '  Lv' + poke.level;
-    document.getElementById('modal-msg').textContent = 'FIGHT starts an in-Adventure battle · RUN stays in the grass';
+    document.getElementById('modal-msg').textContent = water
+      ? 'FIGHT starts an in-Adventure battle · RUN stays in the water'
+      : 'FIGHT starts an in-Adventure battle · RUN stays in the grass';
     document.getElementById('btn-fight').classList.remove('hidden');
     document.getElementById('btn-run').classList.remove('hidden');
     document.getElementById('modal-buttons').classList.remove('hidden');
@@ -1124,9 +1195,11 @@ const UIManager = {
       for (let x = 0; x < MAP_SIZE; x++) {
         const t = MapManager.tileAt(x, y);
         ctx.fillStyle = ({
-          0:'#c4a574',1:'#2e7d32',2:'#1b5e20',3:'#e2b53a',4:'#cc2b2b',5:'#f48fb1',
+          0: REGION_TINT[MapManager.current] || '#c4a574',
+          1:'#2e7d32',2:'#1b5e20',3:'#e2b53a',4:'#cc2b2b',5:'#f48fb1',
           6:'#1e88e5',7:'#ec407a',8:'#6d4c41',9:'#4527a0',10:'#5d4037',11:'#e0c068',
-          12:'#263238',13:'#7c3aed',14:'#fb8c00',15:'#6a1b9a',16:'#c62828',17:'#ffd54f'
+          12:'#263238',13:'#7c3aed',14:'#fb8c00',15:'#6a1b9a',16:'#c62828',17:'#ffd54f',
+          18:'#f4f1ea',19:'#d7ccc8',20:'#0d47a1',21:'#e65100'
         })[t] || '#142018';
         ctx.fillRect(x * s, y * s, s + 0.5, s + 0.5);
       }
@@ -1195,6 +1268,7 @@ const UIManager = {
     const ppx = Player.x * TILE - camPx;
     const ppy = Player.y * TILE - camPy;
     this.drawTrainer(ctx, ppx, ppy, Player.facing);
+    if (MapManager.tileAt(Player.x, Player.y) === 6) this.drawWade(ctx, ppx, ppy);
     if (Follower.name && !followBehind) this.drawFollower(ctx, camPx, camPy);
     overlays.forEach(o => {
       if (o.t === 5) this.drawPokeCenter(ctx, o.px, o.py);
@@ -1350,6 +1424,17 @@ const UIManager = {
     ctx.fillStyle = 'rgba(72,140,58,.55)';
     ctx.beginPath(); ctx.ellipse(cx - 4, cy - 26, 7, 6, 0, 0, Math.PI * 2); ctx.fill();
   },
+  drawWade(ctx, px, py) {
+    const t = Date.now() / 220;
+    ctx.strokeStyle = 'rgba(255,255,255,.45)';
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < 2; i++) {
+      const r = 6 + ((t + i * 8) % 16);
+      ctx.beginPath();
+      ctx.ellipse(px + 16, py + 28, r, r * 0.4, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  },
   drawRoof(ctx, t, px, py) {
     ctx.fillStyle = t === 5 ? '#f48fb1' : t === 4 ? '#cc2b2b' : '#6d4c41';
     ctx.beginPath();
@@ -1388,7 +1473,7 @@ const UIManager = {
     const sway = Math.sin(Date.now() / 420 + mx * 0.4 + my * 0.3) * 2.5;
     const tint = REGION_TINT[MapManager.current];
     const ground = (t === 1 || t === 7) ? '#2e7d32' : (t === 6) ? '#1565c0' : (t === 11) ? '#e0c068' : tint;
-    const biomeTex = MapManager.current === 3 ? TEX.ash : TEX.grass;
+    const biomeTex = groundTex(MapManager.current);
 
     if ([0,1,7,11,3].includes(t)) {
       ctx.fillStyle = t === 1 || t === 7 ? '#388e3c' : ground;
@@ -1436,21 +1521,49 @@ const UIManager = {
       ctx.beginPath(); ctx.arc(px + 20, py + 18, 4, 0, Math.PI * 2); ctx.fill();
     } else if (t === 6) {
       if (!fillWorldTex(ctx, TEX.water, px, py, mx, my)) {
-        ctx.fillStyle = MapManager.current === 3 ? '#bf360c' : '#1565c0';
+        ctx.fillStyle = '#1565c0';
         ctx.fillRect(px, py, TILE, TILE);
       }
-      this.drawAutotileEdges(ctx, px, py, this.neighborMask(mx, my, (tt) => tt === 6), 'rgba(255,255,255,.35)', 'rgba(255,255,255,.12)');
+      this.drawAutotileEdges(ctx, px, py, this.neighborMask(mx, my, isWaterTile), 'rgba(255,255,255,.45)', 'rgba(255,255,255,.12)');
       ctx.fillStyle = 'rgba(255,255,255,.28)';
       const w = (Date.now() / 200 + my) % 16;
       ctx.fillRect(px, py + w, TILE, 2);
       ctx.fillRect(px, py + ((w + 8) % 16) + 8, TILE, 2);
-    } else if (t === 11) {
-      if (!fillWorldTex(ctx, biomeTex, px, py, mx, my)) {
-        ctx.fillStyle = tint;
+    } else if (t === 20) {
+      if (!fillWorldTex(ctx, TEX.deep, px, py, mx, my)) {
+        if (!fillWorldTex(ctx, TEX.water, px, py, mx, my)) {
+          ctx.fillStyle = '#0d47a1';
+          ctx.fillRect(px, py, TILE, TILE);
+        }
+        ctx.fillStyle = 'rgba(0,20,70,.45)';
         ctx.fillRect(px, py, TILE, TILE);
       }
-      ctx.fillStyle = 'rgba(180,140,70,.18)';
-      ctx.fillRect(px, py, TILE, TILE);
+      this.drawAutotileEdges(ctx, px, py, this.neighborMask(mx, my, (tt) => tt === 20), 'rgba(70,150,210,.28)', null);
+      const dw = (Date.now() / 280 + my * 2) % TILE;
+      ctx.fillStyle = 'rgba(255,255,255,.08)';
+      ctx.fillRect(px, py + dw, TILE, 2);
+    } else if (t === 21) {
+      if (!fillWorldTex(ctx, TEX.ash, px, py, mx, my)) {
+        ctx.fillStyle = '#bf360c';
+        ctx.fillRect(px, py, TILE, TILE);
+      }
+      const flicker = (Math.sin(Date.now() / 180 + mx + my) * 0.5 + 0.5);
+      ctx.fillStyle = `rgba(230,81,0,${0.35 + flicker * 0.25})`;
+      ctx.fillRect(px + 3, py + 6, 12, 8);
+      ctx.fillStyle = `rgba(255,202,40,${0.35 + flicker * 0.4})`;
+      ctx.fillRect(px + 14, py + 14, 8, 8);
+      this.drawAutotileEdges(ctx, px, py, this.neighborMask(mx, my, (tt) => tt === 21), '#3e2723', null);
+    } else if (t === 11) {
+      const coastal = [1, 2, 3].includes(MapManager.current);
+      const shore = coastal ? TEX.sand : TEX.rock;
+      if (!fillWorldTex(ctx, shore, px, py, mx, my)) {
+        ctx.fillStyle = coastal ? '#e0c068' : '#9e9e9e';
+        ctx.fillRect(px, py, TILE, TILE);
+      }
+      if (this.neighborMask(mx, my, isWaterTile)) {
+        ctx.fillStyle = 'rgba(255,255,255,.22)';
+        ctx.fillRect(px, py + TILE - 4, TILE, 4);
+      }
     } else if (t === 2) {
       if (!fillWorldTex(ctx, biomeTex, px, py, mx, my)) {
         ctx.fillStyle = tint;
@@ -1548,6 +1661,11 @@ const SaveSystem = {
         Player.x = Math.max(1, Math.min(MAP_SIZE - 2, x));
         Player.y = Math.max(1, Math.min(MAP_SIZE - 2, y));
         MapManager.current = Math.min(MAPS.length - 1, s.region ?? 0);
+        const blocked = [2, 8, 10, 12, 9, 18, 19, 20, 21];
+        if (blocked.includes(MapManager.tileAt(Player.x, Player.y))) {
+          const mid = Math.floor(MAP_SIZE / 2);
+          Player.x = mid; Player.y = mid;
+        }
         Camera.sync(true);
         if (s.follower) Follower.name = s.follower;
       }

@@ -1,9 +1,9 @@
 {
-  "id": "pokedex-hub-launch-ready-2026-09-10-adventure-go-gfx",
+  "id": "pokedex-hub-launch-ready-2026-09-10-oceans-terrain",
   "liveUrl": "https://pokedex-hub-lime.vercel.app/",
-  "frozenAt": "2026-09-10T18:00:00.000Z",
-  "rootSha256": "45926b697e35f48f9afc9d35c7e87fb22f444ee3e1a66ea18f50e53b39a4c56b",
-  "fileCount": 203,
+  "frozenAt": "2026-09-10T17:05:00.000Z",
+  "rootSha256": "fe9d3a96abf5b0ac77456d25dd543fe373e0654be8da881922626c11a10085bb",
+  "fileCount": 206,
   "launchChecks": {
     "homeSsrPvApp": true,
     "pokedexHub": true,
@@ -22,7 +22,8 @@
     "asiaCatalog": true,
     "shadowlessSearch": true,
     "fuzzySearch": true,
-    "adventureUpgrade": true
+    "adventureUpgrade": true,
+    "oceansTerrain": true
   },
   "quantum": {
     "cacheKey": "pokedex-hub:launch-lock",
@@ -64,8 +65,8 @@
     },
     {
       "path": "public/adventure.html",
-      "sha256": "724b560d158f4a57be9516561e8a8f135460e67cc385a1ce840a5bbb2a8ab22e",
-      "bytes": 70956
+      "sha256": "8f1a76dcecc606534886e16b6ffb4bc4fd78a57eb38ba3506338d030c28b2b73",
+      "bytes": 75731
     },
     {
       "path": "public/asia-catalog.json",
@@ -998,6 +999,11 @@
       "bytes": 62504
     },
     {
+      "path": "public/adventure-assets/tex-deep.jpg",
+      "sha256": "8e53d8022c7a651964df428fb43d6f94248839c7707c132c18bfa1b557fe1ce0",
+      "bytes": 21091
+    },
+    {
       "path": "public/adventure-assets/tex-grass.jpg",
       "sha256": "988218c630b3f7696fc11ac871a23ffc4591829ebeef452758c933aafe33e079",
       "bytes": 77666
@@ -1006,6 +1012,16 @@
       "path": "public/adventure-assets/tex-path.jpg",
       "sha256": "ffeadd43ed76c42ce30d3881561efc7f723d838d14222af4b838edf1b22b6cca",
       "bytes": 39247
+    },
+    {
+      "path": "public/adventure-assets/tex-rock.jpg",
+      "sha256": "bd07760822938c85b45316b25e44c4011b8fd3259675ababf1cbadd010008c1c",
+      "bytes": 72853
+    },
+    {
+      "path": "public/adventure-assets/tex-sand.jpg",
+      "sha256": "ce99c9331285d625d4b40e4a4a924c6e2fd16b43389d3c7609d3e070a4a30f3f",
+      "bytes": 51024
     },
     {
       "path": "public/adventure-assets/tex-tallgrass.jpg",
