@@ -97,8 +97,19 @@
   }
   #party-hud .pip {
     width: 14px; height: 14px; border-radius: 50%; border: 2px solid #f4efe4;
-    background: #445; box-shadow: 0 0 0 1px #1a1a1a;
+    background: #445; box-shadow: 0 0 0 1px #1a1a1a; cursor: pointer;
   }
+  #party-hud .pip.on { box-shadow: 0 0 0 2px #e2b53a; }
+  #follower-chip {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(11,18,32,.78); color: #f4efe4;
+    padding: 4px 10px 4px 4px; border-radius: 999px;
+    border: 1px solid rgba(226,181,58,.45); cursor: pointer;
+    font-size: 11px; font-weight: 800; letter-spacing: .4px;
+  }
+  #follower-chip img { width: 22px; height: 22px; image-rendering: pixelated; object-fit: contain; }
+  #pokedex-list li { cursor: pointer; }
+  #pokedex-list li:hover { background: rgba(226,181,58,.15); }
   #coords-hud {
     position: absolute; bottom: 10px; left: 10px; z-index: 12;
     background: rgba(11,18,32,.7); color: #cde8a8; font-size: 11px; font-weight: 700;
@@ -195,7 +206,8 @@
         <div id="compass"><div id="compass-needle"></div><span>N</span></div>
         <div id="region-chip">PEWTER</div>
         <div id="biome-chip">Plains · Mountain foothills</div>
-        <div id="party-hud" title="Party sightings"></div>
+        <button type="button" id="follower-chip" title="Tap to cycle who walks with you">Walk with —</button>
+        <div id="party-hud" title="Tap a pip to walk with them"></div>
       </div>
       <div id="region-label">KANTO</div>
       <canvas id="game" width="576" height="576"></canvas>
@@ -210,7 +222,7 @@
       <h2>📕 Pokédex</h2>
       <ul id="pokedex-list"></ul>
       <div id="empty">No Pokémon seen yet.<br>Explore tall grass in the wilds!</div>
-      <div id="hint">Walk to a GYM door or press A / Space to interact.<br>Tall grass = wild. 4 badges unlocks Indigo.<br>Expanded 48×48 regions — explore tall grass, Centers, and Gyms.</div>
+      <div id="hint">Walk to a GYM door or press A / Space to interact.<br>Tap a Pokédex name or party pip to walk with that Pokémon.<br>Tall grass = wild. 4 badges unlocks Indigo.</div>
       <div id="controls">
         Arrows / WASD to move · Space interact<br>
         <button id="reset-btn">Reset Save</button>
@@ -589,11 +601,71 @@ function facingTile() {
   return { x: Player.x + dx, y: Player.y + dy, t: MapManager.tileAt(Player.x + dx, Player.y + dy) };
 }
 
+const FOLLOW_IMG = {};
+function followerSprite(name) {
+  if (!name) return null;
+  if (!FOLLOW_IMG[name]) {
+    const im = new Image();
+    im.src = spriteUrl(name);
+    im.onerror = () => { im.src = staticSpriteUrl(name); };
+    FOLLOW_IMG[name] = im;
+  }
+  return FOLLOW_IMG[name];
+}
+
+const Follower = {
+  name: null,
+  x: Math.floor(MAP_SIZE / 2),
+  y: Math.floor(MAP_SIZE / 2) + 1,
+  facing: 'down',
+  roster() {
+    const names = [];
+    const add = (n) => { if (n && !names.includes(n)) names.push(n); };
+    (SaveSystem.state.caught || []).forEach((p) => add(p.name));
+    try {
+      const raw = localStorage.getItem('pv.gb.party.v1');
+      const party = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(party)) party.forEach((m) => add(m && m.name));
+    } catch (_) {}
+    (SaveSystem.state.seen || []).forEach((p) => add(p.name));
+    return names;
+  },
+  set(name) {
+    const roster = this.roster();
+    if (name && !roster.includes(name) && roster.length) name = roster[0];
+    this.name = name || null;
+    SaveSystem.state.follower = this.name;
+    SaveSystem.save();
+    const trail = Player.trail[0];
+    if (trail) { this.x = trail.x; this.y = trail.y; this.facing = trail.facing; }
+    else { this.x = Player.x; this.y = Player.y + 0.7; this.facing = Player.facing; }
+    UIManager.renderPartyHud();
+    UIManager.renderFollowerChip();
+    UIManager.renderPokedex();
+  },
+  cycle() {
+    const roster = this.roster();
+    if (!roster.length) return;
+    const i = Math.max(0, roster.indexOf(this.name));
+    this.set(roster[(i + 1) % roster.length]);
+  },
+  tick() {
+    if (!this.name) return;
+    const slot = Player.trail[1] || Player.trail[0];
+    const tx = slot ? slot.x : Player.x;
+    const ty = slot ? slot.y : Player.y + 0.85;
+    if (slot) this.facing = slot.facing;
+    this.x += (tx - this.x) * 0.28;
+    this.y += (ty - this.y) * 0.28;
+  },
+};
+
 const Player = {
   x: Math.floor(MAP_SIZE / 2), y: Math.floor(MAP_SIZE / 2),
   frozen: false,
   facing: 'down',
   step: 0,
+  trail: [],
   tryMove(dx, dy) {
     if (this.frozen) return;
     if (dy < 0) this.facing = 'up';
@@ -620,6 +692,8 @@ const Player = {
       }
       const spawn = MapManager.switchRegion(dir);
       this.x = spawn.x; this.y = spawn.y;
+      this.trail = [{ x: spawn.x, y: spawn.y + 1, facing: this.facing }];
+      Follower.x = spawn.x; Follower.y = spawn.y + 1; Follower.facing = this.facing;
       Camera.sync(true);
       UIManager.showRegionLabel(MapManager.name());
       UIManager.updateHudChips();
@@ -627,6 +701,8 @@ const Player = {
       SaveSystem.save();
       return;
     }
+    this.trail.unshift({ x: this.x, y: this.y, facing: this.facing });
+    if (this.trail.length > 8) this.trail.length = 8;
     this.x = nx; this.y = ny;
     this.step = (this.step + 1) & 3;
     if (t === 1) EncounterSystem.tryEncounter();
@@ -900,16 +976,35 @@ const UIManager = {
     const el = document.getElementById('coords-hud');
     if (el) el.textContent = `X ${Player.x} · Y ${Player.y} · ${MAP_SIZE}×${MAP_SIZE}`;
   },
+  renderFollowerChip() {
+    const el = document.getElementById('follower-chip');
+    if (!el) return;
+    const name = Follower.name;
+    if (!name) {
+      el.innerHTML = 'Walk with —';
+      return;
+    }
+    el.innerHTML = `<img src="${spriteUrl(name)}" alt="" onerror="this.onerror=null;this.src='${staticSpriteUrl(name)}';" /><span>${name}</span>`;
+  },
   renderPartyHud() {
     const el = document.getElementById('party-hud');
     if (!el) return;
-    const seen = SaveSystem.state.seen || [];
-    const slots = Array.from({ length: 6 }, (_, i) => seen[seen.length - 6 + i]).filter(Boolean);
-    while (slots.length < 6) slots.unshift(null);
-    el.innerHTML = slots.map(p =>
-      p ? `<div class="pip" style="background:${p.color}" title="${p.name}"></div>`
-        : `<div class="pip" style="opacity:.35"></div>`
-    ).join('');
+    const roster = Follower.roster();
+    const slots = roster.slice(0, 6);
+    while (slots.length < 6) slots.push(null);
+    el.innerHTML = slots.map((name) => {
+      if (!name) return `<div class="pip" style="opacity:.35"></div>`;
+      const poke = POKEMON.find((p) => p.name === name);
+      const on = name === Follower.name ? ' on' : '';
+      const bg = poke ? poke.color : '#e2b53a';
+      return `<div class="pip${on}" data-walk="${name}" title="Walk with ${name}" style="background:${bg}"></div>`;
+    }).join('');
+    el.querySelectorAll('[data-walk]').forEach((pip) => {
+      pip.addEventListener('click', (e) => {
+        e.stopPropagation();
+        Follower.set(pip.getAttribute('data-walk'));
+      });
+    });
   },
   showRegionLabel(name) {
     const el = document.getElementById('region-label');
@@ -1000,9 +1095,12 @@ const UIManager = {
     seen.forEach((p, i) => {
       const got = caught.some(c => c.name === p.name);
       const li = document.createElement('li');
+      const walk = Follower.name === p.name ? ' · walking' : '';
       li.innerHTML = `<span class="dot" style="background:${p.color}"></span>
                       <img src="${spriteUrl(p.name)}" alt="" onerror="this.onerror=null;this.src='${staticSpriteUrl(p.name)}';" />
-                      <span>${String(i+1).padStart(3,'0')} ${p.name}${got ? ' · caught' : ' · seen'}</span>`;
+                      <span>${String(i+1).padStart(3,'0')} ${p.name}${got ? ' · caught' : ' · seen'}${walk}</span>`;
+      li.title = 'Walk with ' + p.name;
+      li.addEventListener('click', () => Follower.set(p.name));
       ul.appendChild(li);
     });
   },
@@ -1091,9 +1189,13 @@ const UIManager = {
       if (px < -40 || py < -40 || px > CANVAS_PX || py > CANVAS_PX) return;
       this.drawFieldTrainer(ctx, px, py, tr);
     });
+    Follower.tick();
+    const followBehind = Follower.name && Follower.y <= Player.y + 0.05;
+    if (followBehind) this.drawFollower(ctx, camPx, camPy);
     const ppx = Player.x * TILE - camPx;
     const ppy = Player.y * TILE - camPy;
     this.drawTrainer(ctx, ppx, ppy, Player.facing);
+    if (Follower.name && !followBehind) this.drawFollower(ctx, camPx, camPy);
     overlays.forEach(o => {
       if (o.t === 5) this.drawPokeCenter(ctx, o.px, o.py);
       if (o.t === 4) this.drawGym(ctx, o.px, o.py);
@@ -1108,6 +1210,22 @@ const UIManager = {
     ctx.fillRect(0, 0, CANVAS_PX, CANVAS_PX);
     this.drawSky(ctx);
     this.drawMini();
+  },
+  drawFollower(ctx, camPx, camPy) {
+    const im = followerSprite(Follower.name);
+    const px = Follower.x * TILE - camPx;
+    const py = Follower.y * TILE - camPy;
+    ctx.fillStyle = 'rgba(0,0,0,.2)';
+    ctx.beginPath(); ctx.ellipse(px + 16, py + 28, 8, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+    const bob = (Player.step % 4 === 1 || Player.step % 4 === 3) ? 1 : 0;
+    if (im && im.complete && im.naturalWidth) {
+      const h = 30;
+      const w = im.naturalWidth * h / im.naturalHeight;
+      ctx.drawImage(im, px + TILE / 2 - w / 2, py + TILE - h + 6 + bob, w, h);
+    } else {
+      ctx.fillStyle = '#f8d030';
+      ctx.beginPath(); ctx.arc(px + 16, py + 18 + bob, 8, 0, Math.PI * 2); ctx.fill();
+    }
   },
   drawNpc(ctx, px, py, color) {
     ctx.fillStyle = 'rgba(0,0,0,.2)';
@@ -1408,7 +1526,7 @@ const UIManager = {
 
 const SaveSystem = {
   KEY: 'pokeregions-save',
-  state: { x: Math.floor(MAP_SIZE / 2), y: Math.floor(MAP_SIZE / 2), region: 0, seen: [], caught: [], badges: [], e4: 0, beatenTrainers: [] },
+  state: { x: Math.floor(MAP_SIZE / 2), y: Math.floor(MAP_SIZE / 2), region: 0, seen: [], caught: [], badges: [], e4: 0, beatenTrainers: [], follower: null },
   load() {
     try {
       const raw = localStorage.getItem(this.KEY);
@@ -1431,6 +1549,7 @@ const SaveSystem = {
         Player.y = Math.max(1, Math.min(MAP_SIZE - 2, y));
         MapManager.current = Math.min(MAPS.length - 1, s.region ?? 0);
         Camera.sync(true);
+        if (s.follower) Follower.name = s.follower;
       }
     } catch (e) { console.warn('Load failed', e); }
   },
@@ -1449,6 +1568,11 @@ const Input = {
   lastMove: 0,
   init() {
     document.addEventListener('keydown', (e) => {
+      if (e.key === 'p' || e.key === 'P') {
+        e.preventDefault();
+        Follower.cycle();
+        return;
+      }
       if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
         if (UIManager.modal && UIManager.modal.classList.contains('active') && EncounterSystem.current) {
@@ -1516,9 +1640,13 @@ window.addEventListener('load', () => {
   UIManager.init();
   SaveSystem.load();
   FieldTrainers.init();
+  Follower.set(SaveSystem.state.follower || Follower.roster()[0] || null);
+  const chip = document.getElementById('follower-chip');
+  if (chip) chip.addEventListener('click', () => Follower.cycle());
   UIManager.renderPokedex();
   UIManager.renderBadges();
   UIManager.renderPartyHud();
+  UIManager.renderFollowerChip();
   UIManager.showRegionLabel(MapManager.name());
   UIManager.updateHudChips();
   UIManager.updateCoords();
@@ -1561,8 +1689,12 @@ window.addEventListener('message', (e) => {
     if (!seen.find(c => c.name === name)) seen.push({ name: poke.name, emoji: poke.emoji, color: poke.color });
     if (!caught.find(c => c.name === name)) caught.push({ name: poke.name, emoji: poke.emoji, color: poke.color });
     SaveSystem.save();
-    UIManager.renderPokedex();
-    UIManager.renderPartyHud();
+    if (!Follower.name) Follower.set(name);
+    else {
+      UIManager.renderPokedex();
+      UIManager.renderPartyHud();
+      UIManager.renderFollowerChip();
+    }
   }
 });
 
