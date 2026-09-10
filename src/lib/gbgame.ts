@@ -50,6 +50,52 @@ export function baseHpFromCard(card: TCGCard): number {
   return Math.max(30, Math.min(200, hp));
 }
 
+/** In-memory fighter so grass battles work with no party and no TCG API. */
+export function rentalStarter(name = "Pikachu"): GBMon {
+  const sprite = animatedSpriteUrl(name);
+  return {
+    id: "rental-starter",
+    card_id: "rental",
+    name,
+    types: name === "Charmander" ? ["Fire"] : name === "Squirtle" ? ["Water"] : ["Lightning"],
+    level: 5,
+    xp: 0,
+    max_hp: 48,
+    attacks: [
+      { name: name === "Charmander" ? "Ember" : name === "Squirtle" ? "Water Gun" : "Thunder Shock", damage: 20, type: name === "Charmander" ? "Fire" : name === "Squirtle" ? "Water" : "Lightning" },
+      { name: "Tackle", damage: 10, type: "Colorless" },
+    ],
+    sprite_url: sprite,
+    image_url: sprite,
+    wins: 0,
+    losses: 0,
+    slot: 0,
+  };
+}
+
+export function wildFoeMon(name: string, level: number): GBMon {
+  const sprite = animatedSpriteUrl(name);
+  const lvl = Math.max(2, Math.min(60, level || 5));
+  return {
+    id: "wild",
+    card_id: "wild",
+    name,
+    types: ["Colorless"],
+    level: lvl,
+    xp: 0,
+    max_hp: Math.round(36 + lvl * 4),
+    attacks: [
+      { name: "Tackle", damage: 8 + lvl, type: "Colorless" },
+      { name: "Scratch", damage: 10 + lvl, type: "Colorless" },
+    ],
+    sprite_url: sprite,
+    image_url: sprite,
+    wins: 0,
+    losses: 0,
+    slot: null,
+  };
+}
+
 export function makeMonFromCard(card: TCGCard, level = 5): Omit<GBMon, "id"> {
   const baseHp = baseHpFromCard(card);
   return {

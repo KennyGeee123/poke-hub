@@ -135,8 +135,9 @@
   }
   #modal-bg {
     position: fixed; inset: 0; background: rgba(11,18,32,0.72);
-    display: none; align-items: center; justify-content: center; z-index: 100;
+    display: none; align-items: center; justify-content: center; z-index: 200;
   }
+  #modal-bg.active ~ #dpad, body.modal-open #dpad { visibility: hidden; pointer-events: none; }
   #modal-bg.active { display: flex; }
   #modal {
     background: #f4efe4; color: #1a1a1a; border: 5px solid #1a1a1a; border-radius: 10px;
@@ -673,12 +674,15 @@ function postStatus() {
 
 const EncounterSystem = {
   current: null,
+  handed: false,
+  autoTimer: null,
   tryEncounter() {
     if (Math.random() > 0.16) return;
     const pool = REGION_POOLS[MapManager.current] || REGION_POOLS[0];
     const name = pool[Math.floor(Math.random() * pool.length)];
     const poke = POKEMON.find(p => p.name === name) || POKEMON[0];
     this.current = { ...poke, kind: "wild", level: 5 + MapManager.current * 3 + Math.floor(Math.random() * 4) };
+    this.handed = false;
     Player.frozen = true;
     AudioFX.rustle();
     UIManager.flash();
@@ -690,15 +694,24 @@ const EncounterSystem = {
       UIManager.renderPartyHud();
     }
     UIManager.openWild(this.current);
+    // Grass must always start a fight (parent overlay). FIGHT still works if they tap first.
+    clearTimeout(this.autoTimer);
+    this.autoTimer = setTimeout(() => this.fight(), 450);
   },
   close() {
+    clearTimeout(this.autoTimer);
+    this.autoTimer = null;
     this.current = null;
+    this.handed = false;
     Player.frozen = false;
     UIManager.closeModal();
   },
   fight() {
     const poke = this.current;
     if (!poke) { this.close(); return; }
+    if (this.handed) return;
+    this.handed = true;
+    clearTimeout(this.autoTimer);
     postParent({
       type: "pv-adventure-encounter",
       name: poke.name,
@@ -829,6 +842,7 @@ const UIManager = {
     document.getElementById('modal-buttons').classList.remove('hidden');
     document.getElementById('btn-close').classList.add('hidden');
     this.modal.classList.add('active');
+    document.body.classList.add('modal-open');
   },
   openTrainer(title, subtitle, mon, msg) {
     document.getElementById('modal-title').textContent = title;
@@ -841,6 +855,7 @@ const UIManager = {
     document.getElementById('modal-buttons').classList.remove('hidden');
     document.getElementById('btn-close').classList.add('hidden');
     this.modal.classList.add('active');
+    document.body.classList.add('modal-open');
   },
   toastModal(title, msg) {
     Player.frozen = true;
@@ -852,6 +867,7 @@ const UIManager = {
     document.getElementById('btn-close').classList.remove('hidden');
     document.getElementById('btn-close').textContent = 'Continue';
     this.modal.classList.add('active');
+    document.body.classList.add('modal-open');
   },
   openBattleHandoff(poke) {
     const trainer = poke.kind && poke.kind !== 'wild';
@@ -867,9 +883,11 @@ const UIManager = {
     m.style.color = '#0f380f';
     m.style.borderColor = '#0f380f';
     this.modal.classList.add('active');
+    document.body.classList.add('modal-open');
   },
   closeModal() {
     this.modal.classList.remove('active');
+    document.body.classList.remove('modal-open');
     const m = document.getElementById('modal');
     m.style.background = ''; m.style.color = ''; m.style.borderColor = '';
     document.getElementById('btn-run').textContent = 'Run';
@@ -1273,6 +1291,10 @@ const Input = {
     document.addEventListener('keydown', (e) => {
       if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
+        if (UIManager.modal && UIManager.modal.classList.contains('active') && EncounterSystem.current) {
+          EncounterSystem.fight();
+          return;
+        }
         Player.interact();
         return;
       }
@@ -1348,7 +1370,12 @@ window.addEventListener('load', () => {
 window.addEventListener('message', (e) => {
   const d = e.data;
   if (!d) return;
-  if (d.type === 'pv-adventure-pause') { Player.frozen = true; }
+  if (d.type === 'pv-adventure-pause') {
+    Player.frozen = true;
+    clearTimeout(EncounterSystem.autoTimer);
+    UIManager.modal.classList.remove('active');
+    document.body.classList.remove('modal-open');
+  }
   if (d.type === 'pv-adventure-resume') EncounterSystem.close();
   if (d.type === 'pv-adventure-badge' && d.badge) {
     const b = SaveSystem.state.badges || (SaveSystem.state.badges = []);

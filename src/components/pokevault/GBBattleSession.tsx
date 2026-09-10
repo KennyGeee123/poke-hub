@@ -7,8 +7,10 @@ import {
   gainXP,
   levelDamage,
   makeMonFromCard,
+  rentalStarter,
   saveMonStats,
   spriteFor,
+  wildFoeMon,
   xpForNext,
   type GBMon,
   type GBMove,
@@ -89,8 +91,7 @@ export function GBBattleSession({
     pendingFoeRef.current = foeProps;
   }, [foeProps]);
 
-  async function kickoff(mon: GBMon, foeCard: TCGCard, lvl: number, kindLabel: string) {
-    const f = { ...makeMonFromCard(foeCard, lvl), id: "wild" } as GBMon;
+  async function kickoff(mon: GBMon, f: GBMon, kindLabel: string) {
     try {
       const real = await movesAtLevel(f.name, f.level, f.attacks);
       if (real.length) f.attacks = real;
@@ -103,7 +104,8 @@ export function GBBattleSession({
       kindLabel === "wild"
         ? `A wild ${f.name.toUpperCase()} (Lv ${f.level}) appeared!`
         : `${kindLabel.toUpperCase()} battle — ${f.name.toUpperCase()} (Lv ${f.level})!`;
-    setLog([opener]);
+    const rentalNote = mon.id === "rental-starter" ? `Rental ${mon.name.toUpperCase()} sent out.` : null;
+    setLog(rentalNote ? [opener, rentalNote] : [opener]);
     setPane("main");
     setPotions(STARTING_POTIONS);
     setFoeFx("");
@@ -122,12 +124,10 @@ export function GBBattleSession({
     e4IndexRef.current = detail.e4Index ?? 0;
     setCatchable(catchableRef.current);
 
-    const mon = p[0];
-    if (!mon) {
-      setNotice("Choose a starter first — then fight.");
-      setScene("starter");
-      return;
-    }
+    const mon = p[0] ?? rentalStarter();
+    if (!p[0]) setParty([mon]);
+    const lvl = Math.max(2, Math.min(60, detail.level ?? mon.level));
+    let foeMon = wildFoeMon(detail.name, lvl);
     try {
       const res = await searchCards({
         q: `name:"${detail.name}" supertype:Pokémon`,
@@ -136,18 +136,11 @@ export function GBBattleSession({
       });
       const pool = res.data.filter(isPlayable);
       const card = pool[0] ?? res.data[0];
-      if (!card) {
-        setNotice(`Could not load ${detail.name} for battle.`);
-        setScene("starter");
-        return;
-      }
-      const lvl = Math.max(2, Math.min(60, detail.level ?? mon.level));
-      await kickoff(mon, card, lvl, kind);
+      if (card) foeMon = { ...makeMonFromCard(card, lvl), id: "wild" } as GBMon;
     } catch (err) {
       console.error(err);
-      setNotice("Battle failed to start — try again.");
-      setScene("starter");
     }
+    await kickoff(mon, foeMon, kind);
   }
 
   useEffect(() => {
@@ -160,8 +153,7 @@ export function GBBattleSession({
         await beginWithParty(p);
       } catch (e) {
         console.error(e);
-        setNotice("Could not load party.");
-        setScene("starter");
+        await beginWithParty([]);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps

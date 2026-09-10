@@ -2016,7 +2016,8 @@ header, nav, main, footer, .pv-settings { position: relative; z-index: 1; }
 .pv-adv-battle-overlay {
   position: absolute;
   inset: 0;
-  z-index: 20;
+  z-index: 40;
+  pointer-events: auto;
   display: flex;
   align-items: stretch;
   justify-content: center;

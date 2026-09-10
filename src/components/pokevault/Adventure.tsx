@@ -266,15 +266,17 @@ export function AdventureView() {
             src="/adventure.html"
             title="Pokémon Adventure"
             className={`pv-adv-frame${battleOpen ? " pv-adv-frame-paused" : ""}`}
+            allow="autoplay"
             style={battleOpen ? { pointerEvents: "none" } : undefined}
             onLoad={() => {
+              // Same-origin iframe: never blank the overworld on a slow first paint.
               try {
                 const doc = iframeRef.current?.contentDocument;
-                if (!doc || !doc.body || doc.body.childElementCount === 0) {
+                if (doc && doc.body && doc.body.childElementCount === 0 && !doc.getElementById("game")) {
                   setFrameBlocked(true);
                 }
               } catch {
-                setFrameBlocked(true);
+                /* cross-origin still paints the iframe — leave it */
               }
             }}
           />
