@@ -1,8 +1,8 @@
 {
-  "id": "pokedex-hub-launch-ready-2026-09-10-all-regions",
+  "id": "pokedex-hub-launch-ready-2026-09-10-follower-gba",
   "liveUrl": "https://pokedex-hub-lime.vercel.app/",
-  "frozenAt": "2026-09-10T18:30:00.000Z",
-  "rootSha256": "1f5cae8345d77fad83714a42d341c913cdc38f089b22b54b200b420f8d46a211",
+  "frozenAt": "2026-09-10T19:10:00.000Z",
+  "rootSha256": "1aeb3923a21b8b6bd403c9eac18f047a2d61aec1776e0d01c9e9233334913451",
   "fileCount": 209,
   "launchChecks": {
     "homeSsrPvApp": true,
@@ -25,7 +25,9 @@
     "adventureUpgrade": true,
     "oceansTerrain": true,
     "allRegions": true,
-    "speciesSprites": true
+    "speciesSprites": true,
+    "followerSprites": true,
+    "gbaButtons": true
   },
   "quantum": {
     "cacheKey": "pokedex-hub:launch-lock",
@@ -72,8 +74,8 @@
     },
     {
       "path": "public/adventure.html",
-      "sha256": "c44939a851823e5777f462e2c7f886748849d7e8fa88a858c1809808ac1e34bd",
-      "bytes": 80572
+      "sha256": "9ed351fd236b3d724a725af039f89300bb27c9e768592d4894fad93a02b5c247",
+      "bytes": 81362
     },
     {
       "path": "public/asia-catalog.json",
@@ -187,8 +189,8 @@
     },
     {
       "path": "src/components/pokevault/GameBoy.tsx",
-      "sha256": "96ec54565dd5fd361b2a3b423e53aea1d580dc71773ce1b8251be67371e5f689",
-      "bytes": 29388
+      "sha256": "6bc0da6ef20a0dad1947f8063435571c25e4534c255cdf605bb88291a4a91d82",
+      "bytes": 29385
     },
     {
       "path": "src/components/pokevault/Marketplace.tsx",
@@ -237,8 +239,8 @@
     },
     {
       "path": "src/components/pokevault/SpriteImg.tsx",
-      "sha256": "a789e959c186a822f3a94f6656c96dd02c16bb935a8fc368c3660f53e2c13787",
-      "bytes": 724
+      "sha256": "1c58b1c077e4562b955e414af4ffd230c8d59190301415db857d41dc7f89e8f3",
+      "bytes": 782
     },
     {
       "path": "src/components/pokevault/views.tsx",
@@ -632,8 +634,8 @@
     },
     {
       "path": "src/lib/sprites.ts",
-      "sha256": "0ced331291783ccaedb7dd75ea1dde8f07a98843d9d3ca520830c99a92a633bc",
-      "bytes": 2769
+      "sha256": "3f10e3f015340baf72d2477de3a9cabad0ddd21a366f3a00b8fe8b2873747df3",
+      "bytes": 2773
     },
     {
       "path": "src/lib/tcg-fallback.ts",
@@ -722,8 +724,8 @@
     },
     {
       "path": "src/styles.css",
-      "sha256": "7312c26e7c67891a697a8c091449d38495a5e5888f2b35a127c7e591e23a3ef0",
-      "bytes": 136225
+      "sha256": "02a3c2a3c58dceb7acd662ec2b97f7a90be6576d52e32b66bb8891bd65c9bba0",
+      "bytes": 136298
     },
     {
       "path": "supabase/config.toml",
@@ -1072,13 +1074,13 @@
     },
     {
       "path": "src/lib/gb-face.ts",
-      "sha256": "1f396f7b0e986a1c787b448bbe8ae181f13c2134e839502cbb8db9d6ed599ce3",
-      "bytes": 625
+      "sha256": "dde0b8d26fa9dfd0921d622ec5d460f5a28bc863a0c6ce967ffff26a47d68bb1",
+      "bytes": 2277
     },
     {
       "path": "src/components/pokevault/GBBattleSession.tsx",
-      "sha256": "2c2a628b886f2aab1ae9b6ad5d6bb6cb6e0145586576e35e14435c3e11fcdebf",
-      "bytes": 24962
+      "sha256": "b5e6fca8265dc50d13b252befdff3d19331b636b1093d72845b7310a572efda7",
+      "bytes": 25364
     }
   ]
 }

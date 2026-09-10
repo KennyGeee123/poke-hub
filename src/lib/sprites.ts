@@ -69,5 +69,6 @@ export function backSpriteUrl(name: string): string {
   return localGen5BackUrl(name) ?? `https://play.pokemonshowdown.com/sprites/ani-back/${spriteSlug(name)}.gif`;
 }
 export function backSpriteFallback(name: string): string {
-  return localGen5BackUrl(name) ?? `https://play.pokemonshowdown.com/sprites/gen5-back/${spriteSlug(name)}.png`;
+  return localGen5BackUrl(name)
+    ?? `https://play.pokemonshowdown.com/sprites/gen5-back/${spriteSlug(name)}.png`;
 }

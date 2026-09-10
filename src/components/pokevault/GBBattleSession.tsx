@@ -19,7 +19,7 @@ import { hpPct } from "@/lib/battle";
 import { movesAtLevel, newlyLearned } from "@/lib/pokeapi-moves";
 import { CatchFx, type CatchPhase } from "./CatchFx";
 import { ARENA_CLIP, battleClipFor } from "@/lib/battle-cine";
-import { pressGbFace } from "@/lib/gb-face";
+import { pressGbDpad, pressGbFace } from "@/lib/gb-face";
 
 export type GBBattleFoe = {
   name: string;
@@ -487,16 +487,15 @@ export function GBBattleSession({
           {body}
         </div>
         <div className="gb-controls">
-          <div className="gb-dpad" aria-hidden>
-            <span />
-            <span />
-            <span />
-            <span />
-            <span />
+          <div className="gb-dpad" aria-label="D-pad">
+            <button type="button" className="up" aria-label="Up" onClick={() => pressGbDpad("up")}>▲</button>
+            <button type="button" className="left" aria-label="Left" onClick={() => pressGbDpad("left")}>◀</button>
+            <button type="button" className="right" aria-label="Right" onClick={() => pressGbDpad("right")}>▶</button>
+            <button type="button" className="down" aria-label="Down" onClick={() => pressGbDpad("down")}>▼</button>
           </div>
           <div className="gb-ab">
-            <button type="button" className="gb-btn" aria-label="B" onClick={() => pressGbFace("B")}>B</button>
-            <button type="button" className="gb-btn" aria-label="A" onClick={() => pressGbFace("A")}>A</button>
+            <button type="button" className="gb-btn gb-btn-b" aria-label="B" onClick={() => pressGbFace("B")}>B</button>
+            <button type="button" className="gb-btn gb-btn-a" aria-label="A" onClick={() => pressGbFace("A")}>A</button>
           </div>
         </div>
         <div className="gb-startsel">

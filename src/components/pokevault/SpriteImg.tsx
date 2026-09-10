@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { backSpriteFallback, backSpriteUrl, fallbackSpriteUrls } from "@/lib/sprites";
 
 export function SpriteImg({
@@ -17,6 +17,7 @@ export function SpriteImg({
     return fallbackSpriteUrls(name);
   }, [name, back]);
   const [i, setI] = useState(0);
+  useEffect(() => { setI(0); }, [name, back]);
   const src = urls[Math.min(i, urls.length - 1)] || "";
   return (
     <img

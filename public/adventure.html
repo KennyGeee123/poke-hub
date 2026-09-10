@@ -574,10 +574,16 @@ function dexId(name) {
   const slug = spriteSlug(name);
   return (typeof DEX_ID !== "undefined" && (DEX_ID[slug] || DEX_ID[name.toLowerCase()])) || 0;
 }
+const LOCAL_FOLLOW = {
+  bulbasaur:1,charmander:1,squirtle:1,pikachu:1,caterpie:1,pidgey:1,rattata:1,
+  jigglypuff:1,meowth:1,psyduck:1,machop:1,geodude:1,gastly:1,eevee:1,snorlax:1,
+  dratini:1,mewtwo:1,chikorita:1,totodile:1,cyndaquil:1,jynx:1,onix:1,
+};
 function spriteFallbacks(name) {
   const slug = spriteSlug(name);
   const id = dexId(name);
-  const urls = [`/sprites/gen5/${slug}.png`];
+  const urls = [];
+  if (LOCAL_FOLLOW[slug]) urls.push(`/sprites/gen5/${slug}.png`);
   if (id) {
     urls.push(`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`);
     urls.push(`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`);
@@ -679,33 +685,46 @@ function followerSprite(name) {
   }
   return FOLLOW_IMG[name];
 }
+function behindPos() {
+  const d = 0.9;
+  const f = Player.facing;
+  if (f === "down") return { x: Player.x, y: Player.y - d };
+  if (f === "up") return { x: Player.x, y: Player.y + d };
+  if (f === "left") return { x: Player.x + d, y: Player.y };
+  return { x: Player.x - d, y: Player.y };
+}
 
 const Follower = {
   name: null,
   x: Math.floor(MAP_SIZE / 2),
-  y: Math.floor(MAP_SIZE / 2) + 1,
+  y: Math.floor(MAP_SIZE / 2) - 1,
   facing: 'down',
   roster() {
     const names = [];
     const add = (n) => { if (n && !names.includes(n)) names.push(n); };
-    (SaveSystem.state.caught || []).forEach((p) => add(p.name));
     try {
       const raw = localStorage.getItem('pv.gb.party.v1');
       const party = raw ? JSON.parse(raw) : [];
       if (Array.isArray(party)) party.forEach((m) => add(m && m.name));
     } catch (_) {}
+    (SaveSystem.state.caught || []).forEach((p) => add(p.name));
     (SaveSystem.state.seen || []).forEach((p) => add(p.name));
+    if (!names.length) add("Pikachu");
     return names;
   },
   set(name) {
     const roster = this.roster();
     if (name && !roster.includes(name) && roster.length) name = roster[0];
-    this.name = name || null;
+    this.name = name || roster[0] || "Pikachu";
     SaveSystem.state.follower = this.name;
     SaveSystem.save();
     const trail = Player.trail[0];
     if (trail) { this.x = trail.x; this.y = trail.y; this.facing = trail.facing; }
-    else { this.x = Player.x; this.y = Player.y + 0.7; this.facing = Player.facing; }
+    else {
+      const b = behindPos();
+      this.x = b.x; this.y = b.y; this.facing = Player.facing;
+    }
+    followerSprite(this.name);
     UIManager.renderPartyHud();
     UIManager.renderFollowerChip();
     UIManager.renderPokedex();
@@ -719,11 +738,13 @@ const Follower = {
   tick() {
     if (!this.name) return;
     const slot = Player.trail[1] || Player.trail[0];
-    const tx = slot ? slot.x : Player.x;
-    const ty = slot ? slot.y : Player.y + 0.85;
+    const b = behindPos();
+    const tx = slot ? slot.x : b.x;
+    const ty = slot ? slot.y : b.y;
     if (slot) this.facing = slot.facing;
-    this.x += (tx - this.x) * 0.28;
-    this.y += (ty - this.y) * 0.28;
+    else this.facing = Player.facing;
+    this.x += (tx - this.x) * 0.32;
+    this.y += (ty - this.y) * 0.32;
   },
 };
 
@@ -764,8 +785,9 @@ const Player = {
       }
       const spawn = MapManager.switchRegion(dir);
       this.x = spawn.x; this.y = spawn.y;
-      this.trail = [{ x: spawn.x, y: spawn.y + 1, facing: this.facing }];
-      Follower.x = spawn.x; Follower.y = spawn.y + 1; Follower.facing = this.facing;
+      this.trail = [{ x: spawn.x, y: spawn.y, facing: this.facing }];
+      const b = behindPos();
+      Follower.x = b.x; Follower.y = b.y; Follower.facing = this.facing;
       Camera.sync(true);
       UIManager.showRegionLabel(MapManager.regionName() + " · " + MapManager.name());
       UIManager.updateHudChips();
@@ -1264,8 +1286,9 @@ const UIManager = {
     }
     const spawn = MapManager.goTo(index);
     Player.x = spawn.x; Player.y = spawn.y;
-    Player.trail = [{ x: spawn.x, y: spawn.y + 1, facing: Player.facing }];
-    Follower.x = spawn.x; Follower.y = spawn.y + 1;
+    Player.trail = [{ x: spawn.x, y: spawn.y, facing: Player.facing }];
+    const b = behindPos();
+    Follower.x = b.x; Follower.y = b.y;
     Camera.sync(true);
     this.closeAtlas();
     this.showRegionLabel(area.region + " · " + area.name);
@@ -1389,10 +1412,10 @@ const UIManager = {
     ctx.fillStyle = 'rgba(0,0,0,.2)';
     ctx.beginPath(); ctx.ellipse(px + 16, py + 28, 8, 3.5, 0, 0, Math.PI * 2); ctx.fill();
     const bob = (Player.step % 4 === 1 || Player.step % 4 === 3) ? 1 : 0;
-    if (im && im.complete && im.naturalWidth) {
-      const h = 30;
-      const w = im.naturalWidth * h / im.naturalHeight;
-      ctx.drawImage(im, px + TILE / 2 - w / 2, py + TILE - h + 6 + bob, w, h);
+    if (im && im.complete && im.naturalWidth > 8) {
+      const h = 36;
+      const w = Math.max(20, im.naturalWidth * h / im.naturalHeight);
+      ctx.drawImage(im, px + TILE / 2 - w / 2, py + TILE - h + 4 + bob, w, h);
     } else {
       ctx.fillStyle = '#f8d030';
       ctx.beginPath(); ctx.arc(px + 16, py + 18 + bob, 8, 0, Math.PI * 2); ctx.fill();

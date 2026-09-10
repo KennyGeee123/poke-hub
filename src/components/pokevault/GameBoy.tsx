@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { hdImg } from "@/lib/card-images";
-import { searchCards, getSets, getAllCardsBySet, type TCGCard, type TCGSet } from "@/lib/pokemon-api";
+import { getSets, getAllCardsBySet, type TCGCard, type TCGSet } from "@/lib/pokemon-api";
 import {
   addToParty,
   fetchParty,
@@ -9,17 +8,17 @@ import {
   makeMonFromCard,
   releaseMon,
   saveMonStats,
-  spriteFor,
+  wildFoeMon,
   xpForNext,
   type GBMon,
   type GBMove,
 } from "@/lib/gbgame";
-import { animatedSpriteUrl, backSpriteUrl, backSpriteFallback, staticSpriteUrl } from "@/lib/sprites";
+import { SpriteImg } from "./SpriteImg";
 import { hpPct } from "@/lib/battle";
 import { movesAtLevel, newlyLearned } from "@/lib/pokeapi-moves";
 import { CatchFx, type CatchPhase } from "./CatchFx";
 import { ARENA_CLIP, battleClipFor } from "@/lib/battle-cine";
-import { pressGbFace } from "@/lib/gb-face";
+import { pressGbDpad, pressGbFace } from "@/lib/gb-face";
 
 type Scene = "menu" | "party" | "starter" | "battle" | "victory" | "defeat";
 type BattlePane = "main" | "fight" | "bag" | "switch";
@@ -125,20 +124,28 @@ export function GameBoyView() {
 
   function startBattle(mon: GBMon) {
     const lvl = Math.max(1, mon.level + (Math.random() < 0.5 ? -1 : 1) + Math.floor(Math.random() * 3) - 1);
-    if (setCards.length) {
-      const c = setCards[Math.floor(Math.random() * setCards.length)];
-      kickoff(mon, c, lvl);
-    } else {
-      searchCards({
-        q: `supertype:Pokémon hp:[60 TO 200]`,
-        page: Math.floor(Math.random() * 30) + 1,
-        pageSize: 20,
-      }).then((r) => {
-        const pool = r.data.filter(isPlayable);
-        const c = pool[Math.floor(Math.random() * pool.length)];
-        if (c) kickoff(mon, c, lvl);
-      });
-    }
+    const pool = ["Pidgey", "Rattata", "Oddish", "Eevee", "Meowth", "Pikachu", "Psyduck", "Growlithe"];
+    const name = pool[Math.floor(Math.random() * pool.length)];
+    void kickoffSpecies(mon, name, lvl);
+  }
+
+  async function kickoffSpecies(mon: GBMon, name: string, lvl: number) {
+    const f = wildFoeMon(name, lvl);
+    try {
+      const real = await movesAtLevel(f.name, f.level, f.attacks);
+      if (real.length) f.attacks = real;
+    } catch {}
+    setActive(mon);
+    setFoe(f);
+    setActiveHp(mon.max_hp);
+    setFoeHp(f.max_hp);
+    setLog([`A wild ${f.name.toUpperCase()} (Lv ${f.level}) appeared!`]);
+    setPane("main");
+    setPotions(STARTING_POTIONS);
+    setFoeFx(""); setMeFx("");
+    setCatchPhase(null);
+    setNotice(null);
+    setScene("battle");
   }
 
   async function kickoff(mon: GBMon, foeCard: TCGCard, lvl: number) {
@@ -179,17 +186,9 @@ export function GameBoyView() {
         return;
       }
       try {
-        const res = await searchCards({
-          q: `name:"${detail.name}" supertype:Pokémon`,
-          pageSize: 8,
-          orderBy: "-set.releaseDate",
-        });
-        const pool = res.data.filter(isPlayable);
-        const card = pool[0] ?? res.data[0];
-        if (!card) return;
         const lvl = Math.max(2, Math.min(60, detail.level ?? mon.level));
         fromAdventureRef.current = true;
-        await kickoff(mon, card, lvl);
+        await kickoffSpecies(mon, detail.name, lvl);
       } catch (err) { console.error(err); }
     };
     // Adventure overlay owns in-tab fights; this listener remains for Game Boy tab sandbox.
@@ -476,12 +475,15 @@ export function GameBoyView() {
           )}
         </div>
         <div className="gb-controls">
-          <div className="gb-dpad" aria-hidden>
-            <span /><span /><span /><span /><span />
+          <div className="gb-dpad" aria-label="D-pad">
+            <button type="button" className="up" aria-label="Up" onClick={() => pressGbDpad("up")}>▲</button>
+            <button type="button" className="left" aria-label="Left" onClick={() => pressGbDpad("left")}>◀</button>
+            <button type="button" className="right" aria-label="Right" onClick={() => pressGbDpad("right")}>▶</button>
+            <button type="button" className="down" aria-label="Down" onClick={() => pressGbDpad("down")}>▼</button>
           </div>
           <div className="gb-ab">
-            <button type="button" className="gb-btn" aria-label="B" onClick={() => pressGbFace("B")}>B</button>
-            <button type="button" className="gb-btn" aria-label="A" onClick={() => pressGbFace("A")}>A</button>
+            <button type="button" className="gb-btn gb-btn-b" aria-label="B" onClick={() => pressGbFace("B")}>B</button>
+            <button type="button" className="gb-btn gb-btn-a" aria-label="A" onClick={() => pressGbFace("A")}>A</button>
           </div>
         </div>
         <div className="gb-startsel">
@@ -510,12 +512,11 @@ function Menu({ party, onContinue, onParty, onStarter }: {
       {party.length > 0 && (
         <div className="gb-menu-preview">
           {party.slice(0, 6).map((m) => (
-            <img
+            <SpriteImg
               key={m.id}
               className="gb-sprite"
-              src={spriteFor(m.name)}
+              name={m.name}
               alt={m.name}
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
             />
           ))}
         </div>
@@ -552,7 +553,7 @@ function PartyView({
       <div className="gb-party">
         {party.map((m) => (
           <div className="gb-pm" key={m.id}>
-            <img className="gb-sprite" src={spriteFor(m.name)} alt={m.name} onError={(e) => ((e.currentTarget.style.display = "none"))} />
+            <SpriteImg className="gb-sprite" name={m.name} alt={m.name} />
             <div className="gb-pm-info">
               <div className="gb-pm-name">{m.name.toUpperCase()}</div>
               <div className="gb-pm-meta">Lv {m.level} · {m.wins}W / {m.losses}L</div>
@@ -617,7 +618,7 @@ function StarterPicker({
         <div className="gb-grid">
           {cards.map((c) => (
             <button key={c.id} className="gb-card" disabled={busy} onClick={() => onPick(c)}>
-              <img {...hdImg(c)} alt={c.name} />
+              <SpriteImg name={c.name} alt={c.name} />
               <div className="gb-cname">{c.name}</div>
               <div className="gb-cmeta">HP {c.hp} · {(c.types || []).join("/")}</div>
             </button>
@@ -669,19 +670,18 @@ function BattleScreen({
             <div className="gb-hpbar"><span className={hpColor(foeHpPct)} style={{ width: `${foeHpPct}%` }} /></div>
             <div className="gb-hp-text">HP {foeHp}/{foe.max_hp}</div>
           </div>
-          <img
+          <SpriteImg
             className={`gb-actor gb-actor-foe gb-fx-${foeFx}`}
-            src={animatedSpriteUrl(foe.name)}
+            name={foe.name}
             alt={foe.name}
-            onError={(e) => { e.currentTarget.src = staticSpriteUrl(foe.name); }}
           />
         </div>
         <div className="gb-side gb-me">
-          <img
+          <SpriteImg
             className={`gb-actor gb-actor-me gb-fx-${meFx}`}
-            src={backSpriteUrl(me.name)}
+            name={me.name}
+            back
             alt={me.name}
-            onError={(e) => { e.currentTarget.src = backSpriteFallback(me.name); }}
           />
           <div className={`gb-stat ${meLow}`}>
             <div className="gb-stat-name">{me.name.toUpperCase()} <span>Lv{me.level}</span></div>
@@ -745,7 +745,7 @@ function BattleScreen({
               disabled={busy || m.id === me.id}
               onClick={() => onSwitch(m)}
             >
-              <img src={spriteFor(m.name)} alt={m.name} />
+              <SpriteImg name={m.name} alt={m.name} />
               <div>
                 <div className="gb-pm-name">{m.name.toUpperCase()}</div>
                 <div className="gb-pm-meta">Lv {m.level} · HP {m.max_hp}</div>
@@ -770,7 +770,7 @@ function ResultScreen({ title, mon, extra, onContinue }: { title: string; mon: G
   return (
     <div className="gb-page">
       <div className="gb-line gb-line-hd">{title}</div>
-      <img className="gb-actor" src={spriteFor(mon.name)} alt={mon.name} style={{ margin: "10px auto" }} />
+      <SpriteImg className="gb-actor" name={mon.name} alt={mon.name} />
       <div className="gb-line">{mon.name.toUpperCase()} Lv {mon.level}</div>
       <div className="gb-line gb-line-sm">{extra}</div>
       <button className="gb-mi" onClick={onContinue}>CONTINUE</button>
