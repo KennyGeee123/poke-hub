@@ -1,21 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { hdImg } from "@/lib/card-images";
-import { searchCards, getSets, getAllCardsBySet, type TCGCard, type TCGSet } from "@/lib/pokemon-api";
+import { getSets, getAllCardsBySet, type TCGCard, type TCGSet } from "@/lib/pokemon-api";
 import {
+  addSpeciesToParty,
   addToParty,
   fetchParty,
   gainXP,
   levelDamage,
-  makeMonFromCard,
   rentalStarter,
   saveMonStats,
-  spriteFor,
   wildFoeMon,
   xpForNext,
   type GBMon,
   type GBMove,
 } from "@/lib/gbgame";
-import { animatedSpriteUrl, backSpriteUrl, backSpriteFallback, staticSpriteUrl } from "@/lib/sprites";
+import { spriteSlug } from "@/lib/sprites";
+import { SpriteImg } from "./SpriteImg";
 import { hpPct } from "@/lib/battle";
 import { movesAtLevel, newlyLearned } from "@/lib/pokeapi-moves";
 import { CatchFx, type CatchPhase } from "./CatchFx";
@@ -131,14 +130,21 @@ export function GBBattleSession({
     const lvl = Math.max(2, Math.min(60, detail.level ?? mon.level));
     let foeMon = wildFoeMon(detail.name, lvl);
     try {
-      const res = await searchCards({
-        q: `name:"${detail.name}" supertype:Pokémon`,
-        pageSize: 8,
-        orderBy: "-set.releaseDate",
-      });
-      const pool = res.data.filter(isPlayable);
-      const card = pool[0] ?? res.data[0];
-      if (card) foeMon = { ...makeMonFromCard(card, lvl), id: "wild" } as GBMon;
+      const slug = spriteSlug(detail.name);
+      const r = await fetch(`https://pokeapi.co/api/v2/pokemon/${slug}`);
+      if (r.ok) {
+        const j: any = await r.json();
+        const TYPE_MAP: Record<string, string> = {
+          normal: "Colorless", fire: "Fire", water: "Water", grass: "Grass",
+          electric: "Lightning", ice: "Water", fighting: "Fighting", poison: "Darkness",
+          ground: "Fighting", flying: "Colorless", psychic: "Psychic", bug: "Grass",
+          rock: "Fighting", ghost: "Psychic", dragon: "Dragon", dark: "Darkness",
+          steel: "Metal", fairy: "Fairy",
+        };
+        foeMon.types = (j.types ?? []).map((t: any) => TYPE_MAP[t.type?.name] || "Colorless");
+        const baseHp = j.stats?.find((s: any) => s.stat?.name === "hp")?.base_stat || 40;
+        foeMon.max_hp = Math.round(baseHp * (0.5 + lvl * 0.05));
+      }
     } catch (err) {
       console.error(err);
     }
@@ -301,27 +307,15 @@ export function GBBattleSession({
       setLog((l) => [`✨ Gotcha! ${foe.name.toUpperCase()} was caught!`, ...l]);
       window.dispatchEvent(new CustomEvent("pv-adventure-caught", { detail: { name: foe.name } }));
       try {
-        const res = await searchCards({
-          q: `name:"${foe.name}" supertype:Pokémon`,
-          pageSize: 1,
-          orderBy: "-set.releaseDate",
-        });
-        const card = res.data[0];
-        if (card) {
-          try {
-            const mon = await addToParty(card, foe.level);
-            try {
-              const real = await movesAtLevel(mon.name, mon.level, mon.attacks);
-              if (real.length) {
-                mon.attacks = real;
-                await saveMonStats(mon);
-              }
-            } catch {}
-            setParty((p) => [...p, mon]);
-          } catch (e) {
-            console.error(e);
+        const mon = await addSpeciesToParty(foe.name, foe.level, foe.types);
+        try {
+          const real = await movesAtLevel(mon.name, mon.level, mon.attacks);
+          if (real.length) {
+            mon.attacks = real;
+            await saveMonStats(mon);
           }
-        }
+        } catch {}
+        setParty((p) => [...p, mon]);
       } catch (e) {
         console.error(e);
       }
@@ -583,7 +577,7 @@ function StarterPicker({
         <div className="gb-grid">
           {cards.map((c) => (
             <button key={c.id} className="gb-card" disabled={busy} onClick={() => onPick(c)}>
-              <img {...hdImg(c)} alt={c.name} />
+              <SpriteImg name={c.name} alt={c.name} />
               <div className="gb-cname">{c.name}</div>
               <div className="gb-cmeta">
                 HP {c.hp} · {(c.types || []).join("/")}
@@ -667,23 +661,18 @@ function BattleScreen({
                 HP {foeHp}/{foe.max_hp}
               </div>
             </div>
-            <img
+            <SpriteImg
               className={`gb-actor gb-actor-foe gb-fx-${foeFx}`}
-              src={animatedSpriteUrl(foe.name)}
+              name={foe.name}
               alt={foe.name}
-              onError={(e) => {
-                e.currentTarget.src = staticSpriteUrl(foe.name);
-              }}
             />
           </div>
           <div className="gb-side gb-me">
-            <img
+            <SpriteImg
               className={`gb-actor gb-actor-me gb-fx-${meFx}`}
-              src={backSpriteUrl(me.name)}
+              name={me.name}
+              back
               alt={me.name}
-              onError={(e) => {
-                e.currentTarget.src = backSpriteFallback(me.name);
-              }}
             />
             <div className={`gb-stat ${meLow}`}>
               <div className="gb-stat-name">
@@ -757,7 +746,7 @@ function BattleScreen({
         <div className="gb-switch">
           {party.map((m) => (
             <button key={m.id} className="gb-switch-item" disabled={busy || m.id === me.id} onClick={() => onSwitch(m)}>
-              <img src={spriteFor(m.name)} alt={m.name} />
+              <SpriteImg name={m.name} alt={m.name} />
               <div>
                 <div className="gb-pm-name">{m.name.toUpperCase()}</div>
                 <div className="gb-pm-meta">
@@ -790,7 +779,7 @@ function ResultScreen({
   return (
     <div className="gb-page">
       <div className="gb-line gb-line-hd">{title}</div>
-      <img className="gb-actor" src={spriteFor(mon.name)} alt={mon.name} style={{ margin: "10px auto" }} />
+      <SpriteImg className="gb-actor" name={mon.name} alt={mon.name} />
       <div className="gb-line">
         {mon.name.toUpperCase()} Lv {mon.level}
       </div>

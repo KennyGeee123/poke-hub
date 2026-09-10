@@ -295,18 +295,13 @@ export function GameBoyView() {
       setCatchPhase("caught");
       setLog((l) => [`✨ Gotcha! ${foe.name.toUpperCase()} was caught!`, ...l]);
       try {
-        const res = await searchCards({ q: `name:"${foe.name}" supertype:Pokémon`, pageSize: 1, orderBy: "-set.releaseDate" });
-        const card = res.data[0];
-        if (card) {
-          try {
-            const mon = await addToParty(card, foe.level);
-            try {
-              const real = await movesAtLevel(mon.name, mon.level, mon.attacks);
-              if (real.length) { mon.attacks = real; await saveMonStats(mon); }
-            } catch {}
-            setParty((p) => [...p, mon]);
-          } catch (e) { console.error(e); }
-        }
+        const { addSpeciesToParty } = await import("@/lib/gbgame");
+        const mon = await addSpeciesToParty(foe.name, foe.level, foe.types);
+        try {
+          const real = await movesAtLevel(mon.name, mon.level, mon.attacks);
+          if (real.length) { mon.attacks = real; await saveMonStats(mon); }
+        } catch {}
+        setParty((p) => [...p, mon]);
       } catch (e) { console.error(e); }
       await wait(1100);
       setCatchPhase(null);

@@ -107,7 +107,7 @@ export function makeMonFromCard(card: TCGCard, level = 5): Omit<GBMon, "id"> {
     max_hp: Math.round(baseHp * (0.5 + level * 0.05)),
     attacks: movesFromCard(card),
     sprite_url: animatedSpriteUrl(card.name),
-    image_url: card.images?.small ?? null,
+    image_url: animatedSpriteUrl(card.name),
     wins: 0,
     losses: 0,
     slot: null,
@@ -224,6 +224,45 @@ export async function fetchParty(): Promise<GBMon[]> {
     .order("created_at", { ascending: true });
   if (error) throw error;
   return (data ?? []).map(rowToMon);
+}
+
+export function makeMonFromSpecies(name: string, level = 5, types: string[] = ["Colorless"]): Omit<GBMon, "id"> {
+  const sprite = animatedSpriteUrl(name);
+  const lvl = Math.max(2, Math.min(60, level || 5));
+  return {
+    card_id: `species:${name.toLowerCase()}`,
+    name,
+    types: types.length ? types : ["Colorless"],
+    level: lvl,
+    xp: 0,
+    max_hp: Math.round(36 + lvl * 4),
+    attacks: [
+      { name: "Tackle", damage: 8 + lvl, type: types[0] || "Colorless" },
+      { name: "Scratch", damage: 10 + lvl, type: "Colorless" },
+    ],
+    sprite_url: sprite,
+    image_url: sprite,
+    wins: 0,
+    losses: 0,
+    slot: null,
+  };
+}
+
+export async function addSpeciesToParty(name: string, level = 5, types: string[] = ["Colorless"]): Promise<GBMon> {
+  const m = makeMonFromSpecies(name, level, types);
+  const uid = await currentUserId();
+  if (!uid) {
+    const mon: GBMon = { ...m, id: newGuestId() };
+    writeLocalParty([...readLocalParty(), mon]);
+    return mon;
+  }
+  const { data, error } = await supabase
+    .from("gb_party")
+    .insert({ ...m, user_id: uid })
+    .select()
+    .single();
+  if (error) throw error;
+  return { ...m, id: data.id } as GBMon;
 }
 
 export async function addToParty(card: TCGCard, level = 5): Promise<GBMon> {

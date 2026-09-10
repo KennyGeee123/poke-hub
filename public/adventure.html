@@ -64,6 +64,32 @@
     position: absolute; top: 10px; left: 10px; right: 10px; z-index: 12;
     display: flex; gap: 8px; align-items: flex-start; pointer-events: none;
   }
+  #region-chip, #follower-chip, #party-hud { pointer-events: auto; }
+  #region-chip { cursor: pointer; }
+  #atlas-bg {
+    position: fixed; inset: 0; background: rgba(11,18,32,.82);
+    display: none; z-index: 180; align-items: center; justify-content: center; padding: 16px;
+  }
+  #atlas-bg.active { display: flex; }
+  #atlas {
+    background: #f4efe4; color: #1a1a1a; border: 5px solid #1a1a1a; border-radius: 12px;
+    width: min(520px, 96vw); max-height: 80vh; overflow: auto; padding: 16px 14px 12px;
+    box-shadow: 0 12px 0 #121a2b;
+  }
+  #atlas h2 { font-family: 'Bebas Neue', Impact, sans-serif; letter-spacing: 2px; color: #cc2b2b; margin-bottom: 8px; text-align: center; }
+  #atlas .atlas-region { margin-bottom: 10px; }
+  #atlas .atlas-region-name {
+    font-weight: 800; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+    color: #cc2b2b; border-bottom: 2px solid #e2b53a; padding-bottom: 3px; margin-bottom: 6px;
+  }
+  #atlas .atlas-areas { display: flex; flex-wrap: wrap; gap: 6px; }
+  #atlas button.area {
+    border: 2px solid #1a1a1a; background: #fff; color: #1a1a1a; border-radius: 999px;
+    padding: 5px 10px; font-weight: 700; font-size: 11px; cursor: pointer; font-family: inherit;
+  }
+  #atlas button.area.on { background: #cc2b2b; color: #fff; }
+  #atlas button.area.league { border-color: #7c3aed; }
+  #atlas .atlas-hint { font-size: 11px; color: #6b7280; text-align: center; margin-top: 8px; }
   #compass {
     width: 52px; height: 52px; border-radius: 50%;
     background: rgba(11,18,32,.78); border: 2px solid rgba(244,239,228,.35);
@@ -222,7 +248,7 @@
       <h2>📕 Pokédex</h2>
       <ul id="pokedex-list"></ul>
       <div id="empty">No Pokémon seen yet.<br>Explore tall grass in the wilds!</div>
-      <div id="hint">Walk to a GYM door or press A / Space to interact.<br>Tap a Pokédex name or party pip to walk with that Pokémon.<br>Tall grass = wild. 4 badges unlocks Indigo.</div>
+      <div id="hint">Tap the town chip (or press M) for the world atlas — every region from Kanto to Paldea, Hisui, Orre, Kitakami, and Blueberry.<br>Wilds use Pokémon sprites, not TCG cards. Wade water for surf encounters. 4 gym badges of a region open that region's league.</div>
       <div id="controls">
         Arrows / WASD to move · Space interact<br>
         <button id="reset-btn">Reset Save</button>
@@ -236,6 +262,17 @@
     <button class="mid" data-act="interact" aria-label="Interact">A</button>
     <button class="right" data-dir="right" aria-label="Right">▶</button>
     <button class="down" data-dir="down" aria-label="Down">▼</button>
+  </div>
+
+  <div id="atlas-bg">
+    <div id="atlas">
+      <h2>WORLD ATLAS</h2>
+      <div id="atlas-body"></div>
+      <div class="atlas-hint">N/S walks to the next town · E/W stays in the region · M closes</div>
+      <div style="text-align:center;margin-top:8px">
+        <button type="button" id="atlas-close" style="background:#cc2b2b;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:800;cursor:pointer">Close</button>
+      </div>
+    </div>
   </div>
 
   <div id="modal-bg">
@@ -252,6 +289,7 @@
     </div>
   </div>
 
+<script src="/adventure-world.js"></script>
 <script>
 /* PokéVault Adventure — original procedural overworld (no ROMs / no ripped assets). */
 const TILE = 32;
@@ -279,9 +317,11 @@ TRAINER.up = loadImg('/adventure-assets/trainer-up.png');
 TRAINER.left = loadImg('/adventure-assets/trainer-left.png');
 TRAINER.right = loadImg('/adventure-assets/trainer-right.png');
 function texReady(im) { return !!(im && im.complete && im.naturalWidth); }
-function groundTex(region) {
-  if (region === 0 || region === 4) return TEX.rock;
-  if (region === 3) return TEX.ash;
+function groundTex(biome) {
+  if (["rock", "highland", "cave", "dragon"].includes(biome)) return TEX.rock;
+  if (["volcano", "desert"].includes(biome)) return TEX.ash;
+  if (biome === "beach") return TEX.sand;
+  if (["ice", "snow"].includes(biome)) return TEX.rock;
   return TEX.grass;
 }
 function isWaterTile(t) { return t === 6 || t === 20; }
@@ -295,71 +335,19 @@ function fillWorldTex(ctx, im, px, py, mx, my) {
   return true;
 }
 
-const POKEMON = [
-  { name: "Bulbasaur",  emoji: "🌱", color: "#78c850" },
-  { name: "Charmander", emoji: "🔥", color: "#f08030" },
-  { name: "Squirtle",   emoji: "💧", color: "#6890f0" },
-  { name: "Pikachu",    emoji: "⚡", color: "#f8d030" },
-  { name: "Caterpie",   emoji: "🐛", color: "#a8b820" },
-  { name: "Pidgey",     emoji: "🕊️", color: "#a890f0" },
-  { name: "Rattata",    emoji: "🐀", color: "#a8a878" },
-  { name: "Jigglypuff", emoji: "🎀", color: "#f8b8d0" },
-  { name: "Meowth",     emoji: "🐱", color: "#e0c068" },
-  { name: "Psyduck",    emoji: "🦆", color: "#f0d048" },
-  { name: "Machop",     emoji: "💪", color: "#c03028" },
-  { name: "Geodude",    emoji: "🪨", color: "#b8a038" },
-  { name: "Gastly",     emoji: "👻", color: "#705898" },
-  { name: "Eevee",      emoji: "🦊", color: "#c8a878" },
-  { name: "Snorlax",    emoji: "🐻", color: "#7038f8" },
-  { name: "Dratini",    emoji: "🐉", color: "#7038f8" },
-  { name: "Mewtwo",     emoji: "🧬", color: "#a890f0" },
-  { name: "Chikorita",  emoji: "🍃", color: "#9bcc50" },
-  { name: "Totodile",   emoji: "🐊", color: "#3dc7ef" },
-  { name: "Cyndaquil",  emoji: "🔥", color: "#fb6c6c" },
-  { name: "Jynx",       emoji: "💜", color: "#c084fc" },
-  { name: "Onix",       emoji: "🪨", color: "#a8a878" },
-];
-
-const GYMS = [
-  { id: "boulder", name: "Pewter Gym", leader: "Brock", type: "Rock", badge: "Boulder", mon: "Onix", level: 14, emoji: "🪨" },
-  { id: "cascade", name: "Cerulean Gym", leader: "Misty", type: "Water", badge: "Cascade", mon: "Squirtle", level: 16, emoji: "💧" },
-  { id: "thunder", name: "Vermilion Gym", leader: "Lt. Surge", type: "Electric", badge: "Thunder", mon: "Pikachu", level: 18, emoji: "⚡" },
-  { id: "volcano", name: "Cinnabar Gym", leader: "Blaine", type: "Fire", badge: "Volcano", mon: "Charmander", level: 20, emoji: "🔥" },
-];
-const E4 = [
-  { leader: "Lorelei", type: "Ice", mon: "Jynx", level: 24, kind: "elite" },
-  { leader: "Bruno", type: "Fighting", mon: "Machop", level: 26, kind: "elite" },
-  { leader: "Agatha", type: "Ghost", mon: "Gastly", level: 28, kind: "elite" },
-  { leader: "Lance", type: "Dragon", mon: "Dratini", level: 30, kind: "elite" },
-  { leader: "Champion", type: "Psychic", mon: "Mewtwo", level: 32, kind: "champion" },
-];
-
-const REGION_NAMES = ["Pewter", "Cerulean", "Vermilion", "Cinnabar", "Indigo"];
-const REGION_BIOMES = [
-  "Rock · Onix foothills",
-  "Ocean · Psyduck coast",
-  "Plains · Pikachu trails",
-  "Volcano · Charmander isle",
-  "Highland · Dragon halls",
-];
-const REGION_TINT = ["#c4a574", "#7cb342", "#e0a060", "#8d4a32", "#4a5080"];
-const REGION_SKY = ["#87ceeb", "#6ec6ff", "#ffd28a", "#ff8a65", "#5c6bc0"];
-
-/** Per-region wild tables (same 20-name roster, different mix). */
-const REGION_POOLS = [
-  ["Geodude", "Onix", "Machop", "Rattata", "Pidgey", "Caterpie"],
-  ["Squirtle", "Psyduck", "Totodile", "Pidgey", "Jigglypuff", "Rattata"],
-  ["Pikachu", "Meowth", "Eevee", "Rattata", "Pidgey", "Jigglypuff"],
-  ["Charmander", "Cyndaquil", "Eevee", "Rattata", "Meowth", "Pidgey"],
-  ["Gastly", "Dratini", "Jynx", "Machop", "Snorlax", "Eevee"],
-];
-const WATER_POOLS = [
-  ["Psyduck", "Squirtle"],
-  ["Squirtle", "Psyduck", "Totodile"],
-  ["Psyduck", "Squirtle"],
-  ["Squirtle", "Totodile"],
-  ["Dratini", "Psyduck"],
-];
+function speciesOf(name) {
+  return { name, emoji: "◆", color: "#e2b53a" };
+}
+function regionGyms(regionName) {
+  return AREAS.filter((a) => a.region === regionName && a.gym).map((a) => a.gym);
+}
+function canEnterLeague(area) {
+  const gyms = regionGyms(area.region);
+  const have = SaveSystem.state.badges || [];
+  const n = gyms.filter((g) => have.includes(g.badge)).length;
+  if (!gyms.length) return (have.length >= 4);
+  return n >= Math.min(4, gyms.length);
+}
 
 /* Tile ids: .0 g1 T2 X3 G4 P5 W6 f7 H8 E9 F10 s11 #12 E4 13-17 walls 18-19 ocean 20 lava 21 */
 function mulberry32(a) {
@@ -407,8 +395,9 @@ function clearAround(map, x, y, r) {
   }
 }
 
-function stampOcean(map, region) {
-  if (region === 1) {
+function stampOcean(map, kind) {
+  if (!kind) return;
+  if (kind === "se") {
     for (let y = 0; y < MAP_SIZE; y++) {
       for (let x = 0; x < MAP_SIZE; x++) {
         const coast = (x - MAP_SIZE * 0.48) + (y - MAP_SIZE * 0.28) * 0.85;
@@ -417,7 +406,7 @@ function stampOcean(map, region) {
         else if (coast > 7) map[y][x] = 11;
       }
     }
-  } else if (region === 2) {
+  } else if (kind === "east") {
     for (let y = 0; y < MAP_SIZE; y++) {
       for (let x = MAP_SIZE - 10; x < MAP_SIZE; x++) {
         const d = MAP_SIZE - 1 - x;
@@ -426,7 +415,15 @@ function stampOcean(map, region) {
         else map[y][x] = 11;
       }
     }
-  } else if (region === 3) {
+  } else if (kind === "west") {
+    for (let y = 0; y < MAP_SIZE; y++) {
+      for (let x = 0; x < 10; x++) {
+        if (x < 3) map[y][x] = 20;
+        else if (x < 6) map[y][x] = 6;
+        else map[y][x] = 11;
+      }
+    }
+  } else if (kind === "island") {
     for (let y = 0; y < MAP_SIZE; y++) {
       for (let x = 0; x < MAP_SIZE; x++) {
         const d = Math.min(x, y, MAP_SIZE - 1 - x, MAP_SIZE - 1 - y);
@@ -435,6 +432,9 @@ function stampOcean(map, region) {
         else if (d < 8) map[y][x] = 11;
       }
     }
+  } else if (kind === "lake") {
+    stampBlob(map, 14, 30, 5, 6, mulberry32(0xA11), 0.9);
+    stampBlob(map, 14, 30, 7, 11, mulberry32(0xA12), 0.45);
   }
 }
 
@@ -445,114 +445,100 @@ function carveWalk(map, x, y) {
   else if (t === 20) map[y][x] = 6;
 }
 
-function generateWorld(region) {
-  const rnd = mulberry32(0xC0FFEE ^ (region * 9973));
+function generateWorld(idx) {
+  const area = AREAS[idx];
+  const biome = area.biome;
+  const rnd = mulberry32(0xC0FFEE ^ (idx * 9973));
   const map = Array.from({ length: MAP_SIZE }, () => Array(MAP_SIZE).fill(0));
-  const wall = region === 0 ? 12 : region >= 3 ? 12 : 2;
+  const wall = ["rock", "highland", "cave", "ice", "snow", "volcano", "dragon"].includes(biome) ? 12 : 2;
 
   for (let y = 0; y < MAP_SIZE; y++) {
     for (let x = 0; x < MAP_SIZE; x++) {
       if (x === 0 || y === 0 || x === MAP_SIZE - 1 || y === MAP_SIZE - 1) map[y][x] = wall;
       else {
         const n = rnd();
-        if (region === 0) map[y][x] = n < 0.12 ? 12 : n < 0.22 ? 11 : n < 0.28 ? 2 : 0;
-        else if (region === 1) map[y][x] = n < 0.04 ? 2 : n < 0.1 ? 7 : 0;
-        else if (region === 2) map[y][x] = n < 0.05 ? 2 : n < 0.09 ? 11 : 0;
-        else if (region === 3) map[y][x] = n < 0.14 ? 11 : n < 0.2 ? 12 : 0;
-        else map[y][x] = n < 0.16 ? 12 : 0;
+        if (biome === "rock" || biome === "highland") map[y][x] = n < 0.12 ? 12 : n < 0.22 ? 11 : n < 0.28 ? 2 : 0;
+        else if (biome === "ocean" || biome === "beach") map[y][x] = n < 0.04 ? 2 : n < 0.1 ? 7 : 0;
+        else if (biome === "volcano" || biome === "desert") map[y][x] = n < 0.14 ? 11 : n < 0.2 ? 12 : 0;
+        else if (biome === "forest" || biome === "jungle") map[y][x] = n < 0.12 ? 2 : n < 0.18 ? 7 : 0;
+        else if (biome === "ice" || biome === "snow") map[y][x] = n < 0.16 ? 12 : n < 0.28 ? 11 : 0;
+        else if (biome === "city" || biome === "industrial") map[y][x] = n < 0.08 ? 10 : n < 0.12 ? 8 : 0;
+        else if (biome === "cave" || biome === "dragon") map[y][x] = n < 0.18 ? 12 : 0;
+        else if (biome === "fairy") map[y][x] = n < 0.08 ? 7 : n < 0.12 ? 2 : 0;
+        else if (biome === "poison" || biome === "swamp") map[y][x] = n < 0.1 ? 2 : n < 0.16 ? 6 : 0;
+        else if (biome === "electric") map[y][x] = n < 0.06 ? 10 : n < 0.1 ? 11 : 0;
+        else map[y][x] = n < 0.06 ? 2 : 0;
       }
     }
   }
 
-  stampOcean(map, region);
-
-  if (region === 0) {
-    stampBlob(map, 12, 12, 9, 12, rnd, 0.8);
-    stampBlob(map, 14, 16, 6, 11, rnd, 0.7);
-    stampBlob(map, 34, 32, 6, 2, rnd, 0.65);
-    stampRect(map, 8, 8, 4, 2, 8);
-  } else if (region === 1) {
-    stampBlob(map, 12, 14, 5, 2, rnd, 0.55);
-    stampBlob(map, 10, 32, 4, 7, rnd, 0.7);
-    stampBlob(map, 14, 20, 4, 6, rnd, 0.85);
-  } else if (region === 2) {
+  stampOcean(map, area.water);
+  if (biome === "volcano") stampBlob(map, 10, 10, 5, 21, rnd, 0.85);
+  if (biome === "forest" || biome === "jungle") stampBlob(map, 12, 14, 6, 2, rnd, 0.6);
+  if (biome === "rock") {
+    stampBlob(map, 12, 12, 8, 12, rnd, 0.75);
+    stampBlob(map, 14, 16, 5, 11, rnd, 0.65);
+  }
+  if (biome === "city" || biome === "industrial") {
     stampRect(map, 6, 20, 14, 1, 10);
     stampRect(map, 28, 14, 1, 12, 10);
-    stampRect(map, 32, 8, 4, 2, 8);
-    stampBlob(map, 16, 34, 4, 1, rnd, 0.7);
-  } else if (region === 3) {
-    stampBlob(map, 32, 14, 6, 12, rnd, 0.75);
-    stampBlob(map, 10, 10, 5, 21, rnd, 0.85);
-  } else {
+  }
+  if (area.league) {
     for (let y = 1; y < MAP_SIZE - 1; y++) for (let x = 1; x < MAP_SIZE - 1; x++) {
-      if (rnd() < 0.16 && map[y][x] === 0) map[y][x] = 12;
+      if (rnd() < 0.14 && map[y][x] === 0) map[y][x] = 12;
     }
     stampRect(map, 16, 8, 16, 14, 0);
     stampRect(map, 18, 10, 12, 2, 12);
     stampRect(map, 18, 18, 12, 2, 12);
-    stampRect(map, 20, 26, 8, 8, 0);
-    stampRect(map, 22, 28, 4, 1, 9);
   }
 
-  const grassCenters = [
-    [10, 22], [20, 16], [16, 40], [8, 32], [24, 8],
-  ];
+  const grassCenters = [[10, 22], [20, 16], [16, 40], [8, 32], [24, 8]];
   grassCenters.forEach(([gx, gy], i) => {
-    if (region === 1 && i > 1) return;
+    if ((biome === "ocean" || biome === "beach") && i > 1) return;
+    if (biome === "city" && i > 0) return;
     stampBlob(map, gx, gy, 2, 1, rnd, 0.65);
   });
 
-  // Town square near center-ish
-  const townX = region === 4 ? 24 : 18 + (region % 3) * 2;
-  const townY = region === 4 ? 34 : 18 + (region % 2) * 4;
+  const townX = area.league ? 24 : 18 + (idx % 3) * 2;
+  const townY = area.league ? 34 : 18 + (idx % 2) * 4;
   stampRect(map, townX - 3, townY - 2, 8, 6, 0);
-  stampRect(map, townX - 2, townY - 3, 2, 2, 8); // houses
+  stampRect(map, townX - 2, townY - 3, 2, 2, 8);
   stampRect(map, townX + 3, townY - 3, 2, 2, 8);
 
-  // Poké Center + Gym (3×3, door on the south tile — walk in)
   const cx = townX, cy = townY;
   const gx = townX + 5, gy = townY;
   clearAround(map, cx, cy, 3);
   clearAround(map, gx, gy, 3);
   stampBuilding(map, cx, cy, 18, 5);
-  if (region < 4) stampBuilding(map, gx, gy, 19, 4);
+  if (area.gym) stampBuilding(map, gx, gy, 19, 4);
 
-  if (region === 4) {
-    // Elite Four doors 1-5
-    const doors = [
-      [20, 12, 13], [28, 12, 14], [20, 16, 15], [28, 16, 16], [24, 20, 17],
-    ];
-    doors.forEach(([dx, dy, t]) => {
+  if (area.league) {
+    [[20, 12, 13], [28, 12, 14], [20, 16, 15], [28, 16, 16], [24, 20, 17]].forEach(([dx, dy, t]) => {
       clearAround(map, dx, dy, 1);
       map[dy][dx] = t;
     });
     stampBuilding(map, 24, 34, 18, 5);
   }
 
-  // Ensure walkable spawn
   const mid = Math.floor(MAP_SIZE / 2);
   clearAround(map, mid, mid, 2);
   map[mid][mid] = 0;
 
-  // Edge portals (X) at mid-sides — keep walls elsewhere
   const portal = 3;
   map[0][mid] = portal;
   map[MAP_SIZE - 1][mid] = portal;
   map[mid][0] = portal;
   map[mid][MAP_SIZE - 1] = portal;
-  // Clear just inside portals
   map[1][mid] = 0; map[MAP_SIZE - 2][mid] = 0;
   map[mid][1] = 0; map[mid][MAP_SIZE - 2] = 0;
 
-  // Paths from town to portals — wade through ocean, do not pave it
   for (let y = Math.min(cy, MAP_SIZE - 2); y <= Math.max(cy, MAP_SIZE - 2); y++) carveWalk(map, cx, y);
   for (let x = 1; x < MAP_SIZE - 1; x++) carveWalk(map, x, mid);
   for (let y = 1; y < MAP_SIZE - 1; y++) carveWalk(map, mid, y);
 
-  // Re-place key POIs after path clear
   stampBuilding(map, cx, cy, 18, 5);
-  if (region < 4) stampBuilding(map, gx, gy, 19, 4);
-  if (region === 4) {
+  if (area.gym) stampBuilding(map, gx, gy, 19, 4);
+  if (area.league) {
     [[20,12,13],[28,12,14],[20,16,15],[28,16,16],[24,20,17]].forEach(([dx,dy,t]) => { map[dy][dx] = t; });
     stampBuilding(map, 24, 34, 18, 5);
   }
@@ -562,28 +548,60 @@ function generateWorld(region) {
   return { map, center: { x: cx, y: cy }, gym: { x: gx, y: gy } };
 }
 
-const GENERATED = [0,1,2,3,4].map(generateWorld);
+const GENERATED = AREAS.map((_, i) => generateWorld(i));
 const MAPS = GENERATED.map(g => g.map);
 const POI = GENERATED.map(g => ({ center: g.center, gym: g.gym }));
 
-const NPCS = [
-  { region: 0, x: POI[0].center.x + 2, y: POI[0].center.y + 1, color: "#3b6ea5", quote: "PEWTER GYM is the stone dojo. Beat BROCK for the Boulder Badge. Geodude and Onix haunt the rocky foothills." },
-  { region: 1, x: POI[1].center.x - 2, y: POI[1].center.y + 1, color: "#2a9d8f", quote: "MISTY's gym sits by the water. Wade the shallows for Squirtle and Psyduck — the deep ocean blocks the way." },
-  { region: 2, x: POI[2].center.x + 1, y: POI[2].center.y + 2, color: "#e9c46a", quote: "LT. SURGE hits hard. The east coast drops into the sea. Pikachu runs the inland trails." },
-  { region: 3, x: POI[3].center.x - 1, y: POI[3].center.y + 2, color: "#e76f51", quote: "BLAINE's volcano gym is last. The isle is ringed by ocean; stay off the lava. Then INDIGO north." },
-  { region: 4, x: 24, y: 32, color: "#7c3aed", quote: "Four badges to enter. Lorelei, Bruno, Agatha, Lance, then the Champion." },
-];
+const NPCS = AREAS.map((a, i) => ({
+  region: i,
+  x: POI[i].center.x + (i % 2 ? -2 : 2),
+  y: POI[i].center.y + 1,
+  color: a.tint || "#3b6ea5",
+  quote: a.quote || (a.region + " · " + a.name),
+}));
 
 function spriteSlug(name) {
-  return String(name).toLowerCase().replace(/[♀♂.'']/g, '').replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  return String(name).toLowerCase()
+    .replace(/[♀♂δ★:'']/g, '')
+    .replace(/\./g, '')
+    .replace(/\b(alolan|galarian|hisuian|paldean|mega)\b/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
 }
-function spriteUrl(name) {
+function dexId(name) {
   const slug = spriteSlug(name);
-  return `/sprites/gen5/${slug}.png`;
+  return (typeof DEX_ID !== "undefined" && (DEX_ID[slug] || DEX_ID[name.toLowerCase()])) || 0;
 }
+function spriteFallbacks(name) {
+  const slug = spriteSlug(name);
+  const id = dexId(name);
+  const urls = [`/sprites/gen5/${slug}.png`];
+  if (id) {
+    urls.push(`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`);
+    urls.push(`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`);
+  }
+  urls.push(`https://img.pokemondb.net/sprites/home/normal/${slug}.png`);
+  urls.push(`https://img.pokemondb.net/artwork/large/${slug}.jpg`);
+  urls.push(`https://play.pokemonshowdown.com/sprites/gen5/${slug}.png`);
+  urls.push(`https://play.pokemonshowdown.com/sprites/dex/${slug}.png`);
+  return urls;
+}
+function spriteUrl(name) { return spriteFallbacks(name)[0]; }
 function staticSpriteUrl(name) {
-  const slug = spriteSlug(name);
-  return `https://play.pokemonshowdown.com/sprites/gen5/${slug}.png`;
+  const urls = spriteFallbacks(name);
+  return urls[1] || urls[0];
+}
+function pokeImgFallback(img) {
+  const q = (img.getAttribute("data-fall") || "").split("|").filter(Boolean);
+  if (!q.length) { img.onerror = null; img.style.opacity = "0.35"; return; }
+  img.setAttribute("data-fall", q.slice(1).join("|"));
+  img.src = q[0];
+}
+function pokeImgTag(name) {
+  const urls = spriteFallbacks(name);
+  return `<img src="${urls[0]}" alt="${name}" data-fall="${urls.slice(1).join("|")}" onerror="pokeImgFallback(this)" />`;
 }
 
 const Camera = {
@@ -603,23 +621,35 @@ const MapManager = {
   regions: MAPS,
   current: 0,
   get map() { return this.regions[this.current]; },
-  name() { return REGION_NAMES[this.current]; },
-  biome() { return REGION_BIOMES[this.current]; },
-  gym() { return GYMS[this.current] || null; },
+  area() { return AREAS[this.current]; },
+  name() { return this.area().name; },
+  regionName() { return this.area().region; },
+  biome() { return this.area().region + " · " + this.area().label; },
+  gym() { return this.area().gym || null; },
+  league() { return this.area().league || null; },
   tileAt(x, y) {
     const ix = Math.floor(x), iy = Math.floor(y);
     if (ix < 0 || iy < 0 || ix >= MAP_SIZE || iy >= MAP_SIZE) return 12;
     return this.map[iy][ix];
   },
-  switchRegion(dir) {
-    if (dir === 'N') this.current = Math.min(this.regions.length - 1, this.current + 1);
-    else if (dir === 'S') this.current = Math.max(0, this.current - 1);
-    else this.current = (this.current + (dir === 'E' ? 1 : this.regions.length - 1)) % this.regions.length;
+  goTo(index) {
+    this.current = Math.max(0, Math.min(AREAS.length - 1, index));
     const mid = Math.floor(MAP_SIZE / 2);
-    if (dir === 'N') return { x: mid, y: MAP_SIZE - 2 };
-    if (dir === 'S') return { x: mid, y: 1 };
-    if (dir === 'W') return { x: MAP_SIZE - 2, y: mid };
-    if (dir === 'E') return { x: 1, y: mid };
+    return { x: mid, y: mid };
+  },
+  switchRegion(dir) {
+    const cur = AREAS[this.current];
+    const same = AREAS.map((a, i) => ({ a, i })).filter((x) => x.a.region === cur.region);
+    const pos = same.findIndex((x) => x.i === this.current);
+    if (dir === "E") this.current = same[(pos + 1) % same.length].i;
+    else if (dir === "W") this.current = same[(pos - 1 + same.length) % same.length].i;
+    else if (dir === "N") this.current = Math.min(AREAS.length - 1, this.current + 1);
+    else if (dir === "S") this.current = Math.max(0, this.current - 1);
+    const mid = Math.floor(MAP_SIZE / 2);
+    if (dir === "N") return { x: mid, y: MAP_SIZE - 2 };
+    if (dir === "S") return { x: mid, y: 1 };
+    if (dir === "W") return { x: MAP_SIZE - 2, y: mid };
+    if (dir === "E") return { x: 1, y: mid };
     return { x: mid, y: mid };
   }
 };
@@ -637,9 +667,14 @@ const FOLLOW_IMG = {};
 function followerSprite(name) {
   if (!name) return null;
   if (!FOLLOW_IMG[name]) {
+    const urls = spriteFallbacks(name);
     const im = new Image();
-    im.src = spriteUrl(name);
-    im.onerror = () => { im.src = staticSpriteUrl(name); };
+    let i = 0;
+    im.src = urls[0];
+    im.onerror = () => {
+      i += 1;
+      if (i < urls.length) im.src = urls[i];
+    };
     FOLLOW_IMG[name] = im;
   }
   return FOLLOW_IMG[name];
@@ -715,11 +750,16 @@ const Player = {
       else if (nx >= MAP_SIZE - 1) dir = 'E';
       else if (nx <= 0) dir = 'W';
       let next = MapManager.current;
-      if (dir === 'N') next = Math.min(REGION_NAMES.length - 1, next + 1);
+      if (dir === 'N') next = Math.min(AREAS.length - 1, next + 1);
       else if (dir === 'S') next = Math.max(0, next - 1);
-      else next = (next + (dir === 'E' ? 1 : REGION_NAMES.length - 1)) % REGION_NAMES.length;
-      if (next === 4 && MapManager.current !== 4 && (SaveSystem.state.badges || []).length < 4) {
-        UIManager.toastModal("INDIGO PLATEAU", "The Elite Four gates are sealed. Earn 4 gym badges first.");
+      else {
+        const cur = AREAS[MapManager.current];
+        const same = AREAS.map((a, i) => ({ a, i })).filter((x) => x.a.region === cur.region);
+        const pos = same.findIndex((x) => x.i === MapManager.current);
+        next = same[(pos + (dir === 'E' ? 1 : same.length - 1)) % same.length].i;
+      }
+      if (AREAS[next].league && !canEnterLeague(AREAS[next])) {
+        UIManager.toastModal(AREAS[next].name.toUpperCase(), "The league gates are sealed. Earn 4 gym badges in " + AREAS[next].region + " first.");
         return;
       }
       const spawn = MapManager.switchRegion(dir);
@@ -727,7 +767,7 @@ const Player = {
       this.trail = [{ x: spawn.x, y: spawn.y + 1, facing: this.facing }];
       Follower.x = spawn.x; Follower.y = spawn.y + 1; Follower.facing = this.facing;
       Camera.sync(true);
-      UIManager.showRegionLabel(MapManager.name());
+      UIManager.showRegionLabel(MapManager.regionName() + " · " + MapManager.name());
       UIManager.updateHudChips();
       postStatus();
       SaveSystem.save();
@@ -739,7 +779,7 @@ const Player = {
     this.step = (this.step + 1) & 3;
     if (t === 1) EncounterSystem.tryEncounter();
     else if (t === 6) EncounterSystem.tryWater();
-    else if (t === 11 && MapManager.current === 0) EncounterSystem.tryEncounter(0.12);
+    else if (t === 11 && ["rock", "highland", "cave", "desert"].includes(MapManager.area().biome)) EncounterSystem.tryEncounter(0.12);
     else if (t === 4) { if (!this._inGym) { this._inGym = true; Sites.gym(); } }
     else this._inGym = false;
     if (t === 5) { if (!this._inCenter) { this._inCenter = true; Sites.center(); } }
@@ -824,9 +864,9 @@ const EncounterSystem = {
   autoTimer: null,
   tryEncounter(rate) {
     if (Math.random() > (rate ?? 0.16)) return;
-    const pool = REGION_POOLS[MapManager.current] || REGION_POOLS[0];
+    const pool = MapManager.area().pool || ["Pidgey"];
     const name = pool[Math.floor(Math.random() * pool.length)];
-    const poke = POKEMON.find(p => p.name === name) || POKEMON[0];
+    const poke = speciesOf(name);
     this.current = { ...poke, kind: "wild", level: 5 + MapManager.current * 3 + Math.floor(Math.random() * 4) };
     this.handed = false;
     Player.frozen = true;
@@ -846,9 +886,11 @@ const EncounterSystem = {
   },
   tryWater() {
     if (Math.random() > 0.18) return;
-    const pool = WATER_POOLS[MapManager.current] || WATER_POOLS[1];
+    const pool = (MapManager.area().surf && MapManager.area().surf.length)
+      ? MapManager.area().surf
+      : ["Magikarp", "Psyduck"];
     const name = pool[Math.floor(Math.random() * pool.length)];
-    const poke = POKEMON.find(p => p.name === name) || POKEMON[2];
+    const poke = speciesOf(name);
     this.current = { ...poke, kind: "wild", habitat: "water", level: 6 + MapManager.current * 3 + Math.floor(Math.random() * 4) };
     this.handed = false;
     Player.frozen = true;
@@ -897,39 +939,37 @@ const EncounterSystem = {
 };
 
 const TRAINER_CLASSES = [
-  { title: "Youngster Joey", mon: "Rattata", level: 7, color: "#4a90d9", regions: [0, 1, 2] },
-  { title: "Lass Sally", mon: "Jigglypuff", level: 8, color: "#e07a9a", regions: [0, 1, 2] },
-  { title: "Bug Catcher Abe", mon: "Caterpie", level: 6, color: "#8bc34a", regions: [0, 2] },
-  { title: "Camper Liam", mon: "Pidgey", level: 9, color: "#c4a574", regions: [0, 2] },
-  { title: "Hiker Ron", mon: "Geodude", level: 11, color: "#8d6e63", regions: [0, 3] },
-  { title: "Swimmer Kai", mon: "Squirtle", level: 12, color: "#4fc3f7", regions: [1] },
-  { title: "Engineer Volt", mon: "Pikachu", level: 13, color: "#f4d03f", regions: [2] },
-  { title: "Firebreather Ash", mon: "Charmander", level: 14, color: "#ef5350", regions: [3] },
-  { title: "Psychic Nyx", mon: "Gastly", level: 16, color: "#7c3aed", regions: [4] },
-  { title: "Ace Trainer Rei", mon: "Eevee", level: 15, color: "#c8a878", regions: [1, 2, 3, 4] },
+  { title: "Youngster Joey", level: 7, color: "#4a90d9" },
+  { title: "Lass Sally", level: 8, color: "#e07a9a" },
+  { title: "Bug Catcher Abe", level: 6, color: "#8bc34a" },
+  { title: "Camper Liam", level: 9, color: "#c4a574" },
+  { title: "Hiker Ron", level: 11, color: "#8d6e63" },
+  { title: "Swimmer Kai", level: 12, color: "#4fc3f7" },
+  { title: "Ace Trainer Rei", level: 15, color: "#c8a878" },
+  { title: "PKMN Ranger Nia", level: 14, color: "#43a047" },
 ];
 
 const FieldTrainers = {
   byRegion: [],
   init() {
-    this.byRegion = [0, 1, 2, 3, 4].map((r) => this.spawn(r));
+    this.byRegion = AREAS.map((_, r) => this.spawn(r));
     const beaten = new Set(SaveSystem.state.beatenTrainers || []);
     this.byRegion.forEach((list) => list.forEach((tr) => { if (beaten.has(tr.id)) tr.beaten = true; }));
   },
   spawn(r) {
     const rnd = mulberry32(0x71A1 ^ (r * 1337));
-    const classes = TRAINER_CLASSES.filter((c) => c.regions.includes(r));
+    const pool = AREAS[r].pool || ["Pidgey"];
     const out = [];
     let attempts = 0;
-    while (out.length < 4 && attempts++ < 90) {
+    while (out.length < 3 && attempts++ < 90) {
       const x = 4 + Math.floor(rnd() * (MAP_SIZE - 8));
       const y = 4 + Math.floor(rnd() * (MAP_SIZE - 8));
       const t = MAPS[r][y][x];
       if (t !== 0) continue;
       if (out.some((o) => Math.abs(o.x - x) + Math.abs(o.y - y) < 7)) continue;
-      const cls = classes[out.length % Math.max(1, classes.length)];
-      if (!cls) break;
-      out.push({ id: r + "-" + out.length, x, y, title: cls.title, mon: cls.mon, level: cls.level + r, color: cls.color, beaten: false });
+      const cls = TRAINER_CLASSES[out.length % TRAINER_CLASSES.length];
+      const mon = pool[out.length % pool.length];
+      out.push({ id: r + "-" + out.length, x, y, title: cls.title, mon, level: cls.level + Math.min(20, Math.floor(r / 4)), color: cls.color, beaten: false });
     }
     return out;
   },
@@ -964,7 +1004,7 @@ const Sites = {
       UIManager.toastModal(g.name, g.leader + " nods. You already hold the " + g.badge + " Badge.");
       return;
     }
-    EncounterSystem.current = { name: g.mon, emoji: g.emoji, color: "#e2b53a", kind: "gym", level: g.level, leader: g.leader, badge: g.badge };
+    EncounterSystem.current = { name: g.mon, emoji: "◆", color: "#e2b53a", kind: "gym", level: g.level, leader: g.leader, badge: g.badge };
     Player.frozen = true;
     EncounterSystem.handed = false;
     UIManager.openTrainer("GYM LEADER", g.leader + " · " + g.type, g.mon,
@@ -987,12 +1027,14 @@ const Sites = {
     UIManager.toastModal("POKé CENTER", "Your party was healed. Take a breath, then get back out there.");
   },
   elite(idx) {
-    const badges = SaveSystem.state.badges || [];
-    if (badges.length < 4) {
-      UIManager.toastModal("INDIGO PLATEAU", "Four gym badges are required to challenge the Elite Four.");
+    const league = MapManager.league();
+    if (!league) return;
+    if (!canEnterLeague(MapManager.area())) {
+      UIManager.toastModal("LEAGUE", "Four gym badges from " + MapManager.regionName() + " are required.");
       return;
     }
-    const beaten = SaveSystem.state.e4 || 0;
+    const leagues = SaveSystem.state.leagues || (SaveSystem.state.leagues = {});
+    const beaten = leagues[MapManager.regionName()] || 0;
     if (idx > beaten) {
       UIManager.toastModal("SEALED DOOR", "Beat the previous Elite Four member first.");
       return;
@@ -1001,7 +1043,8 @@ const Sites = {
       UIManager.toastModal("CHAMBER", "Already conquered. The next door waits.");
       return;
     }
-    const e = E4[idx];
+    const e = league[idx];
+    if (!e) return;
     EncounterSystem.current = { name: e.mon, emoji: "◆", color: "#7c3aed", kind: e.kind, level: e.level, leader: e.leader, e4Index: idx };
     Player.frozen = true;
     UIManager.openTrainer(e.kind === "champion" ? "CHAMPION BATTLE" : "ELITE FOUR",
@@ -1052,7 +1095,7 @@ const UIManager = {
       el.innerHTML = 'Walk with —';
       return;
     }
-    el.innerHTML = `<img src="${spriteUrl(name)}" alt="" onerror="this.onerror=null;this.src='${staticSpriteUrl(name)}';" /><span>${name}</span>`;
+    el.innerHTML = `${pokeImgTag(name)}<span>${name}</span>`;
   },
   renderPartyHud() {
     const el = document.getElementById('party-hud');
@@ -1062,7 +1105,7 @@ const UIManager = {
     while (slots.length < 6) slots.push(null);
     el.innerHTML = slots.map((name) => {
       if (!name) return `<div class="pip" style="opacity:.35"></div>`;
-      const poke = POKEMON.find((p) => p.name === name);
+      const poke = speciesOf(name);
       const on = name === Follower.name ? ' on' : '';
       const bg = poke ? poke.color : '#e2b53a';
       return `<div class="pip${on}" data-walk="${name}" title="Walk with ${name}" style="background:${bg}"></div>`;
@@ -1089,7 +1132,7 @@ const UIManager = {
   },
   setSprite(name) {
     const sp = document.getElementById('poke-sprite');
-    sp.innerHTML = `<img src="${spriteUrl(name)}" alt="${name}" onerror="this.onerror=null;this.src='${staticSpriteUrl(name)}';" />`;
+    sp.innerHTML = pokeImgTag(name);
   },
   openWild(poke) {
     const water = poke && poke.habitat === 'water';
@@ -1168,7 +1211,7 @@ const UIManager = {
       const li = document.createElement('li');
       const walk = Follower.name === p.name ? ' · walking' : '';
       li.innerHTML = `<span class="dot" style="background:${p.color}"></span>
-                      <img src="${spriteUrl(p.name)}" alt="" onerror="this.onerror=null;this.src='${staticSpriteUrl(p.name)}';" />
+                      ${pokeImgTag(p.name)}
                       <span>${String(i+1).padStart(3,'0')} ${p.name}${got ? ' · caught' : ' · seen'}${walk}</span>`;
       li.title = 'Walk with ' + p.name;
       li.addEventListener('click', () => Follower.set(p.name));
@@ -1178,14 +1221,68 @@ const UIManager = {
   renderBadges() {
     const row = document.getElementById('badge-row');
     const have = SaveSystem.state.badges || [];
-    row.innerHTML = GYMS.map(g =>
-      `<div class="badge-slot ${have.includes(g.badge) ? 'on' : ''}" title="${g.badge}">${g.emoji}</div>`
-    ).join('');
+    const gyms = regionGyms(MapManager.regionName());
+    row.innerHTML = gyms.map(g =>
+      `<div class="badge-slot ${have.includes(g.badge) ? 'on' : ''}" title="${g.leader} · ${g.badge}">◆</div>`
+    ).join('') || '<div class="badge-slot" title="No gyms here">–</div>';
     const pips = document.getElementById('e4-pips');
-    const n = SaveSystem.state.e4 || 0;
-    pips.innerHTML = E4.map((e, i) =>
-      `<div class="e4-pip ${i < n ? 'on' : ''} ${i === 4 && i < n ? 'champ' : ''}" title="${e.leader}"></div>`
+    const league = MapManager.league() || [];
+    const n = (SaveSystem.state.leagues || {})[MapManager.regionName()] || 0;
+    pips.innerHTML = league.map((e, i) =>
+      `<div class="e4-pip ${i < n ? 'on' : ''} ${e.kind === 'champion' && i < n ? 'champ' : ''}" title="${e.leader}"></div>`
     ).join('');
+  },
+  renderAtlas() {
+    const body = document.getElementById('atlas-body');
+    if (!body) return;
+    const groups = {};
+    AREAS.forEach((a, i) => {
+      (groups[a.region] || (groups[a.region] = [])).push({ a, i });
+    });
+    body.innerHTML = Object.keys(groups).map((region) => {
+      const items = groups[region].map(({ a, i }) => {
+        const on = i === MapManager.current ? " on" : "";
+        const lg = a.league ? " league" : "";
+        return `<button type="button" class="area${on}${lg}" data-area="${i}">${a.name}</button>`;
+      }).join("");
+      return `<div class="atlas-region"><div class="atlas-region-name">${region}</div><div class="atlas-areas">${items}</div></div>`;
+    }).join("");
+    body.querySelectorAll("[data-area]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const i = parseInt(btn.getAttribute("data-area"), 10);
+        UIManager.flyTo(i);
+      });
+    });
+  },
+  flyTo(index) {
+    const area = AREAS[index];
+    if (!area) return;
+    if (area.league && !canEnterLeague(area)) {
+      this.closeAtlas();
+      UIManager.toastModal(area.name.toUpperCase(), "Earn 4 gym badges in " + area.region + " first.");
+      return;
+    }
+    const spawn = MapManager.goTo(index);
+    Player.x = spawn.x; Player.y = spawn.y;
+    Player.trail = [{ x: spawn.x, y: spawn.y + 1, facing: Player.facing }];
+    Follower.x = spawn.x; Follower.y = spawn.y + 1;
+    Camera.sync(true);
+    this.closeAtlas();
+    this.showRegionLabel(area.region + " · " + area.name);
+    this.updateHudChips();
+    this.renderBadges();
+    this.updateCoords();
+    postStatus();
+    SaveSystem.save();
+  },
+  openAtlas() {
+    this.renderAtlas();
+    document.getElementById("atlas-bg").classList.add("active");
+    Player.frozen = true;
+  },
+  closeAtlas() {
+    document.getElementById("atlas-bg").classList.remove("active");
+    if (!EncounterSystem.current) Player.frozen = false;
   },
   drawMini() {
     const ctx = this.mctx;
@@ -1195,7 +1292,7 @@ const UIManager = {
       for (let x = 0; x < MAP_SIZE; x++) {
         const t = MapManager.tileAt(x, y);
         ctx.fillStyle = ({
-          0: REGION_TINT[MapManager.current] || '#c4a574',
+          0: (MapManager.area() && MapManager.area().tint) || '#c4a574',
           1:'#2e7d32',2:'#1b5e20',3:'#e2b53a',4:'#cc2b2b',5:'#f48fb1',
           6:'#1e88e5',7:'#ec407a',8:'#6d4c41',9:'#4527a0',10:'#5d4037',11:'#e0c068',
           12:'#263238',13:'#7c3aed',14:'#fb8c00',15:'#6a1b9a',16:'#c62828',17:'#ffd54f',
@@ -1214,7 +1311,7 @@ const UIManager = {
     ctx.fillRect(Player.x * s + 0.5, Player.y * s + 0.5, Math.max(1.5, s - 1), Math.max(1.5, s - 1));
   },
   drawSky(ctx) {
-    const sky = REGION_SKY[MapManager.current];
+    const sky = (MapManager.area() && MapManager.area().sky) || '#87ceeb';
     const g = ctx.createLinearGradient(0, 0, 0, 110);
     g.addColorStop(0, sky);
     g.addColorStop(0.7, 'rgba(135,206,235,0.15)');
@@ -1349,7 +1446,13 @@ const UIManager = {
   },
   drawGym(ctx, px, py) {
     const g = MapManager.gym();
-    const roof = ({ Rock: '#8d6e63', Water: '#1976d2', Electric: '#f9a825', Fire: '#e53935' })[g && g.type] || '#5d4037';
+    const roof = ({
+      Rock: '#8d6e63', Water: '#1976d2', Electric: '#f9a825', Fire: '#e53935',
+      Grass: '#43a047', Fighting: '#e64a19', Poison: '#8e24aa', Psychic: '#ab47bc',
+      Ice: '#4fc3f7', Dragon: '#5c6bc0', Dark: '#455a64', Steel: '#90a4ae',
+      Fairy: '#ec407a', Ground: '#a1887f', Bug: '#9ccc65', Flying: '#90caf9', Ghost: '#7e57c2',
+      Normal: '#bdbdbd',
+    })[g && g.type] || '#5d4037';
     const x = px - TILE, y = py - TILE * 2, w = TILE * 3, h = TILE * 2.35;
     ctx.fillStyle = 'rgba(0,0,0,.18)';
     ctx.fillRect(x + 6, y + h - 4, w - 8, 10);
@@ -1471,9 +1574,9 @@ const UIManager = {
     }
     const hash = ((mx * 13) ^ (my * 31)) & 7;
     const sway = Math.sin(Date.now() / 420 + mx * 0.4 + my * 0.3) * 2.5;
-    const tint = REGION_TINT[MapManager.current];
+    const tint = (MapManager.area() && MapManager.area().tint) || '#7cb342';
     const ground = (t === 1 || t === 7) ? '#2e7d32' : (t === 6) ? '#1565c0' : (t === 11) ? '#e0c068' : tint;
-    const biomeTex = groundTex(MapManager.current);
+    const biomeTex = groundTex(MapManager.area().biome);
 
     if ([0,1,7,11,3].includes(t)) {
       ctx.fillStyle = t === 1 || t === 7 ? '#388e3c' : ground;
@@ -1554,7 +1657,7 @@ const UIManager = {
       ctx.fillRect(px + 14, py + 14, 8, 8);
       this.drawAutotileEdges(ctx, px, py, this.neighborMask(mx, my, (tt) => tt === 21), '#3e2723', null);
     } else if (t === 11) {
-      const coastal = [1, 2, 3].includes(MapManager.current);
+      const coastal = !!(MapManager.area() && MapManager.area().water);
       const shore = coastal ? TEX.sand : TEX.rock;
       if (!fillWorldTex(ctx, shore, px, py, mx, my)) {
         ctx.fillStyle = coastal ? '#e0c068' : '#9e9e9e';
@@ -1639,13 +1742,13 @@ const UIManager = {
 
 const SaveSystem = {
   KEY: 'pokeregions-save',
-  state: { x: Math.floor(MAP_SIZE / 2), y: Math.floor(MAP_SIZE / 2), region: 0, seen: [], caught: [], badges: [], e4: 0, beatenTrainers: [], follower: null },
+  state: { x: Math.floor(MAP_SIZE / 2), y: Math.floor(MAP_SIZE / 2), region: 0, seen: [], caught: [], badges: [], e4: 0, leagues: {}, beatenTrainers: [], follower: null, worldVersion: 2 },
   load() {
     try {
       const raw = localStorage.getItem(this.KEY);
       if (raw) {
         const s = JSON.parse(raw);
-        this.state = Object.assign(this.state, { badges: [], e4: 0, seen: [], caught: [] }, s);
+        this.state = Object.assign(this.state, { badges: [], e4: 0, seen: [], caught: [], leagues: {} }, s);
         // Pre-honesty saves stored sightings in `caught`. Those were never party catches.
         if (!Array.isArray(s.seen)) {
           this.state.seen = Array.isArray(s.caught) ? s.caught : [];
@@ -1660,7 +1763,19 @@ const SaveSystem = {
         }
         Player.x = Math.max(1, Math.min(MAP_SIZE - 2, x));
         Player.y = Math.max(1, Math.min(MAP_SIZE - 2, y));
-        MapManager.current = Math.min(MAPS.length - 1, s.region ?? 0);
+        if (!s.worldVersion) {
+          const old = ["Pewter", "Cerulean", "Vermilion", "Cinnabar", "Indigo"];
+          const name = old[s.region] || "Pallet";
+          const idx = AREAS.findIndex((a) => a.name === name);
+          MapManager.current = idx >= 0 ? idx : 0;
+          if (s.e4) {
+            this.state.leagues = this.state.leagues || {};
+            this.state.leagues.Kanto = s.e4;
+          }
+        } else {
+          MapManager.current = Math.min(MAPS.length - 1, s.region ?? 0);
+        }
+        this.state.worldVersion = 2;
         const blocked = [2, 8, 10, 12, 9, 18, 19, 20, 21];
         if (blocked.includes(MapManager.tileAt(Player.x, Player.y))) {
           const mid = Math.floor(MAP_SIZE / 2);
@@ -1676,6 +1791,7 @@ const SaveSystem = {
     this.state.y = Player.y;
     this.state.region = MapManager.current;
     this.state.mapSize = MAP_SIZE;
+    this.state.worldVersion = 2;
     try { localStorage.setItem(this.KEY, JSON.stringify(this.state)); } catch(e){}
     UIManager.renderBadges();
     postStatus();
@@ -1689,6 +1805,13 @@ const Input = {
       if (e.key === 'p' || e.key === 'P') {
         e.preventDefault();
         Follower.cycle();
+        return;
+      }
+      if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault();
+        const atlas = document.getElementById('atlas-bg');
+        if (atlas && atlas.classList.contains('active')) UIManager.closeAtlas();
+        else UIManager.openAtlas();
         return;
       }
       if (e.key === ' ' || e.key === 'Enter') {
@@ -1761,11 +1884,17 @@ window.addEventListener('load', () => {
   Follower.set(SaveSystem.state.follower || Follower.roster()[0] || null);
   const chip = document.getElementById('follower-chip');
   if (chip) chip.addEventListener('click', () => Follower.cycle());
+  const rchip = document.getElementById('region-chip');
+  if (rchip) rchip.addEventListener('click', () => UIManager.openAtlas());
+  const atlasClose = document.getElementById('atlas-close');
+  if (atlasClose) atlasClose.addEventListener('click', () => UIManager.closeAtlas());
+  const atlasBg = document.getElementById('atlas-bg');
+  if (atlasBg) atlasBg.addEventListener('click', (e) => { if (e.target === atlasBg) UIManager.closeAtlas(); });
   UIManager.renderPokedex();
   UIManager.renderBadges();
   UIManager.renderPartyHud();
   UIManager.renderFollowerChip();
-  UIManager.showRegionLabel(MapManager.name());
+  UIManager.showRegionLabel(MapManager.regionName() + " · " + MapManager.name());
   UIManager.updateHudChips();
   UIManager.updateCoords();
   Camera.sync(true);
@@ -1791,17 +1920,21 @@ window.addEventListener('message', (e) => {
     UIManager.toastModal(d.badge.toUpperCase() + " BADGE", "You earned the " + d.badge + " Badge!");
   }
   if (d.type === 'pv-adventure-e4-won') {
-    SaveSystem.state.e4 = Math.max(SaveSystem.state.e4 || 0, (d.index ?? 0) + 1);
+    const region = MapManager.regionName();
+    const leagues = SaveSystem.state.leagues || (SaveSystem.state.leagues = {});
+    leagues[region] = Math.max(leagues[region] || 0, (d.index ?? 0) + 1);
+    SaveSystem.state.e4 = leagues[region];
     SaveSystem.save();
-    const next = E4[SaveSystem.state.e4];
-    UIManager.toastModal("CHAMBER CLEARED", next ? (next.leader + " is next.") : "You are the Champion.");
+    const league = MapManager.league() || [];
+    const next = league[leagues[region]];
+    UIManager.toastModal("CHAMBER CLEARED", next ? (next.leader + " is next.") : "You are the Champion of " + region + ".");
   }
   if (d.type === 'pv-adventure-trainer-won' && d.id) {
     FieldTrainers.mark(d.id);
   }
   if (d.type === 'pv-adventure-caught' && d.name) {
     const name = String(d.name);
-    const poke = POKEMON.find(p => p.name === name) || { name, emoji: "◆", color: "#e2b53a" };
+    const poke = speciesOf(name);
     const seen = SaveSystem.state.seen || (SaveSystem.state.seen = []);
     const caught = SaveSystem.state.caught || (SaveSystem.state.caught = []);
     if (!seen.find(c => c.name === name)) seen.push({ name: poke.name, emoji: poke.emoji, color: poke.color });
