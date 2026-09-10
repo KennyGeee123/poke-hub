@@ -1097,9 +1097,8 @@ const UIManager = {
     overlays.forEach(o => {
       if (o.t === 5) this.drawPokeCenter(ctx, o.px, o.py);
       if (o.t === 4) this.drawGym(ctx, o.px, o.py);
-      if (o.my < Player.y) return;
       if (o.t === 2) this.drawTreeTop(ctx, o.px, o.py);
-      if (o.t === 8) this.drawRoof(ctx, o.t, o.px, o.py);
+      if (o.t === 8 && o.my >= Player.y) this.drawRoof(ctx, o.t, o.px, o.py);
     });
     // depth fog / vignette
     const vg = ctx.createRadialGradient(CANVAS_PX/2, CANVAS_PX/2, CANVAS_PX*0.35, CANVAS_PX/2, CANVAS_PX/2, CANVAS_PX*0.72);
@@ -1220,10 +1219,18 @@ const UIManager = {
     if (facing === 'down' || facing === 'left') ctx.fillRect(ppx + 11, ppy + 7, 3, 3);
   },
   drawTreeTop(ctx, px, py) {
-    ctx.fillStyle = 'rgba(16,64,26,.88)';
-    ctx.beginPath(); ctx.ellipse(px + 16, py + 15, 15, 12, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = 'rgba(36,102,42,.92)';
-    ctx.beginPath(); ctx.ellipse(px + 16, py + 12, 11, 9, 0, 0, Math.PI * 2); ctx.fill();
+    const cx = px + 16, cy = py + 4;
+    ctx.fillStyle = 'rgba(18,48,22,.35)';
+    ctx.beginPath(); ctx.ellipse(cx, py + 28, 16, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#2e1a12';
+    ctx.fillRect(cx - 3, py + 8, 6, 22);
+    ctx.fillStyle = 'rgba(14,58,24,.94)';
+    ctx.beginPath(); ctx.ellipse(cx, cy - 16, 22, 20, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(36,102,40,.96)';
+    ctx.beginPath(); ctx.ellipse(cx - 8, cy - 22, 13, 13, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx + 9, cy - 14, 12, 11, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(72,140,58,.55)';
+    ctx.beginPath(); ctx.ellipse(cx - 4, cy - 26, 7, 6, 0, 0, Math.PI * 2); ctx.fill();
   },
   drawRoof(ctx, t, px, py) {
     ctx.fillStyle = t === 5 ? '#f48fb1' : t === 4 ? '#cc2b2b' : '#6d4c41';
@@ -1289,13 +1296,17 @@ const UIManager = {
     } else if (t === 1) {
       if (!fillWorldTex(ctx, biomeTex, px, py, mx, my)) fillWorldTex(ctx, TEX.grass, px, py, mx, my);
       const seed = (mx * 13) ^ (my * 31);
-      ctx.fillStyle = 'rgba(28,92,36,.78)';
-      for (let i = 0; i < 3; i++) {
-        const ox = 7 + ((seed + i * 9) % 16);
-        const oy = 12 + ((seed + i * 5) % 12);
-        ctx.beginPath();
-        ctx.ellipse(px + ox, py + oy, 3.2, 5.5, 0, 0, Math.PI * 2);
-        ctx.fill();
+      ctx.fillStyle = '#2d6a32';
+      for (let i = 0; i < 6; i++) {
+        const ox = 3 + ((seed + i * 11) % 24);
+        const oy = 20 + ((seed + i * 5) % 10);
+        ctx.fillRect(px + ox, py + oy, 1, 4 + (i % 3));
+      }
+      ctx.fillStyle = '#3d8b4a';
+      for (let i = 0; i < 4; i++) {
+        const ox = 5 + ((seed + i * 17) % 20);
+        const oy = 22 + ((seed + i * 7) % 8);
+        ctx.fillRect(px + ox, py + oy, 1, 3);
       }
     } else if (t === 7) {
       if (!fillWorldTex(ctx, TEX.grass, px, py, mx, my)) {
@@ -1328,8 +1339,7 @@ const UIManager = {
         ctx.fillRect(px, py, TILE, TILE);
       }
       ctx.fillStyle = '#3e2723';
-      ctx.fillRect(px + 12, py + 16, 8, 16);
-      this.drawTreeTop(ctx, px, py);
+      ctx.fillRect(px + 14, py + 18, 4, 14);
     } else if (t === 10) {
       if (!fillWorldTex(ctx, biomeTex, px, py, mx, my)) {
         ctx.fillStyle = tint;
