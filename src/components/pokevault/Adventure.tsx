@@ -54,12 +54,15 @@ export function AdventureView() {
   }
 
   function closeBattle(result: "win" | "lose" | "run" | "cancel") {
+    const foe = battleFoe;
     setBattleOpen(false);
     setBattleFoe(null);
     setPendingWild(null);
     setScene(null);
-    // Resume explore in iframe (gym/E4 badge events already posted by session / listeners).
     postIframe({ type: "pv-adventure-resume" });
+    if (result === "win" && foe?.trainerId) {
+      postIframe({ type: "pv-adventure-trainer-won", id: foe.trainerId });
+    }
     if (result === "win") push("Victory — back to the overworld");
     else if (result === "lose") push("White out — heal at a Poké Center");
     else if (result === "run") push("Got away safely");
@@ -145,10 +148,12 @@ export function AdventureView() {
           badge: d.badge,
           e4Index: typeof d.e4Index === "number" ? d.e4Index : undefined,
           leader: d.leader,
+          trainerId: typeof d.trainerId === "string" ? d.trainerId : undefined,
         };
-        if (kind !== "wild") {
-          push(kind === "gym" ? `Gym challenge — ${d.leader || name}` : `Elite Four — ${d.leader || name}`);
-        } else {
+        if (kind === "gym") push(`Gym challenge — ${d.leader || name}`);
+        else if (kind === "trainer") push(`Trainer battle — ${d.leader || name}`);
+        else if (kind !== "wild") push(`Elite Four — ${d.leader || name}`);
+        else {
           // Honest wilds: do NOT auto-add to party. Catch only in battle when catchable.
           push(`A wild ${name} appeared!`);
         }
@@ -164,6 +169,7 @@ export function AdventureView() {
           badge: pending.badge,
           e4Index: pending.e4Index,
           leader: pending.leader,
+          trainerId: pending.trainerId,
         });
         setBattleOpen(true);
         postIframe({ type: "pv-adventure-pause" });

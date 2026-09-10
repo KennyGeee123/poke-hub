@@ -2,7 +2,7 @@
   "id": "pokedex-hub-launch-ready-2026-09-10-adventure-go-gfx",
   "liveUrl": "https://pokedex-hub-lime.vercel.app/",
   "frozenAt": "2026-09-10T18:00:00.000Z",
-  "rootSha256": "aa57d80964e38472f85d06c5767903dc7455b00f40a6f284922e258caca4f152",
+  "rootSha256": "0fd1a38ef88cf4ddd8ded82b434db69c16293883bd0fb9c10bc2fb58813afe40",
   "fileCount": 203,
   "launchChecks": {
     "homeSsrPvApp": true,
@@ -64,8 +64,8 @@
     },
     {
       "path": "public/adventure.html",
-      "sha256": "50c2c5d6e8da51b3759f12527da59c9cd6b47a98412332ea3e917283b697753d",
-      "bytes": 58199
+      "sha256": "f2122bd786dd62f8c397d78c3eb1965a3741a105f29b1d904cf0336d111e9078",
+      "bytes": 65172
     },
     {
       "path": "public/asia-catalog.json",
@@ -139,8 +139,8 @@
     },
     {
       "path": "src/components/pokevault/Adventure.tsx",
-      "sha256": "7a1431d9548c903a6f9684cb09d1cdf0baa92d9c0bf3df481808c6bfc0d15763",
-      "bytes": 11120
+      "sha256": "2dafc753668a1ab8837bfaad775190f6b8b2218de734268810d663585c27b210",
+      "bytes": 11393
     },
     {
       "path": "src/components/pokevault/Battle.tsx",

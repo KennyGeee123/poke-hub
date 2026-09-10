@@ -25,11 +25,12 @@ import { pressGbFace } from "@/lib/gb-face";
 export type GBBattleFoe = {
   name: string;
   level: number;
-  kind?: "wild" | "gym" | "elite" | "champion";
+  kind?: "wild" | "gym" | "elite" | "champion" | "trainer";
   catchable?: boolean;
   badge?: string;
   e4Index?: number;
   leader?: string;
+  trainerId?: string;
 };
 
 type Scene = "loading" | "starter" | "battle" | "victory" | "defeat";
@@ -82,7 +83,7 @@ export function GBBattleSession({
   const [notice, setNotice] = useState<string | null>(null);
   const [catchable, setCatchable] = useState(true);
   const catchableRef = useRef(true);
-  const battleKindRef = useRef<"wild" | "gym" | "elite" | "champion">("wild");
+  const battleKindRef = useRef<"wild" | "gym" | "elite" | "champion" | "trainer">("wild");
   const badgeRef = useRef<string | undefined>(undefined);
   const e4IndexRef = useRef(0);
   const startedRef = useRef(false);

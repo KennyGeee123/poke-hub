@@ -350,6 +350,16 @@ function stampRect(map, x, y, w, h, tile) {
   }
 }
 
+function stampBuilding(map, cx, cy, wallTile, doorTile) {
+  for (let dy = -2; dy <= 0; dy++) {
+    for (let dx = -1; dx <= 1; dx++) {
+      const xx = cx + dx, yy = cy + dy;
+      if (xx <= 0 || yy <= 0 || xx >= MAP_SIZE - 1 || yy >= MAP_SIZE - 1) continue;
+      map[yy][xx] = (dx === 0 && dy === 0) ? doorTile : wallTile;
+    }
+  }
+}
+
 function stampBlob(map, cx, cy, r, tile, rnd, dens) {
   for (let y = cy - r; y <= cy + r; y++) {
     for (let x = cx - r; x <= cx + r; x++) {
@@ -398,8 +408,8 @@ function generateWorld(region) {
   if (region === 0) {
     stampBlob(map, 12, 14, 7, 11, rnd, 0.85); // sand/rock
     stampBlob(map, 34, 30, 8, 2, rnd, 0.7);   // forest
-    stampBlob(map, 22, 38, 6, 1, rnd, 0.9);   // grass
-    stampBlob(map, 38, 12, 5, 1, rnd, 0.85);
+    stampBlob(map, 22, 38, 3, 1, rnd, 0.72);
+    stampBlob(map, 38, 12, 3, 1, rnd, 0.7);
     stampRect(map, 8, 8, 5, 2, 8); // houses
     stampRect(map, 9, 10, 1, 1, 0);
   } else if (region === 1) {
@@ -439,7 +449,7 @@ function generateWorld(region) {
   ];
   grassCenters.forEach(([gx, gy], i) => {
     if (region === 4 && i > 3) return;
-    stampBlob(map, gx, gy, 3 + (i % 3), 1, rnd, 0.92);
+    stampBlob(map, gx, gy, 2 + (i % 2), 1, rnd, 0.7);
   });
 
   // Town square near center-ish
@@ -449,13 +459,13 @@ function generateWorld(region) {
   stampRect(map, townX - 2, townY - 3, 2, 2, 8); // houses
   stampRect(map, townX + 3, townY - 3, 2, 2, 8);
 
-  // Poké Center + Gym
+  // Poké Center + Gym (3×3, door on the south tile — walk in)
   const cx = townX, cy = townY;
   const gx = townX + 5, gy = townY;
-  clearAround(map, cx, cy, 2);
-  clearAround(map, gx, gy, 2);
-  map[cy][cx] = 5; // center
-  if (region < 4) map[gy][gx] = 4; // gym
+  clearAround(map, cx, cy, 3);
+  clearAround(map, gx, gy, 3);
+  stampBuilding(map, cx, cy, 18, 5);
+  if (region < 4) stampBuilding(map, gx, gy, 19, 4);
 
   if (region === 4) {
     // Elite Four doors 1-5
@@ -466,7 +476,7 @@ function generateWorld(region) {
       clearAround(map, dx, dy, 1);
       map[dy][dx] = t;
     });
-    map[34][24] = 5;
+    stampBuilding(map, 24, 34, 18, 5);
   }
 
   // Ensure walkable spawn
@@ -496,11 +506,11 @@ function generateWorld(region) {
   }
 
   // Re-place key POIs after path clear
-  map[cy][cx] = 5;
-  if (region < 4) map[gy][gx] = 4;
+  stampBuilding(map, cx, cy, 18, 5);
+  if (region < 4) stampBuilding(map, gx, gy, 19, 4);
   if (region === 4) {
     [[20,12,13],[28,12,14],[20,16,15],[28,16,16],[24,20,17]].forEach(([dx,dy,t]) => { map[dy][dx] = t; });
-    map[34][24] = 5;
+    stampBuilding(map, 24, 34, 18, 5);
   }
   map[0][mid] = portal; map[MAP_SIZE-1][mid] = portal;
   map[mid][0] = portal; map[mid][MAP_SIZE-1] = portal;
@@ -593,7 +603,7 @@ const Player = {
     updateCompass();
     const nx = this.x + dx, ny = this.y + dy;
     const t = MapManager.tileAt(nx, ny);
-    if ([2, 8, 10, 12, 9].includes(t)) return;
+    if ([2, 8, 10, 12, 9, 18, 19].includes(t)) return;
     if (t === 3) {
       let dir = 'N';
       if (ny >= MAP_SIZE - 1) dir = 'S';
@@ -620,9 +630,12 @@ const Player = {
     this.x = nx; this.y = ny;
     this.step = (this.step + 1) & 3;
     if (t === 1) EncounterSystem.tryEncounter();
-    else if (t === 4) Sites.gym();
-    else if (t === 5) Sites.center();
-    else if (t >= 13 && t <= 17) Sites.elite(t - 13);
+    else if (t === 4) { if (!this._inGym) { this._inGym = true; Sites.gym(); } }
+    else this._inGym = false;
+    if (t === 5) { if (!this._inCenter) { this._inCenter = true; Sites.center(); } }
+    else this._inCenter = false;
+    if (t >= 13 && t <= 17) Sites.elite(t - 13);
+    FieldTrainers.check();
     SaveSystem.save();
     UIManager.updateCoords();
   },
@@ -631,6 +644,8 @@ const Player = {
     const { x, y, t } = facingTile();
     const npc = NPCS.find(n => n.region === MapManager.current && n.x === x && n.y === y);
     if (npc) { UIManager.toastModal("TOWNSFOLK", npc.quote); return; }
+    const tr = FieldTrainers.at(x, y);
+    if (tr) { Sites.trainer(tr); return; }
     if (t === 4) Sites.gym();
     else if (t === 5) Sites.center();
     else if (t >= 13 && t <= 17) Sites.elite(t - 13);
@@ -730,10 +745,71 @@ const EncounterSystem = {
       leader: poke.leader,
       badge: poke.badge,
       e4Index: poke.e4Index,
+      trainerId: poke.trainerId,
     });
     UIManager.openBattleHandoff(poke);
   },
   run() { this.close(); },
+};
+
+const TRAINER_CLASSES = [
+  { title: "Youngster Joey", mon: "Rattata", level: 7, color: "#4a90d9", regions: [0, 1, 2] },
+  { title: "Lass Sally", mon: "Jigglypuff", level: 8, color: "#e07a9a", regions: [0, 1, 2] },
+  { title: "Bug Catcher Abe", mon: "Caterpie", level: 6, color: "#8bc34a", regions: [0, 2] },
+  { title: "Camper Liam", mon: "Pidgey", level: 9, color: "#c4a574", regions: [0, 2] },
+  { title: "Hiker Ron", mon: "Geodude", level: 11, color: "#8d6e63", regions: [0, 3] },
+  { title: "Swimmer Kai", mon: "Squirtle", level: 12, color: "#4fc3f7", regions: [1] },
+  { title: "Engineer Volt", mon: "Pikachu", level: 13, color: "#f4d03f", regions: [2] },
+  { title: "Firebreather Ash", mon: "Charmander", level: 14, color: "#ef5350", regions: [3] },
+  { title: "Psychic Nyx", mon: "Gastly", level: 16, color: "#7c3aed", regions: [4] },
+  { title: "Ace Trainer Rei", mon: "Eevee", level: 15, color: "#c8a878", regions: [1, 2, 3, 4] },
+];
+
+const FieldTrainers = {
+  byRegion: [],
+  init() {
+    this.byRegion = [0, 1, 2, 3, 4].map((r) => this.spawn(r));
+    const beaten = new Set(SaveSystem.state.beatenTrainers || []);
+    this.byRegion.forEach((list) => list.forEach((tr) => { if (beaten.has(tr.id)) tr.beaten = true; }));
+  },
+  spawn(r) {
+    const rnd = mulberry32(0x71A1 ^ (r * 1337));
+    const classes = TRAINER_CLASSES.filter((c) => c.regions.includes(r));
+    const out = [];
+    let attempts = 0;
+    while (out.length < 4 && attempts++ < 90) {
+      const x = 4 + Math.floor(rnd() * (MAP_SIZE - 8));
+      const y = 4 + Math.floor(rnd() * (MAP_SIZE - 8));
+      const t = MAPS[r][y][x];
+      if (t !== 0) continue;
+      if (out.some((o) => Math.abs(o.x - x) + Math.abs(o.y - y) < 7)) continue;
+      const cls = classes[out.length % Math.max(1, classes.length)];
+      if (!cls) break;
+      out.push({ id: r + "-" + out.length, x, y, title: cls.title, mon: cls.mon, level: cls.level + r, color: cls.color, beaten: false });
+    }
+    return out;
+  },
+  list(r) { return this.byRegion[r] || []; },
+  at(x, y) {
+    return this.list(MapManager.current).find((tr) => !tr.beaten && tr.x === x && tr.y === y);
+  },
+  check() {
+    const list = this.list(MapManager.current);
+    for (const tr of list) {
+      if (tr.beaten) continue;
+      if (Math.abs(tr.x - Player.x) + Math.abs(tr.y - Player.y) <= 1) {
+        Sites.trainer(tr);
+        return;
+      }
+    }
+  },
+  mark(id) {
+    this.list(MapManager.current).forEach((tr) => { if (tr.id === id) tr.beaten = true; });
+    const set = new Set(SaveSystem.state.beatenTrainers || []);
+    set.add(id);
+    SaveSystem.state.beatenTrainers = [...set];
+    SaveSystem.save();
+  },
 };
 
 const Sites = {
@@ -741,13 +817,25 @@ const Sites = {
     const g = MapManager.gym();
     if (!g) return;
     if ((SaveSystem.state.badges || []).includes(g.badge)) {
-      UIManager.toastModal(g.name, "The GYM LEADER is out. You already earned the " + g.badge + " Badge.");
+      UIManager.toastModal(g.name, g.leader + " nods. You already hold the " + g.badge + " Badge.");
       return;
     }
     EncounterSystem.current = { name: g.mon, emoji: g.emoji, color: "#e2b53a", kind: "gym", level: g.level, leader: g.leader, badge: g.badge };
     Player.frozen = true;
-    UIManager.openTrainer("GYM CHALLENGE", g.leader + " the " + g.type + " trainer", g.mon,
-      "Fight for the " + g.badge + " Badge?");
+    EncounterSystem.handed = false;
+    UIManager.openTrainer("GYM LEADER", g.leader + " · " + g.type, g.mon,
+      "Walk-in challenge for the " + g.badge + " Badge!");
+    clearTimeout(EncounterSystem.autoTimer);
+    EncounterSystem.autoTimer = setTimeout(() => EncounterSystem.fight(), 550);
+  },
+  trainer(tr) {
+    if (!tr || tr.beaten) return;
+    EncounterSystem.current = { name: tr.mon, kind: "trainer", level: tr.level, leader: tr.title, catchable: false, trainerId: tr.id, color: tr.color };
+    Player.frozen = true;
+    EncounterSystem.handed = false;
+    UIManager.openTrainer("TRAINER BATTLE", tr.title, tr.mon, "A wandering trainer wants to battle! You cannot catch their Pokémon.");
+    clearTimeout(EncounterSystem.autoTimer);
+    EncounterSystem.autoTimer = setTimeout(() => EncounterSystem.fight(), 500);
   },
   center() {
     Player.frozen = true;
@@ -990,7 +1078,7 @@ const UIManager = {
         const px = mx * TILE - camPx, py = my * TILE - camPy;
         const t = MapManager.tileAt(mx, my);
         this.drawTile(ctx, t, px, py, mx, my);
-        if ([2, 4, 5, 8, 9].includes(t) || (t >= 13 && t <= 17)) overlays.push({ t, px, py, mx, my });
+        if ([2, 4, 5, 8, 9, 18, 19].includes(t) || (t >= 13 && t <= 17)) overlays.push({ t, px, py, mx, my });
       }
     }
     NPCS.filter(n => n.region === MapManager.current).forEach(n => {
@@ -998,13 +1086,20 @@ const UIManager = {
       if (px < -40 || py < -40 || px > CANVAS_PX || py > CANVAS_PX) return;
       this.drawNpc(ctx, px, py, n.color);
     });
+    FieldTrainers.list(MapManager.current).forEach(tr => {
+      const px = tr.x * TILE - camPx, py = tr.y * TILE - camPy;
+      if (px < -40 || py < -40 || px > CANVAS_PX || py > CANVAS_PX) return;
+      this.drawFieldTrainer(ctx, px, py, tr);
+    });
     const ppx = Player.x * TILE - camPx;
     const ppy = Player.y * TILE - camPy;
     this.drawTrainer(ctx, ppx, ppy, Player.facing);
     overlays.forEach(o => {
+      if (o.t === 5) this.drawPokeCenter(ctx, o.px, o.py);
+      if (o.t === 4) this.drawGym(ctx, o.px, o.py);
       if (o.my < Player.y) return;
       if (o.t === 2) this.drawTreeTop(ctx, o.px, o.py);
-      if (o.t === 4 || o.t === 5 || o.t === 8) this.drawRoof(ctx, o.t, o.px, o.py);
+      if (o.t === 8) this.drawRoof(ctx, o.t, o.px, o.py);
     });
     // depth fog / vignette
     const vg = ctx.createRadialGradient(CANVAS_PX/2, CANVAS_PX/2, CANVAS_PX*0.35, CANVAS_PX/2, CANVAS_PX/2, CANVAS_PX*0.72);
@@ -1022,6 +1117,71 @@ const UIManager = {
     ctx.fillRect(px + 8, py + 12, 16, 14);
     ctx.fillStyle = '#f0c8a0';
     ctx.fillRect(px + 10, py + 3, 12, 11);
+  },
+  drawFieldTrainer(ctx, px, py, tr) {
+    ctx.fillStyle = 'rgba(0,0,0,.22)';
+    ctx.beginPath(); ctx.ellipse(px + 16, py + 30, 10, 4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = tr.beaten ? '#8a8a8a' : tr.color;
+    ctx.fillRect(px + 9, py + 12, 14, 15);
+    ctx.fillStyle = '#f0c8a0';
+    ctx.fillRect(px + 11, py + 4, 10, 10);
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(px + 10, py + 3, 12, 3);
+    if (!tr.beaten) {
+      ctx.fillStyle = '#cc2b2b';
+      ctx.beginPath(); ctx.arc(px + 26, py + 6, 3, 0, Math.PI * 2); ctx.fill();
+    }
+  },
+  drawPokeCenter(ctx, px, py) {
+    const x = px - TILE, y = py - TILE * 2, w = TILE * 3, h = TILE * 2.35;
+    ctx.fillStyle = 'rgba(0,0,0,.18)';
+    ctx.fillRect(x + 6, y + h - 4, w - 8, 10);
+    ctx.fillStyle = '#f4f1ea';
+    ctx.fillRect(x + 4, y + 22, w - 8, h - 22);
+    ctx.fillStyle = '#e85d6c';
+    ctx.beginPath();
+    ctx.moveTo(x, y + 28);
+    ctx.lineTo(x + w / 2, y + 4);
+    ctx.lineTo(x + w, y + 28);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#d32f2f';
+    ctx.fillRect(x + w / 2 - 4, y + 36, 8, 22);
+    ctx.fillRect(x + w / 2 - 11, y + 42, 22, 8);
+    ctx.fillStyle = '#90caf9';
+    ctx.fillRect(px + 8, py + 6, 16, 26);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(px + 14, py + 14, 4, 10);
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x + 4, y + 22, w - 8, h - 22);
+  },
+  drawGym(ctx, px, py) {
+    const g = MapManager.gym();
+    const roof = ({ Rock: '#8d6e63', Water: '#1976d2', Electric: '#f9a825', Fire: '#e53935' })[g && g.type] || '#5d4037';
+    const x = px - TILE, y = py - TILE * 2, w = TILE * 3, h = TILE * 2.35;
+    ctx.fillStyle = 'rgba(0,0,0,.18)';
+    ctx.fillRect(x + 6, y + h - 4, w - 8, 10);
+    ctx.fillStyle = '#d7ccc8';
+    ctx.fillRect(x + 4, y + 22, w - 8, h - 22);
+    ctx.fillStyle = roof;
+    ctx.beginPath();
+    ctx.moveTo(x, y + 28);
+    ctx.lineTo(x + w / 2, y + 2);
+    ctx.lineTo(x + w, y + 28);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#e2b53a';
+    ctx.beginPath(); ctx.arc(x + w / 2, y + 44, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = roof;
+    ctx.beginPath(); ctx.arc(x + w / 2, y + 44, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#5d4037';
+    ctx.fillRect(px + 8, py + 6, 16, 26);
+    ctx.fillStyle = '#f0c8a0';
+    ctx.fillRect(px + 11, py + 2, 10, 10);
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x + 4, y + 22, w - 8, h - 22);
   },
   drawTrainer(ctx, ppx, ppy, facing) {
     const im = TRAINER[facing] || TRAINER.down;
@@ -1128,8 +1288,15 @@ const UIManager = {
       ctx.fillText('▶', px + 16, py + 16);
     } else if (t === 1) {
       if (!fillWorldTex(ctx, biomeTex, px, py, mx, my)) fillWorldTex(ctx, TEX.grass, px, py, mx, my);
-      ctx.fillStyle = 'rgba(12,56,22,.22)';
-      ctx.fillRect(px, py, TILE, TILE);
+      const seed = (mx * 13) ^ (my * 31);
+      ctx.fillStyle = 'rgba(28,92,36,.78)';
+      for (let i = 0; i < 3; i++) {
+        const ox = 7 + ((seed + i * 9) % 16);
+        const oy = 12 + ((seed + i * 5) % 12);
+        ctx.beginPath();
+        ctx.ellipse(px + ox, py + oy, 3.2, 5.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
     } else if (t === 7) {
       if (!fillWorldTex(ctx, TEX.grass, px, py, mx, my)) {
         ctx.fillStyle = '#43a047';
@@ -1196,28 +1363,20 @@ const UIManager = {
       ctx.fillRect(px + 6, py + 14, 6, 6);
       this.drawRoof(ctx, 8, px, py);
     } else if (t === 4) {
-      if (!fillWorldTex(ctx, biomeTex, px, py, mx, my)) {
-        ctx.fillStyle = tint;
-        ctx.fillRect(px, py, TILE, TILE);
-      }
-      ctx.fillStyle = '#bcaaa4';
-      ctx.fillRect(px + 0, py + 8, 32, 24);
-      ctx.fillStyle = '#3e2723';
-      ctx.fillRect(px + 12, py + 18, 8, 14);
-      ctx.fillStyle = '#e2b53a';
-      ctx.fillRect(px + 6, py + 10, 20, 5);
-      this.drawRoof(ctx, 4, px, py);
+      ctx.fillStyle = '#cbb89a';
+      ctx.fillRect(px, py, TILE, TILE);
     } else if (t === 5) {
-      if (!fillWorldTex(ctx, biomeTex, px, py, mx, my)) {
-        ctx.fillStyle = tint;
-        ctx.fillRect(px, py, TILE, TILE);
-      }
-      ctx.fillStyle = '#fafafa';
-      ctx.fillRect(px + 0, py + 8, 32, 24);
-      ctx.fillStyle = '#e53935';
-      ctx.fillRect(px + 13, py + 12, 6, 14);
-      ctx.fillRect(px + 9, py + 16, 14, 6);
-      this.drawRoof(ctx, 5, px, py);
+      ctx.fillStyle = '#efe8dc';
+      ctx.fillRect(px, py, TILE, TILE);
+      ctx.fillStyle = '#d32f2f';
+      ctx.fillRect(px + 14, py + 10, 4, 12);
+      ctx.fillRect(px + 10, py + 14, 12, 4);
+    } else if (t === 18) {
+      ctx.fillStyle = '#f4f1ea';
+      ctx.fillRect(px, py, TILE, TILE);
+    } else if (t === 19) {
+      ctx.fillStyle = '#d7ccc8';
+      ctx.fillRect(px, py, TILE, TILE);
     } else if (t === 9) {
       ctx.fillStyle = '#311b92';
       ctx.fillRect(px, py, TILE, TILE);
@@ -1239,7 +1398,7 @@ const UIManager = {
 
 const SaveSystem = {
   KEY: 'pokeregions-save',
-  state: { x: Math.floor(MAP_SIZE / 2), y: Math.floor(MAP_SIZE / 2), region: 0, seen: [], caught: [], badges: [], e4: 0 },
+  state: { x: Math.floor(MAP_SIZE / 2), y: Math.floor(MAP_SIZE / 2), region: 0, seen: [], caught: [], badges: [], e4: 0, beatenTrainers: [] },
   load() {
     try {
       const raw = localStorage.getItem(this.KEY);
@@ -1346,6 +1505,7 @@ function loop() {
 window.addEventListener('load', () => {
   UIManager.init();
   SaveSystem.load();
+  FieldTrainers.init();
   UIManager.renderPokedex();
   UIManager.renderBadges();
   UIManager.renderPartyHud();
@@ -1379,6 +1539,9 @@ window.addEventListener('message', (e) => {
     SaveSystem.save();
     const next = E4[SaveSystem.state.e4];
     UIManager.toastModal("CHAMBER CLEARED", next ? (next.leader + " is next.") : "You are the Champion.");
+  }
+  if (d.type === 'pv-adventure-trainer-won' && d.id) {
+    FieldTrainers.mark(d.id);
   }
   if (d.type === 'pv-adventure-caught' && d.name) {
     const name = String(d.name);
