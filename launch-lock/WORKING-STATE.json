@@ -2,7 +2,7 @@
   "id": "pokedex-hub-launch-ready-2026-09-10-adventure-go-gfx",
   "liveUrl": "https://pokedex-hub-lime.vercel.app/",
   "frozenAt": "2026-09-10T18:00:00.000Z",
-  "rootSha256": "8f13231e4f774f205648ccf99244df19594380c168df47a4551312ef81d6e976",
+  "rootSha256": "01eb7125ed9f11680d82e9c1e8ba16b577767e21b159654e7ab76de08488e6a6",
   "fileCount": 202,
   "launchChecks": {
     "homeSsrPvApp": true,
@@ -64,8 +64,8 @@
     },
     {
       "path": "public/adventure.html",
-      "sha256": "fd9069a2bac253f0ca0a929c1a61749aaea284532fdd185929277e3338e252bc",
-      "bytes": 58428
+      "sha256": "90b0f90260a43bcdf631bd0d7cf1a00ab76f4282f4c673a7e54f27edaee9223d",
+      "bytes": 58495
     },
     {
       "path": "public/asia-catalog.json",
@@ -759,8 +759,8 @@
     },
     {
       "path": "vercel.json",
-      "sha256": "42153cf6220cabb0c5195e72a619393803c2efda94628b9b2a546ae828555692",
-      "bytes": 1001
+      "sha256": "6d357c2387ccb98a8c4ca9145903ed7c68e767c4b679fe58122f6167647233f1",
+      "bytes": 1008
     },
     {
       "path": "vite.config.ts",
