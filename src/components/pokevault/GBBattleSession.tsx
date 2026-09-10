@@ -87,10 +87,16 @@ export function GBBattleSession({
   const e4IndexRef = useRef(0);
   const startedRef = useRef(false);
   const pendingFoeRef = useRef(foeProps);
+  const faintedRef = useRef<Set<string>>(new Set());
+  const partyRef = useRef<GBMon[]>([]);
+  const [fainted, setFainted] = useState<string[]>([]);
 
   useEffect(() => {
     pendingFoeRef.current = foeProps;
   }, [foeProps]);
+  useEffect(() => {
+    partyRef.current = party;
+  }, [party]);
 
   async function kickoff(mon: GBMon, f: GBMon, kindLabel: string) {
     try {
@@ -113,6 +119,8 @@ export function GBBattleSession({
     setMeFx("");
     setCatchPhase(null);
     setNotice(null);
+    faintedRef.current = new Set();
+    setFainted([]);
     setScene("battle");
   }
 
@@ -256,9 +264,38 @@ export function GBBattleSession({
     if (newPlayerHp <= 0) {
       setMeFx("faint");
       await wait(500);
+      await sendNextOrWhiteOut(active);
+      return;
+    }
+    setBusy(false);
+  }
+
+  async function sendNextOrWhiteOut(down: GBMon) {
+    faintedRef.current.add(down.id);
+    setFainted([...faintedRef.current]);
+    const loser = { ...down, losses: down.losses + 1 };
+    try {
+      await saveMonStats(loser);
+    } catch (e) {
+      console.error(e);
+    }
+    const nextParty = partyRef.current.map((x) => (x.id === loser.id ? loser : x));
+    setParty(nextParty);
+    partyRef.current = nextParty;
+    const next = nextParty.find((m) => !faintedRef.current.has(m.id));
+    if (!next) {
       await endBattle(false);
       return;
     }
+    setLog((l) => [
+      `Go! ${next.name.toUpperCase()}!`,
+      `${down.name.toUpperCase()} fainted!`,
+      ...l,
+    ]);
+    setActive(next);
+    setActiveHp(next.max_hp);
+    setMeFx("");
+    setPane("main");
     setBusy(false);
   }
 
@@ -277,6 +314,7 @@ export function GBBattleSession({
 
   async function switchTo(mon: GBMon) {
     if (busy || !active || mon.id === active.id) return;
+    if (faintedRef.current.has(mon.id)) return;
     setBusy(true);
     setPane("main");
     setActive(mon);
@@ -387,13 +425,6 @@ export function GBBattleSession({
       }
       setScene("victory");
     } else {
-      const loser = { ...active, losses: active.losses + 1 };
-      try {
-        await saveMonStats(loser);
-      } catch (e) {
-        console.error(e);
-      }
-      setParty((p) => p.map((x) => (x.id === loser.id ? loser : x)));
       setScene("defeat");
     }
     setBusy(false);
@@ -438,6 +469,7 @@ export function GBBattleSession({
           busy={busy}
           pane={pane}
           party={party}
+          fainted={fainted}
           potions={potions}
           onPane={setPane}
           onMove={playerAttack}
@@ -459,7 +491,7 @@ export function GBBattleSession({
         <ResultScreen
           title="WHITE OUT…"
           mon={active}
-          extra="Your Pokémon fainted. Heal at a Poké Center and try again."
+          extra="Your whole party fainted. Heal at a Poké Center and try again."
           onContinue={() => onDone("lose")}
         />
       )}
@@ -606,6 +638,7 @@ function BattleScreen({
   busy,
   pane,
   party,
+  fainted,
   potions,
   onPane,
   onMove,
@@ -627,6 +660,7 @@ function BattleScreen({
   busy: boolean;
   pane: BattlePane;
   party: GBMon[];
+  fainted: string[];
   potions: number;
   onPane: (p: BattlePane) => void;
   onMove: (m: GBMove) => void;
@@ -705,7 +739,7 @@ function BattleScreen({
           <button className="gb-move" disabled={busy} onClick={() => onPane("bag")}>
             BAG
           </button>
-          <button className="gb-move" disabled={busy || party.length < 2} onClick={() => onPane("switch")}>
+          <button className="gb-move" disabled={busy || party.filter((m) => m.id !== me.id && !fainted.includes(m.id)).length < 1} onClick={() => onPane("switch")}>
             POKéMON
           </button>
           <button className="gb-move gb-move-run" disabled={busy} onClick={onRun}>
@@ -744,7 +778,7 @@ function BattleScreen({
       {pane === "switch" && (
         <div className="gb-switch">
           {party.map((m) => (
-            <button key={m.id} className="gb-switch-item" disabled={busy || m.id === me.id} onClick={() => onSwitch(m)}>
+            <button key={m.id} className="gb-switch-item" disabled={busy || m.id === me.id || fainted.includes(m.id)} onClick={() => onSwitch(m)}>
               <SpriteImg name={m.name} alt={m.name} />
               <div>
                 <div className="gb-pm-name">{m.name.toUpperCase()}</div>
@@ -753,6 +787,7 @@ function BattleScreen({
                 </div>
               </div>
               {m.id === me.id && <span className="gb-tag">ACTIVE</span>}
+              {fainted.includes(m.id) && <span className="gb-tag">FAINTED</span>}
             </button>
           ))}
           <button className="gb-move gb-move-run" disabled={busy} onClick={() => onPane("main")}>

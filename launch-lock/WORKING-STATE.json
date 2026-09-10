@@ -1,8 +1,8 @@
 {
-  "id": "pokedex-hub-launch-ready-2026-09-10-follower-gba",
+  "id": "pokedex-hub-launch-ready-2026-09-10-faint-next",
   "liveUrl": "https://pokedex-hub-lime.vercel.app/",
-  "frozenAt": "2026-09-10T19:10:00.000Z",
-  "rootSha256": "1aeb3923a21b8b6bd403c9eac18f047a2d61aec1776e0d01c9e9233334913451",
+  "frozenAt": "2026-09-10T19:40:00.000Z",
+  "rootSha256": "5af0a3fc0c716105f82dba71d1bc3f589c1bd4bbc47650953d00ce8472a2d29d",
   "fileCount": 209,
   "launchChecks": {
     "homeSsrPvApp": true,
@@ -27,7 +27,8 @@
     "allRegions": true,
     "speciesSprites": true,
     "followerSprites": true,
-    "gbaButtons": true
+    "gbaButtons": true,
+    "faintSendNext": true
   },
   "quantum": {
     "cacheKey": "pokedex-hub:launch-lock",
@@ -189,8 +190,8 @@
     },
     {
       "path": "src/components/pokevault/GameBoy.tsx",
-      "sha256": "6bc0da6ef20a0dad1947f8063435571c25e4534c255cdf605bb88291a4a91d82",
-      "bytes": 29385
+      "sha256": "3ae1789fe08105d72d9c827dfdc03db159c6117d27885e872300f1d0e0257306",
+      "bytes": 30528
     },
     {
       "path": "src/components/pokevault/Marketplace.tsx",
@@ -1079,8 +1080,8 @@
     },
     {
       "path": "src/components/pokevault/GBBattleSession.tsx",
-      "sha256": "b5e6fca8265dc50d13b252befdff3d19331b636b1093d72845b7310a572efda7",
-      "bytes": 25364
+      "sha256": "21fa5353fdc78288d349f3b2fe5cb9faf2f43fbe33df6b2858066f151d728711",
+      "bytes": 26484
     }
   ]
 }

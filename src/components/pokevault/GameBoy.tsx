@@ -56,6 +56,13 @@ export function GameBoyView() {
   const badgeRef = useRef<string | undefined>(undefined);
   const e4IndexRef = useRef<number>(0);
   const [catchable, setCatchable] = useState(true);
+  const faintedRef = useRef<Set<string>>(new Set());
+  const partyRef = useRef<GBMon[]>([]);
+  const [fainted, setFainted] = useState<string[]>([]);
+
+  useEffect(() => {
+    partyRef.current = party;
+  }, [party]);
 
   useEffect(() => {
     (async () => {
@@ -145,6 +152,8 @@ export function GameBoyView() {
     setFoeFx(""); setMeFx("");
     setCatchPhase(null);
     setNotice(null);
+    faintedRef.current = new Set();
+    setFainted([]);
     setScene("battle");
   }
 
@@ -164,6 +173,8 @@ export function GameBoyView() {
     setFoeFx(""); setMeFx("");
     setCatchPhase(null);
     setNotice(null);
+    faintedRef.current = new Set();
+    setFainted([]);
     setScene("battle");
   }
 
@@ -241,9 +252,38 @@ export function GameBoyView() {
     if (newPlayerHp <= 0) {
       setMeFx("faint");
       await wait(500);
+      await sendNextOrWhiteOut(active);
+      return;
+    }
+    setBusy(false);
+  }
+
+  async function sendNextOrWhiteOut(down: GBMon) {
+    faintedRef.current.add(down.id);
+    setFainted([...faintedRef.current]);
+    const loser = { ...down, losses: down.losses + 1 };
+    try {
+      await saveMonStats(loser);
+    } catch (e) {
+      console.error(e);
+    }
+    const nextParty = partyRef.current.map((x) => (x.id === loser.id ? loser : x));
+    setParty(nextParty);
+    partyRef.current = nextParty;
+    const next = nextParty.find((m) => !faintedRef.current.has(m.id));
+    if (!next) {
       await endBattle(false);
       return;
     }
+    setLog((l) => [
+      `Go! ${next.name.toUpperCase()}!`,
+      `${down.name.toUpperCase()} fainted!`,
+      ...l,
+    ]);
+    setActive(next);
+    setActiveHp(next.max_hp);
+    setMeFx("");
+    setPane("main");
     setBusy(false);
   }
 
@@ -263,9 +303,9 @@ export function GameBoyView() {
 
   async function switchTo(mon: GBMon) {
     if (busy || !active || mon.id === active.id) return;
+    if (faintedRef.current.has(mon.id)) return;
     setBusy(true);
     setPane("main");
-    // save current mon HP not persisted (HP is per-battle)
     setActive(mon);
     setActiveHp(mon.max_hp);
     setLog((l) => [`↺ Go! ${mon.name.toUpperCase()}!`, ...l]);
@@ -364,9 +404,6 @@ export function GameBoyView() {
       }
       setScene("victory");
     } else {
-      const loser = { ...active, losses: active.losses + 1 };
-      try { await saveMonStats(loser); } catch (e) { console.error(e); }
-      setParty((p) => p.map((x) => (x.id === loser.id ? loser : x)));
       setScene("defeat");
     }
     setBusy(false);
@@ -438,6 +475,7 @@ export function GameBoyView() {
               busy={busy}
               pane={pane}
               party={party}
+              fainted={fainted}
               potions={potions}
               onPane={setPane}
               onMove={playerAttack}
@@ -464,7 +502,7 @@ export function GameBoyView() {
             <ResultScreen
               title="WHITE OUT…"
               mon={active}
-              extra="Your Pokémon fainted. Heal at the Party screen and try again."
+              extra="Your whole party fainted. Heal at a Poké Center and try again."
               onContinue={() => {
                 const back = fromAdventureRef.current;
                 fromAdventureRef.current = false;
@@ -631,7 +669,7 @@ function StarterPicker({
 }
 
 function BattleScreen({
-  me, meHp, foe, foeHp, meFx, foeFx, catchPhase, catchable, atkClip, log, busy, pane, party, potions,
+  me, meHp, foe, foeHp, meFx, foeFx, catchPhase, catchable, atkClip, log, busy, pane, party, fainted, potions,
   onPane, onMove, onPotion, onSwitch, onCatch, onRun,
 }: {
   me: GBMon; meHp: number; foe: GBMon; foeHp: number;
@@ -640,7 +678,7 @@ function BattleScreen({
   catchable: boolean;
   atkClip: string | null;
   log: string[]; busy: boolean; pane: BattlePane;
-  party: GBMon[]; potions: number;
+  party: GBMon[]; fainted: string[]; potions: number;
   onPane: (p: BattlePane) => void;
   onMove: (m: GBMove) => void;
   onPotion: () => void;
@@ -703,7 +741,7 @@ function BattleScreen({
         <div className="gb-moves">
           <button className="gb-move" disabled={busy} onClick={() => onPane("fight")}>FIGHT</button>
           <button className="gb-move" disabled={busy} onClick={() => onPane("bag")}>BAG</button>
-          <button className="gb-move" disabled={busy || party.length < 2} onClick={() => onPane("switch")}>POKéMON</button>
+          <button className="gb-move" disabled={busy || party.filter((m) => m.id !== me.id && !fainted.includes(m.id)).length < 1} onClick={() => onPane("switch")}>POKéMON</button>
           <button className="gb-move gb-move-run" disabled={busy} onClick={onRun}>RUN</button>
         </div>
       )}
@@ -742,7 +780,7 @@ function BattleScreen({
             <button
               key={m.id}
               className="gb-switch-item"
-              disabled={busy || m.id === me.id}
+              disabled={busy || m.id === me.id || fainted.includes(m.id)}
               onClick={() => onSwitch(m)}
             >
               <SpriteImg name={m.name} alt={m.name} />
@@ -751,6 +789,7 @@ function BattleScreen({
                 <div className="gb-pm-meta">Lv {m.level} · HP {m.max_hp}</div>
               </div>
               {m.id === me.id && <span className="gb-tag">ACTIVE</span>}
+              {fainted.includes(m.id) && <span className="gb-tag">FAINTED</span>}
             </button>
           ))}
           <button className="gb-move gb-move-run" disabled={busy} onClick={() => onPane("main")}>BACK</button>
