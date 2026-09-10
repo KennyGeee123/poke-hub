@@ -15,7 +15,6 @@ export function AdventureView() {
   const [pendingWild, setPendingWild] = useState<PendingWild | null>(null);
   const [battleOpen, setBattleOpen] = useState(false);
   const [battleFoe, setBattleFoe] = useState<GBBattleFoe | null>(null);
-  const [sceneVidOk, setSceneVidOk] = useState(true);
   const [frameBlocked, setFrameBlocked] = useState(false);
   const [badges, setBadges] = useState<string[]>([]);
   const [e4, setE4] = useState(0);
@@ -193,11 +192,18 @@ export function AdventureView() {
     };
     window.addEventListener("pv-adv-gym-won", onGymWon as EventListener);
     window.addEventListener("pv-adv-elite-won", onE4Won as EventListener);
+    const onCaught = (e: Event) => {
+      const name = (e as CustomEvent).detail?.name;
+      if (!name) return;
+      postIframe({ type: "pv-adventure-caught", name });
+    };
+    window.addEventListener("pv-adventure-caught", onCaught as EventListener);
     return () => {
       window.removeEventListener("message", onMsg);
       window.removeEventListener("pv-goto", onGoto as EventListener);
       window.removeEventListener("pv-adv-gym-won", onGymWon as EventListener);
       window.removeEventListener("pv-adv-elite-won", onE4Won as EventListener);
+      window.removeEventListener("pv-adventure-caught", onCaught as EventListener);
     };
   }, []);
 
@@ -206,27 +212,9 @@ export function AdventureView() {
 
   return (
     <div className="pv-adv">
-      {scene && !battleOpen && (
+      {scene?.url && !battleOpen && (
         <div className="pv-adv-scene">
-          {sceneVidOk && (
-            <video
-              key={scene.name}
-              className="pv-adv-scene-vid"
-              src="/fx/adventure-encounter.mp4"
-              autoPlay
-              muted
-              loop
-              playsInline
-              onError={() => setSceneVidOk(false)}
-            />
-          )}
-          {!sceneVidOk && scene.url ? (
-            <img src={scene.url} alt={`Wild ${scene.name} scene`} className="pv-adv-scene-img" />
-          ) : !sceneVidOk && !scene.url ? (
-            <div className="pv-adv-scene-ph">
-              {scene.loading ? `Rendering ${scene.name} cinematic…` : scene.error || "scene unavailable"}
-            </div>
-          ) : null}
+          <img src={scene.url} alt={`Wild ${scene.name} scene`} className="pv-adv-scene-img" />
           <div className="pv-adv-scene-bar">
             <div>
               <div className="pv-adv-scene-kicker">

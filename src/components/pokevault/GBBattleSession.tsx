@@ -305,6 +305,7 @@ export function GBBattleSession({
     if (Math.random() < chance) {
       setCatchPhase("caught");
       setLog((l) => [`✨ Gotcha! ${foe.name.toUpperCase()} was caught!`, ...l]);
+      window.dispatchEvent(new CustomEvent("pv-adventure-caught", { detail: { name: foe.name } }));
       try {
         const res = await searchCards({
           q: `name:"${foe.name}" supertype:Pokémon`,
@@ -657,7 +658,7 @@ function BattleScreen({
   return (
     <div className="gb-page gb-battle">
       <div className={`gb-arena ${catchPhase ? `pv-catching-${catchPhase}` : ""}`}>
-        <video className="gb-arena-vid" src={ARENA_CLIP} autoPlay muted loop playsInline />
+        <video className="gb-arena-vid" src={ARENA_CLIP} autoPlay muted loop playsInline preload="none" />
         {atkClip && <video key={atkClip} className="gb-atk-vid" src={atkClip} autoPlay muted playsInline />}
         <div className="gb-bf">
           <div className="gb-side gb-foe">

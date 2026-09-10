@@ -1,10 +1,14 @@
-FROZEN — launch-ready working state 2026-09-02 (shadowless + fuzzy search)
+FROZEN — launch-ready working state 2026-09-10 (adventure upgrade)
 Live: https://pokedex-hub-lime.vercel.app/
 Lock: launch-lock/WORKING-STATE.json
-Tag:  launch-ready-2026-09-02-shadowless-search
+Tag:  launch-ready-2026-09-10-adventure-upgrade
 
-Japanese / Traditional Chinese / Simplified Chinese / Korean / Thai / EU
-print-language cards with live TCGPlayer prices.
+Adventure P0/P1 plus GO-style map/trainer textures under public/adventure-assets/
+(grass, path, tall grass, water, ash, wall + 4-dir trainer). Sight≠catch, camera
+pixel-snap, local PokeAPI gen5 sprites, per-region wild tables.
+
+Previous: Japanese / Traditional Chinese / Simplified Chinese / Korean / Thai / EU
+print-language cards with live TCGPlayer prices; shadowless + fuzzy search.
 
 Do not apply drive-by / "hack" edits to hashed files.
 Quantum loop (KM Command cron `pokedex-launch-lock`, every 5 min) re-hashes

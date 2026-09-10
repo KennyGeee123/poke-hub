@@ -662,7 +662,7 @@ function BattleScreen({
   return (
     <div className="gb-page gb-battle">
       <div className={`gb-arena ${catchPhase ? `pv-catching-${catchPhase}` : ""}`}>
-      <video className="gb-arena-vid" src={ARENA_CLIP} autoPlay muted loop playsInline />
+      <video className="gb-arena-vid" src={ARENA_CLIP} autoPlay muted loop playsInline preload="none" />
       {atkClip && (
         <video key={atkClip} className="gb-atk-vid" src={atkClip} autoPlay muted playsInline />
       )}

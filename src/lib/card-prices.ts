@@ -36,10 +36,16 @@ export type AggregateResponse = {
 };
 
 const cache = new Map<string, { t: number; v: AggregateResponse }>();
-const TTL_MS = 20 * 1000;
+export const TTL_MS = 20 * 1000;
 
 /** Conservative EUR→USD used by the seed path; matches the API FX table. */
 export const FX_EUR_USD = 1.08;
+
+/** Fetch more live rows when the remaining loop drops below this. */
+export const REFILL_AT = 4;
+
+/** TimeFlow: re-rank landed cost on a 5s ticker; fetch only when stale or thin. */
+export const TICK_MS = 5_000;
 
 export function listingTotal(l: Listing): number {
   return (Number(l.price) || 0) + (Number(l.shipping) || 0);
@@ -158,11 +164,111 @@ export function rankQueue(
   return priced;
 }
 
+export function needsRefill(queue: Listing[]): boolean {
+  return queue.length < REFILL_AT;
+}
+
+/** Merge live rows over seed, drop skip keys, re-rank. Never rebuild from seed alone. */
+export function mergeLiveQueue(
+  seed: Listing[],
+  live: Listing[],
+  skipKeys: string[] = [],
+  preferPrints: string[] = [],
+): Listing[] {
+  const livePriced = live.filter((l) => listingTotal(l) > 0 && l.url);
+  return rankQueue(
+    { query: "", cheapest: null, queue: [...livePriced, ...seed], sources: [], generatedAt: "" },
+    skipKeys,
+    { preferPrints },
+  );
+}
+
+function prettyPrintName(name: string) {
+  return name.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase()).trim();
+}
+
+type SeedCard = {
+  name: string;
+  number?: string;
+  images?: { small?: string };
+  set?: { name?: string };
+  tcgplayer?: {
+    url?: string;
+    prices?: Record<string, { low?: number | null; directLow?: number | null }>;
+  };
+  cardmarket?: {
+    url?: string;
+    prices?: { lowPrice?: number | null; trendPrice?: number | null };
+  };
+};
+
+function pushTcgRow(
+  out: Listing[],
+  card: SeedCard,
+  variant: string,
+  price: number,
+  label: "low" | "direct",
+) {
+  const pretty = prettyPrintName(variant);
+  const url = card.tcgplayer?.url;
+  if (!url) return;
+  out.push({
+    source: "TCGplayer",
+    title: `${card.name} · ${pretty} ${label === "direct" ? "Direct" : "low"}`,
+    price,
+    priceRaw: `$${price.toFixed(2)}`,
+    currency: "USD",
+    url,
+    image: card.images?.small ?? null,
+    condition: pretty,
+    variant: label === "direct" ? `${variant}-direct` : variant,
+    kind: "listing",
+  });
+}
+
+/** Catalog seed: every TCG variant low, plus Direct when it is a different number. */
+export function seedListingsFromCard(card: SeedCard): Listing[] {
+  const out: Listing[] = [];
+  const tp = card.tcgplayer;
+  if (tp?.url && tp.prices) {
+    for (const [name, p] of Object.entries(tp.prices)) {
+      const low = typeof p?.low === "number" && p.low > 0 ? p.low : null;
+      const direct = typeof p?.directLow === "number" && p.directLow > 0 ? p.directLow : null;
+      if (low) pushTcgRow(out, card, name, low, "low");
+      if (direct && (low == null || Math.round(direct * 100) !== Math.round(low * 100))) {
+        pushTcgRow(out, card, name, direct, "direct");
+      }
+    }
+  }
+  const cm = card.cardmarket;
+  const eur = cm?.prices?.lowPrice ?? cm?.prices?.trendPrice;
+  if (cm?.url && typeof eur === "number" && eur > 0) {
+    const usd = Math.round(eur * FX_EUR_USD * 100) / 100;
+    out.push({
+      source: "Cardmarket",
+      title: `${card.name} · EU low`,
+      price: usd,
+      priceRaw: `€${eur.toFixed(2)}`,
+      currency: "EUR",
+      url: cm.url,
+      image: card.images?.small ?? null,
+      variant: "low",
+      kind: "listing",
+    });
+  }
+  return rankQueue(
+    { query: "", cheapest: out[0] ?? null, queue: out, sources: [], generatedAt: "" },
+    [],
+    { preferPrints: preferredPrintsFromCard(card) },
+  );
+}
+
 export async function getCardPrices(
   query: string,
-  opts?: { cheapOnly?: boolean; fresh?: boolean; cardId?: string },
+  opts?: { cheapOnly?: boolean; fresh?: boolean; cardId?: string; skipKeys?: string[] },
 ): Promise<AggregateResponse> {
-  const key = `${opts?.cheapOnly ? "c:" : "f:"}${opts?.cardId ?? ""}:${query.toLowerCase().trim()}`;
+  const skip = (opts?.skipKeys ?? []).slice(0, 64);
+  const key = `${opts?.cheapOnly ? "c:" : "f:"}${opts?.cardId ?? ""}:${query.toLowerCase().trim()}:${skip.slice().sort().join("|")}`;
   if (!opts?.fresh) {
     const hit = cache.get(key);
     if (hit && Date.now() - hit.t < TTL_MS) return hit.v;
@@ -181,6 +287,7 @@ export async function getCardPrices(
   if (opts?.cardId) qs.set("id", opts.cardId);
   if (opts?.cheapOnly) qs.set("cheap", "1");
   if (opts?.fresh) qs.set("fresh", "1");
+  for (const k of skip) qs.append("skip", k);
   const r = await fetch(`/api/public/card-prices?${qs}`, { headers, cache: opts?.fresh ? "no-store" : "default" });
   if (!r.ok) throw new Error(`card-prices ${r.status}`);
   const json = (await r.json()) as AggregateResponse;

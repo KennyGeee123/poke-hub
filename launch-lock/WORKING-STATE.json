@@ -1,9 +1,9 @@
 {
-  "id": "pokedex-hub-launch-ready-2026-09-02-shadowless-search",
+  "id": "pokedex-hub-launch-ready-2026-09-10-adventure-go-gfx",
   "liveUrl": "https://pokedex-hub-lime.vercel.app/",
-  "frozenAt": "2026-09-09T17:37:47.248Z",
-  "rootSha256": "f75ef62bb03df4d73391910418fbcf2d38a638029ffebab6e9c42e7fd43d8b86",
-  "fileCount": 148,
+  "frozenAt": "2026-09-10T18:00:00.000Z",
+  "rootSha256": "ee9179fce8c73e4c2ba7ce76b2c8c89c2e1a05b69144b31951f6af9a12ab6279",
+  "fileCount": 202,
   "launchChecks": {
     "homeSsrPvApp": true,
     "pokedexHub": true,
@@ -21,7 +21,8 @@
     "printLangFrDracaufeu": true,
     "asiaCatalog": true,
     "shadowlessSearch": true,
-    "fuzzySearch": true
+    "fuzzySearch": true,
+    "adventureUpgrade": true
   },
   "quantum": {
     "cacheKey": "pokedex-hub:launch-lock",
@@ -63,13 +64,13 @@
     },
     {
       "path": "public/adventure.html",
-      "sha256": "a1e4b80a41691132508dae43ef298e97720d57f0c114d0c313cef85f1168cd2f",
-      "bytes": 51851
+      "sha256": "fbe99aee1fd09b44b68a456f19662e40810733cfbc57fc3ba188b370ca54bb2a",
+      "bytes": 57356
     },
     {
       "path": "public/asia-catalog.json",
-      "sha256": "c5f6c591d8f6daff23c5338c15e8532ea9cc3c4f9cf593580a1938293e4d1703",
-      "bytes": 5242954
+      "sha256": "0a8ece9b1fe8094644fd56d851122f4250b920283778b19d9f8c00d7e15ef278",
+      "bytes": 5243926
     },
     {
       "path": "public/favicon.svg",
@@ -138,8 +139,8 @@
     },
     {
       "path": "src/components/pokevault/Adventure.tsx",
-      "sha256": "376a81ee9114f416ac9a54cfe697a5f1c65f58dc1dbe4d828e453c53090ec12d",
-      "bytes": 11821
+      "sha256": "78ebf39df91f1c8ed6e07b1afcae9a6ec9e63b54b821fee0bec70b808f0706d2",
+      "bytes": 11499
     },
     {
       "path": "src/components/pokevault/Battle.tsx",
@@ -153,8 +154,8 @@
     },
     {
       "path": "src/components/pokevault/CardTile.tsx",
-      "sha256": "751ae97a7c48a025a3912cab68fd0c6f1415ec4be54be25833863e20c2723fcf",
-      "bytes": 6001
+      "sha256": "dde2f891e2c7c06157b0cdbb2b60aec72cb4af80cd7a71f5cd6e6c4c7c7079a1",
+      "bytes": 6191
     },
     {
       "path": "src/components/pokevault/CatchFx.tsx",
@@ -163,8 +164,8 @@
     },
     {
       "path": "src/components/pokevault/CheapestPill.tsx",
-      "sha256": "0f085229588f045754257e95d1099847e55abd3401ab04ce8a11500e10013e33",
-      "bytes": 2877
+      "sha256": "e92ef9d1760bc794849d230621c4da54dfb5422b87baa9345fddf24558c2c8c0",
+      "bytes": 2952
     },
     {
       "path": "src/components/pokevault/CollectionInsights.tsx",
@@ -178,8 +179,8 @@
     },
     {
       "path": "src/components/pokevault/GameBoy.tsx",
-      "sha256": "3a9fcb0f8c70b33099e9ebfd92b9e618f5f7d3599c71f525d1721a6e13adff5a",
-      "bytes": 29379
+      "sha256": "b670f144b3d06e69e797a7ca13b2f14aea99af1db93e861a8b6554f8941f07be",
+      "bytes": 29394
     },
     {
       "path": "src/components/pokevault/Marketplace.tsx",
@@ -218,8 +219,8 @@
     },
     {
       "path": "src/components/pokevault/QuickStrike.tsx",
-      "sha256": "3b3b27c44d64ee845731452881e39aa81e3f51688c89b40b919d4ae3044ab8c5",
-      "bytes": 7474
+      "sha256": "05efa0627dea8910df8fbfb595d17cb9ec0912f63a6a3759a9e86773b8880994",
+      "bytes": 9644
     },
     {
       "path": "src/components/pokevault/Scanner.tsx",
@@ -483,8 +484,8 @@
     },
     {
       "path": "src/integrations/supabase/client.ts",
-      "sha256": "dbba1e9eaf1fd3d6b9b24eb53f30bb5d852178f8ce1767a87fee5679548b9a78",
-      "bytes": 1636
+      "sha256": "ab7350e783e62f0701c53293c5faa1d11be5a6eebf160c2463657ae5e8080583",
+      "bytes": 1660
     },
     {
       "path": "src/integrations/supabase/types.ts",
@@ -518,13 +519,13 @@
     },
     {
       "path": "src/lib/card-prices.ts",
-      "sha256": "b46729aee3c6fbaf0c9c6db18b2a5811e07391b13f5bb4bf52908bb3fc9cf00e",
-      "bytes": 3154
+      "sha256": "7b1dfc81d75bd5fdec4ea6bf600f634c0b3d2ac7038ce318654a01f4527258a7",
+      "bytes": 10080
     },
     {
       "path": "src/lib/card-search.ts",
-      "sha256": "23c8cbd8c5b2aa1b42686df2bea8e0e805df3e0de48fda48274c1b33d2df4227",
-      "bytes": 7996
+      "sha256": "3f0376027c6f7c164f4c1cbbb2e77ea0f7dd32a5f94818f1de6e824f37c75907",
+      "bytes": 9004
     },
     {
       "path": "src/lib/ebay.ts",
@@ -593,18 +594,18 @@
     },
     {
       "path": "src/lib/pokemon-api.ts",
-      "sha256": "e065f6f70283a2baab5a039a45d066b54bf4e144292b06bd7c113d7e5739d41e",
-      "bytes": 18805
+      "sha256": "7ea0bf1e21d779bf167d22a2f57eea2c9238d95124e851c86b567f34d11ec709",
+      "bytes": 18847
     },
     {
       "path": "src/lib/premium.ts",
-      "sha256": "b1fbdc79ef88071cbb040a9c3cccbd14bbbf43dc4c1e81f17b912665382578b9",
-      "bytes": 4140
+      "sha256": "f5b87dfcef825e25b9328cb07c19a08f2d11ab30e67d6af960ae6959a1421844",
+      "bytes": 4158
     },
     {
       "path": "src/lib/print-lang.ts",
-      "sha256": "60815f3cc6920f136de4e778c2c2aa6c33f13b0db5225666a09169d80814e605",
-      "bytes": 3470
+      "sha256": "a6fbdfd82bfeb39185259d22d3807ce0c15f84da8c94f1e38623563e2dc7151b",
+      "bytes": 3507
     },
     {
       "path": "src/lib/pvp.ts",
@@ -618,8 +619,8 @@
     },
     {
       "path": "src/lib/sprites.ts",
-      "sha256": "e4a15fdf503a1c67164a398b48572a87b01b0a761c544aca0b208ebe7e0ed4a1",
-      "bytes": 1726
+      "sha256": "23f90ae3c27bab83cdcf24d46a9f19f3217731a0af8bcca6566f2175b897e630",
+      "bytes": 2547
     },
     {
       "path": "src/lib/tcg-fallback.ts",
@@ -658,8 +659,8 @@
     },
     {
       "path": "src/routes/api/public/card-prices.ts",
-      "sha256": "04a095806b3a0430ea57020b00eff77a3cb092f56882f9984c398cdf9c36fad0",
-      "bytes": 36256
+      "sha256": "605f882e7ae2ccebf955937590ceb6e2d0907c3499292b58202b5205256e9636",
+      "bytes": 37330
     },
     {
       "path": "src/routes/api/public/ebay-sold.ts",
@@ -693,8 +694,8 @@
     },
     {
       "path": "src/routes/login.tsx",
-      "sha256": "b27beede118f1e63b9bc90b03e31cd5d980cd4f803f308d936d9dde5c70871dd",
-      "bytes": 5487
+      "sha256": "e65e30a8fee50eb6aa7b3aaefff35dd5105d10486d8317c9078b68cd20ed4626",
+      "bytes": 5998
     },
     {
       "path": "src/server.ts",
@@ -708,8 +709,8 @@
     },
     {
       "path": "src/styles.css",
-      "sha256": "81b2c0dae08f66d67b2a47000d27b6236a19a90a290dc588ce77db7e19d07f6c",
-      "bytes": 135800
+      "sha256": "5d414ce1a34668bee6fc29340afc778f002a55e23ede579b2355dbe3f0577516",
+      "bytes": 136051
     },
     {
       "path": "supabase/config.toml",
@@ -753,13 +754,13 @@
     },
     {
       "path": "tsconfig.json",
-      "sha256": "8f085c1d4841928370f6922fc9b8cabe3dfe84d266fc734a08d3e0dc3f92490d",
-      "bytes": 672
+      "sha256": "8efc2603531e75a1322d67e9d2f0e61f590d6b1f3d87a136ebbf769b00e4eaef",
+      "bytes": 707
     },
     {
       "path": "vercel.json",
-      "sha256": "3b87d47d603e4afb5b59abb9663c4906d7574b2b4eba8c67a0cf7f86ee6ddeb9",
-      "bytes": 799
+      "sha256": "42153cf6220cabb0c5195e72a619393803c2efda94628b9b2a546ae828555692",
+      "bytes": 1001
     },
     {
       "path": "vite.config.ts",
@@ -770,6 +771,276 @@
       "path": "wrangler.jsonc",
       "sha256": "44a244a3817413d9641b9d4fde8bfdd7d3293e26db5a39b5cee7aa946e51a163",
       "bytes": 202
+    },
+    {
+      "path": "public/sprites/gen5-back/bulbasaur.png",
+      "sha256": "d7070e94a8857a86072d87137f985555dd810cf415f87493aa71f7006e19e345",
+      "bytes": 423
+    },
+    {
+      "path": "public/sprites/gen5-back/caterpie.png",
+      "sha256": "67d5eb67d801f5c226100b31d462136401c1f94193cc3bcc653689f92bf9af85",
+      "bytes": 473
+    },
+    {
+      "path": "public/sprites/gen5-back/charmander.png",
+      "sha256": "e0be9cacd9ef58bf496fb300b6ec1cf35027e34152b6d017739250836796abd7",
+      "bytes": 507
+    },
+    {
+      "path": "public/sprites/gen5-back/chikorita.png",
+      "sha256": "74a5887df3aa094901d6642b3a014aff0b4163760e38bdaab83d5d3950f27234",
+      "bytes": 522
+    },
+    {
+      "path": "public/sprites/gen5-back/cyndaquil.png",
+      "sha256": "9578be68a16cb01ceac3b92437eae8d1b34ab8f371b23539bc0255578d3d860c",
+      "bytes": 543
+    },
+    {
+      "path": "public/sprites/gen5-back/dratini.png",
+      "sha256": "d3033ed91cd5b22bae6b9f7c1a157ecc78c8fbce97a0ff981bbf8a6f45b093ba",
+      "bytes": 488
+    },
+    {
+      "path": "public/sprites/gen5-back/eevee.png",
+      "sha256": "6c64be2695637380c713edf59c9b95f0029d6c89ba9fc83c316a6d19966fa90d",
+      "bytes": 494
+    },
+    {
+      "path": "public/sprites/gen5-back/gastly.png",
+      "sha256": "2a559609880307c18542a39891ceec41ebc5fdc652fe6b8b37d2ac5cd1cd2403",
+      "bytes": 732
+    },
+    {
+      "path": "public/sprites/gen5-back/geodude.png",
+      "sha256": "ca9fd45ca416b8168eef5949027ad3410fa918a4dff309abfe858924945b8448",
+      "bytes": 525
+    },
+    {
+      "path": "public/sprites/gen5-back/jigglypuff.png",
+      "sha256": "4e0c03639276271007232e84d51b61f491c8568dfb25d37cc3e1b2dc86e48c66",
+      "bytes": 332
+    },
+    {
+      "path": "public/sprites/gen5-back/jynx.png",
+      "sha256": "26c1bac50d2dc0f3d226b12551f80298746ee8b12b841622ed5b77dacec5316b",
+      "bytes": 767
+    },
+    {
+      "path": "public/sprites/gen5-back/machop.png",
+      "sha256": "ff71f4509de5ff4514f0ee0c05e9e0082c132b2337388cc0646ef5c8384fc265",
+      "bytes": 618
+    },
+    {
+      "path": "public/sprites/gen5-back/meowth.png",
+      "sha256": "887d603fb8448c778b10963aafb751015ae7d2eb648f25b5e8795c5571d29d09",
+      "bytes": 596
+    },
+    {
+      "path": "public/sprites/gen5-back/mewtwo.png",
+      "sha256": "b4b962c5c64581fbb8f3f7a1a7fb7eb2460f05369a481825d286082520e3393c",
+      "bytes": 829
+    },
+    {
+      "path": "public/sprites/gen5-back/onix.png",
+      "sha256": "d0160fe85c9c5a397722b9bca9b30c26f2b1c442d8ba6a49a3f9108fa3611cbf",
+      "bytes": 1164
+    },
+    {
+      "path": "public/sprites/gen5-back/pidgey.png",
+      "sha256": "9c8246c3ad4e0d47c672ff640766d61f65c7a45872b1671ba24e077a6d8fbc7b",
+      "bytes": 545
+    },
+    {
+      "path": "public/sprites/gen5-back/pikachu.png",
+      "sha256": "a3a1bfcbdbcbf7a37619be62dd369f88785f9b601fa92816325cda036fc1d958",
+      "bytes": 522
+    },
+    {
+      "path": "public/sprites/gen5-back/psyduck.png",
+      "sha256": "47b940284ecfc7ed5ced9a1e572c6ac7e6e0a8c47b670880bd51d574db1de20f",
+      "bytes": 429
+    },
+    {
+      "path": "public/sprites/gen5-back/rattata.png",
+      "sha256": "1543e1c9f609b6fe406be96efc515b942b3655db4f2b5de46ce2c326c86d5e88",
+      "bytes": 547
+    },
+    {
+      "path": "public/sprites/gen5-back/snorlax.png",
+      "sha256": "58b20a43839e1e32c48965c5ad03e25d9bbc05c56d77a0f23e8fb75c5a7b42f5",
+      "bytes": 636
+    },
+    {
+      "path": "public/sprites/gen5-back/squirtle.png",
+      "sha256": "bc678a19df0e76968dbc97ecfb9b3864b55efdf0bc78cabe28eeaffa30933da3",
+      "bytes": 513
+    },
+    {
+      "path": "public/sprites/gen5-back/totodile.png",
+      "sha256": "58bc9a495f0919ebd3643c7c8691306f985c7b0f108183690631c7ee56cc82bc",
+      "bytes": 501
+    },
+    {
+      "path": "public/sprites/gen5/bulbasaur.png",
+      "sha256": "7307265558511ea080add119ab7e86b9f87aaab4cedef76df2a13290ca5ad8c9",
+      "bytes": 543
+    },
+    {
+      "path": "public/sprites/gen5/caterpie.png",
+      "sha256": "a1289541d01ae034b4549742a999838967dbda70b2a194fa38271f5a24e7e132",
+      "bytes": 568
+    },
+    {
+      "path": "public/sprites/gen5/charmander.png",
+      "sha256": "4e943ded73aff00aa8323800481412cf0912649d640f5ad5021e8e1e2b3e77c6",
+      "bytes": 583
+    },
+    {
+      "path": "public/sprites/gen5/chikorita.png",
+      "sha256": "db82c8a887b4d2828e3e852f689cffebe2b1a6cfc1732fa5722feebdbbea79c8",
+      "bytes": 543
+    },
+    {
+      "path": "public/sprites/gen5/cyndaquil.png",
+      "sha256": "5ad985b1165ca236474bbe92a32c707fa139418a12c57bd397b2a7505e461ec4",
+      "bytes": 580
+    },
+    {
+      "path": "public/sprites/gen5/dratini.png",
+      "sha256": "7c5175e0b896be89c782c4ea0462041669f541cd8422c6204fbe140f8dc2e58b",
+      "bytes": 535
+    },
+    {
+      "path": "public/sprites/gen5/eevee.png",
+      "sha256": "56ad4ec369aadb71218b080e6a67b85eea97b3cd63f9d3097d63d9b4b7483df9",
+      "bytes": 582
+    },
+    {
+      "path": "public/sprites/gen5/gastly.png",
+      "sha256": "eaed759213fab01f32b8814d7a2ae8e12ce5d8501001888ad8315da3286dfe3c",
+      "bytes": 798
+    },
+    {
+      "path": "public/sprites/gen5/geodude.png",
+      "sha256": "708b807b310802c460b9b70fa69f6c7ce3f10eeab7c467ff54e8ff0d0b01fcdd",
+      "bytes": 516
+    },
+    {
+      "path": "public/sprites/gen5/jigglypuff.png",
+      "sha256": "1bd0edc862890da037247c6247161a7147628f49b367160458b7cbf7d18d924f",
+      "bytes": 492
+    },
+    {
+      "path": "public/sprites/gen5/jynx.png",
+      "sha256": "cf5317e96641166f875ded3a2b8f4818f82af04d33cdd40e752c6592eb9cc78c",
+      "bytes": 994
+    },
+    {
+      "path": "public/sprites/gen5/machop.png",
+      "sha256": "2456b1a2888f23bb942ed3d08cb2d6ab89a8806bbdc42e5a91557d9dd9356272",
+      "bytes": 671
+    },
+    {
+      "path": "public/sprites/gen5/meowth.png",
+      "sha256": "66f194ccca113647d606bc3a601958979a7220ad033c6db79ab0da18de37c93c",
+      "bytes": 722
+    },
+    {
+      "path": "public/sprites/gen5/mewtwo.png",
+      "sha256": "31c5aebb134a3711864a92091cb1b5c35158e4e90ca5c88afddf56f0cf4bc129",
+      "bytes": 929
+    },
+    {
+      "path": "public/sprites/gen5/onix.png",
+      "sha256": "85b38372ca190f64c8d562a69a50c444d116e8f01d3f19891d66df11d8977ae3",
+      "bytes": 1077
+    },
+    {
+      "path": "public/sprites/gen5/pidgey.png",
+      "sha256": "5c5a61d93b38fe834b926d34dc340ff92bc7ad33583d7ae47bcfb84291e809a8",
+      "bytes": 557
+    },
+    {
+      "path": "public/sprites/gen5/pikachu.png",
+      "sha256": "80d30eb1b9f2a05eb4a216d53034e2a0bb16f2619ec43d281f36d601e5819c2c",
+      "bytes": 597
+    },
+    {
+      "path": "public/sprites/gen5/psyduck.png",
+      "sha256": "c6cee8266a57cb24657c8230b5f43bc22872b185c871b3ccf66cae8e52da0952",
+      "bytes": 513
+    },
+    {
+      "path": "public/sprites/gen5/rattata.png",
+      "sha256": "f5f7a28abef1a2f3d3e2b746fde5a97569c3eacd45474f88e8f40cc5b6a0c967",
+      "bytes": 565
+    },
+    {
+      "path": "public/sprites/gen5/snorlax.png",
+      "sha256": "116f67650d9e2145e307fe153ba6a8fba3bdd02606ffb0364c05e71b5a0dba4b",
+      "bytes": 916
+    },
+    {
+      "path": "public/sprites/gen5/squirtle.png",
+      "sha256": "1309dd0971ab7c5cd1699fa6ead8b00c9d8fa7f39e09313e697b3d31527f0517",
+      "bytes": 575
+    },
+    {
+      "path": "public/sprites/gen5/totodile.png",
+      "sha256": "861a578a019380dc82799d4c39d283daeecf46ed8f441b02adb17d617903e4cd",
+      "bytes": 552
+    },
+    {
+      "path": "public/adventure-assets/tex-ash.jpg",
+      "sha256": "fd7bf0b0d503e2c49b8091b2d335de4deb2cc8045dd234965f5ace5e7ea61fc7",
+      "bytes": 62504
+    },
+    {
+      "path": "public/adventure-assets/tex-grass.jpg",
+      "sha256": "988218c630b3f7696fc11ac871a23ffc4591829ebeef452758c933aafe33e079",
+      "bytes": 77666
+    },
+    {
+      "path": "public/adventure-assets/tex-path.jpg",
+      "sha256": "ffeadd43ed76c42ce30d3881561efc7f723d838d14222af4b838edf1b22b6cca",
+      "bytes": 39247
+    },
+    {
+      "path": "public/adventure-assets/tex-tallgrass.jpg",
+      "sha256": "7a64e36bd32e016466fcb0124fb0e42da5fd079239564fe9b81c06b684ba9606",
+      "bytes": 73435
+    },
+    {
+      "path": "public/adventure-assets/tex-wall.jpg",
+      "sha256": "0894a24627c213c2fe422409ee93ed4f5251bbccb4a6ce9c2011057fc51a6e69",
+      "bytes": 59831
+    },
+    {
+      "path": "public/adventure-assets/tex-water.jpg",
+      "sha256": "6049e7020d83b0acd1f639cd557f02a4e24351192278f8268b4c2867348a9851",
+      "bytes": 31671
+    },
+    {
+      "path": "public/adventure-assets/trainer-down.png",
+      "sha256": "278b17a7dcab93867de3731a9e4e103f81e571719e93da85b552304dbf326cad",
+      "bytes": 49412
+    },
+    {
+      "path": "public/adventure-assets/trainer-left.png",
+      "sha256": "da1a8ba73af8ef3cd74a583d02adecb083cb1d9ec67f7f2dcb4b7d8ddaa89a84",
+      "bytes": 37260
+    },
+    {
+      "path": "public/adventure-assets/trainer-right.png",
+      "sha256": "05595b6cd1875b8ffab16145ca078e840c063f72eb590d262cde5546e5489049",
+      "bytes": 37291
+    },
+    {
+      "path": "public/adventure-assets/trainer-up.png",
+      "sha256": "d20638e9faf50b33a64d4a013b1d651cf04889cbc5832b5da0f25fc994e94432",
+      "bytes": 40821
     }
   ]
 }

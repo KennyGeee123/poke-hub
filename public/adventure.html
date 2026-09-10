@@ -201,7 +201,7 @@
       <div id="e4-pips"></div>
       <h2>📕 Pokédex</h2>
       <ul id="pokedex-list"></ul>
-      <div id="empty">No Pokémon caught yet.<br>Explore tall grass in the wilds!</div>
+      <div id="empty">No Pokémon seen yet.<br>Explore tall grass in the wilds!</div>
       <div id="hint">Walk to a GYM door or press A / Space to interact.<br>Tall grass = wild. 4 badges unlocks Indigo.<br>Expanded 48×48 regions — explore tall grass, Centers, and Gyms.</div>
       <div id="controls">
         Arrows / WASD to move · Space interact<br>
@@ -238,7 +238,32 @@ const TILE = 32;
 const VIEW_TILES = 18;
 const MAP_SIZE = 48;
 const CANVAS_PX = VIEW_TILES * TILE;
-const CAM_LERP = 0.18;
+const CAM_LERP = 0.10;
+const SPRITE_H = 56;
+
+const TEX = {};
+const TRAINER = {};
+function loadImg(src) { const im = new Image(); im.src = src; return im; }
+TEX.grass = loadImg('/adventure-assets/tex-grass.jpg');
+TEX.path = loadImg('/adventure-assets/tex-path.jpg');
+TEX.tall = loadImg('/adventure-assets/tex-tallgrass.jpg');
+TEX.water = loadImg('/adventure-assets/tex-water.jpg');
+TEX.ash = loadImg('/adventure-assets/tex-ash.jpg');
+TEX.wall = loadImg('/adventure-assets/tex-wall.jpg');
+TRAINER.down = loadImg('/adventure-assets/trainer-down.png');
+TRAINER.up = loadImg('/adventure-assets/trainer-up.png');
+TRAINER.left = loadImg('/adventure-assets/trainer-left.png');
+TRAINER.right = loadImg('/adventure-assets/trainer-right.png');
+function texReady(im) { return !!(im && im.complete && im.naturalWidth); }
+function fillWorldTex(ctx, im, px, py, mx, my) {
+  if (!texReady(im)) return false;
+  ctx.save();
+  ctx.translate(px - mx * TILE, py - my * TILE);
+  ctx.fillStyle = ctx.createPattern(im, 'repeat');
+  ctx.fillRect(mx * TILE, my * TILE, TILE, TILE);
+  ctx.restore();
+  return true;
+}
 
 const POKEMON = [
   { name: "Bulbasaur",  emoji: "🌱", color: "#78c850" },
@@ -289,6 +314,15 @@ const REGION_BIOMES = [
 ];
 const REGION_TINT = ["#c4a574", "#7cb342", "#e0a060", "#8d4a32", "#4a5080"];
 const REGION_SKY = ["#87ceeb", "#6ec6ff", "#ffd28a", "#ff8a65", "#5c6bc0"];
+
+/** Per-region wild tables (same 20-name roster, different mix). */
+const REGION_POOLS = [
+  ["Geodude", "Onix", "Machop", "Rattata", "Pidgey", "Caterpie"],
+  ["Squirtle", "Psyduck", "Pidgey", "Jigglypuff", "Totodile", "Rattata"],
+  ["Pikachu", "Meowth", "Eevee", "Rattata", "Pidgey", "Jigglypuff"],
+  ["Charmander", "Cyndaquil", "Pidgey", "Rattata", "Meowth", "Eevee"],
+  ["Gastly", "Dratini", "Jynx", "Machop", "Snorlax", "Eevee"],
+];
 
 /* Tile ids: .0 g1 T2 X3 G4 P5 W6 f7 H8 E9 F10 s11 #12 1-5 => 13-17 */
 function mulberry32(a) {
@@ -477,12 +511,15 @@ const NPCS = [
   { region: 4, x: 24, y: 32, color: "#7c3aed", quote: "Four badges to enter. Lorelei, Bruno, Agatha, Lance, then the Champion." },
 ];
 
+function spriteSlug(name) {
+  return String(name).toLowerCase().replace(/[♀♂.'']/g, '').replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+}
 function spriteUrl(name) {
-  const slug = String(name).toLowerCase().replace(/[♀♂.'']/g, '').replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-  return `https://play.pokemonshowdown.com/sprites/ani/${slug}.gif`;
+  const slug = spriteSlug(name);
+  return `/sprites/gen5/${slug}.png`;
 }
 function staticSpriteUrl(name) {
-  const slug = String(name).toLowerCase().replace(/[^a-z0-9-]/g, '');
+  const slug = spriteSlug(name);
   return `https://play.pokemonshowdown.com/sprites/gen5/${slug}.png`;
 }
 
@@ -537,6 +574,7 @@ const Player = {
   x: Math.floor(MAP_SIZE / 2), y: Math.floor(MAP_SIZE / 2),
   frozen: false,
   facing: 'down',
+  step: 0,
   tryMove(dx, dy) {
     if (this.frozen) return;
     if (dy < 0) this.facing = 'up';
@@ -571,6 +609,7 @@ const Player = {
       return;
     }
     this.x = nx; this.y = ny;
+    this.step = (this.step + 1) & 3;
     if (t === 1) EncounterSystem.tryEncounter();
     else if (t === 4) Sites.gym();
     else if (t === 5) Sites.center();
@@ -636,13 +675,16 @@ const EncounterSystem = {
   current: null,
   tryEncounter() {
     if (Math.random() > 0.16) return;
-    const poke = POKEMON[Math.floor(Math.random() * (POKEMON.length - 2))];
+    const pool = REGION_POOLS[MapManager.current] || REGION_POOLS[0];
+    const name = pool[Math.floor(Math.random() * pool.length)];
+    const poke = POKEMON.find(p => p.name === name) || POKEMON[0];
     this.current = { ...poke, kind: "wild", level: 5 + MapManager.current * 3 + Math.floor(Math.random() * 4) };
     Player.frozen = true;
     AudioFX.rustle();
     UIManager.flash();
-    if (!SaveSystem.state.caught.find(c => c.name === poke.name)) {
-      SaveSystem.state.caught.push({ name: poke.name, emoji: poke.emoji, color: poke.color });
+    const seen = SaveSystem.state.seen || (SaveSystem.state.seen = []);
+    if (!seen.find(c => c.name === poke.name)) {
+      seen.push({ name: poke.name, emoji: poke.emoji, color: poke.color });
       SaveSystem.save();
       UIManager.renderPokedex();
       UIManager.renderPartyHud();
@@ -722,6 +764,8 @@ const UIManager = {
   init() {
     this.ctx = this.canvas.getContext('2d');
     this.mctx = this.mini.getContext('2d');
+    if (this.ctx) this.ctx.imageSmoothingEnabled = false;
+    if (this.mctx) this.mctx.imageSmoothingEnabled = false;
     document.getElementById('btn-fight').onclick = () => EncounterSystem.fight();
     document.getElementById('btn-run').onclick   = () => EncounterSystem.run();
     document.getElementById('btn-close').onclick = () => EncounterSystem.close();
@@ -750,8 +794,8 @@ const UIManager = {
   renderPartyHud() {
     const el = document.getElementById('party-hud');
     if (!el) return;
-    const caught = SaveSystem.state.caught || [];
-    const slots = Array.from({ length: 6 }, (_, i) => caught[caught.length - 6 + i]).filter(Boolean);
+    const seen = SaveSystem.state.seen || [];
+    const slots = Array.from({ length: 6 }, (_, i) => seen[seen.length - 6 + i]).filter(Boolean);
     while (slots.length < 6) slots.unshift(null);
     el.innerHTML = slots.map(p =>
       p ? `<div class="pip" style="background:${p.color}" title="${p.name}"></div>`
@@ -835,14 +879,16 @@ const UIManager = {
     const ul = document.getElementById('pokedex-list');
     const empty = document.getElementById('empty');
     ul.innerHTML = '';
-    const caught = SaveSystem.state.caught;
-    if (!caught.length) { empty.style.display = 'block'; return; }
+    const seen = SaveSystem.state.seen || [];
+    const caught = SaveSystem.state.caught || [];
+    if (!seen.length) { empty.style.display = 'block'; return; }
     empty.style.display = 'none';
-    caught.forEach((p, i) => {
+    seen.forEach((p, i) => {
+      const got = caught.some(c => c.name === p.name);
       const li = document.createElement('li');
       li.innerHTML = `<span class="dot" style="background:${p.color}"></span>
                       <img src="${spriteUrl(p.name)}" alt="" onerror="this.onerror=null;this.src='${staticSpriteUrl(p.name)}';" />
-                      <span>${String(i+1).padStart(3,'0')} ${p.name}</span>`;
+                      <span>${String(i+1).padStart(3,'0')} ${p.name}${got ? ' · caught' : ' · seen'}</span>`;
       ul.appendChild(li);
     });
   },
@@ -907,29 +953,27 @@ const UIManager = {
     ctx.fillStyle = '#0b1220';
     ctx.fillRect(0, 0, CANVAS_PX, CANVAS_PX);
     Camera.sync(false);
-    const camX = Camera.x;
-    const camY = Camera.y;
-    const ox = -(camX - Math.floor(camX)) * TILE;
-    const oy = -(camY - Math.floor(camY)) * TILE;
-    const baseX = Math.floor(camX);
-    const baseY = Math.floor(camY);
+    const camPx = Math.floor(Camera.x * TILE);
+    const camPy = Math.floor(Camera.y * TILE);
+    const baseX = Math.floor(camPx / TILE) - 1;
+    const baseY = Math.floor(camPy / TILE) - 1;
     const overlays = [];
-    for (let vy = -1; vy <= VIEW_TILES; vy++) {
-      for (let vx = -1; vx <= VIEW_TILES; vx++) {
-        const mx = baseX + vx, my = baseY + vy;
-        const px = vx * TILE + ox, py = vy * TILE + oy;
+    for (let vy = -1; vy <= VIEW_TILES + 1; vy++) {
+      for (let vx = -1; vx <= VIEW_TILES + 1; vx++) {
+        const mx = baseX + vx + 1, my = baseY + vy + 1;
+        const px = mx * TILE - camPx, py = my * TILE - camPy;
         const t = MapManager.tileAt(mx, my);
         this.drawTile(ctx, t, px, py, mx, my);
         if ([2, 4, 5, 8, 9].includes(t) || (t >= 13 && t <= 17)) overlays.push({ t, px, py, mx, my });
       }
     }
     NPCS.filter(n => n.region === MapManager.current).forEach(n => {
-      const px = (n.x - camX) * TILE, py = (n.y - camY) * TILE;
+      const px = n.x * TILE - camPx, py = n.y * TILE - camPy;
       if (px < -40 || py < -40 || px > CANVAS_PX || py > CANVAS_PX) return;
       this.drawNpc(ctx, px, py, n.color);
     });
-    const ppx = (Player.x - camX) * TILE;
-    const ppy = (Player.y - camY) * TILE;
+    const ppx = Player.x * TILE - camPx;
+    const ppy = Player.y * TILE - camPy;
     this.drawTrainer(ctx, ppx, ppy, Player.facing);
     overlays.forEach(o => {
       if (o.my < Player.y) return;
@@ -954,16 +998,25 @@ const UIManager = {
     ctx.fillRect(px + 10, py + 3, 12, 11);
   },
   drawTrainer(ctx, ppx, ppy, facing) {
-    const bob = (Date.now() / 180) % 2 < 1 ? 0 : 1;
+    const im = TRAINER[facing] || TRAINER.down;
     ctx.fillStyle = 'rgba(0,0,0,.28)';
     ctx.beginPath(); ctx.ellipse(ppx + 16, ppy + 30, 12, 5, 0, 0, Math.PI * 2); ctx.fill();
-    // trainer silhouette
+    if (texReady(im)) {
+      const bob = (Player.step % 4 === 1 || Player.step % 4 === 3) ? 1 : 0;
+      const h = SPRITE_H;
+      const w = im.naturalWidth * h / im.naturalHeight;
+      ctx.drawImage(im, ppx + TILE / 2 - w / 2, ppy + TILE - h + 8 + bob, w, h);
+      return;
+    }
+    const frame = Player.step % 4;
+    const bob = frame === 1 || frame === 3 ? 1 : 0;
+    const swing = frame === 1 ? 2 : frame === 3 ? -2 : 0;
     ctx.fillStyle = '#1a2744';
     ctx.fillRect(ppx + 8, ppy + 22 + bob, 7, 9);
     ctx.fillRect(ppx + 17, ppy + 22 + (1 - bob), 7, 9);
     ctx.fillStyle = '#cc2b2b';
-    ctx.fillRect(ppx + 7, ppy + 28 + bob, 9, 4);
-    ctx.fillRect(ppx + 16, ppy + 28 + (1 - bob), 9, 4);
+    ctx.fillRect(ppx + 7 + swing, ppy + 28 + bob, 9, 4);
+    ctx.fillRect(ppx + 16 - swing, ppy + 28 + (1 - bob), 9, 4);
     ctx.fillStyle = '#cc2b2b';
     ctx.fillRect(ppx + 7, ppy + 11, 18, 14);
     ctx.fillStyle = '#f4efe4';
@@ -997,7 +1050,26 @@ const UIManager = {
     ctx.closePath();
     ctx.fill();
   },
+  neighborMask(mx, my, pred) {
+    let m = 0;
+    if (pred(MapManager.tileAt(mx, my - 1))) m |= 1;
+    if (pred(MapManager.tileAt(mx + 1, my))) m |= 2;
+    if (pred(MapManager.tileAt(mx, my + 1))) m |= 4;
+    if (pred(MapManager.tileAt(mx - 1, my))) m |= 8;
+    return m;
+  },
+  drawAutotileEdges(ctx, px, py, mask, edge, inner) {
+    if (!(mask & 1)) { ctx.fillStyle = edge; ctx.fillRect(px, py, TILE, 3); }
+    if (!(mask & 4)) { ctx.fillStyle = edge; ctx.fillRect(px, py + TILE - 3, TILE, 3); }
+    if (!(mask & 8)) { ctx.fillStyle = edge; ctx.fillRect(px, py, 3, TILE); }
+    if (!(mask & 2)) { ctx.fillStyle = edge; ctx.fillRect(px + TILE - 3, py, 3, TILE); }
+    if (inner && mask === 15) {
+      ctx.fillStyle = inner;
+      ctx.fillRect(px + 14, py + 14, 4, 4);
+    }
+  },
   drawTile(ctx, t, px, py, mx, my) {
+    px = Math.floor(px); py = Math.floor(py);
     if (mx < 0 || my < 0 || mx >= MAP_SIZE || my >= MAP_SIZE) {
       ctx.fillStyle = '#0b1220';
       ctx.fillRect(px, py, TILE, TILE);
@@ -1007,20 +1079,24 @@ const UIManager = {
     const sway = Math.sin(Date.now() / 420 + mx * 0.4 + my * 0.3) * 2.5;
     const tint = REGION_TINT[MapManager.current];
     const ground = (t === 1 || t === 7) ? '#2e7d32' : (t === 6) ? '#1565c0' : (t === 11) ? '#e0c068' : tint;
+    const biomeTex = MapManager.current === 3 ? TEX.ash : TEX.grass;
 
     if ([0,1,7,11,3].includes(t)) {
       ctx.fillStyle = t === 1 || t === 7 ? '#388e3c' : ground;
       ctx.fillRect(px, py, TILE, TILE);
     }
     if (t === 0 || t === 3) {
-      ctx.fillStyle = tint;
-      ctx.fillRect(px, py, TILE, TILE);
-      // soft micro-detail
+      if (!fillWorldTex(ctx, TEX.path, px, py, mx, my)) {
+        ctx.fillStyle = tint;
+        ctx.fillRect(px, py, TILE, TILE);
+      }
       ctx.fillStyle = 'rgba(255,255,255,.10)';
       ctx.fillRect(px, py, TILE, 2);
       ctx.fillStyle = 'rgba(0,0,0,.10)';
       ctx.fillRect(px + 4 + hash, py + 10, 5, 3);
       ctx.fillRect(px + 18 - hash, py + 20, 4, 2);
+      const pathish = (tt) => tt === 0 || tt === 3 || tt === 11;
+      this.drawAutotileEdges(ctx, px, py, this.neighborMask(mx, my, pathish), 'rgba(0,0,0,.18)', 'rgba(255,255,255,.08)');
       if (t === 3) {
         ctx.fillStyle = '#e2b53a';
         ctx.fillRect(px + 6, py + 6, 20, 20);
@@ -1031,7 +1107,9 @@ const UIManager = {
         ctx.fillText('▶', px + 16, py + 16);
       }
     } else if (t === 1) {
-      // tall grass blades
+      if (!fillWorldTex(ctx, TEX.tall, px, py, mx, my)) fillWorldTex(ctx, TEX.grass, px, py, mx, my);
+      const grass = (tt) => tt === 1 || tt === 7;
+      this.drawAutotileEdges(ctx, px, py, this.neighborMask(mx, my, grass), '#145a28', '#66bb6a');
       ctx.fillStyle = '#1b5e20';
       ctx.fillRect(px, py + 20, TILE, 12);
       ctx.fillStyle = '#43a047';
@@ -1043,48 +1121,64 @@ const UIManager = {
       ctx.fillRect(px + 6 + sway, py + 5, 3, 4);
       ctx.fillRect(px + 18 - sway, py + 8, 3, 3);
     } else if (t === 7) {
-      ctx.fillStyle = '#43a047';
-      ctx.fillRect(px, py, TILE, TILE);
+      if (!fillWorldTex(ctx, TEX.grass, px, py, mx, my)) {
+        ctx.fillStyle = '#43a047';
+        ctx.fillRect(px, py, TILE, TILE);
+      }
       ctx.fillStyle = hash % 2 ? '#ec407a' : '#ffd54f';
       ctx.beginPath(); ctx.arc(px + 8, py + 10, 4, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.arc(px + 20, py + 18, 4, 0, Math.PI * 2); ctx.fill();
     } else if (t === 6) {
-      ctx.fillStyle = MapManager.current === 3 ? '#bf360c' : '#1565c0';
-      ctx.fillRect(px, py, TILE, TILE);
+      if (!fillWorldTex(ctx, TEX.water, px, py, mx, my)) {
+        ctx.fillStyle = MapManager.current === 3 ? '#bf360c' : '#1565c0';
+        ctx.fillRect(px, py, TILE, TILE);
+      }
+      this.drawAutotileEdges(ctx, px, py, this.neighborMask(mx, my, (tt) => tt === 6), 'rgba(255,255,255,.35)', 'rgba(255,255,255,.12)');
       ctx.fillStyle = 'rgba(255,255,255,.28)';
       const w = (Date.now() / 200 + my) % 16;
       ctx.fillRect(px, py + w, TILE, 2);
       ctx.fillRect(px, py + ((w + 8) % 16) + 8, TILE, 2);
     } else if (t === 11) {
-      ctx.fillStyle = '#e0c068';
-      ctx.fillRect(px, py, TILE, TILE);
+      if (!fillWorldTex(ctx, TEX.path, px, py, mx, my)) {
+        ctx.fillStyle = '#e0c068';
+        ctx.fillRect(px, py, TILE, TILE);
+      }
       ctx.fillStyle = '#bcaaa4';
       ctx.fillRect(px + hash, py + 8, 5, 4);
       ctx.fillRect(px + 14, py + 18, 6, 3);
     } else if (t === 2) {
-      ctx.fillStyle = tint;
-      ctx.fillRect(px, py, TILE, TILE);
+      if (!fillWorldTex(ctx, biomeTex, px, py, mx, my)) {
+        ctx.fillStyle = tint;
+        ctx.fillRect(px, py, TILE, TILE);
+      }
       ctx.fillStyle = '#3e2723';
       ctx.fillRect(px + 12, py + 16, 8, 16);
       this.drawTreeTop(ctx, px, py);
     } else if (t === 10) {
-      ctx.fillStyle = tint;
-      ctx.fillRect(px, py, TILE, TILE);
+      if (!fillWorldTex(ctx, biomeTex, px, py, mx, my)) {
+        ctx.fillStyle = tint;
+        ctx.fillRect(px, py, TILE, TILE);
+      }
       ctx.fillStyle = '#5d4037';
       ctx.fillRect(px, py + 10, TILE, 8);
       ctx.fillStyle = '#a1887f';
       ctx.fillRect(px + 4, py + 8, 3, 12);
       ctx.fillRect(px + 16, py + 8, 3, 12);
     } else if (t === 12) {
-      ctx.fillStyle = '#37474f';
-      ctx.fillRect(px, py, TILE, TILE);
+      if (!fillWorldTex(ctx, TEX.wall, px, py, mx, my)) {
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(px, py, TILE, TILE);
+      }
       ctx.fillStyle = '#263238';
       ctx.fillRect(px, py, TILE, 6);
       ctx.fillStyle = '#90a4ae';
       ctx.fillRect(px + 2, py + 8, 8, 3);
+      this.drawAutotileEdges(ctx, px, py, this.neighborMask(mx, my, (tt) => tt === 12 || tt === 2), '#1a2328', null);
     } else if (t === 8) {
-      ctx.fillStyle = tint;
-      ctx.fillRect(px, py, TILE, TILE);
+      if (!fillWorldTex(ctx, biomeTex, px, py, mx, my)) {
+        ctx.fillStyle = tint;
+        ctx.fillRect(px, py, TILE, TILE);
+      }
       ctx.fillStyle = '#8d6e63';
       ctx.fillRect(px + 1, py + 10, 30, 22);
       ctx.fillStyle = '#5d4037';
@@ -1093,8 +1187,10 @@ const UIManager = {
       ctx.fillRect(px + 6, py + 14, 6, 6);
       this.drawRoof(ctx, 8, px, py);
     } else if (t === 4) {
-      ctx.fillStyle = tint;
-      ctx.fillRect(px, py, TILE, TILE);
+      if (!fillWorldTex(ctx, biomeTex, px, py, mx, my)) {
+        ctx.fillStyle = tint;
+        ctx.fillRect(px, py, TILE, TILE);
+      }
       ctx.fillStyle = '#bcaaa4';
       ctx.fillRect(px + 0, py + 8, 32, 24);
       ctx.fillStyle = '#3e2723';
@@ -1103,8 +1199,10 @@ const UIManager = {
       ctx.fillRect(px + 6, py + 10, 20, 5);
       this.drawRoof(ctx, 4, px, py);
     } else if (t === 5) {
-      ctx.fillStyle = tint;
-      ctx.fillRect(px, py, TILE, TILE);
+      if (!fillWorldTex(ctx, biomeTex, px, py, mx, my)) {
+        ctx.fillStyle = tint;
+        ctx.fillRect(px, py, TILE, TILE);
+      }
       ctx.fillStyle = '#fafafa';
       ctx.fillRect(px + 0, py + 8, 32, 24);
       ctx.fillStyle = '#e53935';
@@ -1132,13 +1230,18 @@ const UIManager = {
 
 const SaveSystem = {
   KEY: 'pokeregions-save',
-  state: { x: Math.floor(MAP_SIZE / 2), y: Math.floor(MAP_SIZE / 2), region: 0, caught: [], badges: [], e4: 0 },
+  state: { x: Math.floor(MAP_SIZE / 2), y: Math.floor(MAP_SIZE / 2), region: 0, seen: [], caught: [], badges: [], e4: 0 },
   load() {
     try {
       const raw = localStorage.getItem(this.KEY);
       if (raw) {
         const s = JSON.parse(raw);
-        this.state = Object.assign(this.state, { badges: [], e4: 0 }, s);
+        this.state = Object.assign(this.state, { badges: [], e4: 0, seen: [], caught: [] }, s);
+        // Pre-honesty saves stored sightings in `caught`. Those were never party catches.
+        if (!Array.isArray(s.seen)) {
+          this.state.seen = Array.isArray(s.caught) ? s.caught : [];
+          this.state.caught = [];
+        }
         let x = s.x ?? Math.floor(MAP_SIZE / 2);
         let y = s.y ?? Math.floor(MAP_SIZE / 2);
         // Migrate tiny-map saves into the new open world (center-ish)
@@ -1258,6 +1361,17 @@ window.addEventListener('message', (e) => {
     SaveSystem.save();
     const next = E4[SaveSystem.state.e4];
     UIManager.toastModal("CHAMBER CLEARED", next ? (next.leader + " is next.") : "You are the Champion.");
+  }
+  if (d.type === 'pv-adventure-caught' && d.name) {
+    const name = String(d.name);
+    const poke = POKEMON.find(p => p.name === name) || { name, emoji: "◆", color: "#e2b53a" };
+    const seen = SaveSystem.state.seen || (SaveSystem.state.seen = []);
+    const caught = SaveSystem.state.caught || (SaveSystem.state.caught = []);
+    if (!seen.find(c => c.name === name)) seen.push({ name: poke.name, emoji: poke.emoji, color: poke.color });
+    if (!caught.find(c => c.name === name)) caught.push({ name: poke.name, emoji: poke.emoji, color: poke.color });
+    SaveSystem.save();
+    UIManager.renderPokedex();
+    UIManager.renderPartyHud();
   }
 });
 

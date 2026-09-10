@@ -1,5 +1,15 @@
 // Derive a Pokémon sprite URL from a TCG card name.
-// Uses Pokémon Showdown's animated GIF sprites first, then HD HOME renders.
+// Adventure wilds/gyms: local PokeAPI gen5 PNGs under /sprites/ (vendored).
+// Everyone else: Pokémon Showdown animated GIFs, then HD HOME, then gen5.
+
+/** Species we vendored from PokeAPI/sprites (gen5). Not a Nintendo license. */
+export const LOCAL_SPRITE_SLUGS = new Set([
+  "bulbasaur", "charmander", "squirtle", "pikachu", "caterpie", "pidgey",
+  "rattata", "jigglypuff", "meowth", "psyduck", "machop", "geodude",
+  "gastly", "eevee", "snorlax", "dratini", "mewtwo", "chikorita",
+  "totodile", "cyndaquil", "jynx", "onix",
+]);
+
 export function spriteSlug(name: string): string {
   const cleaned = name
     .toLowerCase()
@@ -17,33 +27,38 @@ export function spriteSlug(name: string): string {
     ?.replace(/[^a-z0-9-]/g, "") ?? "";
 }
 
-// Animated battle sprite.
-export function animatedSpriteUrl(name: string): string {
+export function localGen5Url(name: string): string | null {
   const s = spriteSlug(name);
-  return `https://play.pokemonshowdown.com/sprites/ani/${s}.gif`;
+  return LOCAL_SPRITE_SLUGS.has(s) ? `/sprites/gen5/${s}.png` : null;
+}
+export function localGen5BackUrl(name: string): string | null {
+  const s = spriteSlug(name);
+  return LOCAL_SPRITE_SLUGS.has(s) ? `/sprites/gen5-back/${s}.png` : null;
 }
 
-// Fallbacks: animated gif → HD HOME render → static gen5 png.
+// Animated battle sprite — local gen5 first for vendored names.
+export function animatedSpriteUrl(name: string): string {
+  return localGen5Url(name) ?? `https://play.pokemonshowdown.com/sprites/ani/${spriteSlug(name)}.gif`;
+}
+
 export function staticSpriteUrl(name: string): string {
-  const s = spriteSlug(name);
-  return `https://play.pokemonshowdown.com/sprites/home/${s}.png`;
+  return localGen5Url(name) ?? `https://play.pokemonshowdown.com/sprites/home/${spriteSlug(name)}.png`;
 }
 
 export function fallbackSpriteUrls(name: string): string[] {
   const s = spriteSlug(name);
+  const local = localGen5Url(name);
   return [
+    ...(local ? [local] : []),
     `https://play.pokemonshowdown.com/sprites/ani/${s}.gif`,
     `https://play.pokemonshowdown.com/sprites/home/${s}.png`,
     `https://play.pokemonshowdown.com/sprites/gen5/${s}.png`,
   ];
 }
 
-// Back-facing sprite (player POV in battle).
 export function backSpriteUrl(name: string): string {
-  const s = spriteSlug(name);
-  return `https://play.pokemonshowdown.com/sprites/ani-back/${s}.gif`;
+  return localGen5BackUrl(name) ?? `https://play.pokemonshowdown.com/sprites/ani-back/${spriteSlug(name)}.gif`;
 }
 export function backSpriteFallback(name: string): string {
-  const s = spriteSlug(name);
-  return `https://play.pokemonshowdown.com/sprites/gen5-back/${s}.png`;
+  return localGen5BackUrl(name) ?? `https://play.pokemonshowdown.com/sprites/gen5-back/${spriteSlug(name)}.png`;
 }

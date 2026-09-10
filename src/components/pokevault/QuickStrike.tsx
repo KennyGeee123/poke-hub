@@ -5,9 +5,13 @@ import {
   listingTotal,
   listingKey,
   listingHasShipping,
-  rankQueue,
   preferredPrintsFromCard,
+  seedListingsFromCard,
+  mergeLiveQueue,
+  needsRefill,
   FX_EUR_USD,
+  TICK_MS,
+  TTL_MS,
   type Listing,
 } from "@/lib/card-prices";
 import { formatPrice } from "@/lib/vault";
@@ -19,47 +23,14 @@ function prettyVariant(name: string) {
 }
 
 function queueFromCard(card: TCGCard): Listing[] {
-  const out: Listing[] = [];
-  const tp = card.tcgplayer;
-  if (tp?.url && tp.prices) {
-    for (const [name, p] of Object.entries(tp.prices)) {
-      const price = p.low ?? p.directLow;
-      if (typeof price !== "number" || price <= 0) continue;
-      out.push({
-        source: "TCGplayer",
-        title: `${card.name} · ${prettyVariant(name)} low`,
-        price,
-        priceRaw: `$${price.toFixed(2)}`,
-        currency: "USD",
-        url: tp.url,
-        image: card.images.small,
-        condition: prettyVariant(name),
-        variant: name,
-        kind: "listing",
-      });
-    }
-  }
-  const cm = card.cardmarket;
-  const eur = cm?.prices?.lowPrice ?? cm?.prices?.trendPrice;
-  if (cm?.url && typeof eur === "number" && eur > 0) {
-    const usd = Math.round(eur * FX_EUR_USD * 100) / 100;
-    out.push({
-      source: "Cardmarket",
-      title: `${card.name} · EU low`,
-      price: usd,
-      priceRaw: `€${eur.toFixed(2)}`,
-      currency: "EUR",
-      url: cm.url,
-      image: card.images.small,
-      variant: "low",
-      kind: "listing",
-    });
-  }
-  return rankQueue(
-    { query: "", cheapest: out[0] ?? null, queue: out, sources: [], generatedAt: "" },
-    [],
-    { preferPrints: preferredPrintsFromCard(card) },
-  );
+  return seedListingsFromCard({
+    name: card.name,
+    number: card.number,
+    images: card.images,
+    set: card.set,
+    tcgplayer: card.tcgplayer,
+    cardmarket: card.cardmarket,
+  });
 }
 
 function money(l: Listing) {
@@ -80,33 +51,40 @@ export function QuickStrike({ card }: { card: TCGCard }) {
   const skipRef = useRef<string[]>([]);
   const liveRef = useRef<Listing[]>([]);
   const cardIdRef = useRef(card.id);
+  const lastFetchRef = useRef(0);
+  const inFlightRef = useRef(false);
   cardIdRef.current = card.id;
 
   function applyQueue(listings: Listing[]) {
-    return rankQueue(
-      { query: "", cheapest: null, queue: listings, sources: [], generatedAt: "" },
-      skipRef.current,
-      { preferPrints },
-    );
+    return mergeLiveQueue([], listings, skipRef.current, preferPrints);
   }
 
   function mergeLive(seed: Listing[], live: Listing[]) {
-    const ranked = applyQueue([...live.filter((l) => listingTotal(l) > 0), ...seed]);
+    const ranked = mergeLiveQueue(seed, live, skipRef.current, preferPrints);
     liveRef.current = ranked;
     return ranked;
   }
 
-  function refreshLive(seed: Listing[]) {
+  function refreshLive(seed: Listing[], opts?: { force?: boolean }) {
+    if (inFlightRef.current && !opts?.force) return;
     const q = `${card.name} ${card.set.name} ${card.number ?? ""}`.trim();
     const id = card.id;
-    getCardPrices(q, { cheapOnly: true, fresh: true, cardId: card.id })
+    inFlightRef.current = true;
+    getCardPrices(q, {
+      cheapOnly: true,
+      fresh: true,
+      cardId: card.id,
+      skipKeys: skipRef.current,
+    })
       .then((r) => {
         if (cardIdRef.current !== id) return;
         const live = (r.queue ?? r.sources.flatMap((s) => s.listings)).filter(
           (l) => listingTotal(l) > 0 && l.url,
         );
+        lastFetchRef.current = Date.now();
         if (!live.length) {
           const fallback = applyQueue(liveRef.current.length ? liveRef.current : seed);
+          liveRef.current = fallback;
           setQueue(fallback);
           setLiveStatus(fallback.length ? "live" : "error");
           return;
@@ -117,24 +95,49 @@ export function QuickStrike({ card }: { card: TCGCard }) {
       .catch(() => {
         if (cardIdRef.current !== id) return;
         const fallback = applyQueue(liveRef.current.length ? liveRef.current : seed);
+        liveRef.current = fallback;
         setQueue(fallback);
-        setLiveStatus(fallback.length ? "error" : "error");
+        setLiveStatus("error");
+      })
+      .finally(() => {
+        if (cardIdRef.current === id) inFlightRef.current = false;
       });
   }
 
   useEffect(() => {
     skipRef.current = [];
     liveRef.current = [];
+    lastFetchRef.current = 0;
+    inFlightRef.current = false;
     setStruck(null);
     setLiveStatus("loading");
     const seed = queueFromCard(card);
     setQueue(seed);
-    refreshLive(seed);
+    refreshLive(seed, { force: true });
+
     const onVis = () => {
-      if (document.visibilityState === "visible") refreshLive(liveRef.current.length ? liveRef.current : queueFromCard(card));
+      if (document.visibilityState === "visible") {
+        refreshLive(liveRef.current.length ? liveRef.current : queueFromCard(card));
+      }
     };
+    const tick = window.setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      if (cardIdRef.current !== card.id) return;
+      const seed = liveRef.current.length ? liveRef.current : queueFromCard(card);
+      const ranked = applyQueue(seed);
+      liveRef.current = ranked;
+      setQueue(ranked);
+      const stale = Date.now() - lastFetchRef.current > TTL_MS;
+      if (stale || needsRefill(ranked)) {
+        refreshLive(ranked.length ? ranked : queueFromCard(card));
+      }
+    }, TICK_MS);
+
     document.addEventListener("visibilitychange", onVis);
-    return () => document.removeEventListener("visibilitychange", onVis);
+    return () => {
+      document.removeEventListener("visibilitychange", onVis);
+      window.clearInterval(tick);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [card.id]);
 
@@ -148,7 +151,12 @@ export function QuickStrike({ card }: { card: TCGCard }) {
     const next = applyQueue(liveRef.current.length ? liveRef.current : queue);
     liveRef.current = next;
     setQueue(next);
-    window.setTimeout(() => refreshLive(next.length ? next : queueFromCard(card)), 400);
+    if (needsRefill(next)) {
+      if (!next.length) setLiveStatus("loading");
+      refreshLive(next.length ? next : queueFromCard(card), { force: true });
+    } else {
+      window.setTimeout(() => refreshLive(next), 400);
+    }
   }
 
   function strike() {
@@ -175,7 +183,7 @@ export function QuickStrike({ card }: { card: TCGCard }) {
         QUICK STRIKE · CHEAP CARD LOOP
       </div>
 
-      {liveStatus === "loading" && !current && (
+      {liveStatus === "loading" && !current && skipRef.current.length === 0 && (
         <div style={{ marginTop: 8, fontSize: 12, color: "var(--t3)" }}>Finding live listings…</div>
       )}
 
@@ -240,6 +248,10 @@ export function QuickStrike({ card }: { card: TCGCard }) {
             </div>
           )}
         </>
+      )}
+
+      {!current && liveStatus === "loading" && skipRef.current.length > 0 && (
+        <div style={{ marginTop: 8, fontSize: 12, color: "var(--t3)" }}>Refilling loop…</div>
       )}
 
       {!current && liveStatus !== "loading" && (

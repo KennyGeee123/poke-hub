@@ -50,7 +50,7 @@ const enc = encodeURIComponent;
 
 // Conservative FX so EUR/GBP listings can still be compared. Updated infrequently.
 const FX: Record<string, number> = { USD: 1, EUR: 1.08, GBP: 1.27, CAD: 0.73, AUD: 0.66, JPY: 0.0064 };
-const QUEUE_CAP = 16;
+const QUEUE_CAP = 32;
 
 function landed(l: Listing): number {
   return (Number(l.price) || 0) + (Number(l.shipping) || 0);
@@ -78,6 +78,33 @@ function isShopRow(l: Listing): boolean {
   if ((Number(l.price) || 0) <= 0) return true;
   if (/ebay\.com\/sch\//i.test(l.url || "")) return true;
   return false;
+}
+
+function emitTcgVariantRows(c: any, name: string, p: any): Listing[] {
+  const tcg = c?.tcgplayer;
+  if (!tcg?.url) return [];
+  const low = typeof p?.low === "number" && p.low > 0 ? p.low : null;
+  const direct = typeof p?.directLow === "number" && p.directLow > 0 ? p.directLow : null;
+  const rows: Listing[] = [];
+  const push = (price: number, variant: string, label: string) => {
+    rows.push({
+      source: "TCGplayer",
+      title: `${c.name} — ${c.set?.name ?? ""} #${c.number ?? ""} (${name}${label})`.trim(),
+      price: Math.round(price * 100) / 100,
+      priceRaw: `$${price.toFixed(2)}`,
+      currency: "USD",
+      url: tcg.url,
+      image: c.images?.small ?? null,
+      condition: name,
+      variant,
+      kind: "listing",
+    });
+  };
+  if (low) push(low, name, "");
+  if (direct && (low == null || Math.round(direct * 100) !== Math.round(low * 100))) {
+    push(direct, `${name}-direct`, " Direct");
+  }
+  return rows;
 }
 
 function sortByLanded(a: Listing, b: Listing): number {
@@ -233,31 +260,11 @@ async function tcgplayer(q: string): Promise<Listing[]> {
   for (const c of filterExactPrintings((j?.data ?? []) as any[], q)) {
     const tp = c.tcgplayer;
     if (!tp?.url || !tp?.prices) continue;
-    const variants = Object.entries(tp.prices) as [string, any][];
-    let bestPrice = Infinity;
-    let variantName = "";
-    for (const [name, p] of variants) {
-      const val = p?.low ?? p?.directLow;
-      if (typeof val === "number" && val > 0 && val < bestPrice) {
-        bestPrice = val;
-        variantName = name;
-      }
+    for (const [name, p] of Object.entries(tp.prices) as [string, any][]) {
+      out.push(...emitTcgVariantRows(c, name, p));
     }
-    if (!isFinite(bestPrice)) continue;
-    out.push({
-      source: "TCGplayer",
-      title: `${c.name} — ${c.set?.name ?? ""} #${c.number ?? ""} (${variantName})`.trim(),
-      price: Math.round(bestPrice * 100) / 100,
-      priceRaw: `$${bestPrice.toFixed(2)}`,
-      currency: "USD",
-      url: tp.url,
-      image: c.images?.small ?? null,
-      condition: variantName,
-      variant: variantName,
-      kind: "listing",
-    });
   }
-  return out.sort(sortByLanded).slice(0, 10);
+  return out.sort(sortByLanded).slice(0, QUEUE_CAP);
 }
 
 // ─── Cardmarket (EU) via card index ───────────────────────────────────────
@@ -748,20 +755,7 @@ async function tcgIoById(id: string): Promise<Listing[]> {
           const tcg = c.tcgplayer;
           if (tcg?.url && tcg?.prices) {
             for (const [name, p] of Object.entries(tcg.prices) as [string, any][]) {
-              const val = p?.low ?? p?.directLow; // listed buy-now, never 24h market avg
-              if (typeof val !== "number" || val <= 0) continue;
-              listings.push({
-                source: "TCGplayer",
-                title: `${c.name} — ${c.set?.name ?? ""} #${c.number ?? ""} (${name})`.trim(),
-                price: Math.round(val * 100) / 100,
-                priceRaw: `$${val.toFixed(2)}`,
-                currency: "USD",
-                url: tcg.url,
-                image: c.images?.small ?? null,
-                condition: name,
-                variant: name,
-                kind: "listing",
-              });
+              listings.push(...emitTcgVariantRows(c, name, p));
             }
           }
           const cmkt = c.cardmarket;
@@ -803,6 +797,9 @@ export const Route = createFileRoute("/api/public/card-prices")({
         if (!q && !cardId) return Response.json({ error: "Missing q parameter" }, { status: 400 });
         const cheapOnly = url.searchParams.get("cheap") === "1";
         const fresh = url.searchParams.get("fresh") === "1";
+        const skipSet = new Set(
+          url.searchParams.getAll("skip").map((s) => s.trim()).filter(Boolean).slice(0, 64),
+        );
         const sealed = url.searchParams.get("sealed") === "1" || /booster\s*box|elite\s*trainer|booster\s*bundle|booster\s*display/i.test(q);
 
         const sources: SourceResult[] = [];
@@ -889,7 +886,7 @@ export const Route = createFileRoute("/api/public/card-prices")({
         const queue: Listing[] = [];
         for (const l of ranked) {
           const id = listingIdentity(l);
-          if (!id || seen.has(id)) continue;
+          if (!id || seen.has(id) || skipSet.has(id)) continue;
           seen.add(id);
           queue.push(l);
           if (queue.length >= QUEUE_CAP) break;
