@@ -2,8 +2,8 @@
   "id": "pokedex-hub-launch-ready-2026-09-10-adventure-go-gfx",
   "liveUrl": "https://pokedex-hub-lime.vercel.app/",
   "frozenAt": "2026-09-10T18:00:00.000Z",
-  "rootSha256": "9e8fc1e43d641d4319e435d74d36d4a57f436680acf08725a4ca2aa7714207e2",
-  "fileCount": 202,
+  "rootSha256": "aa57d80964e38472f85d06c5767903dc7455b00f40a6f284922e258caca4f152",
+  "fileCount": 203,
   "launchChecks": {
     "homeSsrPvApp": true,
     "pokedexHub": true,
@@ -64,8 +64,8 @@
     },
     {
       "path": "public/adventure.html",
-      "sha256": "9b4b28be91713254d06b74cca5713ce1d266c73ccf302bdda3d670d934991f79",
-      "bytes": 58436
+      "sha256": "50c2c5d6e8da51b3759f12527da59c9cd6b47a98412332ea3e917283b697753d",
+      "bytes": 58199
     },
     {
       "path": "public/asia-catalog.json",
@@ -179,8 +179,8 @@
     },
     {
       "path": "src/components/pokevault/GameBoy.tsx",
-      "sha256": "b670f144b3d06e69e797a7ca13b2f14aea99af1db93e861a8b6554f8941f07be",
-      "bytes": 29394
+      "sha256": "6dfa8edf0e34be1e5443bbb0a60f4a9e415484def26a6bd9b5105dbd148d7592",
+      "bytes": 29575
     },
     {
       "path": "src/components/pokevault/Marketplace.tsx",
@@ -709,8 +709,8 @@
     },
     {
       "path": "src/styles.css",
-      "sha256": "1fcec2fc68d9ec0b06a2b199102d8021c56a58f1a6123218ff53cda9ff1d384d",
-      "bytes": 135976
+      "sha256": "7312c26e7c67891a697a8c091449d38495a5e5888f2b35a127c7e591e23a3ef0",
+      "bytes": 136225
     },
     {
       "path": "supabase/config.toml",
@@ -1041,6 +1041,11 @@
       "path": "public/adventure-assets/trainer-up.png",
       "sha256": "d20638e9faf50b33a64d4a013b1d651cf04889cbc5832b5da0f25fc994e94432",
       "bytes": 40821
+    },
+    {
+      "path": "src/lib/gb-face.ts",
+      "sha256": "1f396f7b0e986a1c787b448bbe8ae181f13c2134e839502cbb8db9d6ed599ce3",
+      "bytes": 625
     }
   ]
 }

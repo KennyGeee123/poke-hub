@@ -19,6 +19,7 @@ import { hpPct } from "@/lib/battle";
 import { movesAtLevel, newlyLearned } from "@/lib/pokeapi-moves";
 import { CatchFx, type CatchPhase } from "./CatchFx";
 import { ARENA_CLIP, battleClipFor } from "@/lib/battle-cine";
+import { pressGbFace } from "@/lib/gb-face";
 
 type Scene = "menu" | "party" | "starter" | "battle" | "victory" | "defeat";
 type BattlePane = "main" | "fight" | "bag" | "switch";
@@ -484,8 +485,8 @@ export function GameBoyView() {
             <span /><span /><span /><span /><span />
           </div>
           <div className="gb-ab">
-            <div className="gb-btn">B</div>
-            <div className="gb-btn">A</div>
+            <button type="button" className="gb-btn" aria-label="B" onClick={() => pressGbFace("B")}>B</button>
+            <button type="button" className="gb-btn" aria-label="A" onClick={() => pressGbFace("A")}>A</button>
           </div>
         </div>
         <div className="gb-startsel">

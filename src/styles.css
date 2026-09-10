@@ -1614,7 +1614,12 @@ header, nav, main, footer, .pv-settings { position: relative; z-index: 1; }
   background: #7a0c4f; color:#fff; font-size:10px; font-weight:700;
   display:flex; align-items:center; justify-content:center;
   box-shadow: inset 0 -3px 0 #4a0030, 0 2px 4px rgba(0,0,0,.3);
+  border: none; cursor: pointer; font-family: inherit; padding: 0;
+  transform: rotate(25deg);
 }
+.gb-btn:hover { filter: brightness(1.08); }
+.gb-btn:active { transform: rotate(25deg) translateY(2px); }
+.gb-pill-wrap span { transform: rotate(25deg); }
 .gb-startsel { display:flex; justify-content:center; gap:18px; padding: 4px 0 8px; }
 .gb-pill-wrap { display:flex; flex-direction:column; align-items:center; gap:3px; transform: rotate(-25deg); }
 .gb-pill-wrap span { font-size: 6px; color:#2a2a2a; letter-spacing:1px; font-weight:700; }
