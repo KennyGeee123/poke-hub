@@ -89,9 +89,11 @@ function Index() {
         <div className="pv-hdr-brand">
           <div className="pv-pokeball" aria-hidden />
           <button
+            type="button"
             className="pv-logo-text"
             onClick={() => goTab("discover")}
             title="PokéVault"
+            aria-label="PokéVault home"
           >
             PokéVault
           </button>

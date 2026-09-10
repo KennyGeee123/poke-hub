@@ -240,18 +240,6 @@ export function AdventureView() {
       )}
 
       <div className="pv-adv-stage">
-        <div className="pv-adv-hud">
-          <div className="pv-adv-hud-region">{region}</div>
-          <div className="pv-adv-hud-badges" title="Gym badges">
-            {["Boulder", "Cascade", "Thunder", "Volcano"].map((b) => (
-              <span key={b} className={badges.includes(b) ? "on" : ""}>
-                {b[0]}
-              </span>
-            ))}
-          </div>
-          <div className="pv-adv-hud-hint">Gyms · Poké Center · 4 badges unlocks Indigo</div>
-          <div className="pv-adv-hud-fight">{hudFight}</div>
-        </div>
         {frameBlocked ? (
           <div className="pv-adv-blocked">
             <div className="pv-adv-blocked-title">Adventure couldn&apos;t load in-app</div>

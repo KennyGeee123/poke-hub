@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { hdImg } from "@/lib/card-images";
+import { fallbackCardImages, hdImg } from "@/lib/card-images";
 import type { TCGCard, TCGSet } from "@/lib/pokemon-api";
 import { getMarketPrice, getSets, getTopMarket, getTrending, getDiscoverFast, searchCards, getCardsBySet, getAllCardsBySet, rememberCard } from "@/lib/pokemon-api";
 import { formatPrice, useVault } from "@/lib/vault";
@@ -11,6 +11,23 @@ import { PrintLangBar } from "./PrintLangBar";
 import { searchChips, searchPlaceholder, usePrintLang } from "@/lib/print-lang";
 
 type OnOpen = (id: string) => void;
+
+function LbImg({ card }: { card: TCGCard }) {
+  const urls = fallbackCardImages(card);
+  const [i, setI] = useState(0);
+  const src = urls[i] || hdImg(card, { tile: true }).src;
+  if (!src) return <div className="pv-lb-img" aria-hidden />;
+  return (
+    <img
+      className="pv-lb-img"
+      src={src}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      onError={() => setI((n) => n + 1)}
+    />
+  );
+}
 
 /* ─── Discover ─── */
 export function DiscoverView({ onOpen, onTab }: { onOpen: OnOpen; onTab: (t: string) => void }) {
@@ -221,7 +238,7 @@ export function MarketView({ onOpen }: { onOpen: OnOpen }) {
           <div key={c.id} className="pv-lb-row" onClick={() => onOpen(c.id)} role="button" tabIndex={0}
             onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(c.id); } }}>
             <div className="pv-lb-rank">{i + 1}</div>
-            <img className="pv-lb-img" {...hdImg(c)} alt={c.name} loading="lazy" />
+            <LbImg card={c} />
             <div className="pv-lb-info">
               <div className="pv-lb-name">{c.name}{c.lang && c.lang !== "en" ? ` · ${c.lang}` : ""}</div>
               <div className="pv-lb-rar">{c.set.name} • {c.rarity ?? "—"}</div>

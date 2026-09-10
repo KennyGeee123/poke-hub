@@ -43,6 +43,12 @@
     #sidebar { width: 100%; max-width: 360px; max-height: 220px; }
     body { padding: 8px; padding-bottom: 200px; align-items: flex-start; }
   }
+  html.embedded body { padding: 0; min-height: 100%; align-items: stretch; background: #0b1220; }
+  html.embedded #app { max-width: none; width: 100%; margin: 0; gap: 0; flex-wrap: nowrap; }
+  html.embedded #sidebar { display: none; }
+  html.embedded #game-wrap { max-width: none; flex: 1 1 auto; border-radius: 0; border-width: 0; }
+  html.embedded canvas#game { width: 100% !important; max-width: none; }
+  html.embedded #dpad { left: 10px; bottom: 10px; width: 140px; height: 140px; }
 
   #game-wrap {
     position: relative;
@@ -241,7 +247,8 @@ const VIEW_TILES = 18;
 const MAP_SIZE = 48;
 const CANVAS_PX = VIEW_TILES * TILE;
 const CAM_LERP = 0.10;
-const SPRITE_H = 56;
+const SPRITE_H = 48;
+if (window.parent !== window) document.documentElement.classList.add("embedded");
 
 const TEX = {};
 const TRAINER = {};
@@ -1104,38 +1111,27 @@ const UIManager = {
       ctx.fillStyle = t === 1 || t === 7 ? '#388e3c' : ground;
       ctx.fillRect(px, py, TILE, TILE);
     }
-    if (t === 0 || t === 3) {
+    if (t === 0) {
+      if (!fillWorldTex(ctx, biomeTex, px, py, mx, my)) {
+        ctx.fillStyle = tint;
+        ctx.fillRect(px, py, TILE, TILE);
+      }
+    } else if (t === 3) {
       if (!fillWorldTex(ctx, TEX.path, px, py, mx, my)) {
         ctx.fillStyle = tint;
         ctx.fillRect(px, py, TILE, TILE);
       }
-      ctx.fillStyle = 'rgba(255,255,255,.10)';
-      ctx.fillRect(px, py, TILE, 2);
-      ctx.fillStyle = 'rgba(0,0,0,.10)';
-      ctx.fillRect(px + 4 + hash, py + 10, 5, 3);
-      ctx.fillRect(px + 18 - hash, py + 20, 4, 2);
-      const pathish = (tt) => tt === 0 || tt === 3 || tt === 11;
-      this.drawAutotileEdges(ctx, px, py, this.neighborMask(mx, my, pathish), 'rgba(0,0,0,.18)', 'rgba(255,255,255,.08)');
-      if (t === 3) {
-        ctx.fillStyle = '#e2b53a';
-        ctx.fillRect(px + 6, py + 6, 20, 20);
-        ctx.fillStyle = '#0b1220';
-        ctx.font = 'bold 14px monospace';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('▶', px + 16, py + 16);
-      }
+      ctx.fillStyle = '#e2b53a';
+      ctx.fillRect(px + 6, py + 6, 20, 20);
+      ctx.fillStyle = '#0b1220';
+      ctx.font = 'bold 14px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('▶', px + 16, py + 16);
     } else if (t === 1) {
-      if (!fillWorldTex(ctx, TEX.tall, px, py, mx, my)) fillWorldTex(ctx, TEX.grass, px, py, mx, my);
-      const grass = (tt) => tt === 1 || tt === 7;
-      this.drawAutotileEdges(ctx, px, py, this.neighborMask(mx, my, grass), '#145a28', '#66bb6a');
-      ctx.fillStyle = '#1b5e20';
-      ctx.fillRect(px, py + 20, TILE, 12);
-      ctx.fillStyle = '#43a047';
-      for (let i = 0; i < 5; i++) {
-        const bx = px + 3 + i * 6 + (i % 2 ? sway : -sway * 0.6);
-        ctx.fillRect(bx, py + 4, 4, 18);
-      }
+      if (!fillWorldTex(ctx, biomeTex, px, py, mx, my)) fillWorldTex(ctx, TEX.grass, px, py, mx, my);
+      ctx.fillStyle = 'rgba(20,80,30,.28)';
+      ctx.fillRect(px, py, TILE, TILE);
       ctx.fillStyle = '#c5e1a5';
       ctx.fillRect(px + 6 + sway, py + 5, 3, 4);
       ctx.fillRect(px + 18 - sway, py + 8, 3, 3);

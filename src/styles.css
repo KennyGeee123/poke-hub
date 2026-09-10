@@ -712,10 +712,10 @@
   box-shadow: 0 0 6px rgba(255,255,255,.6);
 }
 .pv-logo-text {
-  background: linear-gradient(90deg, var(--pkmn-yellow) 0%, #fff 50%, var(--pkmn-yellow) 100%) !important;
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 22px rgba(255,203,5,.25);
+  background: transparent !important;
+  -webkit-text-fill-color: #e2b53a !important;
+  color: #e2b53a !important;
+  text-shadow: 0 0 18px rgba(226,181,58,.35);
 }
 .pv-hdr {
   background: linear-gradient(180deg, rgba(20,8,8,.97), rgba(8,8,16,.97)) !important;
@@ -2322,11 +2322,12 @@ header, nav, main, footer, .pv-settings { position: relative; z-index: 1; }
 .pv-app-shell .pv-logo-text {
   font-size: 24px !important;
   letter-spacing: 3px !important;
-  background: linear-gradient(90deg, #f4efe4, #e2b53a 70%, #f4efe4);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 14px rgba(226, 181, 58, 0.35));
+  background: transparent !important;
+  -webkit-background-clip: unset;
+  background-clip: unset;
+  -webkit-text-fill-color: #e2b53a !important;
+  color: #e2b53a !important;
+  filter: drop-shadow(0 1px 0 #1a1a1a);
 }
 
 .pv-app-shell .pv-hdr-val {
