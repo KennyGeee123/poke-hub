@@ -17,6 +17,8 @@ import {
   type CardCacheDrop,
   loadAdventureState,
   saveAdventureState,
+  forceSwitchEra,
+  type PokemonEraId,
   addAdventureXp,
 } from "@/lib/adventure-engine";
 
@@ -243,6 +245,9 @@ export function AdventureView() {
               {/* Floating Game HUD */}
               <AdventureHUD
                 adventureState={adventureState}
+                onForceSwitchEra={(eraId) => {
+                  setAdventureState((prev) => forceSwitchEra(prev, eraId).state);
+                }}
                 onOpenShop={() => setShopOpen(true)}
                 onOpenEvolution={() => setEvolutionOpen(true)}
                 onOpenInventory={() => setInventoryOpen(true)}

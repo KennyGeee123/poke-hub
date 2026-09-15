@@ -2,6 +2,7 @@ import { PristineMoveCustomizer } from "./PristineMoveCustomizer";
 import { P2PTradingHubModal } from "./P2PTradingHubModal";
 import { getCardLevelAndStats } from "@/lib/card-stats";
 import { VisualGradeScannerModal } from "./VisualGradeScannerModal";
+import { InteractiveHoloCard, HoloInspectorModal } from "./InteractiveHoloCard";
 import { useEffect, useRef, useState } from "react";
 import type { TCGCard } from "@/lib/pokemon-api";
 import { getCard, getMarketPrice, getRarityColor, stubCardFromId } from "@/lib/pokemon-api";
@@ -35,6 +36,8 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
   const [activeTab, setActiveTab] = useState<"pricing" | "ai_inspector">("pricing");
   const [showVisualModal, setShowVisualModal] = useState(false);
   const [showTradeModal, setShowTradeModal] = useState(false);
+  const [showHoloModal, setShowHoloModal] = useState(false);
+  const [displayMode, setDisplayMode] = useState<"holo" | "classic">("holo");
   const failedImgs = useRef<Set<string>>(new Set());
 
   // AI Pre-Grade Scanner state
@@ -107,71 +110,152 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
       )}
       <div className="pv-detail-layout">
         <div className="pv-detail-left">
-          <div
-            className="pv-detail-img-wrap"
-            style={{ position: "relative", cursor: "pointer" }}
-            onClick={() => setShowVisualModal(true)}
-            title="Click to launch AI Visual Pre-Grade Defect Scanner"
-          >
-            <div className="pv-card-skel" style={{ opacity: loaded ? 0 : 1 }} />
-            <img
-              className={`pv-detail-img ${loaded ? "loaded" : ""}`}
-              src={imgSrc || card.images.large}
-              alt={card.name}
-              onLoad={() => setLoaded(true)}
-              onError={() => {
-                failedImgs.current.add(imgSrc);
-                setLoaded(true);
-                const next = fallbackCardImages(card).find((u) => u && !failedImgs.current.has(u));
-                if (next) setImgSrc(next);
-              }}
-            />
-            {/* Visual Scanner Prompt Badge */}
-            <div
+          {/* 3D Holo / Classic View Switcher Bar */}
+          <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+            <button
+              onClick={() => setDisplayMode("holo")}
               style={{
-                position: "absolute",
-                bottom: 8,
-                left: 8,
-                right: 8,
+                flex: 1,
                 padding: "6px 10px",
-                background: "linear-gradient(135deg, rgba(14, 165, 233, 0.92), rgba(99, 102, 241, 0.92))",
                 borderRadius: 8,
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: 800,
+                background: displayMode === "holo" ? "linear-gradient(135deg, #ec4899, #8b5cf6)" : "var(--s2)",
                 color: "#ffffff",
-                textAlign: "center",
-                letterSpacing: 0.8,
-                boxShadow: "0 4px 14px rgba(0,0,0,0.6)",
+                border: displayMode === "holo" ? "1px solid #ec4899" : "1px solid var(--brd)",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 4,
+                boxShadow: displayMode === "holo" ? "0 0 12px rgba(236,72,153,0.4)" : "none",
+              }}
+            >
+              <span>✨</span> 3D Holo Tilt
+            </button>
+            <button
+              onClick={() => setDisplayMode("classic")}
+              style={{
+                flex: 1,
+                padding: "6px 10px",
+                borderRadius: 8,
+                fontSize: 11,
+                fontWeight: 800,
+                background: displayMode === "classic" ? "linear-gradient(135deg, #0ea5e9, #3b82f6)" : "var(--s2)",
+                color: displayMode === "classic" ? "#ffffff" : "var(--t2)",
+                border: displayMode === "classic" ? "1px solid #0ea5e9" : "1px solid var(--brd)",
+                cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 4,
               }}
             >
-              <span>🔬</span> TAP CARD TO SCAN PIXELS & DEFECTS
-            </div>
-            <div
-              style={{
-                position: "absolute",
-                top: 10,
-                left: 10,
-                padding: "4px 8px",
-                borderRadius: 6,
-                fontSize: 11,
-                fontWeight: 800,
-                fontFamily: "var(--mono, monospace)",
-                background: gradeMeta.badgeBg,
-                color: gradeMeta.badgeText,
-                border: `1px solid ${gradeMeta.badgeText}88`,
-                boxShadow: "0 4px 12px rgba(0,0,0,0.7)",
-              }}
-            >
-              {gradeMeta.shortLabel}
-            </div>
+              <span>🖼️</span> Static View
+            </button>
           </div>
 
+          {displayMode === "holo" ? (
+            <div style={{ width: "100%", display: "flex", justifyContent: "center", marginBottom: 12 }}>
+              <InteractiveHoloCard
+                frontImage={imgSrc || card.images.large}
+                name={card.name}
+                setName={card.set?.name}
+                rarity={card.rarity}
+                isHolo={true}
+                allowFlip={true}
+                allowStyleChange={true}
+                showControls={true}
+                onExpandModal={() => setShowHoloModal(true)}
+              />
+            </div>
+          ) : (
+            <div
+              className="pv-detail-img-wrap"
+              style={{ position: "relative", cursor: "pointer" }}
+              onClick={() => setShowVisualModal(true)}
+              title="Click to launch AI Visual Pre-Grade Defect Scanner"
+            >
+              <div className="pv-card-skel" style={{ opacity: loaded ? 0 : 1 }} />
+              <img
+                className={`pv-detail-img ${loaded ? "loaded" : ""}`}
+                src={imgSrc || card.images.large}
+                alt={card.name}
+                onLoad={() => setLoaded(true)}
+                onError={() => {
+                  failedImgs.current.add(imgSrc);
+                  setLoaded(true);
+                  const next = fallbackCardImages(card).find((u) => u && !failedImgs.current.has(u));
+                  if (next) setImgSrc(next);
+                }}
+              />
+              {/* Visual Scanner Prompt Badge */}
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 8,
+                  left: 8,
+                  right: 8,
+                  padding: "6px 10px",
+                  background: "linear-gradient(135deg, rgba(14, 165, 233, 0.92), rgba(99, 102, 241, 0.92))",
+                  borderRadius: 8,
+                  fontSize: 10,
+                  fontWeight: 800,
+                  color: "#ffffff",
+                  textAlign: "center",
+                  letterSpacing: 0.8,
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.6)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 4,
+                }}
+              >
+                <span>🔬</span> TAP CARD TO SCAN PIXELS & DEFECTS
+              </div>
+              <div
+                style={{
+                  position: "absolute",
+                  top: 10,
+                  left: 10,
+                  padding: "4px 8px",
+                  borderRadius: 6,
+                  fontSize: 11,
+                  fontWeight: 800,
+                  fontFamily: "var(--mono, monospace)",
+                  background: gradeMeta.badgeBg,
+                  color: gradeMeta.badgeText,
+                  border: `1px solid ${gradeMeta.badgeText}88`,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.7)",
+                }}
+              >
+                {gradeMeta.shortLabel}
+              </div>
+            </div>
+          )}
+
           <CardActions card={card} onAfterAction={onToast} />
-          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+          <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+            <button
+              onClick={() => setShowHoloModal(true)}
+              style={{
+                flex: 1,
+                padding: "8px 10px",
+                borderRadius: 8,
+                background: "rgba(236, 72, 153, 0.15)",
+                border: "1px solid rgba(236, 72, 153, 0.4)",
+                color: "#f472b6",
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 4,
+              }}
+            >
+              ✨ 3D Holo Flare
+            </button>
             <button
               onClick={() => setShowVisualModal(true)}
               style={{
@@ -739,6 +823,16 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
           initialCard={card}
           initialGrade={selectedGrade}
           onClose={() => setShowTradeModal(false)}
+        />
+      )}
+      {showHoloModal && (
+        <HoloInspectorModal
+          isOpen={showHoloModal}
+          onClose={() => setShowHoloModal(false)}
+          frontImage={imgSrc || card.images.large}
+          name={card.name}
+          setName={card.set?.name}
+          rarity={card.rarity}
         />
       )}
     </div>

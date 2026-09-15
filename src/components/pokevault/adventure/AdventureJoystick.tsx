@@ -23,6 +23,7 @@ const SPEED_CONFIG: Record<MoveSpeed, { label: string; kmh: number; stepPct: num
 
 export const POPULAR_HOTSPOTS = [
   { name: "Local GPS", xPct: 50, yPct: 50, desc: "Current Device Location" },
+  { name: "🌳 Dresden Park (Rare Nest)", xPct: 31, yPct: 48, desc: "Down the Street · 5x Rare Nest Spawns" },
   { name: "Central Park, NY", xPct: 35, yPct: 42, desc: "Dense PokéStops & Lures" },
   { name: "Tokyo Akihabara", xPct: 72, yPct: 28, desc: "Legendary Raid District" },
   { name: "Santa Monica Pier", xPct: 22, yPct: 68, desc: "Water & Rare Spawns" },

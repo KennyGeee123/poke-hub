@@ -369,6 +369,328 @@ export interface PlayerProfile {
   lastDailyClaimTimestamp: number;
 }
 
+
+export type PokemonEraId =
+  | "vintage_kanto"
+  | "neo_johto"
+  | "advanced_hoenn"
+  | "diamond_sinnoh"
+  | "modern_paldea";
+
+export interface PokemonEraSpecies {
+  species: string;
+  types: string[];
+  rarity: CreatureRarity;
+  baseCatchRate: number;
+  baseCp: number;
+}
+
+export interface PokemonEra {
+  id: PokemonEraId;
+  name: string;
+  shortName: string;
+  gen: number;
+  years: string;
+  badge: string;
+  themeColor: string;
+  bgGradient: string;
+  description: string;
+  speciesPool: PokemonEraSpecies[];
+  legendaries: string[];
+}
+
+export const ERA_CYCLE_DURATION_MS = 30 * 60 * 1000; // 30-Minute Rotation Loop
+
+export const ERA_ROTATION_ORDER: PokemonEraId[] = [
+  "vintage_kanto",
+  "neo_johto",
+  "advanced_hoenn",
+  "diamond_sinnoh",
+  "modern_paldea",
+];
+
+export const POKEMON_ERAS: Record<PokemonEraId, PokemonEra> = {
+  vintage_kanto: {
+    id: "vintage_kanto",
+    name: "Vintage Kanto (Gen 1)",
+    shortName: "Kanto",
+    gen: 1,
+    years: "1996 - 1999",
+    badge: "🔴 BASE SET",
+    themeColor: "#ef4444",
+    bgGradient: "from-red-600 to-amber-600",
+    description: "The classic origin era. Wizards of the Coast Base Set, Jungle & Fossil holos.",
+    legendaries: ["Mewtwo", "Dragonite", "Moltres", "Zapdos", "Articuno"],
+    speciesPool: [
+      { species: "Pikachu", types: ["Electric"], rarity: "uncommon", baseCatchRate: 0.6, baseCp: 450 },
+      { species: "Charizard", types: ["Fire", "Flying"], rarity: "epic", baseCatchRate: 0.25, baseCp: 1850 },
+      { species: "Blastoise", types: ["Water"], rarity: "epic", baseCatchRate: 0.28, baseCp: 1780 },
+      { species: "Venusaur", types: ["Grass", "Poison"], rarity: "epic", baseCatchRate: 0.28, baseCp: 1750 },
+      { species: "Gengar", types: ["Ghost", "Poison"], rarity: "epic", baseCatchRate: 0.32, baseCp: 1650 },
+      { species: "Dragonite", types: ["Dragon", "Flying"], rarity: "legendary", baseCatchRate: 0.18, baseCp: 2450 },
+      { species: "Mewtwo", types: ["Psychic"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2890 },
+      { species: "Eevee", types: ["Normal"], rarity: "uncommon", baseCatchRate: 0.65, baseCp: 420 },
+      { species: "Snorlax", types: ["Normal"], rarity: "rare", baseCatchRate: 0.4, baseCp: 1550 },
+      { species: "Gyarados", types: ["Water", "Flying"], rarity: "rare", baseCatchRate: 0.35, baseCp: 1620 },
+      { species: "Lapras", types: ["Water", "Ice"], rarity: "rare", baseCatchRate: 0.38, baseCp: 1480 },
+      { species: "Alakazam", types: ["Psychic"], rarity: "rare", baseCatchRate: 0.35, baseCp: 1590 },
+    ],
+  },
+  neo_johto: {
+    id: "neo_johto",
+    name: "Neo Johto (Gen 2)",
+    shortName: "Johto",
+    gen: 2,
+    years: "1999 - 2002",
+    badge: "🟡 NEO GENESIS",
+    themeColor: "#f59e0b",
+    bgGradient: "from-amber-500 to-yellow-600",
+    description: "The Gold & Silver golden age. Neo Revelation shining Pokémon and legendary dogs.",
+    legendaries: ["Lugia", "Ho-Oh", "Tyranitar", "Suicune", "Entei", "Raikou"],
+    speciesPool: [
+      { species: "Tyranitar", types: ["Rock", "Dark"], rarity: "legendary", baseCatchRate: 0.18, baseCp: 2520 },
+      { species: "Lugia", types: ["Psychic", "Flying"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2850 },
+      { species: "Ho-Oh", types: ["Fire", "Flying"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2850 },
+      { species: "Umbreon", types: ["Dark"], rarity: "rare", baseCatchRate: 0.45, baseCp: 1280 },
+      { species: "Espeon", types: ["Psychic"], rarity: "rare", baseCatchRate: 0.45, baseCp: 1320 },
+      { species: "Scizor", types: ["Bug", "Steel"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1720 },
+      { species: "Feraligatr", types: ["Water"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1680 },
+      { species: "Typhlosion", types: ["Fire"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1700 },
+      { species: "Ampharos", types: ["Electric"], rarity: "rare", baseCatchRate: 0.45, baseCp: 1420 },
+      { species: "Houndoom", types: ["Dark", "Fire"], rarity: "rare", baseCatchRate: 0.42, baseCp: 1390 },
+      { species: "Heracross", types: ["Bug", "Fighting"], rarity: "uncommon", baseCatchRate: 0.5, baseCp: 1150 },
+      { species: "Suicune", types: ["Water"], rarity: "legendary", baseCatchRate: 0.15, baseCp: 2350 },
+    ],
+  },
+  advanced_hoenn: {
+    id: "advanced_hoenn",
+    name: "Advanced Hoenn (Gen 3)",
+    shortName: "Hoenn",
+    gen: 3,
+    years: "2002 - 2006",
+    badge: "🟢 EX SERIES",
+    themeColor: "#10b981",
+    bgGradient: "from-emerald-500 to-teal-700",
+    description: "Ruby, Sapphire & Emerald weather wars. The iconic EX cards and ancient dragons.",
+    legendaries: ["Rayquaza", "Kyogre", "Groudon", "Metagross", "Salamence", "Latios", "Latias"],
+    speciesPool: [
+      { species: "Rayquaza", types: ["Dragon", "Flying"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2980 },
+      { species: "Blaziken", types: ["Fire", "Fighting"], rarity: "epic", baseCatchRate: 0.28, baseCp: 1790 },
+      { species: "Gardevoir", types: ["Psychic", "Fairy"], rarity: "rare", baseCatchRate: 0.4, baseCp: 1540 },
+      { species: "Metagross", types: ["Steel", "Psychic"], rarity: "legendary", baseCatchRate: 0.2, baseCp: 2480 },
+      { species: "Salamence", types: ["Dragon", "Flying"], rarity: "legendary", baseCatchRate: 0.2, baseCp: 2460 },
+      { species: "Kyogre", types: ["Water"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2920 },
+      { species: "Groudon", types: ["Ground"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2920 },
+      { species: "Milotic", types: ["Water"], rarity: "rare", baseCatchRate: 0.35, baseCp: 1610 },
+      { species: "Flygon", types: ["Ground", "Dragon"], rarity: "rare", baseCatchRate: 0.42, baseCp: 1450 },
+      { species: "Sceptile", types: ["Grass"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1680 },
+      { species: "Swampert", types: ["Water", "Ground"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1720 },
+      { species: "Absol", types: ["Dark"], rarity: "uncommon", baseCatchRate: 0.52, baseCp: 1120 },
+    ],
+  },
+  diamond_sinnoh: {
+    id: "diamond_sinnoh",
+    name: "Diamond Sinnoh (Gen 4)",
+    shortName: "Sinnoh",
+    gen: 4,
+    years: "2006 - 2010",
+    badge: "🔵 LV.X ERA",
+    themeColor: "#3b82f6",
+    bgGradient: "from-blue-600 to-indigo-800",
+    description: "Diamond, Pearl & Platinum cosmic deities. LV.X cards, Lucario, and time/space legends.",
+    legendaries: ["Dialga", "Palkia", "Giratina", "Darkrai", "Garchomp", "Arceus"],
+    speciesPool: [
+      { species: "Lucario", types: ["Fighting", "Steel"], rarity: "epic", baseCatchRate: 0.28, baseCp: 1820 },
+      { species: "Garchomp", types: ["Dragon", "Ground"], rarity: "legendary", baseCatchRate: 0.18, baseCp: 2580 },
+      { species: "Dialga", types: ["Steel", "Dragon"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2940 },
+      { species: "Palkia", types: ["Water", "Dragon"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2910 },
+      { species: "Giratina", types: ["Ghost", "Dragon"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2950 },
+      { species: "Darkrai", types: ["Dark"], rarity: "legendary", baseCatchRate: 0.15, baseCp: 2680 },
+      { species: "Togekiss", types: ["Fairy", "Flying"], rarity: "rare", baseCatchRate: 0.4, baseCp: 1520 },
+      { species: "Infernape", types: ["Fire", "Fighting"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1740 },
+      { species: "Electivire", types: ["Electric"], rarity: "rare", baseCatchRate: 0.38, baseCp: 1580 },
+      { species: "Magmortar", types: ["Fire"], rarity: "rare", baseCatchRate: 0.38, baseCp: 1570 },
+      { species: "Weavile", types: ["Dark", "Ice"], rarity: "uncommon", baseCatchRate: 0.5, baseCp: 1250 },
+      { species: "Luxray", types: ["Electric"], rarity: "rare", baseCatchRate: 0.45, baseCp: 1410 },
+    ],
+  },
+  modern_paldea: {
+    id: "modern_paldea",
+    name: "Modern Paldea (Gen 9 & Ultra)",
+    shortName: "Paldea",
+    gen: 9,
+    years: "2022 - Present",
+    badge: "🟣 PARADOX & EX",
+    themeColor: "#a855f7",
+    bgGradient: "from-purple-600 to-pink-600",
+    description: "Scarlet & Violet Terastallization, Ancient & Future Paradox powerhouses.",
+    legendaries: ["Miraidon", "Koraidon", "Roaring Moon", "Iron Valiant", "Chien-Pao", "Terapagos"],
+    speciesPool: [
+      { species: "Miraidon", types: ["Electric", "Dragon"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 3020 },
+      { species: "Koraidon", types: ["Fighting", "Dragon"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 3020 },
+      { species: "Roaring Moon", types: ["Dragon", "Dark"], rarity: "legendary", baseCatchRate: 0.15, baseCp: 2750 },
+      { species: "Iron Valiant", types: ["Fairy", "Fighting"], rarity: "epic", baseCatchRate: 0.22, baseCp: 2280 },
+      { species: "Meowscarada", types: ["Grass", "Dark"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1760 },
+      { species: "Skeledirge", types: ["Fire", "Ghost"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1780 },
+      { species: "Quaquaval", types: ["Water", "Fighting"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1750 },
+      { species: "Tinkaton", types: ["Fairy", "Steel"], rarity: "rare", baseCatchRate: 0.42, baseCp: 1490 },
+      { species: "Ceruledge", types: ["Fire", "Ghost"], rarity: "rare", baseCatchRate: 0.38, baseCp: 1640 },
+      { species: "Dragapult", types: ["Dragon", "Ghost"], rarity: "epic", baseCatchRate: 0.25, baseCp: 2150 },
+      { species: "Baxcalibur", types: ["Dragon", "Ice"], rarity: "legendary", baseCatchRate: 0.2, baseCp: 2490 },
+      { species: "Gholdengo", types: ["Steel", "Ghost"], rarity: "rare", baseCatchRate: 0.35, baseCp: 1690 },
+    ],
+  },
+};
+
+export interface ParkBiomeDef {
+  id: string;
+  name: string;
+  shortName: string;
+  subtitle: string;
+  bounds: { minX: number; maxX: number; minY: number; maxY: number };
+  center: { xPct: number; yPct: number };
+  rareMultiplier: number;
+  featuredNestSpecies: string[];
+}
+
+export const DRESDEN_PARK_ZONE: ParkBiomeDef = {
+  id: "dresden_park",
+  name: "Dresden Park Nature Reserve",
+  shortName: "Dresden Park",
+  subtitle: "Rare Nest Biome · 5x Rare / Epic / Legendary Spawns",
+  bounds: { minX: 16, maxX: 46, minY: 34, maxY: 62 },
+  center: { xPct: 31, yPct: 48 },
+  rareMultiplier: 5.0,
+  featuredNestSpecies: [
+    "Dragonite",
+    "Rayquaza",
+    "Tyranitar",
+    "Lucario",
+    "Garchomp",
+    "Roaring Moon",
+    "Mewtwo",
+    "Charizard",
+    "Gengar",
+    "Metagross",
+  ],
+};
+
+export function isInsidePark(xPct: number, yPct: number, park: ParkBiomeDef = DRESDEN_PARK_ZONE): boolean {
+  return (
+    xPct >= park.bounds.minX &&
+    xPct <= park.bounds.maxX &&
+    yPct >= park.bounds.minY &&
+    yPct <= park.bounds.maxY
+  );
+}
+
+export function getEraRotationStatus(timestamp = Date.now()) {
+  const eraKeys = ERA_ROTATION_ORDER;
+  const index = Math.floor(timestamp / ERA_CYCLE_DURATION_MS) % eraKeys.length;
+  const activeEraId = eraKeys[index];
+  const nextEraId = eraKeys[(index + 1) % eraKeys.length];
+
+  const elapsedMs = timestamp % ERA_CYCLE_DURATION_MS;
+  const remainingMs = ERA_CYCLE_DURATION_MS - elapsedMs;
+  const remainingSeconds = Math.max(0, Math.floor(remainingMs / 1000));
+  const progressPct = Math.min(100, Math.round((elapsedMs / ERA_CYCLE_DURATION_MS) * 100));
+
+  const minutes = Math.floor(remainingSeconds / 60);
+  const seconds = remainingSeconds % 60;
+  const formattedCountdown = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+
+  return {
+    activeEra: POKEMON_ERAS[activeEraId],
+    nextEra: POKEMON_ERAS[nextEraId],
+    activeEraId,
+    nextEraId,
+    remainingSeconds,
+    remainingMinutes: minutes,
+    formattedCountdown,
+    progressPct,
+  };
+}
+
+export function generateEraSpawns(
+  eraId?: PokemonEraId,
+  count = 7,
+  timestamp = Date.now()
+): WildCreature[] {
+  const eraKey = eraId || getEraRotationStatus(timestamp).activeEraId;
+  const era = POKEMON_ERAS[eraKey] || POKEMON_ERAS.vintage_kanto;
+  const spawns: WildCreature[] = [];
+
+  // 1. Guarantee 3 spawns inside Dresden Park Nest (High Rarity Guaranteed)
+  const parkCount = 3;
+  const generalCount = Math.max(3, count - parkCount);
+
+  for (let i = 0; i < parkCount; i++) {
+    const nestPool = era.speciesPool.filter(
+      (s) => s.rarity === "rare" || s.rarity === "epic" || s.rarity === "legendary"
+    );
+    const chosen = nestPool[Math.floor(Math.random() * nestPool.length)] || era.speciesPool[0];
+
+    const parkX = Math.round(18 + Math.random() * 24); // 18-42%
+    const parkY = Math.round(36 + Math.random() * 22); // 36-58%
+    const level = Math.round(32 + Math.random() * 16);
+    const cp = Math.round(chosen.baseCp * (1 + (level - 20) * 0.04) * 1.25);
+
+    spawns.push({
+      id: `spawn-dresden-${eraKey}-${i}-${timestamp}`,
+      species: chosen.species,
+      cp,
+      level,
+      types: chosen.types,
+      rarity: chosen.rarity,
+      xPct: parkX,
+      yPct: parkY,
+      distanceMeters: Math.round(Math.hypot(parkX - 50, parkY - 50) * 8),
+      weatherBoosted: Math.random() < 0.5,
+      spawnTimestamp: timestamp,
+      despawnTimestamp: timestamp + ERA_CYCLE_DURATION_MS,
+      baseCatchRate: Math.min(0.85, chosen.baseCatchRate + 0.1),
+      relatedCardsCount: Math.round(8 + Math.random() * 20),
+      eraId: eraKey,
+      isParkNest: true,
+      parkName: "Dresden Park",
+    });
+  }
+
+  // 2. Generate remaining general spawns from the active era
+  for (let i = 0; i < generalCount; i++) {
+    const chosen = era.speciesPool[Math.floor(Math.random() * era.speciesPool.length)];
+    let x = Math.round(10 + Math.random() * 80);
+    let y = Math.round(10 + Math.random() * 80);
+    if (isInsidePark(x, y)) {
+      x = x < 31 ? 12 : 72;
+    }
+
+    const level = Math.round(16 + Math.random() * 20);
+    const cp = Math.round(chosen.baseCp * (1 + (level - 20) * 0.04));
+
+    spawns.push({
+      id: `spawn-${eraKey}-${i}-${timestamp}`,
+      species: chosen.species,
+      cp,
+      level,
+      types: chosen.types,
+      rarity: chosen.rarity,
+      xPct: x,
+      yPct: y,
+      distanceMeters: Math.round(Math.hypot(x - 50, y - 50) * 8),
+      weatherBoosted: Math.random() < 0.35,
+      spawnTimestamp: timestamp,
+      despawnTimestamp: timestamp + ERA_CYCLE_DURATION_MS,
+      baseCatchRate: chosen.baseCatchRate,
+      relatedCardsCount: Math.round(4 + Math.random() * 12),
+      eraId: eraKey,
+      isParkNest: false,
+    });
+  }
+
+  return spawns;
+}
+
 export interface WildCreature {
   id: string;
   species: string;
@@ -384,6 +706,9 @@ export interface WildCreature {
   despawnTimestamp: number;
   baseCatchRate: number;
   relatedCardsCount: number;
+  eraId?: PokemonEraId;
+  isParkNest?: boolean;
+  parkName?: string;
 }
 
 export interface DiscoveryPoint {
@@ -461,6 +786,9 @@ export interface WorldState {
   eventName: string;
   eventMultiplier: number;
   playerCoords: { xPct: number; yPct: number };
+  activeEraId?: PokemonEraId;
+  lastEraRotationTimestamp?: number;
+  isInsidePark?: boolean;
 }
 
 export interface AdventureState {
@@ -571,6 +899,9 @@ export function getDefaultAdventureState(): AdventureState {
       eventName: "⚡ Kanto Electric Surge — 2x Catch Candies Active!",
       eventMultiplier: 2.0,
       playerCoords: { xPct: 50, yPct: 50 },
+      activeEraId: "vintage_kanto",
+      lastEraRotationTimestamp: Date.now(),
+      isInsidePark: false,
     },
     wildCreatures: [
       {
@@ -1051,17 +1382,22 @@ export function attemptCapture(
     updated.wildCreatures = updated.wildCreatures.filter((c) => c.id !== creatureId);
     updated.player.creaturesCaught += 1;
 
-    const candyAmount = (doubleCandy ? 6 : 3) * (updated.world.eventMultiplier || 1.0);
+    const nestMultiplier = creature.isParkNest ? 1.5 : 1.0;
+    const baseCandies = (doubleCandy ? 6 : 3) * (updated.world.eventMultiplier || 1.0);
+    const candyAmount = Math.round(baseCandies * nestMultiplier);
     updated.inventory.speciesCandies[creature.species] =
       (updated.inventory.speciesCandies[creature.species] || 0) + candyAmount;
 
     const gotRareCandy =
-      creature.rarity === "legendary" || (creature.rarity === "epic" && Math.random() < 0.4);
+      creature.rarity === "legendary" ||
+      creature.isParkNest ||
+      (creature.rarity === "epic" && Math.random() < 0.4);
     if (gotRareCandy) {
       updated.inventory.rareCandy += 1;
     }
 
-    const xpGain = creature.rarity === "legendary" ? 1000 : creature.rarity === "epic" ? 500 : 150;
+    const baseXpGain = creature.rarity === "legendary" ? 1000 : creature.rarity === "epic" ? 500 : 150;
+    const xpGain = Math.round(baseXpGain * (creature.isParkNest ? 1.5 : 1.0));
     const coinsGain = Math.floor(xpGain / 4);
     updated.inventory.coins += coinsGain;
     const xpRes = addAdventureXp(updated, xpGain);
@@ -1289,4 +1625,40 @@ export function claimQuest(
     state: xpRes.state,
     rewards: { coins: quest.rewardCoins, xp: quest.rewardXp, rareCandy: quest.rewardRareCandy },
   };
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ERA ROTATION ENGINE (30-MINUTE CYCLES)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function checkAndRotateEra(
+  state: AdventureState,
+  currentTimestamp = Date.now()
+): { state: AdventureState; didRotate: boolean; activeEra: PokemonEra } {
+  const rotation = getEraRotationStatus(currentTimestamp);
+  const currentEraId = state.world.activeEraId || "vintage_kanto";
+
+  if (currentEraId !== rotation.activeEraId) {
+    const updated = cloneAdventureState(state);
+    updated.world.activeEraId = rotation.activeEraId;
+    updated.world.lastEraRotationTimestamp = currentTimestamp;
+    updated.wildCreatures = generateEraSpawns(rotation.activeEraId, 7, currentTimestamp);
+    saveAdventureState(updated);
+    return { state: updated, didRotate: true, activeEra: rotation.activeEra };
+  }
+
+  return { state, didRotate: false, activeEra: rotation.activeEra };
+}
+
+export function forceSwitchEra(
+  state: AdventureState,
+  targetEraId: PokemonEraId
+): { state: AdventureState; activeEra: PokemonEra } {
+  const updated = cloneAdventureState(state);
+  updated.world.activeEraId = targetEraId;
+  updated.world.lastEraRotationTimestamp = Date.now();
+  updated.wildCreatures = generateEraSpawns(targetEraId, 7, Date.now());
+  saveAdventureState(updated);
+  return { state: updated, activeEra: POKEMON_ERAS[targetEraId] };
 }

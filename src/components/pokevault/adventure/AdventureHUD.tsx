@@ -16,7 +16,14 @@ import {
   Footprints,
   Eye,
 } from "lucide-react";
-import { type AdventureState } from "@/lib/adventure-engine";
+import {
+  type AdventureState,
+  type PokemonEraId,
+  getEraRotationStatus,
+  POKEMON_ERAS,
+  ERA_ROTATION_ORDER,
+  isInsidePark,
+} from "@/lib/adventure-engine";
 
 export function AdventureHUD({
   adventureState,
@@ -36,8 +43,21 @@ export function AdventureHUD({
   onOpenBuddy: () => void;
   onOpenVault: () => void;
   onToggleNearby: () => void;
+  onForceSwitchEra?: (eraId: PokemonEraId) => void;
 }) {
   const [radialOpen, setRadialOpen] = useState(false);
+  const [eraModalOpen, setEraModalOpen] = useState(false);
+  const [eraStatus, setEraStatus] = useState(() => getEraRotationStatus());
+
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setEraStatus(getEraRotationStatus());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const inDresdenPark = isInsidePark(adventureState.world.playerCoords.xPct, adventureState.world.playerCoords.yPct);
+
 
   const p = adventureState.player;
   const inv = adventureState.inventory;
@@ -81,12 +101,38 @@ export function AdventureHUD({
           </div>
         </div>
 
-        {/* Center: Biome & Event Banner */}
-        <div className="pointer-events-auto hidden md:flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-neutral-950/85 backdrop-blur-md border border-neutral-800 shadow-xl text-xs">
-          <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-          <span className="font-bold text-neutral-200">{w.biome}</span>
-          <span className="text-neutral-600">|</span>
-          <span className="text-[11px] text-amber-300 font-semibold">{w.eventName}</span>
+        {/* Center: Biome, Dresden Park Nest & 30-Minute Era Rotation */}
+        <div className="pointer-events-auto flex items-center gap-2">
+          {/* Biome Indicator */}
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-neutral-950/85 backdrop-blur-md border border-neutral-800 shadow-xl text-xs">
+            <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="font-bold text-neutral-200">
+              {inDresdenPark ? "🌳 Dresden Park Nature Reserve" : w.biome}
+            </span>
+            {inDresdenPark && (
+              <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 text-[10px] font-bold animate-pulse">
+                ⚡ 5x RARE NEST
+              </span>
+            )}
+          </div>
+
+          {/* 30-Minute Era Rotation Capsule Widget */}
+          <button
+            type="button"
+            onClick={() => setEraModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-neutral-950/85 backdrop-blur-md border border-amber-500/40 hover:border-amber-400 shadow-xl text-xs text-neutral-200 transition group"
+            title="Active Pokémon Era (Rotates every 30 mins) · Tap to Inspect or Shift"
+          >
+            <span className="text-amber-400 font-bold flex items-center gap-1">
+              <span>⚡</span>
+              <span className="hidden sm:inline">{eraStatus.activeEra.name}</span>
+              <span className="sm:hidden">{eraStatus.activeEra.shortName}</span>
+            </span>
+            <span className="text-neutral-600">|</span>
+            <span className="font-mono text-cyan-300 font-bold text-[11px] group-hover:text-white">
+              ⏳ {eraStatus.formattedCountdown}
+            </span>
+          </button>
         </div>
 
         {/* Right: Currencies & Quick Bag */}
@@ -256,6 +302,106 @@ export function AdventureHUD({
           <span className="hidden sm:inline font-bold">NEARBY ({adventureState.wildCreatures.length})</span>
         </button>
       </div>
+
+      {/* ───────────────────────────────────────────────────────────── */}
+      {/* ERA ROTATION & INSPECTION MODAL (30-MINUTES ROTATION) */}
+      {/* ───────────────────────────────────────────────────────────── */}
+      {eraModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/85 backdrop-blur-md animate-fade-in font-mono select-none pointer-events-auto">
+          <div className="relative w-full max-w-lg rounded-3xl bg-neutral-950 border border-amber-500/40 shadow-2xl p-6 flex flex-col gap-4 text-center">
+            <button
+              type="button"
+              onClick={() => setEraModalOpen(false)}
+              className="absolute top-4 right-4 p-2 rounded-xl bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex flex-col items-center">
+              <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/40">
+                ⚡ 30-MINUTE ERA SPAWN ENGINE
+              </span>
+              <h3 className="text-xl font-extrabold text-white mt-1">Active Era: {eraStatus.activeEra.name}</h3>
+              <p className="text-xs text-neutral-400">
+                Overworld Pokémon spawns cycle through 5 canonical eras every 30 minutes!
+              </p>
+            </div>
+
+            {/* Countdown Progress Card */}
+            <div className="p-3.5 rounded-2xl bg-neutral-900 border border-neutral-800 flex flex-col gap-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-neutral-400">Next Rotation: <span className="text-white font-bold">{eraStatus.nextEra.name}</span></span>
+                <span className="text-cyan-400 font-bold font-mono">⏳ {eraStatus.formattedCountdown} left</span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-neutral-950 overflow-hidden border border-neutral-800">
+                <div
+                  className="h-full bg-gradient-to-r from-cyan-400 to-amber-400 transition-all duration-1000"
+                  style={{ width: `${eraStatus.progressPct}%` }}
+                />
+              </div>
+            </div>
+
+            {/* 5 Eras Grid Selector */}
+            <div className="flex flex-col gap-2 text-left text-xs max-h-64 overflow-y-auto pr-1">
+              {ERA_ROTATION_ORDER.map((eraId) => {
+                const era = POKEMON_ERAS[eraId];
+                const isActive = eraStatus.activeEraId === eraId;
+                return (
+                  <div
+                    key={eraId}
+                    className={`p-3 rounded-2xl border flex items-center justify-between transition ${
+                      isActive
+                        ? "bg-amber-950/40 border-amber-500 shadow-lg shadow-amber-500/10"
+                        : "bg-neutral-900/80 border-neutral-800 hover:border-neutral-700"
+                    }`}
+                  >
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-white text-sm">{era.name}</span>
+                        <span className="px-1.5 py-0.2 rounded bg-neutral-800 text-[9px] font-bold text-neutral-300">
+                          {era.years}
+                        </span>
+                        {isActive && (
+                          <span className="px-1.5 py-0.2 rounded bg-amber-500 text-neutral-950 text-[9px] font-extrabold">
+                            LIVE
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-neutral-400 mt-0.5">{era.description}</p>
+                      <div className="flex items-center gap-1 mt-1 text-[9px] text-amber-300">
+                        <span className="text-neutral-500">Icons:</span>
+                        <span>{era.legendaries.slice(0, 3).join(", ")}</span>
+                      </div>
+                    </div>
+
+                    {onForceSwitchEra && !isActive && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onForceSwitchEra(eraId);
+                          setEraModalOpen(false);
+                        }}
+                        className="px-2.5 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-neutral-200 text-[10px] font-bold transition whitespace-nowrap ml-2"
+                      >
+                        Shift Now
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setEraModalOpen(false)}
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 text-neutral-950 font-bold text-xs shadow-lg hover:brightness-110 transition"
+            >
+              CLOSE
+            </button>
+          </div>
+        </div>
+      )}
+
     </>
   );
 }

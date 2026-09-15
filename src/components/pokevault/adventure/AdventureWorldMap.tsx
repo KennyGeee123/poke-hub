@@ -185,6 +185,42 @@ export function AdventureWorldMap({
             <div className="absolute inset-0 pointer-events-none animate-pulse bg-indigo-500/10" />
           )}
 
+
+          {/* ───────────────────────────────────────────────────────────── */}
+          {/* DRESDEN PARK NATURE RESERVE & RARE NEST BIOME */}
+          {/* ───────────────────────────────────────────────────────────── */}
+          <div
+            style={{
+              left: "31%",
+              top: "48%",
+              width: "30%",
+              height: "26%",
+              transform: "translate(-50%, -50%)",
+            }}
+            className="absolute rounded-[36px] border-2 border-emerald-400/60 bg-gradient-to-br from-emerald-600/30 via-teal-800/20 to-green-950/40 shadow-[0_0_40px_rgba(16,185,129,0.4)] pointer-events-none overflow-hidden"
+          >
+            {/* Lush Park Grass Grid Pattern */}
+            <div className="absolute inset-0 bg-[radial-gradient(#34d399_1.5px,transparent_1.5px)] bg-[length:18px_18px] opacity-40" />
+
+            {/* Nature Trees Clusters */}
+            <div className="absolute top-2 left-3 text-lg opacity-85">🌲</div>
+            <div className="absolute top-3 right-4 text-xl opacity-85">🌳</div>
+            <div className="absolute bottom-2 left-5 text-xl opacity-85">🌳</div>
+            <div className="absolute bottom-3 right-5 text-lg opacity-85">🌲</div>
+
+            {/* Glowing Center Park Nest Aura */}
+            <div className="absolute inset-0 bg-radial from-emerald-400/25 via-transparent to-transparent animate-pulse" />
+
+            {/* Park Entrance Signboard */}
+            <div className="absolute top-1 inset-x-0 flex justify-center">
+              <div className="px-2.5 py-0.5 rounded-full bg-neutral-950/90 border border-emerald-400/60 shadow-lg text-[9px] font-mono font-bold text-emerald-300 flex items-center gap-1">
+                <span>🌳</span>
+                <span>DRESDEN PARK</span>
+                <span className="text-amber-400 text-[8px] animate-pulse">⚡ 5x RARE NEST</span>
+              </div>
+            </div>
+          </div>
+
           {/* ───────────────────────────────────────────────────────────── */}
           {/* ENTITY: BATTLE ARENA (GYM TOWERS) */}
           {/* ───────────────────────────────────────────────────────────── */}
@@ -315,11 +351,22 @@ export function AdventureWorldMap({
                   }`}
                 />
 
+                {/* Park Nest Badge if in Dresden Park */}
+                {creature.isParkNest && (
+                  <div className="flex items-center gap-1 mb-0.5 px-1.5 py-0.2 rounded-full bg-emerald-950/95 border border-emerald-400 text-[8px] font-mono text-emerald-300 font-bold shadow-[0_0_10px_rgba(16,185,129,0.5)] z-20">
+                    <span>🌳</span> PARK NEST
+                  </div>
+                )}
+
                 {/* Animated 3D Pokémon Model */}
                 <img
                   src={animatedSpriteUrl(creature.species)}
                   alt={creature.species}
-                  className="w-14 h-14 sm:w-16 sm:h-16 object-contain relative z-10 filter drop-shadow-[0_8px_12px_rgba(0,0,0,0.8)] animate-bounce"
+                  className={`w-14 h-14 sm:w-16 sm:h-16 object-contain relative z-10 filter animate-bounce ${
+                    creature.isParkNest
+                      ? "drop-shadow-[0_0_12px_rgba(16,185,129,0.9)]"
+                      : "drop-shadow-[0_8px_12px_rgba(0,0,0,0.8)]"
+                  }`}
                 />
 
                 {/* CP Pill Tag */}

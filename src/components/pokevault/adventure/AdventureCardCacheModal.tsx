@@ -7,6 +7,7 @@ import {
   X,
   ExternalLink,
 } from "lucide-react";
+import { InteractiveHoloCard } from "../InteractiveHoloCard";
 import {
   type AdventureState,
   type CardCacheDrop,
@@ -67,24 +68,27 @@ export function AdventureCardCacheModal({
         </div>
 
         {/* Holographic Reveal Stage */}
-        <div className="relative w-56 h-72 rounded-2xl p-1 bg-gradient-to-tr from-fuchsia-500 via-amber-400 to-cyan-400 shadow-[0_0_35px_rgba(217,70,239,0.5)] flex items-center justify-center">
-          {isRevealed ? (
-            <div className="w-full h-full rounded-xl overflow-hidden bg-neutral-900 border border-neutral-800 flex flex-col items-center p-2 relative">
-              <img
-                src={p.imageUrl}
-                alt={p.name}
-                className="w-full h-44 object-contain rounded-lg filter drop-shadow-md"
-              />
-              <div className="mt-2 text-left w-full flex flex-col">
-                <div className="text-xs font-bold text-white font-mono">{p.name}</div>
-                <div className="text-[10px] text-neutral-400">{p.setName} · {p.number}</div>
-                <div className="flex items-center justify-between mt-1 pt-1 border-t border-neutral-800 text-[11px] font-mono">
-                  <span className="text-emerald-400 font-bold">${p.marketPrice.toFixed(2)}</span>
-                  <span className="text-amber-400 font-bold">{p.projectedGrade}</span>
-                </div>
-              </div>
+        {isRevealed ? (
+          <div className="flex flex-col items-center w-full py-1">
+            <InteractiveHoloCard
+              frontImage={p.imageUrl}
+              name={p.name}
+              setName={p.setName}
+              rarity={cache.rarityTier}
+              isHolo={true}
+              allowFlip={true}
+              allowStyleChange={true}
+              showControls={true}
+              width={240}
+              height={335}
+            />
+            <div className="mt-2 flex items-center justify-between w-60 px-3 py-1.5 rounded-xl bg-neutral-900 border border-neutral-800 font-mono text-xs">
+              <span className="text-neutral-400">{p.setName} · {p.number}</span>
+              <span className="text-emerald-400 font-bold">${p.marketPrice.toFixed(2)}</span>
             </div>
-          ) : (
+          </div>
+        ) : (
+          <div className="relative w-56 h-72 rounded-2xl p-1 bg-gradient-to-tr from-fuchsia-500 via-amber-400 to-cyan-400 shadow-[0_0_35px_rgba(217,70,239,0.5)] flex items-center justify-center">
             <div
               onClick={handleRipPack}
               className={`w-full h-full rounded-xl bg-neutral-950 flex flex-col items-center justify-center gap-3 cursor-pointer transition-transform ${
@@ -97,8 +101,8 @@ export function AdventureCardCacheModal({
               </div>
               <span className="text-[10px] text-neutral-500 font-mono">Contains 1 Guaranteed Rare Card</span>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Action Buttons */}
         {isRevealed ? (

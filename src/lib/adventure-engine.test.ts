@@ -13,6 +13,11 @@ import {
   claimQuest,
   EVOLUTION_STONES,
   CAPTURE_ITEMS,
+  getEraRotationStatus,
+  isInsidePark,
+  generateEraSpawns,
+  forceSwitchEra,
+  cloneAdventureState,
 } from "./adventure-engine";
 
 describe("Adventure Living World Engine & Economy", () => {
@@ -160,5 +165,82 @@ describe("Adventure Living World Engine & Economy", () => {
     expect(res.success).toBe(true);
     expect(res.rewards?.coins).toBe(modified.quests[0].rewardCoins);
     expect(res.state.player.questsCompleted).toBe(state.player.questsCompleted + 1);
+  });
+  it("rotates Pokémon eras on a deterministic 30-minute cycle", () => {
+    const epoch0 = 0;
+    const stat0 = getEraRotationStatus(epoch0);
+    expect(stat0.activeEraId).toBe("vintage_kanto");
+    expect(stat0.nextEraId).toBe("neo_johto");
+
+    // 30 minutes later (1800000 ms)
+    const epoch30m = 30 * 60 * 1000;
+    const stat30m = getEraRotationStatus(epoch30m);
+    expect(stat30m.activeEraId).toBe("neo_johto");
+    expect(stat30m.nextEraId).toBe("advanced_hoenn");
+
+    // 60 minutes later
+    const epoch60m = 60 * 60 * 1000;
+    const stat60m = getEraRotationStatus(epoch60m);
+    expect(stat60m.activeEraId).toBe("advanced_hoenn");
+  });
+
+  it("detects Dresden Park Nature Reserve boundaries and nest zones", () => {
+    // Inside Dresden Park (center is x:31, y:48, bounds 16-46, 34-62)
+    expect(isInsidePark(31, 48)).toBe(true);
+    expect(isInsidePark(20, 40)).toBe(true);
+
+    // Outside Dresden Park
+    expect(isInsidePark(5, 5)).toBe(false);
+    expect(isInsidePark(80, 80)).toBe(false);
+  });
+
+  it("generates era-specific wild spawns with guaranteed Dresden Park nest encounters", () => {
+    const hoennSpawns = generateEraSpawns("advanced_hoenn", 7, 1000);
+    expect(hoennSpawns.length).toBe(7);
+
+    // Check that at least some are park nest spawns
+    const parkSpawns = hoennSpawns.filter((s) => s.isParkNest);
+    expect(parkSpawns.length).toBeGreaterThanOrEqual(2);
+    expect(parkSpawns[0].parkName).toBe("Dresden Park");
+    expect(["rare", "epic", "legendary"]).toContain(parkSpawns[0].rarity);
+
+    // All spawns should be from Advanced Hoenn
+    expect(hoennSpawns.every((s) => s.eraId === "advanced_hoenn")).toBe(true);
+  });
+
+  it("awards 50% bonus candies and boosted rewards for Dresden Park nest catches", () => {
+    const parkCreature = {
+      id: "test-nest-rayquaza",
+      species: "Rayquaza",
+      cp: 2980,
+      level: 45,
+      types: ["Dragon", "Flying"],
+      rarity: "legendary" as const,
+      xPct: 31,
+      yPct: 48,
+      distanceMeters: 20,
+      weatherBoosted: false,
+      spawnTimestamp: Date.now(),
+      despawnTimestamp: Date.now() + 1800000,
+      baseCatchRate: 1.0,
+      relatedCardsCount: 15,
+      isParkNest: true,
+      parkName: "Dresden Park",
+    };
+
+    const testState = cloneAdventureState(state);
+    testState.wildCreatures.push(parkCreature);
+
+    const res = attemptCapture(testState, parkCreature.id, "master_ball");
+    expect(res.success).toBe(true);
+    expect(res.rewards?.candies).toBeGreaterThanOrEqual(4);
+    expect(res.rewards?.rareCandyChance).toBe(true);
+  });
+
+  it("supports force switching eras and updating wild fauna", () => {
+    const switched = forceSwitchEra(state, "modern_paldea");
+    expect(switched.state.world.activeEraId).toBe("modern_paldea");
+    expect(switched.activeEra.id).toBe("modern_paldea");
+    expect(switched.state.wildCreatures.some((c) => c.eraId === "modern_paldea")).toBe(true);
   });
 });

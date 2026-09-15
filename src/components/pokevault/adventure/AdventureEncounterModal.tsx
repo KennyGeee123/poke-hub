@@ -139,6 +139,13 @@ export function AdventureEncounterModal({
 
         {/* Creature Name & Details */}
         <div className="flex flex-col items-center">
+          {creature.isParkNest && (
+            <div className="mb-1.5 px-3 py-1 rounded-full bg-emerald-950/90 border border-emerald-400/60 text-emerald-300 font-mono text-[11px] font-bold shadow-[0_0_15px_rgba(16,185,129,0.4)] flex items-center gap-1.5 animate-pulse">
+              <span>🌳</span>
+              <span>DRESDEN PARK RARE NEST</span>
+              <span className="text-amber-400">· +50% CANDY BONUS</span>
+            </div>
+          )}
           <h3 className="text-xl font-extrabold text-white font-mono tracking-wide">{creature.species}</h3>
           <div className="flex items-center gap-1.5 mt-1 text-xs font-mono">
             {creature.types.map((t) => (
@@ -172,6 +179,11 @@ export function AdventureEncounterModal({
                 <span className="block text-[10px] text-neutral-400">Candies</span>
               </div>
             </div>
+            {creature.isParkNest && (
+              <span className="text-xs text-emerald-300 font-bold flex items-center justify-center gap-1">
+                <span>🌳</span> Dresden Park Nest Bonus: +50% Extra Candies Awarded!
+              </span>
+            )}
             {captureReward.rareCandyChance && (
               <span className="text-xs text-amber-300 font-bold">✨ Bonus: +1 Rare Candy Dropped!</span>
             )}
