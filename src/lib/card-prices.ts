@@ -1,4 +1,4 @@
-// Client wrapper for /api/public/card-prices
+// Client wrapper for /api/public/card-prices with Graded Slab & Condition Arbitrage
 import { supabase } from "@/integrations/supabase/client";
 
 export type Listing = {
@@ -14,6 +14,9 @@ export type Listing = {
   variant?: string | null;
   kind?: "listing" | "shop";
   listingId?: string | null;
+  isSlab?: boolean;
+  gradeCompany?: string | null;
+  gradeScore?: string | number | null;
 };
 
 export type SourceResult = {
@@ -47,12 +50,82 @@ export const REFILL_AT = 4;
 /** TimeFlow: re-rank landed cost on a 5s ticker; fetch only when stale or thin. */
 export const TICK_MS = 5_000;
 
+const SOLD_KEY = "pv.sold.registry.v1";
+const inMemSoldSet = new Set<string>();
+
+export function getSoldListingKeys(): Set<string> {
+  const set = new Set<string>(inMemSoldSet);
+  if (typeof localStorage !== "undefined") {
+    try {
+      const raw = localStorage.getItem(SOLD_KEY);
+      if (raw) {
+        for (const k of JSON.parse(raw)) set.add(k);
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return set;
+}
+
+export function markListingSold(key: string) {
+  if (!key) return;
+  inMemSoldSet.add(key);
+  if (typeof localStorage !== "undefined") {
+    try {
+      const set = getSoldListingKeys();
+      set.add(key);
+      localStorage.setItem(SOLD_KEY, JSON.stringify(Array.from(set).slice(-500)));
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("pv-listing-sold", { detail: { key } }));
+      }
+    } catch {
+      // ignore
+    }
+  }
+}
+
+export function isListingSold(key: string): boolean {
+  return getSoldListingKeys().has(key);
+}
+
 export function listingTotal(l: Listing): number {
   return (Number(l.price) || 0) + (Number(l.shipping) || 0);
 }
 
 export function listingHasShipping(l: Listing): boolean {
   return l.shipping != null && Number.isFinite(l.shipping);
+}
+
+/** Detects if a listing represents a graded slab (PSA, BGS, CGC, SGC, AGS, GMA). */
+export function isSlabListing(l: Listing): boolean {
+  if (l.isSlab) return true;
+  const text = `${l.title || ""} ${l.variant || ""} ${l.condition || ""}`.toLowerCase();
+  return /\b(psa|bgs|cgc|sgc|beckett|graded|gem\s*mint\s*10|psa\s*10|psa\s*9|psa\s*8|bgs\s*9\.5|cgc\s*10)\b/i.test(text);
+}
+
+/** Matches listing condition / slab against target filter. */
+export function matchesConditionFilter(l: Listing, filter?: string | null): boolean {
+  if (!filter || filter === "all" || filter === "any") return true;
+  const slab = isSlabListing(l);
+  const text = `${l.title || ""} ${l.variant || ""} ${l.condition || ""}`.toLowerCase();
+
+  if (filter === "raw") return !slab;
+  if (filter === "slab" || filter === "graded") return slab;
+  if (filter === "psa10") return /psa\s*10|gem\s*mint\s*10/i.test(text);
+  if (filter === "psa9") return /psa\s*9\b|mint\s*9/i.test(text);
+  if (filter === "psa8") return /psa\s*8\b|nm\s*mt\s*8/i.test(text);
+  if (filter === "bgs") return /bgs|beckett/i.test(text);
+  if (filter === "cgc") return /cgc/i.test(text);
+  if (filter === "sgc") return /sgc/i.test(text);
+
+  if (filter === "nm") return !slab && /near\s*mint|\bnm\b|normal|holofoil|mint/i.test(text) && !/played|damaged|hp|mp/i.test(text);
+  if (filter === "lp") return !slab && /lightly\s*played|\blp\b/i.test(text);
+  if (filter === "mp") return !slab && /moderately\s*played|\bmp\b/i.test(text);
+  if (filter === "hp") return !slab && /heavily\s*played|\bhp\b/i.test(text);
+  if (filter === "dmg") return !slab && /damaged|\bdmg\b/i.test(text);
+
+  return true;
 }
 
 /** Search-URL / unpriced shop rows are not Buy-It-Now listings. */
@@ -124,7 +197,7 @@ export function printMatchScore(l: Listing, preferPrints: string[] = []): number
   if (!preferPrints.length) return 0;
   const blob = `${l.variant || ""} ${l.condition || ""} ${l.title || ""}`.toLowerCase();
   const hasPrintSignal = /holofoil|reverse|1st|first edition|unlimited|normal|shadowless/.test(blob);
-  if (!hasPrintSignal) return 0; // unknown print (e.g. Cardmarket low) stays in landed-cost race
+  if (!hasPrintSignal) return 0;
   return preferPrints.some((p) => blob.includes(p.toLowerCase())) ? 0 : 1;
 }
 
@@ -139,11 +212,12 @@ export function compareListings(a: Listing, b: Listing, preferPrints: string[] =
 export function rankQueue(
   data: AggregateResponse | null,
   skipKeys: string[] = [],
-  opts?: { preferPrints?: string[] },
+  opts?: { preferPrints?: string[]; condition?: string | null },
 ): Listing[] {
   if (!data) return [];
-  const skip = new Set(skipKeys);
+  const skip = new Set([...skipKeys, ...Array.from(getSoldListingKeys())]);
   const preferPrints = opts?.preferPrints ?? [];
+  const condition = opts?.condition ?? null;
   const fromQueue = data.queue?.length
     ? data.queue
     : data.sources.flatMap((s) => s.listings);
@@ -153,6 +227,7 @@ export function rankQueue(
   for (const l of fromQueue) {
     const k = listingKey(l);
     if (!k || seen.has(k) || skip.has(k) || !l.url) continue;
+    if (!matchesConditionFilter(l, condition)) continue;
     seen.add(k);
     if (isShopListing(l)) {
       shops.push(l);
@@ -174,12 +249,13 @@ export function mergeLiveQueue(
   live: Listing[],
   skipKeys: string[] = [],
   preferPrints: string[] = [],
+  condition?: string | null,
 ): Listing[] {
   const livePriced = live.filter((l) => listingTotal(l) > 0 && l.url);
   return rankQueue(
     { query: "", cheapest: null, queue: [...livePriced, ...seed], sources: [], generatedAt: "" },
     skipKeys,
-    { preferPrints },
+    { preferPrints, condition },
   );
 }
 
@@ -223,6 +299,7 @@ function pushTcgRow(
     condition: pretty,
     variant: label === "direct" ? `${variant}-direct` : variant,
     kind: "listing",
+    isSlab: false,
   });
 }
 
@@ -254,6 +331,7 @@ export function seedListingsFromCard(card: SeedCard): Listing[] {
       image: card.images?.small ?? null,
       variant: "low",
       kind: "listing",
+      isSlab: false,
     });
   }
   return rankQueue(
@@ -265,10 +343,11 @@ export function seedListingsFromCard(card: SeedCard): Listing[] {
 
 export async function getCardPrices(
   query: string,
-  opts?: { cheapOnly?: boolean; fresh?: boolean; cardId?: string; skipKeys?: string[] },
+  opts?: { cheapOnly?: boolean; fresh?: boolean; cardId?: string; skipKeys?: string[]; condition?: string | null },
 ): Promise<AggregateResponse> {
   const skip = (opts?.skipKeys ?? []).slice(0, 64);
-  const key = `${opts?.cheapOnly ? "c:" : "f:"}${opts?.cardId ?? ""}:${query.toLowerCase().trim()}:${skip.slice().sort().join("|")}`;
+  const cond = (opts?.condition || "").toLowerCase().trim();
+  const key = `${opts?.cheapOnly ? "c:" : "f:"}${opts?.cardId ?? ""}:${query.toLowerCase().trim()}:${cond}:${skip.slice().sort().join("|")}`;
   if (!opts?.fresh) {
     const hit = cache.get(key);
     if (hit && Date.now() - hit.t < TTL_MS) return hit.v;
@@ -287,6 +366,7 @@ export async function getCardPrices(
   if (opts?.cardId) qs.set("id", opts.cardId);
   if (opts?.cheapOnly) qs.set("cheap", "1");
   if (opts?.fresh) qs.set("fresh", "1");
+  if (cond) qs.set("condition", cond);
   for (const k of skip) qs.append("skip", k);
   const r = await fetch(`/api/public/card-prices?${qs}`, { headers, cache: opts?.fresh ? "no-store" : "default" });
   if (!r.ok) throw new Error(`card-prices ${r.status}`);
@@ -296,10 +376,10 @@ export async function getCardPrices(
 }
 
 /** Lightweight: returns just the cheapest listing total (price + shipping) or null. */
-export async function getCheapestPrice(query: string, cardId?: string): Promise<Listing | null> {
+export async function getCheapestPrice(query: string, cardId?: string, condition?: string): Promise<Listing | null> {
   try {
-    const j = await getCardPrices(query, { cheapOnly: true, cardId });
-    const queue = rankQueue(j);
+    const j = await getCardPrices(query, { cheapOnly: true, cardId, condition });
+    const queue = rankQueue(j, [], { condition });
     return queue[0] ?? j.cheapest;
   } catch {
     return null;

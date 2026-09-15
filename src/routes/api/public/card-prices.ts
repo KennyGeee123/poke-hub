@@ -685,8 +685,10 @@ const PRICED: { name: string; fn: (q: string) => Promise<Listing[]>; sealed?: bo
   { name: "Target", fn: target, sealed: true },
 ];
 
-function shopUrl(name: string, q: string): string {
-  const nkw = enc(q);
+function shopUrl(name: string, q: string, condition?: string): string {
+  const queryBonus = condition === "psa10" ? " PSA 10" : condition === "psa9" ? " PSA 9" : condition === "slab" || condition === "graded" ? " graded slab" : condition === "raw" ? " raw" : "";
+  const fullQ = `${q}${queryBonus}`;
+  const nkw = enc(fullQ);
   switch (name) {
     case "eBay":
       return `https://www.ebay.com/sch/i.html?_nkw=${enc(q + " pokemon card")}&_sacat=183454&LH_BIN=1&_sop=15`;
@@ -797,6 +799,7 @@ export const Route = createFileRoute("/api/public/card-prices")({
         if (!q && !cardId) return Response.json({ error: "Missing q parameter" }, { status: 400 });
         const cheapOnly = url.searchParams.get("cheap") === "1";
         const fresh = url.searchParams.get("fresh") === "1";
+        const condition = (url.searchParams.get("condition") ?? "").trim().toLowerCase();
         const skipSet = new Set(
           url.searchParams.getAll("skip").map((s) => s.trim()).filter(Boolean).slice(0, 64),
         );
@@ -873,13 +876,38 @@ export const Route = createFileRoute("/api/public/card-prices")({
               count: 0,
               lowest: null,
               listings: [],
-              shopUrl: shopUrl(name, q || cardId),
+              shopUrl: shopUrl(name, q || cardId, condition),
               kind: "shop",
             } as SourceResult);
           }
         }
 
-        const all = sources.flatMap((s) => s.listings).filter((l) => !isShopRow(l) && l.price > 0);
+        const isSlab = (l: Listing) => {
+          if (l.isSlab) return true;
+          const blob = `${l.title || ""} ${l.variant || ""} ${l.condition || ""}`.toLowerCase();
+          return /\b(psa|bgs|cgc|sgc|beckett|graded|gem\s*mint\s*10|psa\s*10|psa\s*9|psa\s*8|bgs\s*9\.5|cgc\s*10)\b/i.test(blob);
+        };
+        const matchesCond = (l: Listing) => {
+          if (!condition || condition === "all" || condition === "any") return true;
+          const slab = isSlab(l);
+          const blob = `${l.title || ""} ${l.variant || ""} ${l.condition || ""}`.toLowerCase();
+          if (condition === "raw") return !slab;
+          if (condition === "slab" || condition === "graded") return slab;
+          if (condition === "psa10") return /psa\s*10|gem\s*mint\s*10/i.test(blob);
+          if (condition === "psa9") return /psa\s*9\b|mint\s*9/i.test(blob);
+          if (condition === "psa8") return /psa\s*8\b|nm\s*mt\s*8/i.test(blob);
+          if (condition === "bgs") return /bgs|beckett/i.test(blob);
+          if (condition === "cgc") return /cgc/i.test(blob);
+          if (condition === "sgc") return /sgc/i.test(blob);
+          if (condition === "nm") return !slab && /near\s*mint|\bnm\b|normal|holofoil|mint/i.test(blob) && !/played|damaged|hp|mp/i.test(blob);
+          if (condition === "lp") return !slab && /lightly\s*played|\blp\b/i.test(blob);
+          if (condition === "mp") return !slab && /moderately\s*played|\bmp\b/i.test(blob);
+          if (condition === "hp") return !slab && /heavily\s*played|\bhp\b/i.test(blob);
+          if (condition === "dmg") return !slab && /damaged|\bdmg\b/i.test(blob);
+          return true;
+        };
+
+        const all = sources.flatMap((s) => s.listings).filter((l) => !isShopRow(l) && l.price > 0 && matchesCond(l));
         const considered = sealed ? all.filter((l) => landed(l) >= 40) : all;
         const ranked = considered.slice().sort(sortByLanded);
         const seen = new Set<string>();

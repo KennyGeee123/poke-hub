@@ -5,6 +5,7 @@ import { printLangMeta } from "@/lib/print-lang";
 import { formatPrice, useVault } from "@/lib/vault";
 import { fallbackSpriteUrls, spriteSlug } from "@/lib/sprites";
 import { fallbackCardImages, hdImg } from "@/lib/card-images";
+import { calculateGradedValue, type CardGrade, ALL_GRADES, getGradeMeta } from "@/lib/card-grades";
 
 type Props = {
   card: TCGCard;
@@ -12,6 +13,7 @@ type Props = {
   qty?: number;
   onRemove?: () => void;
   eager?: boolean;
+  defaultGrade?: CardGrade;
 };
 
 export function CardSpriteOverlay({ card, size = 140, show = true }: { card: TCGCard; size?: number; show?: boolean }) {
@@ -58,11 +60,16 @@ export function CardSpriteOverlay({ card, size = 140, show = true }: { card: TCG
   );
 }
 
-export function CardTile({ card, onClick, qty, onRemove, eager }: Props) {
+export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "raw" }: Props) {
   const [loaded, setLoaded] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [srcIdx, setSrcIdx] = useState(0);
-  const price = getMarketPrice(card);
+  const [grade, setGrade] = useState<CardGrade>(defaultGrade);
+
+  const gradedVal = calculateGradedValue(card, grade);
+  const displayPrice = gradedVal.estimatedGradedPrice;
+  const gradeMeta = getGradeMeta(grade);
+
   const fallbacks = fallbackCardImages(card);
   const hd = hdImg(card, { tile: true });
   const src = fallbacks[srcIdx] || hd.src;
@@ -117,6 +124,28 @@ export function CardTile({ card, onClick, qty, onRemove, eager }: Props) {
         {/\b(error|misprint)/i.test(`${card.set?.name || ""} ${card.rarity || ""} ${card.name || ""}`) && (
           <div className="pv-err-b" title="Error / misprint">ERR</div>
         )}
+        {grade !== "raw" && (
+          <div
+            style={{
+              position: "absolute",
+              top: 6,
+              left: 6,
+              zIndex: 35,
+              padding: "2px 6px",
+              borderRadius: 6,
+              fontSize: 9,
+              fontWeight: 800,
+              fontFamily: "var(--mono, monospace)",
+              background: gradeMeta.badgeBg,
+              color: gradeMeta.badgeText,
+              border: `1px solid ${gradeMeta.badgeText}66`,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.6)",
+              pointerEvents: "none",
+            }}
+          >
+            {gradeMeta.shortLabel}
+          </div>
+        )}
         {qty && qty > 1 ? <div className="pv-qty-b">×{qty}</div> : null}
         {onRemove && (
           <button
@@ -127,11 +156,51 @@ export function CardTile({ card, onClick, qty, onRemove, eager }: Props) {
             ×
           </button>
         )}
-        <div className="pv-card-ovl">
-          <div className="pv-c-name">{card.name}</div>
+
+        <div className="pv-card-ovl" style={{ padding: "8px" }}>
+          <div className="pv-c-name" style={{ fontSize: 12 }}>{card.name}</div>
           <div className="flex justify-between items-center mt-1">
-            <div className="pv-c-set">{card.set.name}</div>
-            <div className="pv-c-price">{price ? formatPrice(price) : "—"}</div>
+            <div className="pv-c-set" style={{ fontSize: 10 }}>{card.set.name}</div>
+            <div className="pv-c-price" style={{ color: grade !== "raw" ? "#fbbf24" : undefined }}>
+              {displayPrice ? formatPrice(displayPrice) : "—"}
+            </div>
+          </div>
+
+          {/* Graded Cost Dropdown on Every Card */}
+          <div
+            style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <select
+              value={grade}
+              onChange={(e) => {
+                e.stopPropagation();
+                setGrade(e.target.value as CardGrade);
+              }}
+              style={{
+                width: "100%",
+                background: "rgba(10, 15, 29, 0.92)",
+                color: grade !== "raw" ? "#fbbf24" : "var(--t2)",
+                border: grade !== "raw" ? "1px solid rgba(251, 191, 36, 0.4)" : "1px solid var(--brd)",
+                borderRadius: 5,
+                fontSize: 10,
+                fontFamily: "var(--mono, monospace)",
+                padding: "2px 4px",
+                cursor: "pointer",
+                outline: "none",
+              }}
+              title="Select Raw or Graded Slab Valuation"
+            >
+              {ALL_GRADES.map((g) => {
+                const gm = getGradeMeta(g);
+                const gVal = calculateGradedValue(card, g);
+                return (
+                  <option key={g} value={g}>
+                    {gm.shortLabel} · {formatPrice(gVal.estimatedGradedPrice)}
+                  </option>
+                );
+              })}
+            </select>
           </div>
         </div>
       </div>

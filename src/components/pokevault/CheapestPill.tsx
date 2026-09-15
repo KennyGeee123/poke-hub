@@ -1,17 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { getCheapestPrice, type Listing } from "@/lib/card-prices";
-import { usePremium } from "@/lib/premium";
-import { useAuth } from "@/lib/auth";
 
 /**
  * Tiny inline pill that lazily fetches the cheapest live listing from the
- * cheap=1 aggregator (TCGplayer + Cardmarket catalog lows). eBay BIN is not
- * included unless a real priced listing exists — search URLs are not BINs.
- * Loads only when scrolled into view; the request is cached briefly.
+ * cheap=1 aggregator (TCGplayer + Cardmarket catalog lows + live sources).
+ * Beta unlocked: live price and savings always display without paywall.
  */
-export function CheapestPill({ query, marketPrice, cardId }: { query: string; marketPrice?: number; cardId?: string }) {
-  const { user } = useAuth();
-  const { hasCheapLoop } = usePremium();
+export function CheapestPill({ query, marketPrice, cardId, condition }: { query: string; marketPrice?: number; cardId?: string; condition?: string }) {
   const ref = useRef<HTMLAnchorElement | null>(null);
   const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [listing, setListing] = useState<Listing | null>(null);
@@ -23,15 +18,14 @@ export function CheapestPill({ query, marketPrice, cardId }: { query: string; ma
       if (entries.some(e => e.isIntersecting)) {
         io.disconnect();
         setState("loading");
-        if (!user || !hasCheapLoop) { setState("done"); return; }
-        getCheapestPrice(query, cardId)
+        getCheapestPrice(query, cardId, condition)
           .then(l => { setListing(l); setState("done"); })
           .catch(() => setState("error"));
       }
     }, { rootMargin: "200px" });
     io.observe(el);
     return () => io.disconnect();
-  }, [query, cardId, state]);
+  }, [query, cardId, condition, state]);
 
   const total = listing ? listing.price + (listing.shipping ?? 0) : null;
   const savings = total != null && marketPrice && marketPrice > total ? marketPrice - total : 0;
@@ -56,10 +50,8 @@ export function CheapestPill({ query, marketPrice, cardId }: { query: string; ma
         cursor: listing ? "pointer" : "default",
       }}
     >
-      {!user || !hasCheapLoop ? (
-        <>🔒 Deal Scout</>
-      ) : state === "idle" || state === "loading" ? (
-        <>🔎 finding…</>
+      {state === "idle" || state === "loading" ? (
+        <>🔎 finding lowest…</>
       ) : state === "error" || !listing || total == null ? (
         <>— no live listing</>
       ) : (

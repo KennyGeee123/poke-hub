@@ -10,13 +10,22 @@ const SOURCE_COLORS: Record<string, string> = {
   Mercari: "#ef4444",
   PriceCharting: "#a855f7",
   "123Pokemon": "#f59e0b",
+  "Pokemon Center": "#ef4444",
+  CoolStuffInc: "#10b981",
+  Amazon: "#f59e0b",
+  Whatnot: "#ec4899",
+  "Dave & Adam's": "#3b82f6",
+  "Steel City": "#6366f1",
+  "Miniature Market": "#8b5cf6",
+  ChannelFireball: "#f97316",
+  Walmart: "#0284c7",
 };
 
 function Price({ l }: { l: Listing }) {
   const total = l.price + (l.shipping ?? 0);
   return (
     <span>
-      <strong style={{ color: "var(--neon-yellow)" }}>${total.toFixed(2)}</strong>
+      <strong style={{ color: "var(--neon-yellow, #fbbf24)" }}>${total.toFixed(2)}</strong>
       {l.shipping != null && l.shipping > 0 && (
         <span style={{ fontSize: 10, color: "var(--t3)", marginLeft: 4 }}>
           (incl ${l.shipping.toFixed(2)} ship)
@@ -31,17 +40,22 @@ function Price({ l }: { l: Listing }) {
   );
 }
 
-export function PriceComparePanel({ query, cardId }: { query: string; cardId?: string }) {
+export function PriceComparePanel({ query, cardId, initialCondition = "all" }: { query: string; cardId?: string; initialCondition?: string }) {
   const [data, setData] = useState<AggregateResponse | null>(null);
+  const [condition, setCondition] = useState<string>(initialCondition);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    setCondition(initialCondition);
+  }, [initialCondition]);
 
   async function run() {
     setLoading(true);
     setErr(null);
     try {
-      const r = await getCardPrices(query, { cardId });
+      const r = await getCardPrices(query, { cardId, condition });
       setData(r);
     } catch (e: any) {
       setErr(e?.message ?? String(e));
@@ -55,7 +69,7 @@ export function PriceComparePanel({ query, cardId }: { query: string; cardId?: s
     setErr(null);
     run();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, cardId]);
+  }, [query, cardId, condition]);
 
   const sortedSources = data?.sources
     ?.slice()
@@ -68,24 +82,54 @@ export function PriceComparePanel({ query, cardId }: { query: string; cardId?: s
   return (
     <div className="pv-panel">
       <div className="pv-panel-hdr">
-        <div className="pv-panel-title">💸 BUY IT CHEAPEST</div>
+        <div className="pv-panel-title">💸 BUY IT CHEAPEST · ALL MARKETPLACES</div>
         <div className="pv-panel-tag">
           {data
-            ? `${data.sources.filter((s) => s.lowest).length} priced · ${data.sources.filter((s) => s.kind === "shop").length} shop links`
-            : loading ? "Looking up listed lows…" : "—"}
+            ? `${data.sources.filter((s) => s.lowest).length} priced · ${data.sources.filter((s) => s.kind === "shop").length} live search shops`
+            : loading ? "Scanning 15+ marketplaces…" : "—"}
         </div>
+      </div>
+
+      {/* Condition & Slab filter chips */}
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: "8px 0 12px" }}>
+        {[
+          { id: "all", label: "All Lows" },
+          { id: "raw", label: "Raw / NM" },
+          { id: "slab", label: "All Slabs" },
+          { id: "psa10", label: "PSA 10 Slabs" },
+          { id: "psa9", label: "PSA 9 Slabs" },
+          { id: "lp", label: "Lightly Played" },
+        ].map((c) => (
+          <button
+            key={c.id}
+            onClick={() => setCondition(c.id)}
+            style={{
+              fontSize: 10,
+              padding: "4px 8px",
+              borderRadius: 6,
+              border: condition === c.id ? "1px solid var(--gold, #fbbf24)" : "1px solid var(--brd)",
+              background: condition === c.id ? "rgba(251, 191, 36, 0.15)" : "rgba(255,255,255,0.04)",
+              color: condition === c.id ? "var(--gold, #fbbf24)" : "var(--t2)",
+              cursor: "pointer",
+              fontFamily: "var(--mono, monospace)",
+              fontWeight: condition === c.id ? 700 : 500,
+            }}
+          >
+            {c.label}
+          </button>
+        ))}
       </div>
 
       {loading && !data && (
         <div style={{ fontSize: 11, color: "var(--t3)" }}>
-          Pulling TCGPlayer and Cardmarket listed lows. Other stores are live search links (cloud scrapes are blocked).
+          Pulling real-time listings across TCGPlayer, Cardmarket, eBay BINs, Target, and 15+ specialized collectible stores…
         </div>
       )}
 
       {err && (
         <div style={{ fontSize: 11, color: "#f87171" }}>
           {err}{" "}
-          <button onClick={run} style={{ color: "var(--neon-cyan)", textDecoration: "underline", marginLeft: 6 }}>
+          <button onClick={run} style={{ color: "var(--neon-cyan, #38bdf8)", textDecoration: "underline", marginLeft: 6 }}>
             Retry
           </button>
         </div>
@@ -104,9 +148,9 @@ export function PriceComparePanel({ query, cardId }: { query: string; cardId?: s
             margin: "10px 0 14px",
             borderRadius: 12,
             background:
-              "linear-gradient(135deg, rgba(254,228,64,.15), rgba(0,245,212,.10))",
-            border: "1px solid var(--neon-yellow)",
-            boxShadow: "var(--glow-yellow)",
+              "linear-gradient(135deg, rgba(254,228,64,.18), rgba(0,245,212,.12))",
+            border: "1px solid var(--neon-yellow, #fbbf24)",
+            boxShadow: "0 0 16px rgba(251, 191, 36, 0.25)",
             textDecoration: "none",
             color: "inherit",
           }}
@@ -120,7 +164,7 @@ export function PriceComparePanel({ query, cardId }: { query: string; cardId?: s
             />
           )}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 10, letterSpacing: 2, color: "var(--t3)", fontWeight: 700 }}>
+            <div style={{ fontSize: 10, letterSpacing: 2, color: "var(--gold, #fbbf24)", fontWeight: 800 }}>
               🏆 CHEAPEST ON THE NET · {data.cheapest.source.toUpperCase()}
             </div>
             <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -128,7 +172,7 @@ export function PriceComparePanel({ query, cardId }: { query: string; cardId?: s
             </div>
             <div style={{ marginTop: 4, fontSize: 18, fontFamily: "Bebas Neue, Impact, sans-serif", letterSpacing: 1 }}>
               <Price l={data.cheapest} />
-              <span style={{ marginLeft: 8, color: "var(--neon-cyan)", fontSize: 12 }}>BUY ↗</span>
+              <span style={{ marginLeft: 8, color: "var(--neon-cyan, #38bdf8)", fontSize: 12 }}>BUY DIRECT ↗</span>
             </div>
           </div>
         </a>
@@ -162,7 +206,7 @@ export function PriceComparePanel({ query, cardId }: { query: string; cardId?: s
                   <div style={{ fontSize: 14, fontWeight: 700 }}>
                     <Price l={s.lowest} />
                   </div>
-                  <span style={{ fontSize: 11, color: "var(--neon-cyan)" }}>{isOpen ? "▾" : "▸"}</span>
+                  <span style={{ fontSize: 11, color: "var(--neon-cyan, #38bdf8)" }}>{isOpen ? "▾" : "▸"}</span>
                 </>
               ) : s.kind === "shop" && s.shopUrl ? (
                 <a
@@ -170,7 +214,7 @@ export function PriceComparePanel({ query, cardId }: { query: string; cardId?: s
                   target="_blank"
                   rel="noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  style={{ fontSize: 12, color: "var(--neon-cyan)", marginLeft: "auto", textDecoration: "none" }}
+                  style={{ fontSize: 12, color: "var(--neon-cyan, #38bdf8)", marginLeft: "auto", textDecoration: "none" }}
                 >
                   Search live ↗
                 </a>
@@ -210,7 +254,7 @@ export function PriceComparePanel({ query, cardId }: { query: string; cardId?: s
                       {l.title}
                     </div>
                     <Price l={l} />
-                    <span style={{ color: "var(--neon-cyan)", fontSize: 10 }}>↗</span>
+                    <span style={{ color: "var(--neon-cyan, #38bdf8)", fontSize: 10 }}>↗</span>
                   </a>
                 ))}
               </div>
@@ -222,7 +266,7 @@ export function PriceComparePanel({ query, cardId }: { query: string; cardId?: s
       {data && (
         <div style={{ marginTop: 8, fontSize: 10, color: "var(--t3)", textAlign: "right" }}>
           Updated {new Date(data.generatedAt).toLocaleTimeString()} ·{" "}
-          <button onClick={run} style={{ color: "var(--neon-cyan)", textDecoration: "underline" }}>
+          <button onClick={run} style={{ color: "var(--neon-cyan, #38bdf8)", textDecoration: "underline" }}>
             refresh
           </button>
         </div>

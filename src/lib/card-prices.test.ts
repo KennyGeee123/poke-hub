@@ -8,6 +8,10 @@ import {
   REFILL_AT,
   seedListingsFromCard,
   TICK_MS,
+  isSlabListing,
+  matchesConditionFilter,
+  markListingSold,
+  isListingSold,
   type Listing,
 } from "./card-prices";
 
@@ -81,5 +85,43 @@ describe("Quick Strike refill + ticker helpers", () => {
     });
     expect(rows).toHaveLength(1);
     expect(rows[0].variant).toBe("normal");
+  });
+});
+
+describe("Slab vs Raw Condition Arbitrage & Sold Tracking", () => {
+  test("identifies slab listings by title and company signatures", () => {
+    const slab1 = L({ source: "eBay", price: 250, url: "https://ebay.com/itm/1", title: "Charizard Base Set PSA 10 Gem Mint" });
+    const slab2 = L({ source: "eBay", price: 120, url: "https://ebay.com/itm/2", title: "Blastoise 1st Edition BGS 9.5 Beckett" });
+    const raw = L({ source: "TCGplayer", price: 45, url: "https://tcgplayer.com/p/3", title: "Venusaur Holo Near Mint" });
+
+    expect(isSlabListing(slab1)).toBe(true);
+    expect(isSlabListing(slab2)).toBe(true);
+    expect(isSlabListing(raw)).toBe(false);
+  });
+
+  test("filters listings by condition and grade requirements", () => {
+    const psa10 = L({ source: "eBay", price: 500, url: "https://ebay.com/itm/10", title: "Gengar VMAX PSA 10" });
+    const psa9 = L({ source: "eBay", price: 200, url: "https://ebay.com/itm/9", title: "Gengar VMAX PSA 9 Mint" });
+    const rawNM = L({ source: "TCGplayer", price: 150, url: "https://tcgplayer.com/p/1", title: "Gengar VMAX Near Mint", condition: "Near Mint" });
+    const rawLP = L({ source: "TCGplayer", price: 110, url: "https://tcgplayer.com/p/2", title: "Gengar VMAX Lightly Played", condition: "Lightly Played" });
+
+    expect(matchesConditionFilter(psa10, "psa10")).toBe(true);
+    expect(matchesConditionFilter(psa9, "psa10")).toBe(false);
+    expect(matchesConditionFilter(rawNM, "raw")).toBe(true);
+    expect(matchesConditionFilter(psa10, "raw")).toBe(false);
+    expect(matchesConditionFilter(psa10, "slab")).toBe(true);
+    expect(matchesConditionFilter(rawLP, "lp")).toBe(true);
+  });
+
+  test("tracks sold listings and excludes them from ranked queue", () => {
+    const item = L({ source: "eBay", price: 80, url: "https://ebay.com/itm/sold1", title: "Mewtwo GX" });
+    const key = listingKey(item);
+
+    expect(isListingSold(key)).toBe(false);
+    markListingSold(key);
+    expect(isListingSold(key)).toBe(true);
+
+    const queue = rankQueue({ query: "", cheapest: item, queue: [item], sources: [], generatedAt: "" });
+    expect(queue).toHaveLength(0);
   });
 });

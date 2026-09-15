@@ -11,12 +11,20 @@ import { fetchBulbapedia, type BulbaInfo } from "@/lib/bulbapedia";
 import { PriceComparePanel } from "./PriceCompare";
 import { QuickStrike } from "./QuickStrike";
 import { fallbackCardImages, resolveHDImage } from "@/lib/card-images";
+import {
+  calculateGradedValue,
+  type CardGrade,
+  ALL_GRADES,
+  getGradeMeta,
+  getSlabSearchUrls,
+} from "@/lib/card-grades";
 
 export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack: () => void; onToast: (m: string) => void }) {
   const [card, setCard] = useState<TCGCard | null>(() => stubCardFromId(cardId));
   const [loaded, setLoaded] = useState(false);
   const [degraded, setDegraded] = useState(false);
   const [imgSrc, setImgSrc] = useState("");
+  const [selectedGrade, setSelectedGrade] = useState<CardGrade>("raw");
   const failedImgs = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -25,6 +33,7 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
     setLoaded(false);
     setDegraded(false);
     setImgSrc(stub.images?.large || stub.images?.small || "");
+    setSelectedGrade("raw");
     failedImgs.current = new Set();
     let live = true;
     getCard(cardId, getPrintLang())
@@ -59,6 +68,9 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
   const market = getMarketPrice(card);
   const tcgPrices = card.tcgplayer?.prices ?? {};
   const cmPrices = card.cardmarket?.prices;
+  const gradedVal = calculateGradedValue(card, selectedGrade);
+  const gradeMeta = getGradeMeta(selectedGrade);
+  const slabUrls = getSlabSearchUrls(card, selectedGrade);
 
   return (
     <div className="pad">
@@ -70,7 +82,7 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
       )}
       <div className="pv-detail-layout">
         <div className="pv-detail-left">
-          <div className="pv-detail-img-wrap">
+          <div className="pv-detail-img-wrap" style={{ position: "relative" }}>
             <div className="pv-card-skel" style={{ opacity: loaded ? 0 : 1 }} />
             <img
               className={`pv-detail-img ${loaded ? "loaded" : ""}`}
@@ -84,18 +96,162 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
                 if (next) setImgSrc(next);
               }}
             />
+            {selectedGrade !== "raw" && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: 10,
+                  left: 10,
+                  padding: "4px 8px",
+                  borderRadius: 6,
+                  fontSize: 11,
+                  fontWeight: 800,
+                  fontFamily: "var(--mono, monospace)",
+                  background: gradeMeta.badgeBg,
+                  color: gradeMeta.badgeText,
+                  border: `1px solid ${gradeMeta.badgeText}88`,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.7)",
+                }}
+              >
+                {gradeMeta.shortLabel}
+              </div>
+            )}
           </div>
+
           <CardActions card={card} onAfterAction={onToast} />
-          <QuickStrike card={card} />
-          {market > 0 && (
-            <div style={{
-              marginTop: 10, padding: "8px 12px", background: "rgba(255,215,0,.05)",
-              border: "1px solid var(--gold-brd)", borderRadius: 10, textAlign: "center"
-            }}>
-              <div style={{ fontSize: 9, letterSpacing: 2, color: "var(--t3)", fontWeight: 700 }}>FAIR MARKET</div>
-              <div style={{ fontFamily: "Bebas Neue", fontSize: 22, color: "var(--gold)", letterSpacing: 1 }}>{formatPrice(market)}</div>
+          
+          {/* Quick Strike Cheap Card Loop */}
+          <QuickStrike card={card} selectedGrade={selectedGrade} />
+
+          {/* Graded Cost Dropdown & Valuation HUD */}
+          <div
+            style={{
+              marginTop: 12,
+              padding: 14,
+              background: "linear-gradient(180deg, rgba(239, 68, 68, 0.08), rgba(15, 23, 42, 0.6))",
+              border: "1px solid rgba(239, 68, 68, 0.25)",
+              borderRadius: 12,
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <div style={{ fontSize: 10, letterSpacing: 1.5, color: "#f87171", fontWeight: 800 }}>
+                🏆 GRADED COST & SLAB VALUATION
+              </div>
+              <span
+                style={{
+                  fontSize: 9,
+                  padding: "2px 6px",
+                  borderRadius: 4,
+                  background: gradeMeta.badgeBg,
+                  color: gradeMeta.badgeText,
+                  fontWeight: 700,
+                }}
+              >
+                {gradeMeta.company}
+              </span>
             </div>
-          )}
+
+            {/* Dropdown Selector on Card Detail */}
+            <select
+              value={selectedGrade}
+              onChange={(e) => setSelectedGrade(e.target.value as CardGrade)}
+              style={{
+                width: "100%",
+                padding: "8px 10px",
+                background: "rgba(10, 15, 29, 0.95)",
+                color: selectedGrade !== "raw" ? "#fbbf24" : "var(--t1)",
+                border: "1px solid var(--brd)",
+                borderRadius: 8,
+                fontSize: 12,
+                fontFamily: "var(--mono, monospace)",
+                fontWeight: 600,
+                outline: "none",
+                cursor: "pointer",
+                marginBottom: 10,
+              }}
+            >
+              {ALL_GRADES.map((g) => {
+                const gm = getGradeMeta(g);
+                const gv = calculateGradedValue(card, g);
+                return (
+                  <option key={g} value={g}>
+                    {gm.label} · {formatPrice(gv.estimatedGradedPrice)}
+                  </option>
+                );
+              })}
+            </select>
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+              <div>
+                <div style={{ fontSize: 9, color: "var(--t3)", letterSpacing: 1, textTransform: "uppercase" }}>
+                  {gradeMeta.label}
+                </div>
+                <div style={{ fontFamily: "Bebas Neue", fontSize: 26, color: selectedGrade !== "raw" ? "#fbbf24" : "var(--gold)", letterSpacing: 1 }}>
+                  {formatPrice(gradedVal.estimatedGradedPrice)}
+                </div>
+              </div>
+              {selectedGrade !== "raw" && (
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 9, color: "var(--t3)" }}>Multiplier</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#4ade80" }}>
+                    {gradedVal.multiplier.toFixed(2)}×
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {selectedGrade !== "raw" && (
+              <div
+                style={{
+                  marginTop: 8,
+                  padding: "8px 10px",
+                  background: "rgba(0,0,0,0.3)",
+                  borderRadius: 8,
+                  fontSize: 11,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 4,
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", color: "var(--t2)" }}>
+                  <span>Raw Card Cost:</span>
+                  <span>{formatPrice(gradedVal.rawPrice)}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", color: "var(--t2)" }}>
+                  <span>Grading Fee (est):</span>
+                  <span>+{formatPrice(gradedVal.gradingFee)}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 700, borderTop: "1px solid var(--brd)", paddingTop: 4, color: gradedVal.estimatedProfit >= 0 ? "#4ade80" : "#f87171" }}>
+                  <span>Grading Profit / ROI:</span>
+                  <span>
+                    {gradedVal.estimatedProfit >= 0 ? "+" : ""}{formatPrice(gradedVal.estimatedProfit)} ({gradedVal.estimatedRoiPct}%)
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+              <a
+                href={slabUrls.ebayActive}
+                target="_blank"
+                rel="noreferrer"
+                className="pv-btn pv-btn-out"
+                style={{ flex: 1, textAlign: "center", fontSize: 10, padding: "6px 4px", textDecoration: "none" }}
+              >
+                eBay Slabs ↗
+              </a>
+              <a
+                href={slabUrls.ebaySold}
+                target="_blank"
+                rel="noreferrer"
+                className="pv-btn pv-btn-out"
+                style={{ flex: 1, textAlign: "center", fontSize: 10, padding: "6px 4px", textDecoration: "none" }}
+              >
+                Sold Slabs ↗
+              </a>
+            </div>
+          </div>
+
           <div className="flex flex-col gap-1 mt-3">
             {card.tcgplayer?.url && (
               <a href={card.tcgplayer.url} target="_blank" rel="noreferrer" className="text-center text-xs" style={{ color: "#60a5fa", padding: 6 }}>
@@ -219,7 +375,11 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
           <PokedexPanel cardName={card.name} />
           <BulbapediaPanel cardName={card.name} />
           <AltArtworksPanel card={card} />
-          <PriceComparePanel query={`${card.name} ${card.set.name} ${card.number ?? ""}`.trim()} cardId={card.id} />
+          <PriceComparePanel
+            query={`${card.name} ${card.set.name} ${card.number ?? ""}`.trim()}
+            cardId={card.id}
+            initialCondition={selectedGrade === "raw" ? "all" : selectedGrade}
+          />
           <EbaySoldPanel query={`${card.name} ${card.set.name} ${card.number ?? ""}`.trim()} />
         </div>
       </div>
