@@ -1,3 +1,5 @@
+import { P2PTradingHubModal } from "./P2PTradingHubModal";
+import { getCardLevelAndStats } from "@/lib/card-stats";
 import { VisualGradeScannerModal } from "./VisualGradeScannerModal";
 import { useEffect, useRef, useState } from "react";
 import type { TCGCard } from "@/lib/pokemon-api";
@@ -31,6 +33,7 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
   const [selectedGrade, setSelectedGrade] = useState<CardGrade>("raw_nm");
   const [activeTab, setActiveTab] = useState<"pricing" | "ai_inspector">("pricing");
   const [showVisualModal, setShowVisualModal] = useState(false);
+  const [showTradeModal, setShowTradeModal] = useState(false);
   const failedImgs = useRef<Set<string>>(new Set());
 
   // AI Pre-Grade Scanner state
@@ -167,6 +170,48 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
           </div>
 
           <CardActions card={card} onAfterAction={onToast} />
+          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+            <button
+              onClick={() => setShowVisualModal(true)}
+              style={{
+                flex: 1,
+                padding: "8px 12px",
+                borderRadius: 8,
+                background: "rgba(14, 165, 233, 0.15)",
+                border: "1px solid rgba(14, 165, 233, 0.4)",
+                color: "#38bdf8",
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 4,
+              }}
+            >
+              🔬 Dual-Sided Scan
+            </button>
+            <button
+              onClick={() => setShowTradeModal(true)}
+              style={{
+                flex: 1,
+                padding: "8px 12px",
+                borderRadius: 8,
+                background: "rgba(16, 185, 129, 0.15)",
+                border: "1px solid rgba(16, 185, 129, 0.4)",
+                color: "#4ade80",
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 4,
+              }}
+            >
+              🔄 Propose P2P Trade
+            </button>
+          </div>
           
           {/* Quick Strike Cheap Card Loop */}
           <QuickStrike card={card} selectedGrade={selectedGrade} />
@@ -681,6 +726,13 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
           card={card}
           initialImageUrl={imgSrc || card.images.large}
           onClose={() => setShowVisualModal(false)}
+        />
+      )}
+      {showTradeModal && (
+        <P2PTradingHubModal
+          initialCard={card}
+          initialGrade={selectedGrade}
+          onClose={() => setShowTradeModal(false)}
         />
       )}
     </div>

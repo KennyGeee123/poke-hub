@@ -550,3 +550,7 @@ export function getSlabSearchUrls(card: TCGCard, grade: CardGrade) {
     priceCharting: `https://www.pricecharting.com/search-products?q=${enc(baseQuery)}&type=prices`,
   };
 }
+
+export function getEstimatedGradePrice(card: TCGCard, grade: CardGrade = "raw"): number {
+  return calculateGradedValue(card, grade).estimatedGradedPrice;
+}

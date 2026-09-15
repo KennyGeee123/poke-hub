@@ -1,4 +1,5 @@
 import { VisualGradeScannerModal } from "./VisualGradeScannerModal";
+import { P2PTradingHubModal } from "./P2PTradingHubModal";
 import { useEffect, useState } from "react";
 import type { TCGCard } from "@/lib/pokemon-api";
 import { getMarketPrice, rememberCard } from "@/lib/pokemon-api";
@@ -13,6 +14,7 @@ import {
   GRADED_SLABS,
   getGradeMeta,
 } from "@/lib/card-grades";
+import { getCardLevelAndStats } from "@/lib/card-stats";
 
 type Props = {
   card: TCGCard;
@@ -73,10 +75,12 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
   const [srcIdx, setSrcIdx] = useState(0);
   const [grade, setGrade] = useState<CardGrade>(defaultGrade);
   const [showScanModal, setShowScanModal] = useState(false);
+  const [showTradeModal, setShowTradeModal] = useState(false);
 
   const gradedVal = calculateGradedValue(card, grade);
   const displayPrice = gradedVal.estimatedGradedPrice;
   const gradeMeta = getGradeMeta(grade);
+  const stats = getCardLevelAndStats(card, grade);
 
   const fallbacks = fallbackCardImages(card);
   const hd = hdImg(card, { tile: true });
@@ -133,55 +137,94 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
           <div className="pv-err-b" title="Error / misprint">ERR</div>
         )}
         
-        {/* AI Pre-Grade Scanner Quick Trigger */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowScanModal(true);
-          }}
-          style={{
-            position: "absolute",
-            top: 6,
-            right: onRemove ? 30 : 6,
-            zIndex: 36,
-            padding: "2px 6px",
-            borderRadius: 6,
-            fontSize: 9,
-            fontWeight: 800,
-            background: "rgba(14, 165, 233, 0.9)",
-            color: "#ffffff",
-            border: "1px solid rgba(255,255,255,0.4)",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.6)",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 2,
-          }}
-          title="Launch AI Visual Pre-Grade Defect Scanner"
-        >
-          🔬 Scan
-        </button>
+        {/* Quick Action Overlay (Scan + Trade) */}
+        <div style={{ position: "absolute", top: 6, right: onRemove ? 30 : 6, zIndex: 36, display: "flex", gap: 3 }}>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowScanModal(true);
+            }}
+            style={{
+              padding: "2px 6px",
+              borderRadius: 6,
+              fontSize: 9,
+              fontWeight: 800,
+              background: "rgba(14, 165, 233, 0.9)",
+              color: "#ffffff",
+              border: "1px solid rgba(255,255,255,0.4)",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.6)",
+              cursor: "pointer",
+            }}
+            title="Launch Dual-Sided Quantum AI Pre-Grade Scanner"
+          >
+            🔬 Scan
+          </button>
 
-        {/* Quality / Grade Badge */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowTradeModal(true);
+            }}
+            style={{
+              padding: "2px 6px",
+              borderRadius: 6,
+              fontSize: 9,
+              fontWeight: 800,
+              background: "rgba(16, 185, 129, 0.9)",
+              color: "#ffffff",
+              border: "1px solid rgba(255,255,255,0.4)",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.6)",
+              cursor: "pointer",
+            }}
+            title="Propose P2P Card / Game Pokémon Trade"
+          >
+            🔄 Trade
+          </button>
+        </div>
+
+        {/* Quality / Grade Badge + Level Stat Boost Badge */}
         <div
           style={{
             position: "absolute",
             top: 6,
             left: 6,
             zIndex: 35,
-            padding: "2px 6px",
-            borderRadius: 6,
-            fontSize: 9,
-            fontWeight: 800,
-            fontFamily: "var(--mono, monospace)",
-            background: gradeMeta.badgeBg,
-            color: gradeMeta.badgeText,
-            border: `1px solid ${gradeMeta.badgeText}66`,
-            boxShadow: "0 2px 8px rgba(0,0,0,0.6)",
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
             pointerEvents: "none",
           }}
         >
-          {gradeMeta.shortLabel}
+          <div
+            style={{
+              padding: "2px 6px",
+              borderRadius: 6,
+              fontSize: 9,
+              fontWeight: 800,
+              fontFamily: "var(--mono, monospace)",
+              background: gradeMeta.badgeBg,
+              color: gradeMeta.badgeText,
+              border: `1px solid ${gradeMeta.badgeText}66`,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.6)",
+            }}
+          >
+            {gradeMeta.shortLabel}
+          </div>
+
+          <div
+            style={{
+              padding: "1px 5px",
+              borderRadius: 4,
+              fontSize: 8,
+              fontWeight: 700,
+              fontFamily: "var(--mono, monospace)",
+              background: "rgba(88, 28, 135, 0.85)",
+              color: "#e9d5ff",
+              border: "1px solid rgba(192, 132, 252, 0.4)",
+            }}
+          >
+            Lv.{stats.level} · +{stats.totalBoostPercent}%
+          </div>
         </div>
 
         {qty && qty > 1 ? <div className="pv-qty-b">×{qty}</div> : null}
@@ -260,6 +303,13 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
           card={card}
           initialImageUrl={src}
           onClose={() => setShowScanModal(false)}
+        />
+      )}
+      {showTradeModal && (
+        <P2PTradingHubModal
+          initialCard={card}
+          initialGrade={grade}
+          onClose={() => setShowTradeModal(false)}
         />
       )}
     </div>
