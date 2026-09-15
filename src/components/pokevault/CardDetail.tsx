@@ -1,4 +1,5 @@
-import { VisualGradeScannerModal } from "./VisualGradeScannerModal";\nimport { useEffect, useRef, useState } from "react";
+import { VisualGradeScannerModal } from "./VisualGradeScannerModal";
+import { useEffect, useRef, useState } from "react";
 import type { TCGCard } from "@/lib/pokemon-api";
 import { getCard, getMarketPrice, getRarityColor, stubCardFromId } from "@/lib/pokemon-api";
 import { getPrintLang, printLangMeta } from "@/lib/print-lang";
@@ -28,7 +29,8 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
   const [degraded, setDegraded] = useState(false);
   const [imgSrc, setImgSrc] = useState("");
   const [selectedGrade, setSelectedGrade] = useState<CardGrade>("raw_nm");
-  const [activeTab, setActiveTab] = useState<"pricing" | "ai_inspector">("pricing");\n  const [showVisualModal, setShowVisualModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<"pricing" | "ai_inspector">("pricing");
+  const [showVisualModal, setShowVisualModal] = useState(false);
   const failedImgs = useRef<Set<string>>(new Set());
 
   // AI Pre-Grade Scanner state

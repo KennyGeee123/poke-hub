@@ -1,4 +1,5 @@
-import { VisualGradeScannerModal } from "./VisualGradeScannerModal";\nimport { useEffect, useState } from "react";
+import { VisualGradeScannerModal } from "./VisualGradeScannerModal";
+import { useEffect, useState } from "react";
 import type { TCGCard } from "@/lib/pokemon-api";
 import { getMarketPrice, rememberCard } from "@/lib/pokemon-api";
 import { printLangMeta } from "@/lib/print-lang";
@@ -70,7 +71,8 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
   const [loaded, setLoaded] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [srcIdx, setSrcIdx] = useState(0);
-  const [grade, setGrade] = useState<CardGrade>(defaultGrade);\n  const [showScanModal, setShowScanModal] = useState(false);
+  const [grade, setGrade] = useState<CardGrade>(defaultGrade);
+  const [showScanModal, setShowScanModal] = useState(false);
 
   const gradedVal = calculateGradedValue(card, grade);
   const displayPrice = gradedVal.estimatedGradedPrice;
