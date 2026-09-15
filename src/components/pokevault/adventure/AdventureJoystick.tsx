@@ -10,11 +10,15 @@ import {
   ChevronDown,
   Minimize2,
   Maximize2,
+  Keyboard,
 } from "lucide-react";
 
 export type MoveSpeed = "walk" | "jog" | "bike" | "drive";
 
-const SPEED_CONFIG: Record<MoveSpeed, { label: string; kmh: number; stepPct: number; icon: React.ComponentType<{ className?: string }> }> = {
+const SPEED_CONFIG: Record<
+  MoveSpeed,
+  { label: string; kmh: number; stepPct: number; icon: React.ComponentType<{ className?: string }> }
+> = {
   walk: { label: "Walk", kmh: 9.5, stepPct: 0.8, icon: Footprints },
   jog: { label: "Jog", kmh: 18.0, stepPct: 1.5, icon: Zap },
   bike: { label: "Bike", kmh: 32.0, stepPct: 2.8, icon: Bike },
@@ -49,7 +53,8 @@ export function AdventureJoystick({
   const thumbRef = useRef<HTMLDivElement>(null);
   const baseRef = useRef<HTMLDivElement>(null);
   const activeMoveRef = useRef<{ dx: number; dy: number } | null>(null);
-  const loopRef = useRef<number | null>(null);
+  const isPointerActiveRef = useRef(false);
+  const pressedKeysRef = useRef<Set<string>>(new Set());
 
   // Speed configuration
   const currentSpeedConfig = SPEED_CONFIG[speed];
@@ -59,7 +64,7 @@ export function AdventureJoystick({
     onSpeedChange?.(s);
   }
 
-  // Continuous movement loop while holding joystick
+  // Continuous movement loop while holding joystick or pressing arrow keys
   useEffect(() => {
     let animId: number;
 
@@ -84,12 +89,106 @@ export function AdventureJoystick({
     return () => cancelAnimationFrame(animId);
   }, [currentSpeedConfig, autoWalk, onMove]);
 
+  // Keyboard Arrow Keys & WASD Event Listeners
+  useEffect(() => {
+    function computeKeyVector() {
+      let kx = 0;
+      let ky = 0;
+      const keys = pressedKeysRef.current;
+
+      if (keys.has("ArrowUp") || keys.has("KeyW") || keys.has("w") || keys.has("W")) ky -= 1;
+      if (keys.has("ArrowDown") || keys.has("KeyS") || keys.has("s") || keys.has("S")) ky += 1;
+      if (keys.has("ArrowLeft") || keys.has("KeyA") || keys.has("a") || keys.has("A")) kx -= 1;
+      if (keys.has("ArrowRight") || keys.has("KeyD") || keys.has("d") || keys.has("D")) kx += 1;
+
+      if (kx !== 0 || ky !== 0) {
+        const len = Math.hypot(kx, ky);
+        const normX = kx / len;
+        const normY = ky / len;
+        activeMoveRef.current = { dx: normX, dy: normY };
+
+        // Animate virtual thumbstick puck
+        if (thumbRef.current) {
+          const maxRadius = 34;
+          thumbRef.current.style.transform = `translate(${normX * maxRadius}px, ${normY * maxRadius}px)`;
+        }
+      } else {
+        if (!isPointerActiveRef.current) {
+          activeMoveRef.current = null;
+          if (thumbRef.current) {
+            thumbRef.current.style.transform = "translate(0px, 0px)";
+          }
+        }
+      }
+    }
+
+    function handleKeyDown(e: KeyboardEvent) {
+      // Ignore when user is typing in an input, textarea, or contentEditable
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      const monitored = [
+        "ArrowUp",
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight",
+        "KeyW",
+        "KeyS",
+        "KeyA",
+        "KeyD",
+        "w",
+        "W",
+        "s",
+        "S",
+        "a",
+        "A",
+        "d",
+        "D",
+      ];
+
+      if (monitored.includes(e.code) || monitored.includes(e.key)) {
+        e.preventDefault();
+        pressedKeysRef.current.add(e.code);
+        pressedKeysRef.current.add(e.key);
+        computeKeyVector();
+      }
+
+      // Quick speed toggle via number keys 1, 2, 3, 4
+      if (e.key === "1") handleSpeedSelect("walk");
+      if (e.key === "2") handleSpeedSelect("jog");
+      if (e.key === "3") handleSpeedSelect("bike");
+      if (e.key === "4") handleSpeedSelect("drive");
+    }
+
+    function handleKeyUp(e: KeyboardEvent) {
+      pressedKeysRef.current.delete(e.code);
+      pressedKeysRef.current.delete(e.key);
+      computeKeyVector();
+    }
+
+    window.addEventListener("keydown", handleKeyDown, { passive: false });
+    window.addEventListener("keyup", handleKeyUp, { passive: false });
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, [handleSpeedSelect]);
+
   // Touch / Pointer Joystick Dragging
   function handlePointerDown(e: React.PointerEvent) {
     e.preventDefault();
     const base = baseRef.current;
     if (!base) return;
 
+    isPointerActiveRef.current = true;
     const rect = base.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
@@ -122,10 +221,13 @@ export function AdventureJoystick({
     const onPointerUp = () => {
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
-      if (thumbRef.current) {
-        thumbRef.current.style.transform = `translate(0px, 0px)`;
+      isPointerActiveRef.current = false;
+      if (pressedKeysRef.current.size === 0) {
+        if (thumbRef.current) {
+          thumbRef.current.style.transform = `translate(0px, 0px)`;
+        }
+        activeMoveRef.current = null;
       }
-      activeMoveRef.current = null;
     };
 
     window.addEventListener("pointermove", onPointerMove);
@@ -173,7 +275,9 @@ export function AdventureJoystick({
                     ? "bg-cyan-500 text-neutral-950 font-bold shadow-md shadow-cyan-500/30"
                     : "text-neutral-400 hover:text-white"
                 }`}
-                title={`${SPEED_CONFIG[s].label} (${SPEED_CONFIG[s].kmh} km/h)`}
+                title={`${SPEED_CONFIG[s].label} (${SPEED_CONFIG[s].kmh} km/h) [Key ${
+                  s === "walk" ? 1 : s === "jog" ? 2 : s === "bike" ? 3 : 4
+                }]`}
               >
                 <Icon className="w-3.5 h-3.5" />
               </button>
@@ -231,6 +335,12 @@ export function AdventureJoystick({
           )}
         </div>
 
+        {/* Arrow Keys Support Hint */}
+        <div className="hidden sm:flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-neutral-900 border border-neutral-800 text-[10px] text-cyan-400">
+          <Keyboard className="w-3 h-3" />
+          <span className="font-bold">↑↓←→</span>
+        </div>
+
         {/* Minimize Button */}
         <button
           type="button"
@@ -256,8 +366,9 @@ export function AdventureJoystick({
             stepDirection(0, -1);
           }}
           className="absolute top-1 text-[10px] font-mono text-cyan-400/80 hover:text-cyan-200 font-bold p-1"
+          title="North / Arrow Up"
         >
-          N
+          ▲ N
         </button>
         <button
           type="button"
@@ -266,8 +377,9 @@ export function AdventureJoystick({
             stepDirection(1, 0);
           }}
           className="absolute right-1 text-[10px] font-mono text-cyan-400/80 hover:text-cyan-200 font-bold p-1"
+          title="East / Arrow Right"
         >
-          E
+          E ▶
         </button>
         <button
           type="button"
@@ -276,8 +388,9 @@ export function AdventureJoystick({
             stepDirection(0, 1);
           }}
           className="absolute bottom-1 text-[10px] font-mono text-cyan-400/80 hover:text-cyan-200 font-bold p-1"
+          title="South / Arrow Down"
         >
-          S
+          ▼ S
         </button>
         <button
           type="button"
@@ -286,8 +399,9 @@ export function AdventureJoystick({
             stepDirection(-1, 0);
           }}
           className="absolute left-1 text-[10px] font-mono text-cyan-400/80 hover:text-cyan-200 font-bold p-1"
+          title="West / Arrow Left"
         >
-          W
+          ◀ W
         </button>
 
         {/* Inner Guide Ring */}
@@ -298,7 +412,7 @@ export function AdventureJoystick({
           ref={thumbRef}
           className="absolute w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 shadow-[0_0_15px_rgba(6,182,212,0.6)] border-2 border-white/60 flex items-center justify-center pointer-events-none transition-transform duration-75"
         >
-          <Navigation2 className="w-5 h-5 text-white transform -rotate-45" />
+          <Navigation2 className="w-5 h-5 text-white" />
         </div>
       </div>
     </div>
