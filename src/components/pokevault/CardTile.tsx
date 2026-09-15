@@ -37,21 +37,32 @@ export function CardSpriteOverlay({ card, size = 140, show = true }: { card: TCG
       className="pv-card-sprite-pop"
       style={{
         position: "absolute",
-        top: 10,
+        top: 6,
         left: "50%",
         width: size,
         height: size,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        transform: `translateX(-50%) scale(${show ? 1 : 0.7})`,
+        transform: `translateX(-50%) scale(${show ? 1.05 : 0.7}) translateY(${show ? "-4px" : "0px"})`,
         opacity: show ? 1 : 0,
         visibility: show ? "visible" : "hidden",
-        transition: "opacity .22s ease, transform .22s ease, visibility .22s ease",
+        transition: "all .24s cubic-bezier(0.34, 1.56, 0.64, 1)",
         pointerEvents: "none",
         zIndex: 40,
       }}
     >
+      {/* Energetic Halo Glow */}
+      <div
+        style={{
+          position: "absolute",
+          width: "90%",
+          height: "90%",
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(56, 189, 248, 0.45) 0%, rgba(192, 132, 252, 0.2) 50%, transparent 75%)",
+          filter: "blur(6px)",
+        }}
+      />
       <img
         src={urls[idx]}
         alt=""
@@ -63,7 +74,12 @@ export function CardSpriteOverlay({ card, size = 140, show = true }: { card: TCG
           else setHide(true);
         }}
         className="pv-card-sprite"
-        style={{ width: "100%", height: "100%" }}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "contain",
+          filter: "drop-shadow(0 12px 20px rgba(0,0,0,0.85)) drop-shadow(0 0 10px rgba(56,189,248,0.6))",
+        }}
       />
     </div>
   );

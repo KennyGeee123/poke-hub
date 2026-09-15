@@ -1,17 +1,39 @@
-// Card image helpers — promote every TCG card to HD art with TCGdex fallback.
+// Card image helpers — promote every TCG card to HD art with TCGdex & SVG fallbacks.
 import type { TCGCard } from "@/lib/pokemon-api";
 
-/**
- * Return `src` + `srcSet` for a card thumbnail.
- * Uses `images.small` as the 1x source and `images.large` as the 2x source so
- * retina/zoom views render the high-res official scan instead of the tiny one.
- */
+export function generateCardSvgFallback(name: string, number?: string, setName?: string): string {
+  const safeName = (name || "Pokémon Card").replace(/[<>&"]/g, "");
+  const safeNum = (number || "001").replace(/[<>&"]/g, "");
+  const safeSet = (setName || "Vault").replace(/[<>&"]/g, "");
+  
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 420" width="100%" height="100%">
+    <defs>
+      <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#1e1b4b"/>
+        <stop offset="50%" stop-color="#0f172a"/>
+        <stop offset="100%" stop-color="#020617"/>
+      </linearGradient>
+      <linearGradient id="b" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#38bdf8"/>
+        <stop offset="100%" stop-color="#c084fc"/>
+      </linearGradient>
+    </defs>
+    <rect width="300" height="420" rx="16" fill="url(#g)" stroke="url(#b)" stroke-width="4"/>
+    <circle cx="150" cy="180" r="60" fill="none" stroke="rgba(56,189,248,0.2)" stroke-width="8"/>
+    <circle cx="150" cy="180" r="30" fill="rgba(56,189,248,0.1)"/>
+    <path d="M 90 180 L 210 180" stroke="rgba(56,189,248,0.4)" stroke-width="4"/>
+    <text x="150" y="270" fill="#f8fafc" font-size="16" font-family="system-ui, sans-serif" font-weight="bold" text-anchor="middle">${safeName}</text>
+    <text x="150" y="295" fill="#94a3b8" font-size="12" font-family="monospace" text-anchor="middle">${safeSet} · #${safeNum}</text>
+    <text x="150" y="380" fill="#38bdf8" font-size="10" font-family="monospace" text-anchor="middle">POKEVAULT HD SYNC</text>
+  </svg>`;
+
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
 export function hdImg(card: Pick<TCGCard, "images">, opts?: { tile?: boolean }): { src: string; srcSet?: string; sizes?: string } {
   const small = card.images?.small ?? "";
   const large = card.images?.large ?? small;
   if (opts?.tile) {
-    // Tile CSS width is ~140px. 245w small is enough even on retina; do not
-    // pull the 600w+ official scan for a rail of 16–60 cards.
     return {
       src: small || large,
       srcSet: small && large ? `${small} 245w, ${large} 600w` : undefined,
@@ -24,12 +46,11 @@ export function hdImg(card: Pick<TCGCard, "images">, opts?: { tile?: boolean }):
   };
 }
 
-/** Always returns the largest official artwork available. */
 export function hdLarge(card: Pick<TCGCard, "images">): string {
   return card.images?.large || card.images?.small || "";
 }
 
-type ImgCard = Pick<TCGCard, "id" | "number" | "set" | "images">;
+type ImgCard = Pick<TCGCard, "id" | "name" | "number" | "set" | "images">;
 
 /** Ordered list of image URLs to try when the primary scan 404s. */
 export function fallbackCardImages(card: ImgCard): string[] {
@@ -67,16 +88,15 @@ export function fallbackCardImages(card: ImgCard): string[] {
     add(`https://assets.tcgdex.net/en/${serie}/${setId}/${num}/low.webp`);
   }
 
+  // Universal SVG Guaranteed Rendering Fallback
+  add(generateCardSvgFallback(card.name || "Pokémon Card", card.number, card.set?.name));
+
   return urls;
 }
 
 const HD_CACHE_KEY = "pv-hd-img:";
 
-/**
- * Resolve an even-higher-res alt image via TCGdex (high.webp) when available.
- * Cached in localStorage. Async — call lazily from detail views.
- */
-export async function resolveHDImage(card: Pick<TCGCard, "id" | "number" | "set" | "images">): Promise<string> {
+export async function resolveHDImage(card: Pick<TCGCard, "id" | "name" | "number" | "set" | "images">): Promise<string> {
   if (typeof localStorage !== "undefined") {
     const cached = localStorage.getItem(HD_CACHE_KEY + card.id);
     if (cached) return cached;
@@ -100,7 +120,6 @@ export async function resolveHDImage(card: Pick<TCGCard, "id" | "number" | "set"
   return fallback;
 }
 
-/** Wipe all cached image + TCG API responses so the next load re-pulls everything. */
 export function refreshAllImageCaches() {
   if (typeof localStorage === "undefined") return 0;
   let n = 0;
