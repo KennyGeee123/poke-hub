@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { VisualGradeScannerModal } from "./VisualGradeScannerModal";\nimport { useEffect, useState } from "react";
 import type { TCGCard } from "@/lib/pokemon-api";
 import { getMarketPrice, rememberCard } from "@/lib/pokemon-api";
 import { printLangMeta } from "@/lib/print-lang";
@@ -70,7 +70,7 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
   const [loaded, setLoaded] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [srcIdx, setSrcIdx] = useState(0);
-  const [grade, setGrade] = useState<CardGrade>(defaultGrade);
+  const [grade, setGrade] = useState<CardGrade>(defaultGrade);\n  const [showScanModal, setShowScanModal] = useState(false);
 
   const gradedVal = calculateGradedValue(card, grade);
   const displayPrice = gradedVal.estimatedGradedPrice;
@@ -131,6 +131,35 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
           <div className="pv-err-b" title="Error / misprint">ERR</div>
         )}
         
+        {/* AI Pre-Grade Scanner Quick Trigger */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowScanModal(true);
+          }}
+          style={{
+            position: "absolute",
+            top: 6,
+            right: onRemove ? 30 : 6,
+            zIndex: 36,
+            padding: "2px 6px",
+            borderRadius: 6,
+            fontSize: 9,
+            fontWeight: 800,
+            background: "rgba(14, 165, 233, 0.9)",
+            color: "#ffffff",
+            border: "1px solid rgba(255,255,255,0.4)",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.6)",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+          }}
+          title="Launch AI Visual Pre-Grade Defect Scanner"
+        >
+          🔬 Scan
+        </button>
+
         {/* Quality / Grade Badge */}
         <div
           style={{
@@ -224,6 +253,13 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
           </div>
         </div>
       </div>
+      {showScanModal && (
+        <VisualGradeScannerModal
+          card={card}
+          initialImageUrl={src}
+          onClose={() => setShowScanModal(false)}
+        />
+      )}
     </div>
   );
 }

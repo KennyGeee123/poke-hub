@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { VisualGradeScannerModal } from "./VisualGradeScannerModal";\nimport { useEffect, useRef, useState } from "react";
 import type { TCGCard } from "@/lib/pokemon-api";
 import { getCard, getMarketPrice, getRarityColor, stubCardFromId } from "@/lib/pokemon-api";
 import { getPrintLang, printLangMeta } from "@/lib/print-lang";
@@ -28,7 +28,7 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
   const [degraded, setDegraded] = useState(false);
   const [imgSrc, setImgSrc] = useState("");
   const [selectedGrade, setSelectedGrade] = useState<CardGrade>("raw_nm");
-  const [activeTab, setActiveTab] = useState<"pricing" | "ai_inspector">("pricing");
+  const [activeTab, setActiveTab] = useState<"pricing" | "ai_inspector">("pricing");\n  const [showVisualModal, setShowVisualModal] = useState(false);
   const failedImgs = useRef<Set<string>>(new Set());
 
   // AI Pre-Grade Scanner state
@@ -101,7 +101,12 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
       )}
       <div className="pv-detail-layout">
         <div className="pv-detail-left">
-          <div className="pv-detail-img-wrap" style={{ position: "relative" }}>
+          <div
+            className="pv-detail-img-wrap"
+            style={{ position: "relative", cursor: "pointer" }}
+            onClick={() => setShowVisualModal(true)}
+            title="Click to launch AI Visual Pre-Grade Defect Scanner"
+          >
             <div className="pv-card-skel" style={{ opacity: loaded ? 0 : 1 }} />
             <img
               className={`pv-detail-img ${loaded ? "loaded" : ""}`}
@@ -115,6 +120,30 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
                 if (next) setImgSrc(next);
               }}
             />
+            {/* Visual Scanner Prompt Badge */}
+            <div
+              style={{
+                position: "absolute",
+                bottom: 8,
+                left: 8,
+                right: 8,
+                padding: "6px 10px",
+                background: "linear-gradient(135deg, rgba(14, 165, 233, 0.92), rgba(99, 102, 241, 0.92))",
+                borderRadius: 8,
+                fontSize: 10,
+                fontWeight: 800,
+                color: "#ffffff",
+                textAlign: "center",
+                letterSpacing: 0.8,
+                boxShadow: "0 4px 14px rgba(0,0,0,0.6)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 4,
+              }}
+            >
+              <span>🔬</span> TAP CARD TO SCAN PIXELS & DEFECTS
+            </div>
             <div
               style={{
                 position: "absolute",
@@ -645,6 +674,13 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
           <EbaySoldPanel query={`${card.name} ${card.set.name} ${card.number ?? ""}`.trim()} />
         </div>
       </div>
+      {showVisualModal && (
+        <VisualGradeScannerModal
+          card={card}
+          initialImageUrl={imgSrc || card.images.large}
+          onClose={() => setShowVisualModal(false)}
+        />
+      )}
     </div>
   );
 }
