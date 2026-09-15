@@ -1,3 +1,4 @@
+import { PristineMoveCustomizer } from "./PristineMoveCustomizer";
 import React, { useEffect, useRef, useState } from "react";
 import type { TCGCard } from "@/lib/pokemon-api";
 import { formatPrice } from "@/lib/vault";
@@ -554,6 +555,9 @@ export function VisualGradeScannerModal({
                     </div>
                   </div>
                 </div>
+
+                {/* 4. Pristine 10 Move Set & Egg / Breedable Moves Customizer */}
+                <PristineMoveCustomizer card={card} />
 
                 {/* 4. Selected Flaw Inspector Detail */}
                 {selectedFlaw && (

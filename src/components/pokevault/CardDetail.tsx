@@ -1,3 +1,4 @@
+import { PristineMoveCustomizer } from "./PristineMoveCustomizer";
 import { P2PTradingHubModal } from "./P2PTradingHubModal";
 import { getCardLevelAndStats } from "@/lib/card-stats";
 import { VisualGradeScannerModal } from "./VisualGradeScannerModal";
@@ -640,6 +641,11 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
               <div style={{ color: "var(--t2)", fontSize: 11, lineHeight: 1.5 }}>{a.text}</div>
             </div>
           ))}
+
+          {/* Pristine 10 Move Set & Egg / Breedable Moves Customizer */}
+          <div style={{ margin: "14px 0" }}>
+            <PristineMoveCustomizer card={card} />
+          </div>
 
           {card.attacks?.map((atk, i) => (
             <div key={i} className="pv-atk">
