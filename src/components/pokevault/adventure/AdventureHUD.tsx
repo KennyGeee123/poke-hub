@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  BookOpen,
   Compass,
   ShoppingBag,
   Sparkles,
@@ -34,6 +35,8 @@ export function AdventureHUD({
   onOpenBuddy,
   onOpenVault,
   onToggleNearby,
+  onForceSwitchEra,
+  onOpenPokedex,
 }: {
   adventureState: AdventureState;
   onOpenShop: () => void;
@@ -44,6 +47,7 @@ export function AdventureHUD({
   onOpenVault: () => void;
   onToggleNearby: () => void;
   onForceSwitchEra?: (eraId: PokemonEraId) => void;
+  onOpenPokedex?: () => void;
 }) {
   const [radialOpen, setRadialOpen] = useState(false);
   const [eraModalOpen, setEraModalOpen] = useState(false);
@@ -238,6 +242,22 @@ export function AdventureHUD({
                   <Package className="w-6 h-6 text-blue-400" />
                   <span className="text-[10px] font-bold text-neutral-200">ITEMS</span>
                 </button>
+
+                
+                {/* Pokédex (All 1,025) */}
+                {onOpenPokedex && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRadialOpen(false);
+                      onOpenPokedex();
+                    }}
+                    className="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-neutral-800 transition"
+                  >
+                    <BookOpen className="w-6 h-6 text-red-400" />
+                    <span className="text-[10px] font-bold text-neutral-200">DEX 1,025</span>
+                  </button>
+                )}
 
                 {/* 6. Vault */}
                 <button

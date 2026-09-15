@@ -108,6 +108,30 @@ export function AdventureEncounterModal({
           </div>
         </div>
 
+        
+        {/* Wild Emergence Banner & Classic Battle Switcher */}
+        <div className="w-full flex items-center justify-between p-2.5 rounded-2xl bg-neutral-900/90 border border-neutral-800 text-left">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-base select-none">🌿</span>
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs font-bold text-white truncate">
+                Wild {creature.species} emerged!
+              </span>
+              <span className="text-[9px] text-neutral-400">
+                Discovered in radar pulse (~{creature.distanceMeters}m)
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onSwitchToBattle}
+            className="shrink-0 px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-500 hover:brightness-110 text-white font-mono text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-rose-500/25"
+          >
+            <Swords className="w-3.5 h-3.5" />
+            <span>CLASSIC BATTLE</span>
+          </button>
+        </div>
+
         {/* 3D Creature Arena Stage */}
         <div className="relative w-full h-64 rounded-2xl bg-gradient-to-b from-cyan-950/30 via-neutral-900 to-neutral-950 border border-neutral-800/80 flex items-center justify-center overflow-hidden">
           {/* Floor Shadow Ring */}

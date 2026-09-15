@@ -1,3 +1,10 @@
+import {
+  ALL_POKEMON,
+  getPokemonByGen,
+  getPokemonByName,
+  getRandomPokemon,
+  type NationalDexPokemon,
+} from "./all-pokemon-data";
 /**
  * PokéVault Pro — Adventure Living World Engine
  * 
@@ -553,6 +560,56 @@ export interface ParkBiomeDef {
   featuredNestSpecies: string[];
 }
 
+
+export const RADAR_DISCOVERY_RADIUS_METERS = 45;
+
+export const DRESDEN_PARK_GEO = {
+  lat: 33.8824,
+  lng: -84.2811,
+  name: "Dresden Park",
+  city: "Chamblee, GA",
+};
+
+/**
+ * Calculates high-precision distance between two geographic coordinates in meters
+ * using the Haversine spherical formula.
+ */
+export function haversineMeters(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  const R = 6371000; // Earth radius in meters
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c);
+}
+
+/**
+ * Offsets a coordinate by dx, dy meters into real-world latitude and longitude.
+ */
+export function geoOffsetFromMeters(
+  lat: number,
+  lng: number,
+  dxMeters: number,
+  dyMeters: number
+): { lat: number; lng: number } {
+  const latOffset = dyMeters / 111320;
+  const lngOffset = dxMeters / (111320 * Math.cos((lat * Math.PI) / 180));
+  return {
+    lat: +(lat + latOffset).toFixed(6),
+    lng: +(lng + lngOffset).toFixed(6),
+  };
+}
+
 export const DRESDEN_PARK_ZONE: ParkBiomeDef = {
   id: "dresden_park",
   name: "Dresden Park Nature Reserve",
@@ -614,37 +671,70 @@ export function getEraRotationStatus(timestamp = Date.now()) {
 export function generateEraSpawns(
   eraId?: PokemonEraId,
   count = 7,
-  timestamp = Date.now()
+  timestamp = Date.now(),
+  centerGeo: { lat: number; lng: number } = DRESDEN_PARK_GEO
 ): WildCreature[] {
   const eraKey = eraId || getEraRotationStatus(timestamp).activeEraId;
-  const era = POKEMON_ERAS[eraKey] || POKEMON_ERAS.vintage_kanto;
   const spawns: WildCreature[] = [];
 
-  // 1. Guarantee 3 spawns inside Dresden Park Nest (High Rarity Guaranteed)
+  // Determine Generation Species Pool from all 1025 Pokemon
+  let pool: NationalDexPokemon[];
+  if (eraKey === "vintage_kanto") {
+    pool = getPokemonByGen(1); // All 151 Gen 1
+  } else if (eraKey === "neo_johto") {
+    pool = getPokemonByGen(2); // All 100 Gen 2
+  } else if (eraKey === "advanced_hoenn") {
+    pool = getPokemonByGen(3); // All 135 Gen 3
+  } else if (eraKey === "diamond_sinnoh") {
+    pool = getPokemonByGen(4); // All 107 Gen 4
+  } else {
+    // Modern Paldea / Expanded includes Gen 5 through 9
+    pool = ALL_POKEMON.filter((p) => p.gen >= 5);
+  }
+
+  if (!pool || pool.length === 0) {
+    pool = ALL_POKEMON;
+  }
+
+  // 1. Guarantee 3 spawns inside Dresden Park Nest (High Rarity Across All 1,025 Pokemon)
   const parkCount = 3;
   const generalCount = Math.max(3, count - parkCount);
 
+  // Dresden Park nest pool: draws rare/epic/legendary from full franchise
+  const highTierFranchisePool = ALL_POKEMON.filter(
+    (p) => p.rarity === "rare" || p.rarity === "epic" || p.rarity === "legendary"
+  );
+
   for (let i = 0; i < parkCount; i++) {
-    const nestPool = era.speciesPool.filter(
-      (s) => s.rarity === "rare" || s.rarity === "epic" || s.rarity === "legendary"
-    );
-    const chosen = nestPool[Math.floor(Math.random() * nestPool.length)] || era.speciesPool[0];
+    const chosen =
+      highTierFranchisePool[Math.floor(Math.random() * highTierFranchisePool.length)] ||
+      pool[0];
 
     const parkX = Math.round(18 + Math.random() * 24); // 18-42%
     const parkY = Math.round(36 + Math.random() * 22); // 36-58%
     const level = Math.round(32 + Math.random() * 16);
     const cp = Math.round(chosen.baseCp * (1 + (level - 20) * 0.04) * 1.25);
 
+    // Geographic offset around Dresden Park
+    const dxM = (parkX - 31) * 8; // meters
+    const dyM = (parkY - 48) * 8;
+    const geo = geoOffsetFromMeters(centerGeo.lat, centerGeo.lng, dxM, dyM);
+    const distMeters = haversineMeters(centerGeo.lat, centerGeo.lng, geo.lat, geo.lng);
+
     spawns.push({
-      id: `spawn-dresden-${eraKey}-${i}-${timestamp}`,
-      species: chosen.species,
+      id: `spawn-dresden-${chosen.id}-${i}-${timestamp}`,
+      species: chosen.name,
+      nationalDexId: chosen.id,
       cp,
       level,
       types: chosen.types,
       rarity: chosen.rarity,
       xPct: parkX,
       yPct: parkY,
-      distanceMeters: Math.round(Math.hypot(parkX - 50, parkY - 50) * 8),
+      lat: geo.lat,
+      lng: geo.lng,
+      distanceMeters: distMeters,
+      isDiscovered: distMeters <= RADAR_DISCOVERY_RADIUS_METERS,
       weatherBoosted: Math.random() < 0.5,
       spawnTimestamp: timestamp,
       despawnTimestamp: timestamp + ERA_CYCLE_DURATION_MS,
@@ -656,9 +746,9 @@ export function generateEraSpawns(
     });
   }
 
-  // 2. Generate remaining general spawns from the active era
+  // 2. Generate remaining general spawns from the active era pool
   for (let i = 0; i < generalCount; i++) {
-    const chosen = era.speciesPool[Math.floor(Math.random() * era.speciesPool.length)];
+    const chosen = pool[Math.floor(Math.random() * pool.length)];
     let x = Math.round(10 + Math.random() * 80);
     let y = Math.round(10 + Math.random() * 80);
     if (isInsidePark(x, y)) {
@@ -668,16 +758,25 @@ export function generateEraSpawns(
     const level = Math.round(16 + Math.random() * 20);
     const cp = Math.round(chosen.baseCp * (1 + (level - 20) * 0.04));
 
+    const dxM = (x - 50) * 12;
+    const dyM = (y - 50) * 12;
+    const geo = geoOffsetFromMeters(centerGeo.lat, centerGeo.lng, dxM, dyM);
+    const distMeters = haversineMeters(centerGeo.lat, centerGeo.lng, geo.lat, geo.lng);
+
     spawns.push({
-      id: `spawn-${eraKey}-${i}-${timestamp}`,
-      species: chosen.species,
+      id: `spawn-${chosen.id}-${i}-${timestamp}`,
+      species: chosen.name,
+      nationalDexId: chosen.id,
       cp,
       level,
       types: chosen.types,
       rarity: chosen.rarity,
       xPct: x,
       yPct: y,
-      distanceMeters: Math.round(Math.hypot(x - 50, y - 50) * 8),
+      lat: geo.lat,
+      lng: geo.lng,
+      distanceMeters: distMeters,
+      isDiscovered: distMeters <= RADAR_DISCOVERY_RADIUS_METERS,
       weatherBoosted: Math.random() < 0.35,
       spawnTimestamp: timestamp,
       despawnTimestamp: timestamp + ERA_CYCLE_DURATION_MS,
@@ -694,13 +793,18 @@ export function generateEraSpawns(
 export interface WildCreature {
   id: string;
   species: string;
+  nationalDexId?: number;
   cp: number;
   level: number;
   types: string[];
   rarity: CreatureRarity;
   xPct: number;
   yPct: number;
+  lat?: number;
+  lng?: number;
   distanceMeters: number;
+  isDiscovered?: boolean;
+  discoveryTimestamp?: number;
   weatherBoosted: boolean;
   spawnTimestamp: number;
   despawnTimestamp: number;
@@ -786,6 +890,9 @@ export interface WorldState {
   eventName: string;
   eventMultiplier: number;
   playerCoords: { xPct: number; yPct: number };
+  playerGeo?: { lat: number; lng: number; accuracy?: number; heading?: number };
+  useRealGps?: boolean;
+  mapStyle?: "carto_dark" | "osm_streets" | "satellite";
   activeEraId?: PokemonEraId;
   lastEraRotationTimestamp?: number;
   isInsidePark?: boolean;
@@ -1661,4 +1768,95 @@ export function forceSwitchEra(
   updated.wildCreatures = generateEraSpawns(targetEraId, 7, Date.now());
   saveAdventureState(updated);
   return { state: updated, activeEra: POKEMON_ERAS[targetEraId] };
+}
+
+
+/**
+ * Updates player coordinates and recalculates distance to all wild creatures.
+ * Strictly triggers discovery when a player moves within RADAR_DISCOVERY_RADIUS_METERS (45m).
+ */
+export function updatePlayerLocation(
+  state: AdventureState,
+  newCoords: { xPct: number; yPct: number },
+  distMeters: number,
+  newGeo?: { lat: number; lng: number; accuracy?: number; heading?: number }
+): {
+  state: AdventureState;
+  newlyDiscovered: WildCreature[];
+} {
+  const updated = cloneAdventureState(state);
+  updated.world.playerCoords = newCoords;
+  if (newGeo) {
+    updated.world.playerGeo = newGeo;
+  }
+  updated.player.totalDistanceKm += distMeters / 1000;
+  updated.buddy.totalKmWalked += distMeters / 1000;
+
+  const newlyDiscovered: WildCreature[] = [];
+  const playerLat = updated.world.playerGeo?.lat || DRESDEN_PARK_GEO.lat;
+  const playerLng = updated.world.playerGeo?.lng || DRESDEN_PARK_GEO.lng;
+
+  // Recalculate distances and evaluate 45m discovery radius
+  updated.wildCreatures = updated.wildCreatures.map((c) => {
+    let dist = c.distanceMeters;
+    if (c.lat && c.lng) {
+      dist = haversineMeters(playerLat, playerLng, c.lat, c.lng);
+    } else {
+      const dx = c.xPct - newCoords.xPct;
+      const dy = c.yPct - newCoords.yPct;
+      dist = Math.round(Math.hypot(dx, dy) * 10);
+    }
+
+    const wasDiscovered = !!c.isDiscovered;
+    const isNowDiscovered = dist <= RADAR_DISCOVERY_RADIUS_METERS || wasDiscovered;
+
+    if (!wasDiscovered && isNowDiscovered) {
+      newlyDiscovered.push({ ...c, distanceMeters: dist, isDiscovered: true, discoveryTimestamp: Date.now() });
+    }
+
+    return {
+      ...c,
+      distanceMeters: dist,
+      isDiscovered: isNowDiscovered,
+      discoveryTimestamp: isNowDiscovered ? (c.discoveryTimestamp || Date.now()) : undefined,
+    };
+  });
+
+  // Discovery points
+  updated.discoveryPoints = updated.discoveryPoints.map((p) => {
+    const dx = p.xPct - newCoords.xPct;
+    const dy = p.yPct - newCoords.yPct;
+    const dist = Math.round(Math.hypot(dx, dy) * 10);
+    return { ...p, distanceMeters: dist };
+  });
+
+  // Card caches
+  updated.cardCaches = updated.cardCaches.map((cc) => {
+    const dx = cc.xPct - newCoords.xPct;
+    const dy = cc.yPct - newCoords.yPct;
+    const dist = Math.round(Math.hypot(dx, dy) * 10);
+    return { ...cc, distanceMeters: dist };
+  });
+
+  // Battle arenas
+  updated.battleArenas = updated.battleArenas.map((a) => {
+    const dx = a.xPct - newCoords.xPct;
+    const dy = a.yPct - newCoords.yPct;
+    const dist = Math.round(Math.hypot(dx, dy) * 10);
+    return { ...a, distanceMeters: dist };
+  });
+
+  // Update Walk 1km Quest progress
+  updated.quests.forEach((q) => {
+    if (q.id === "quest-walk-1km" && !q.completed) {
+      q.currentProgress = Math.min(
+        q.targetProgress,
+        +(q.currentProgress + distMeters / 1000).toFixed(2)
+      );
+      if (q.currentProgress >= q.targetProgress) q.completed = true;
+    }
+  });
+
+  saveAdventureState(updated);
+  return { state: updated, newlyDiscovered };
 }

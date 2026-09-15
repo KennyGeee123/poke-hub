@@ -190,7 +190,7 @@ export function VisualGradeScannerModal({
     }
 
     const expectedGross = Math.round(
-      (probabilities.psa10 * psa10Val + probabilities.psa9 * psa9Val + probabilities.psa8 * psa8Val) / 100
+      (probabilities.psa10 * psa10Val.estimatedGradedPrice + probabilities.psa9 * psa9Val.estimatedGradedPrice + probabilities.psa8 * psa8Val.estimatedGradedPrice) / 100
     );
     const expectedNet = Math.round((expectedGross - basePrice - 19.99) * 100) / 100;
 

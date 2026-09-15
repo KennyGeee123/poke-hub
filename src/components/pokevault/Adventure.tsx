@@ -20,6 +20,7 @@ import {
   forceSwitchEra,
   type PokemonEraId,
   addAdventureXp,
+  updatePlayerLocation,
 } from "@/lib/adventure-engine";
 
 // Sub-components
@@ -34,6 +35,8 @@ import { AdventureInventoryModal } from "./adventure/AdventureInventoryModal";
 import { AdventureBuddyModal } from "./adventure/AdventureBuddyModal";
 import { AdventureQuestsModal } from "./adventure/AdventureQuestsModal";
 import { AdventureNearbyDrawer } from "./adventure/AdventureNearbyDrawer";
+import { AdventurePokedexModal } from "./adventure/AdventurePokedexModal";
+import { toast } from "sonner";
 import { HDBattleArena, type BattlePokemon } from "./adventure/HDBattleArena";
 
 export function AdventureView() {
@@ -52,6 +55,7 @@ export function AdventureView() {
   const [questsOpen, setQuestsOpen] = useState(false);
   const [buddyOpen, setBuddyOpen] = useState(false);
   const [nearbyOpen, setNearbyOpen] = useState(false);
+  const [pokedexOpen, setPokedexOpen] = useState(false);
 
   // HD Turn-Based Battle State
   const [hdBattleOpen, setHdBattleOpen] = useState(false);
@@ -95,39 +99,26 @@ export function AdventureView() {
     saveAdventureState(updated);
   };
 
-  // Update Coordinates from Virtual Joystick or Map Clicks
-  const handleUpdateCoords = (newCoords: { xPct: number; yPct: number }, distMeters: number) => {
+  // Update Coordinates from Virtual Joystick, Real GPS, or Map Clicks
+  const handleUpdateCoords = (
+    newCoords: { xPct: number; yPct: number },
+    distMeters: number,
+    newGeo?: { lat: number; lng: number; accuracy?: number; heading?: number }
+  ) => {
     setAdventureState((prev) => {
-      const updated = { ...prev };
-      updated.world.playerCoords = newCoords;
-      updated.player.totalDistanceKm += distMeters / 1000;
-      updated.buddy.totalKmWalked += distMeters / 1000;
-
-      // Update distance to all nearby entities
-      updated.wildCreatures = updated.wildCreatures.map((c) => {
-        const dx = c.xPct - newCoords.xPct;
-        const dy = c.yPct - newCoords.yPct;
-        const d = Math.round(Math.sqrt(dx * dx + dy * dy) * 12);
-        return { ...c, distanceMeters: d };
-      });
-
-      updated.discoveryPoints = updated.discoveryPoints.map((p) => {
-        const dx = p.xPct - newCoords.xPct;
-        const dy = p.yPct - newCoords.yPct;
-        const d = Math.round(Math.sqrt(dx * dx + dy * dy) * 12);
-        return { ...p, distanceMeters: d };
-      });
-
-      // Update Walk 1km Quest progress
-      updated.quests.forEach((q) => {
-        if (q.id === "quest-walk-1km" && !q.completed) {
-          q.currentProgress = Math.min(q.targetProgress, +(q.currentProgress + distMeters / 1000).toFixed(2));
-          if (q.currentProgress >= q.targetProgress) q.completed = true;
+      const result = updatePlayerLocation(prev, newCoords, distMeters, newGeo);
+      if (result.newlyDiscovered && result.newlyDiscovered.length > 0) {
+        const first = result.newlyDiscovered[0];
+        toast.success(`✨ Wild ${first.species} emerged from the tall grass! CP ${first.cp}`, {
+          icon: "⚡",
+        });
+        if (typeof window !== "undefined" && navigator.vibrate) {
+          try {
+            navigator.vibrate([40, 40, 80]);
+          } catch {}
         }
-      });
-
-      saveAdventureState(updated);
-      return updated;
+      }
+      return result.state;
     });
   };
 
@@ -257,6 +248,7 @@ export function AdventureView() {
                   window.dispatchEvent(new CustomEvent("pv-goto", { detail: "vault" }));
                 }}
                 onToggleNearby={() => setNearbyOpen(!nearbyOpen)}
+                onOpenPokedex={() => setPokedexOpen(true)}
               />
 
               {/* Nearby Proximity Drawer */}
@@ -357,6 +349,19 @@ export function AdventureView() {
               adventureState={adventureState}
               onClose={() => setQuestsOpen(false)}
               onStateUpdate={handleStateUpdate}
+            />
+          )}
+
+          
+          {/* 9. National Pokédex Directory (All 1,025 Pokémon) */}
+          {pokedexOpen && (
+            <AdventurePokedexModal
+              onClose={() => setPokedexOpen(false)}
+              onOpenVaultWithQuery={(species) => {
+                setPokedexOpen(false);
+                window.dispatchEvent(new CustomEvent("pv-goto", { detail: "vault" }));
+                window.dispatchEvent(new CustomEvent("pv-search", { detail: species }));
+              }}
             />
           )}
 

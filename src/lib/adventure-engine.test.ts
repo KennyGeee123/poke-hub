@@ -244,3 +244,136 @@ describe("Adventure Living World Engine & Economy", () => {
     expect(switched.state.wildCreatures.some((c) => c.eraId === "modern_paldea")).toBe(true);
   });
 });
+
+
+describe("National Pokédex Registry (All 1,025 Pokémon) & 45m Discovery Engine", () => {
+  it("contains all 1,025 National Pokédex entries across Gen 1 to Gen 9", async () => {
+    const { ALL_POKEMON, getPokemonById, getPokemonByGen } = await import("./all-pokemon-data");
+    expect(ALL_POKEMON.length).toBe(1025);
+
+    // First and last
+    const first = getPokemonById(1);
+    const mew = getPokemonById(151);
+    const last = getPokemonById(1025);
+
+    expect(first?.name).toBe("Bulbasaur");
+    expect(first?.types).toContain("Grass");
+    expect(mew?.name).toBe("Mew");
+    expect(mew?.types).toContain("Psychic");
+    expect(last?.name).toBe("Pecharunt");
+    expect(last?.types).toContain("Poison");
+
+    // All generations have valid counts
+    expect(getPokemonByGen(1).length).toBe(151);
+    expect(getPokemonByGen(2).length).toBe(100);
+    expect(getPokemonByGen(3).length).toBe(135);
+    expect(getPokemonByGen(4).length).toBe(107);
+    expect(getPokemonByGen(5).length).toBe(156);
+    expect(getPokemonByGen(6).length).toBe(72);
+    expect(getPokemonByGen(7).length).toBe(88);
+    expect(getPokemonByGen(8).length).toBe(96);
+    expect(getPokemonByGen(9).length).toBe(120);
+
+    // Verify all 1025 have positive CP and valid stats
+    for (const p of ALL_POKEMON) {
+      expect(p.id).toBeGreaterThanOrEqual(1);
+      expect(p.id).toBeLessThanOrEqual(1025);
+      expect(p.types.length).toBeGreaterThanOrEqual(1);
+      expect(p.baseCp).toBeGreaterThan(0);
+      expect(p.baseStats.hp).toBeGreaterThan(0);
+    }
+  });
+
+  it("calculates accurate real-world geographic distances via Haversine formula", async () => {
+    const { haversineMeters, geoOffsetFromMeters, DRESDEN_PARK_GEO } = await import("./adventure-engine");
+
+    // Same point should be 0 meters
+    const zeroDist = haversineMeters(DRESDEN_PARK_GEO.lat, DRESDEN_PARK_GEO.lng, DRESDEN_PARK_GEO.lat, DRESDEN_PARK_GEO.lng);
+    expect(zeroDist).toBe(0);
+
+    // Offset 50 meters North
+    const offsetPoint = geoOffsetFromMeters(DRESDEN_PARK_GEO.lat, DRESDEN_PARK_GEO.lng, 0, 50);
+    const measuredDist = haversineMeters(DRESDEN_PARK_GEO.lat, DRESDEN_PARK_GEO.lng, offsetPoint.lat, offsetPoint.lng);
+    expect(Math.abs(measuredDist - 50)).toBeLessThanOrEqual(2);
+  });
+
+  it("strictly enforces 45m discovery radius for wild Pokémon hidden spawns", async () => {
+    const {
+      getDefaultAdventureState,
+      updatePlayerLocation,
+      RADAR_DISCOVERY_RADIUS_METERS,
+      DRESDEN_PARK_GEO,
+      geoOffsetFromMeters
+    } = await import("./adventure-engine");
+
+    const state = getDefaultAdventureState();
+
+    // Spawn 1: 150 meters away (Far - should be hidden)
+    const farGeo = geoOffsetFromMeters(DRESDEN_PARK_GEO.lat, DRESDEN_PARK_GEO.lng, 100, 100);
+    // Spawn 2: 30 meters away (Close - should be discovered)
+    const closeGeo = geoOffsetFromMeters(DRESDEN_PARK_GEO.lat, DRESDEN_PARK_GEO.lng, 20, 20);
+
+    state.wildCreatures = [
+      {
+        id: "test-far",
+        species: "Dragonite",
+        nationalDexId: 149,
+        cp: 2800,
+        level: 35,
+        types: ["Dragon", "Flying"],
+        rarity: "rare",
+        xPct: 75,
+        yPct: 75,
+        lat: farGeo.lat,
+        lng: farGeo.lng,
+        distanceMeters: 140,
+        isDiscovered: false,
+        weatherBoosted: false,
+        spawnTimestamp: Date.now(),
+        despawnTimestamp: Date.now() + 1800000,
+        baseCatchRate: 0.2,
+        relatedCardsCount: 8,
+      },
+      {
+        id: "test-close",
+        species: "Pikachu",
+        nationalDexId: 25,
+        cp: 650,
+        level: 18,
+        types: ["Electric"],
+        rarity: "uncommon",
+        xPct: 52,
+        yPct: 52,
+        lat: closeGeo.lat,
+        lng: closeGeo.lng,
+        distanceMeters: 28,
+        isDiscovered: false,
+        weatherBoosted: false,
+        spawnTimestamp: Date.now(),
+        despawnTimestamp: Date.now() + 1800000,
+        baseCatchRate: 0.5,
+        relatedCardsCount: 12,
+      },
+    ];
+
+    // Player is at Dresden Park center
+    const result = updatePlayerLocation(
+      state,
+      { xPct: 50, yPct: 50 },
+      10,
+      { lat: DRESDEN_PARK_GEO.lat, lng: DRESDEN_PARK_GEO.lng }
+    );
+
+    const farCreature = result.state.wildCreatures.find((c) => c.id === "test-far");
+    const closeCreature = result.state.wildCreatures.find((c) => c.id === "test-close");
+
+    // Distant creature must remain hidden
+    expect(farCreature?.distanceMeters).toBeGreaterThan(RADAR_DISCOVERY_RADIUS_METERS);
+    expect(farCreature?.isDiscovered).toBe(false);
+
+    // Nearby creature must be discovered and returned in newlyDiscovered
+    expect(closeCreature?.distanceMeters).toBeLessThanOrEqual(RADAR_DISCOVERY_RADIUS_METERS);
+    expect(closeCreature?.isDiscovered).toBe(true);
+    expect(result.newlyDiscovered.some((c) => c.id === "test-close")).toBe(true);
+  });
+});

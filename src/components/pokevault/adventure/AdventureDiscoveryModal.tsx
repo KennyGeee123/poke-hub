@@ -110,7 +110,7 @@ export function AdventureDiscoveryModal({
             </div>
             {spinLoot.stoneAwarded && (
               <div className="p-2 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-300 font-mono text-xs font-bold">
-                ✨ Bonus: {EVOLUTION_STONES[spinLoot.stoneAwarded as any]?.name} Dropped!
+                ✨ Bonus: {(EVOLUTION_STONES as Record<string, any>)[spinLoot.stoneAwarded]?.name} Dropped!
               </div>
             )}
           </div>

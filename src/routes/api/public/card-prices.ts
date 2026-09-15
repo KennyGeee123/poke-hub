@@ -883,7 +883,7 @@ export const Route = createFileRoute("/api/public/card-prices")({
         }
 
         const isSlab = (l: Listing) => {
-          if (l.isSlab) return true;
+          if ((l as any).isSlab) return true;
           const blob = `${l.title || ""} ${l.variant || ""} ${l.condition || ""}`.toLowerCase();
           return /\b(psa|bgs|cgc|sgc|beckett|graded|gem\s*mint\s*10|psa\s*10|psa\s*9|psa\s*8|bgs\s*9\.5|cgc\s*10)\b/i.test(blob);
         };

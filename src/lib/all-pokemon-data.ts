@@ -1,0 +1,22134 @@
+/**
+ * PokéVault Pro — Complete National Pokédex Registry (All 1,025 Pokémon)
+ *
+ * Generated canonical dataset encompassing:
+ * - Generation 1 (Kanto): #0001 Bulbasaur -> #0151 Mew
+ * - Generation 2 (Johto): #0152 Chikorita -> #0251 Celebi
+ * - Generation 3 (Hoenn): #0252 Treecko -> #0386 Deoxys
+ * - Generation 4 (Sinnoh): #0387 Turtwig -> #0493 Arceus
+ * - Generation 5 (Unova): #0494 Victini -> #0649 Genesect
+ * - Generation 6 (Kalos): #0650 Chespin -> #0721 Volcanion
+ * - Generation 7 (Alola): #0722 Rowlet -> #0809 Melmetal
+ * - Generation 8 (Galar & Hisui): #0810 Grookey -> #0905 Enamorus
+ * - Generation 9 (Paldea & DLC): #0906 Sprigatito -> #1025 Pecharunt
+ */
+
+import { type CreatureRarity } from "./adventure-engine";
+
+export interface NationalDexPokemon {
+  id: number;
+  name: string;
+  slug: string;
+  gen: number;
+  types: string[];
+  baseStats: {
+    hp: number;
+    atk: number;
+    def: number;
+    spa: number;
+    spd: number;
+    spe: number;
+  };
+  bst: number;
+  rarity: CreatureRarity;
+  baseCp: number;
+  baseCatchRate: number;
+}
+
+export const ALL_POKEMON: NationalDexPokemon[] = [
+  {
+    "id": 1,
+    "name": "Bulbasaur",
+    "slug": "bulbasaur",
+    "gen": 1,
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 49,
+      "def": 49,
+      "spa": 65,
+      "spd": 65,
+      "spe": 45
+    },
+    "bst": 318,
+    "rarity": "common",
+    "baseCp": 1336,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 2,
+    "name": "Ivysaur",
+    "slug": "ivysaur",
+    "gen": 1,
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 62,
+      "def": 63,
+      "spa": 80,
+      "spd": 80,
+      "spe": 60
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 2159,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 3,
+    "name": "Venusaur",
+    "slug": "venusaur",
+    "gen": 1,
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 82,
+      "def": 83,
+      "spa": 100,
+      "spd": 100,
+      "spe": 80
+    },
+    "bst": 525,
+    "rarity": "rare",
+    "baseCp": 3590,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 4,
+    "name": "Charmander",
+    "slug": "charmander",
+    "gen": 1,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 39,
+      "atk": 52,
+      "def": 43,
+      "spa": 60,
+      "spd": 50,
+      "spe": 65
+    },
+    "bst": 309,
+    "rarity": "common",
+    "baseCp": 1147,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 5,
+    "name": "Charmeleon",
+    "slug": "charmeleon",
+    "gen": 1,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 58,
+      "atk": 64,
+      "def": 58,
+      "spa": 80,
+      "spd": 65,
+      "spe": 80
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 2075,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 6,
+    "name": "Charizard",
+    "slug": "charizard",
+    "gen": 1,
+    "types": [
+      "Fire",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 78,
+      "atk": 84,
+      "def": 78,
+      "spa": 109,
+      "spd": 85,
+      "spe": 100
+    },
+    "bst": 534,
+    "rarity": "epic",
+    "baseCp": 3683,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 7,
+    "name": "Squirtle",
+    "slug": "squirtle",
+    "gen": 1,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 44,
+      "atk": 48,
+      "def": 65,
+      "spa": 50,
+      "spd": 64,
+      "spe": 43
+    },
+    "bst": 314,
+    "rarity": "common",
+    "baseCp": 1157,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 8,
+    "name": "Wartortle",
+    "slug": "wartortle",
+    "gen": 1,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 59,
+      "atk": 63,
+      "def": 80,
+      "spa": 65,
+      "spd": 80,
+      "spe": 58
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 1954,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 9,
+    "name": "Blastoise",
+    "slug": "blastoise",
+    "gen": 1,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 79,
+      "atk": 83,
+      "def": 100,
+      "spa": 85,
+      "spd": 105,
+      "spe": 78
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 3378,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 10,
+    "name": "Caterpie",
+    "slug": "caterpie",
+    "gen": 1,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 30,
+      "def": 35,
+      "spa": 20,
+      "spd": 20,
+      "spe": 45
+    },
+    "bst": 195,
+    "rarity": "common",
+    "baseCp": 504,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 11,
+    "name": "Metapod",
+    "slug": "metapod",
+    "gen": 1,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 20,
+      "def": 55,
+      "spa": 25,
+      "spd": 25,
+      "spe": 30
+    },
+    "bst": 205,
+    "rarity": "common",
+    "baseCp": 522,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 12,
+    "name": "Butterfree",
+    "slug": "butterfree",
+    "gen": 1,
+    "types": [
+      "Bug",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 45,
+      "def": 50,
+      "spa": 90,
+      "spd": 80,
+      "spe": 70
+    },
+    "bst": 395,
+    "rarity": "uncommon",
+    "baseCp": 2213,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 13,
+    "name": "Weedle",
+    "slug": "weedle",
+    "gen": 1,
+    "types": [
+      "Bug",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 35,
+      "def": 30,
+      "spa": 20,
+      "spd": 20,
+      "spe": 50
+    },
+    "bst": 195,
+    "rarity": "common",
+    "baseCp": 508,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 14,
+    "name": "Kakuna",
+    "slug": "kakuna",
+    "gen": 1,
+    "types": [
+      "Bug",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 25,
+      "def": 50,
+      "spa": 25,
+      "spd": 25,
+      "spe": 35
+    },
+    "bst": 205,
+    "rarity": "common",
+    "baseCp": 516,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 15,
+    "name": "Beedrill",
+    "slug": "beedrill",
+    "gen": 1,
+    "types": [
+      "Bug",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 90,
+      "def": 40,
+      "spa": 45,
+      "spd": 80,
+      "spe": 75
+    },
+    "bst": 395,
+    "rarity": "uncommon",
+    "baseCp": 2264,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 16,
+    "name": "Pidgey",
+    "slug": "pidgey",
+    "gen": 1,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 45,
+      "def": 40,
+      "spa": 35,
+      "spd": 35,
+      "spe": 56
+    },
+    "bst": 251,
+    "rarity": "common",
+    "baseCp": 793,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 17,
+    "name": "Pidgeotto",
+    "slug": "pidgeotto",
+    "gen": 1,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 63,
+      "atk": 60,
+      "def": 55,
+      "spa": 50,
+      "spd": 50,
+      "spe": 71
+    },
+    "bst": 349,
+    "rarity": "common",
+    "baseCp": 1565,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 18,
+    "name": "Pidgeot",
+    "slug": "pidgeot",
+    "gen": 1,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 83,
+      "atk": 80,
+      "def": 75,
+      "spa": 70,
+      "spd": 70,
+      "spe": 101
+    },
+    "bst": 479,
+    "rarity": "rare",
+    "baseCp": 2879,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 19,
+    "name": "Rattata",
+    "slug": "rattata",
+    "gen": 1,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 56,
+      "def": 35,
+      "spa": 25,
+      "spd": 35,
+      "spe": 72
+    },
+    "bst": 253,
+    "rarity": "common",
+    "baseCp": 773,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 20,
+    "name": "Raticate",
+    "slug": "raticate",
+    "gen": 1,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 81,
+      "def": 60,
+      "spa": 50,
+      "spd": 70,
+      "spe": 97
+    },
+    "bst": 413,
+    "rarity": "uncommon",
+    "baseCp": 2115,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 21,
+    "name": "Spearow",
+    "slug": "spearow",
+    "gen": 1,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 60,
+      "def": 30,
+      "spa": 31,
+      "spd": 31,
+      "spe": 70
+    },
+    "bst": 262,
+    "rarity": "common",
+    "baseCp": 885,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 22,
+    "name": "Fearow",
+    "slug": "fearow",
+    "gen": 1,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 90,
+      "def": 65,
+      "spa": 61,
+      "spd": 61,
+      "spe": 100
+    },
+    "bst": 442,
+    "rarity": "uncommon",
+    "baseCp": 2490,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 23,
+    "name": "Ekans",
+    "slug": "ekans",
+    "gen": 1,
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 60,
+      "def": 44,
+      "spa": 40,
+      "spd": 54,
+      "spe": 55
+    },
+    "bst": 288,
+    "rarity": "common",
+    "baseCp": 1035,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 24,
+    "name": "Arbok",
+    "slug": "arbok",
+    "gen": 1,
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 95,
+      "def": 69,
+      "spa": 65,
+      "spd": 79,
+      "spe": 80
+    },
+    "bst": 448,
+    "rarity": "uncommon",
+    "baseCp": 2597,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 25,
+    "name": "Pikachu",
+    "slug": "pikachu",
+    "gen": 1,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 55,
+      "def": 40,
+      "spa": 50,
+      "spd": 50,
+      "spe": 90
+    },
+    "bst": 320,
+    "rarity": "common",
+    "baseCp": 1102,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 26,
+    "name": "Raichu",
+    "slug": "raichu",
+    "gen": 1,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 90,
+      "def": 55,
+      "spa": 90,
+      "spd": 80,
+      "spe": 110
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 2741,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 27,
+    "name": "Sandshrew",
+    "slug": "sandshrew",
+    "gen": 1,
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 75,
+      "def": 85,
+      "spa": 20,
+      "spd": 30,
+      "spe": 40
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 1440,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 28,
+    "name": "Sandslash",
+    "slug": "sandslash",
+    "gen": 1,
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 100,
+      "def": 110,
+      "spa": 45,
+      "spd": 55,
+      "spe": 65
+    },
+    "bst": 450,
+    "rarity": "uncommon",
+    "baseCp": 2998,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 29,
+    "name": "Nidoran-F",
+    "slug": "nidoran-f",
+    "gen": 1,
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 47,
+      "def": 52,
+      "spa": 40,
+      "spd": 40,
+      "spe": 41
+    },
+    "bst": 275,
+    "rarity": "common",
+    "baseCp": 1018,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 30,
+    "name": "Nidorina",
+    "slug": "nidorina",
+    "gen": 1,
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 62,
+      "def": 67,
+      "spa": 55,
+      "spd": 55,
+      "spe": 56
+    },
+    "bst": 365,
+    "rarity": "common",
+    "baseCp": 1764,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 31,
+    "name": "Nidoqueen",
+    "slug": "nidoqueen",
+    "gen": 1,
+    "types": [
+      "Poison",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 92,
+      "def": 87,
+      "spa": 75,
+      "spd": 85,
+      "spe": 76
+    },
+    "bst": 505,
+    "rarity": "rare",
+    "baseCp": 3385,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 32,
+    "name": "Nidoran-M",
+    "slug": "nidoran-m",
+    "gen": 1,
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 46,
+      "atk": 57,
+      "def": 40,
+      "spa": 40,
+      "spd": 40,
+      "spe": 50
+    },
+    "bst": 273,
+    "rarity": "common",
+    "baseCp": 1008,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 33,
+    "name": "Nidorino",
+    "slug": "nidorino",
+    "gen": 1,
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 61,
+      "atk": 72,
+      "def": 57,
+      "spa": 55,
+      "spd": 55,
+      "spe": 65
+    },
+    "bst": 365,
+    "rarity": "common",
+    "baseCp": 1770,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 34,
+    "name": "Nidoking",
+    "slug": "nidoking",
+    "gen": 1,
+    "types": [
+      "Poison",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 81,
+      "atk": 102,
+      "def": 77,
+      "spa": 85,
+      "spd": 75,
+      "spe": 85
+    },
+    "bst": 505,
+    "rarity": "rare",
+    "baseCp": 3366,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 35,
+    "name": "Clefairy",
+    "slug": "clefairy",
+    "gen": 1,
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 45,
+      "def": 48,
+      "spa": 60,
+      "spd": 65,
+      "spe": 35
+    },
+    "bst": 323,
+    "rarity": "common",
+    "baseCp": 1494,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 36,
+    "name": "Clefable",
+    "slug": "clefable",
+    "gen": 1,
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 70,
+      "def": 73,
+      "spa": 95,
+      "spd": 90,
+      "spe": 60
+    },
+    "bst": 483,
+    "rarity": "rare",
+    "baseCp": 3321,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 37,
+    "name": "Vulpix",
+    "slug": "vulpix",
+    "gen": 1,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 38,
+      "atk": 41,
+      "def": 40,
+      "spa": 50,
+      "spd": 65,
+      "spe": 65
+    },
+    "bst": 299,
+    "rarity": "common",
+    "baseCp": 1053,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 38,
+    "name": "Ninetales",
+    "slug": "ninetales",
+    "gen": 1,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 73,
+      "atk": 76,
+      "def": 75,
+      "spa": 81,
+      "spd": 100,
+      "spe": 100
+    },
+    "bst": 505,
+    "rarity": "rare",
+    "baseCp": 3056,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 39,
+    "name": "Jigglypuff",
+    "slug": "jigglypuff",
+    "gen": 1,
+    "types": [
+      "Normal",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 115,
+      "atk": 45,
+      "def": 20,
+      "spa": 45,
+      "spd": 25,
+      "spe": 20
+    },
+    "bst": 270,
+    "rarity": "common",
+    "baseCp": 926,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 40,
+    "name": "Wigglytuff",
+    "slug": "wigglytuff",
+    "gen": 1,
+    "types": [
+      "Normal",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 140,
+      "atk": 70,
+      "def": 45,
+      "spa": 85,
+      "spd": 50,
+      "spe": 45
+    },
+    "bst": 435,
+    "rarity": "uncommon",
+    "baseCp": 2730,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 41,
+    "name": "Zubat",
+    "slug": "zubat",
+    "gen": 1,
+    "types": [
+      "Poison",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 45,
+      "def": 35,
+      "spa": 30,
+      "spd": 40,
+      "spe": 55
+    },
+    "bst": 245,
+    "rarity": "common",
+    "baseCp": 772,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 42,
+    "name": "Golbat",
+    "slug": "golbat",
+    "gen": 1,
+    "types": [
+      "Poison",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 80,
+      "def": 70,
+      "spa": 65,
+      "spd": 75,
+      "spe": 90
+    },
+    "bst": 455,
+    "rarity": "uncommon",
+    "baseCp": 2631,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 43,
+    "name": "Oddish",
+    "slug": "oddish",
+    "gen": 1,
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 50,
+      "def": 55,
+      "spa": 75,
+      "spd": 65,
+      "spe": 30
+    },
+    "bst": 320,
+    "rarity": "common",
+    "baseCp": 1438,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 44,
+    "name": "Gloom",
+    "slug": "gloom",
+    "gen": 1,
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 65,
+      "def": 70,
+      "spa": 85,
+      "spd": 75,
+      "spe": 40
+    },
+    "bst": 395,
+    "rarity": "uncommon",
+    "baseCp": 2145,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 45,
+    "name": "Vileplume",
+    "slug": "vileplume",
+    "gen": 1,
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 80,
+      "def": 85,
+      "spa": 110,
+      "spd": 90,
+      "spe": 50
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 3363,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 46,
+    "name": "Paras",
+    "slug": "paras",
+    "gen": 1,
+    "types": [
+      "Bug",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 70,
+      "def": 55,
+      "spa": 45,
+      "spd": 55,
+      "spe": 25
+    },
+    "bst": 285,
+    "rarity": "common",
+    "baseCp": 1105,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 47,
+    "name": "Parasect",
+    "slug": "parasect",
+    "gen": 1,
+    "types": [
+      "Bug",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 95,
+      "def": 80,
+      "spa": 60,
+      "spd": 80,
+      "spe": 30
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 2338,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 48,
+    "name": "Venonat",
+    "slug": "venonat",
+    "gen": 1,
+    "types": [
+      "Bug",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 55,
+      "def": 50,
+      "spa": 40,
+      "spd": 55,
+      "spe": 45
+    },
+    "bst": 305,
+    "rarity": "common",
+    "baseCp": 1269,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 49,
+    "name": "Venomoth",
+    "slug": "venomoth",
+    "gen": 1,
+    "types": [
+      "Bug",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 65,
+      "def": 60,
+      "spa": 90,
+      "spd": 75,
+      "spe": 90
+    },
+    "bst": 450,
+    "rarity": "uncommon",
+    "baseCp": 2659,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 50,
+    "name": "Diglett",
+    "slug": "diglett",
+    "gen": 1,
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 10,
+      "atk": 55,
+      "def": 25,
+      "spa": 35,
+      "spd": 45,
+      "spe": 95
+    },
+    "bst": 265,
+    "rarity": "common",
+    "baseCp": 510,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 51,
+    "name": "Dugtrio",
+    "slug": "dugtrio",
+    "gen": 1,
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 100,
+      "def": 50,
+      "spa": 50,
+      "spd": 70,
+      "spe": 120
+    },
+    "bst": 425,
+    "rarity": "uncommon",
+    "baseCp": 1970,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 52,
+    "name": "Meowth",
+    "slug": "meowth",
+    "gen": 1,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 45,
+      "def": 35,
+      "spa": 40,
+      "spd": 40,
+      "spe": 90
+    },
+    "bst": 290,
+    "rarity": "common",
+    "baseCp": 930,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 53,
+    "name": "Persian",
+    "slug": "persian",
+    "gen": 1,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 70,
+      "def": 60,
+      "spa": 65,
+      "spd": 65,
+      "spe": 115
+    },
+    "bst": 440,
+    "rarity": "uncommon",
+    "baseCp": 2246,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 54,
+    "name": "Psyduck",
+    "slug": "psyduck",
+    "gen": 1,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 52,
+      "def": 48,
+      "spa": 65,
+      "spd": 50,
+      "spe": 55
+    },
+    "bst": 320,
+    "rarity": "common",
+    "baseCp": 1348,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 55,
+    "name": "Golduck",
+    "slug": "golduck",
+    "gen": 1,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 82,
+      "def": 78,
+      "spa": 95,
+      "spd": 80,
+      "spe": 85
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3238,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 56,
+    "name": "Mankey",
+    "slug": "mankey",
+    "gen": 1,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 80,
+      "def": 35,
+      "spa": 35,
+      "spd": 45,
+      "spe": 70
+    },
+    "bst": 305,
+    "rarity": "common",
+    "baseCp": 1257,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 57,
+    "name": "Primeape",
+    "slug": "primeape",
+    "gen": 1,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 105,
+      "def": 60,
+      "spa": 60,
+      "spd": 70,
+      "spe": 95
+    },
+    "bst": 455,
+    "rarity": "uncommon",
+    "baseCp": 2770,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 58,
+    "name": "Growlithe",
+    "slug": "growlithe",
+    "gen": 1,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 70,
+      "def": 45,
+      "spa": 70,
+      "spd": 50,
+      "spe": 60
+    },
+    "bst": 350,
+    "rarity": "common",
+    "baseCp": 1572,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 59,
+    "name": "Arcanine",
+    "slug": "arcanine",
+    "gen": 1,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 110,
+      "def": 80,
+      "spa": 100,
+      "spd": 80,
+      "spe": 95
+    },
+    "bst": 555,
+    "rarity": "epic",
+    "baseCp": 4010,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 60,
+    "name": "Poliwag",
+    "slug": "poliwag",
+    "gen": 1,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 50,
+      "def": 40,
+      "spa": 40,
+      "spd": 40,
+      "spe": 90
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 1008,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 61,
+    "name": "Poliwhirl",
+    "slug": "poliwhirl",
+    "gen": 1,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 65,
+      "def": 65,
+      "spa": 50,
+      "spd": 50,
+      "spe": 90
+    },
+    "bst": 385,
+    "rarity": "uncommon",
+    "baseCp": 1868,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 62,
+    "name": "Poliwrath",
+    "slug": "poliwrath",
+    "gen": 1,
+    "types": [
+      "Water",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 95,
+      "def": 95,
+      "spa": 70,
+      "spd": 90,
+      "spe": 70
+    },
+    "bst": 510,
+    "rarity": "rare",
+    "baseCp": 3499,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 63,
+    "name": "Abra",
+    "slug": "abra",
+    "gen": 1,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 25,
+      "atk": 20,
+      "def": 15,
+      "spa": 105,
+      "spd": 55,
+      "spe": 90
+    },
+    "bst": 310,
+    "rarity": "common",
+    "baseCp": 1194,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 64,
+    "name": "Kadabra",
+    "slug": "kadabra",
+    "gen": 1,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 35,
+      "def": 30,
+      "spa": 120,
+      "spd": 70,
+      "spe": 105
+    },
+    "bst": 400,
+    "rarity": "uncommon",
+    "baseCp": 2092,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 65,
+    "name": "Alakazam",
+    "slug": "alakazam",
+    "gen": 1,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 50,
+      "def": 45,
+      "spa": 135,
+      "spd": 95,
+      "spe": 120
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3324,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 66,
+    "name": "Machop",
+    "slug": "machop",
+    "gen": 1,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 80,
+      "def": 50,
+      "spa": 35,
+      "spd": 35,
+      "spe": 35
+    },
+    "bst": 305,
+    "rarity": "common",
+    "baseCp": 1548,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 67,
+    "name": "Machoke",
+    "slug": "machoke",
+    "gen": 1,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 100,
+      "def": 70,
+      "spa": 50,
+      "spd": 60,
+      "spe": 45
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 2583,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 68,
+    "name": "Machamp",
+    "slug": "machamp",
+    "gen": 1,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 130,
+      "def": 80,
+      "spa": 65,
+      "spd": 85,
+      "spe": 55
+    },
+    "bst": 505,
+    "rarity": "rare",
+    "baseCp": 3967,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 69,
+    "name": "Bellsprout",
+    "slug": "bellsprout",
+    "gen": 1,
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 75,
+      "def": 35,
+      "spa": 70,
+      "spd": 30,
+      "spe": 40
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 1225,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 70,
+    "name": "Weepinbell",
+    "slug": "weepinbell",
+    "gen": 1,
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 90,
+      "def": 50,
+      "spa": 85,
+      "spd": 45,
+      "spe": 55
+    },
+    "bst": 390,
+    "rarity": "uncommon",
+    "baseCp": 2061,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 71,
+    "name": "Victreebel",
+    "slug": "victreebel",
+    "gen": 1,
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 105,
+      "def": 65,
+      "spa": 100,
+      "spd": 70,
+      "spe": 70
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 3219,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 72,
+    "name": "Tentacool",
+    "slug": "tentacool",
+    "gen": 1,
+    "types": [
+      "Water",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 40,
+      "def": 35,
+      "spa": 50,
+      "spd": 100,
+      "spe": 70
+    },
+    "bst": 335,
+    "rarity": "common",
+    "baseCp": 1274,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 73,
+    "name": "Tentacruel",
+    "slug": "tentacruel",
+    "gen": 1,
+    "types": [
+      "Water",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 70,
+      "def": 65,
+      "spa": 80,
+      "spd": 120,
+      "spe": 100
+    },
+    "bst": 515,
+    "rarity": "rare",
+    "baseCp": 3267,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 74,
+    "name": "Geodude",
+    "slug": "geodude",
+    "gen": 1,
+    "types": [
+      "Rock",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 80,
+      "def": 100,
+      "spa": 30,
+      "spd": 30,
+      "spe": 20
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 1400,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 75,
+    "name": "Graveler",
+    "slug": "graveler",
+    "gen": 1,
+    "types": [
+      "Rock",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 95,
+      "def": 115,
+      "spa": 45,
+      "spd": 45,
+      "spe": 35
+    },
+    "bst": 390,
+    "rarity": "uncommon",
+    "baseCp": 2273,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 76,
+    "name": "Golem",
+    "slug": "golem",
+    "gen": 1,
+    "types": [
+      "Rock",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 120,
+      "def": 130,
+      "spa": 55,
+      "spd": 65,
+      "spe": 45
+    },
+    "bst": 495,
+    "rarity": "rare",
+    "baseCp": 3776,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 77,
+    "name": "Ponyta",
+    "slug": "ponyta",
+    "gen": 1,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 85,
+      "def": 55,
+      "spa": 65,
+      "spd": 65,
+      "spe": 90
+    },
+    "bst": 410,
+    "rarity": "uncommon",
+    "baseCp": 2038,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 78,
+    "name": "Rapidash",
+    "slug": "rapidash",
+    "gen": 1,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 100,
+      "def": 70,
+      "spa": 80,
+      "spd": 80,
+      "spe": 105
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3068,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 79,
+    "name": "Slowpoke",
+    "slug": "slowpoke",
+    "gen": 1,
+    "types": [
+      "Water",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 65,
+      "def": 65,
+      "spa": 40,
+      "spd": 40,
+      "spe": 15
+    },
+    "bst": 315,
+    "rarity": "common",
+    "baseCp": 1583,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 80,
+    "name": "Slowbro",
+    "slug": "slowbro",
+    "gen": 1,
+    "types": [
+      "Water",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 75,
+      "def": 110,
+      "spa": 100,
+      "spd": 80,
+      "spe": 30
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 3517,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 81,
+    "name": "Magnemite",
+    "slug": "magnemite",
+    "gen": 1,
+    "types": [
+      "Electric",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 25,
+      "atk": 35,
+      "def": 70,
+      "spa": 95,
+      "spd": 55,
+      "spe": 45
+    },
+    "bst": 325,
+    "rarity": "common",
+    "baseCp": 1314,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 82,
+    "name": "Magneton",
+    "slug": "magneton",
+    "gen": 1,
+    "types": [
+      "Electric",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 60,
+      "def": 95,
+      "spa": 120,
+      "spd": 70,
+      "spe": 70
+    },
+    "bst": 465,
+    "rarity": "rare",
+    "baseCp": 2875,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 83,
+    "name": "Farfetch\\u2019d",
+    "slug": "farfetch-u2019d",
+    "gen": 1,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 52,
+      "atk": 90,
+      "def": 55,
+      "spa": 58,
+      "spd": 62,
+      "spe": 60
+    },
+    "bst": 377,
+    "rarity": "uncommon",
+    "baseCp": 1938,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 84,
+    "name": "Doduo",
+    "slug": "doduo",
+    "gen": 1,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 85,
+      "def": 45,
+      "spa": 35,
+      "spd": 35,
+      "spe": 75
+    },
+    "bst": 310,
+    "rarity": "common",
+    "baseCp": 1245,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 85,
+    "name": "Dodrio",
+    "slug": "dodrio",
+    "gen": 1,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 110,
+      "def": 70,
+      "spa": 60,
+      "spd": 60,
+      "spe": 110
+    },
+    "bst": 470,
+    "rarity": "rare",
+    "baseCp": 2831,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 86,
+    "name": "Seel",
+    "slug": "seel",
+    "gen": 1,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 45,
+      "def": 55,
+      "spa": 45,
+      "spd": 70,
+      "spe": 45
+    },
+    "bst": 325,
+    "rarity": "common",
+    "baseCp": 1306,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 87,
+    "name": "Dewgong",
+    "slug": "dewgong",
+    "gen": 1,
+    "types": [
+      "Water",
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 70,
+      "def": 80,
+      "spa": 70,
+      "spd": 95,
+      "spe": 70
+    },
+    "bst": 475,
+    "rarity": "rare",
+    "baseCp": 2819,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 88,
+    "name": "Grimer",
+    "slug": "grimer",
+    "gen": 1,
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 80,
+      "def": 50,
+      "spa": 40,
+      "spd": 50,
+      "spe": 25
+    },
+    "bst": 325,
+    "rarity": "common",
+    "baseCp": 1736,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 89,
+    "name": "Muk",
+    "slug": "muk",
+    "gen": 1,
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 105,
+      "atk": 105,
+      "def": 75,
+      "spa": 65,
+      "spd": 100,
+      "spe": 50
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3762,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 90,
+    "name": "Shellder",
+    "slug": "shellder",
+    "gen": 1,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 65,
+      "def": 100,
+      "spa": 45,
+      "spd": 25,
+      "spe": 40
+    },
+    "bst": 305,
+    "rarity": "common",
+    "baseCp": 1155,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 91,
+    "name": "Cloyster",
+    "slug": "cloyster",
+    "gen": 1,
+    "types": [
+      "Water",
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 95,
+      "def": 180,
+      "spa": 85,
+      "spd": 45,
+      "spe": 70
+    },
+    "bst": 525,
+    "rarity": "rare",
+    "baseCp": 3143,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 92,
+    "name": "Gastly",
+    "slug": "gastly",
+    "gen": 1,
+    "types": [
+      "Ghost",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 35,
+      "def": 30,
+      "spa": 100,
+      "spd": 35,
+      "spe": 80
+    },
+    "bst": 310,
+    "rarity": "common",
+    "baseCp": 1175,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 93,
+    "name": "Haunter",
+    "slug": "haunter",
+    "gen": 1,
+    "types": [
+      "Ghost",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 50,
+      "def": 45,
+      "spa": 115,
+      "spd": 55,
+      "spe": 95
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 2112,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 94,
+    "name": "Gengar",
+    "slug": "gengar",
+    "gen": 1,
+    "types": [
+      "Ghost",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 65,
+      "def": 60,
+      "spa": 130,
+      "spd": 75,
+      "spe": 110
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3272,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 95,
+    "name": "Onix",
+    "slug": "onix",
+    "gen": 1,
+    "types": [
+      "Rock",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 45,
+      "def": 160,
+      "spa": 30,
+      "spd": 45,
+      "spe": 70
+    },
+    "bst": 385,
+    "rarity": "uncommon",
+    "baseCp": 1336,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 96,
+    "name": "Drowzee",
+    "slug": "drowzee",
+    "gen": 1,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 48,
+      "def": 45,
+      "spa": 43,
+      "spd": 90,
+      "spe": 42
+    },
+    "bst": 328,
+    "rarity": "common",
+    "baseCp": 1355,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 97,
+    "name": "Hypno",
+    "slug": "hypno",
+    "gen": 1,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 73,
+      "def": 70,
+      "spa": 73,
+      "spd": 115,
+      "spe": 67
+    },
+    "bst": 483,
+    "rarity": "rare",
+    "baseCp": 2934,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 98,
+    "name": "Krabby",
+    "slug": "krabby",
+    "gen": 1,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 105,
+      "def": 90,
+      "spa": 25,
+      "spd": 25,
+      "spe": 50
+    },
+    "bst": 325,
+    "rarity": "common",
+    "baseCp": 1538,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 99,
+    "name": "Kingler",
+    "slug": "kingler",
+    "gen": 1,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 130,
+      "def": 115,
+      "spa": 50,
+      "spd": 50,
+      "spe": 75
+    },
+    "bst": 475,
+    "rarity": "rare",
+    "baseCp": 3243,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 100,
+    "name": "Voltorb",
+    "slug": "voltorb",
+    "gen": 1,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 30,
+      "def": 50,
+      "spa": 55,
+      "spd": 55,
+      "spe": 100
+    },
+    "bst": 330,
+    "rarity": "common",
+    "baseCp": 1222,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 101,
+    "name": "Electrode",
+    "slug": "electrode",
+    "gen": 1,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 50,
+      "def": 70,
+      "spa": 80,
+      "spd": 80,
+      "spe": 150
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 2674,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 102,
+    "name": "Exeggcute",
+    "slug": "exeggcute",
+    "gen": 1,
+    "types": [
+      "Grass",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 40,
+      "def": 80,
+      "spa": 60,
+      "spd": 45,
+      "spe": 40
+    },
+    "bst": 325,
+    "rarity": "common",
+    "baseCp": 1472,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 103,
+    "name": "Exeggutor",
+    "slug": "exeggutor",
+    "gen": 1,
+    "types": [
+      "Grass",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 95,
+      "def": 85,
+      "spa": 125,
+      "spd": 75,
+      "spe": 55
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 4145,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 104,
+    "name": "Cubone",
+    "slug": "cubone",
+    "gen": 1,
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 50,
+      "def": 95,
+      "spa": 40,
+      "spd": 50,
+      "spe": 35
+    },
+    "bst": 320,
+    "rarity": "common",
+    "baseCp": 1256,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 105,
+    "name": "Marowak",
+    "slug": "marowak",
+    "gen": 1,
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 80,
+      "def": 110,
+      "spa": 50,
+      "spd": 80,
+      "spe": 45
+    },
+    "bst": 425,
+    "rarity": "uncommon",
+    "baseCp": 2312,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 106,
+    "name": "Hitmonlee",
+    "slug": "hitmonlee",
+    "gen": 1,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 120,
+      "def": 53,
+      "spa": 35,
+      "spd": 110,
+      "spe": 87
+    },
+    "bst": 455,
+    "rarity": "uncommon",
+    "baseCp": 2865,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 107,
+    "name": "Hitmonchan",
+    "slug": "hitmonchan",
+    "gen": 1,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 105,
+      "def": 79,
+      "spa": 35,
+      "spd": 110,
+      "spe": 76
+    },
+    "bst": 455,
+    "rarity": "uncommon",
+    "baseCp": 2678,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 108,
+    "name": "Lickitung",
+    "slug": "lickitung",
+    "gen": 1,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 55,
+      "def": 75,
+      "spa": 60,
+      "spd": 75,
+      "spe": 30
+    },
+    "bst": 385,
+    "rarity": "uncommon",
+    "baseCp": 1959,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 109,
+    "name": "Koffing",
+    "slug": "koffing",
+    "gen": 1,
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 65,
+      "def": 95,
+      "spa": 60,
+      "spd": 45,
+      "spe": 35
+    },
+    "bst": 340,
+    "rarity": "common",
+    "baseCp": 1429,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 110,
+    "name": "Weezing",
+    "slug": "weezing",
+    "gen": 1,
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 90,
+      "def": 120,
+      "spa": 85,
+      "spd": 70,
+      "spe": 60
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 3011,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 111,
+    "name": "Rhyhorn",
+    "slug": "rhyhorn",
+    "gen": 1,
+    "types": [
+      "Ground",
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 85,
+      "def": 95,
+      "spa": 30,
+      "spd": 30,
+      "spe": 25
+    },
+    "bst": 345,
+    "rarity": "common",
+    "baseCp": 2073,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 112,
+    "name": "Rhydon",
+    "slug": "rhydon",
+    "gen": 1,
+    "types": [
+      "Ground",
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 105,
+      "atk": 130,
+      "def": 120,
+      "spa": 45,
+      "spd": 45,
+      "spe": 40
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 4156,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 113,
+    "name": "Chansey",
+    "slug": "chansey",
+    "gen": 1,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 250,
+      "atk": 5,
+      "def": 5,
+      "spa": 35,
+      "spd": 105,
+      "spe": 50
+    },
+    "bst": 450,
+    "rarity": "uncommon",
+    "baseCp": 1836,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 114,
+    "name": "Tangela",
+    "slug": "tangela",
+    "gen": 1,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 55,
+      "def": 115,
+      "spa": 100,
+      "spd": 40,
+      "spe": 60
+    },
+    "bst": 435,
+    "rarity": "uncommon",
+    "baseCp": 2777,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 115,
+    "name": "Kangaskhan",
+    "slug": "kangaskhan",
+    "gen": 1,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 105,
+      "atk": 95,
+      "def": 80,
+      "spa": 40,
+      "spd": 80,
+      "spe": 90
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 3424,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 116,
+    "name": "Horsea",
+    "slug": "horsea",
+    "gen": 1,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 40,
+      "def": 70,
+      "spa": 70,
+      "spd": 25,
+      "spe": 60
+    },
+    "bst": 295,
+    "rarity": "common",
+    "baseCp": 1102,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 117,
+    "name": "Seadra",
+    "slug": "seadra",
+    "gen": 1,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 65,
+      "def": 95,
+      "spa": 95,
+      "spd": 45,
+      "spe": 85
+    },
+    "bst": 440,
+    "rarity": "uncommon",
+    "baseCp": 2515,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 118,
+    "name": "Goldeen",
+    "slug": "goldeen",
+    "gen": 1,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 67,
+      "def": 60,
+      "spa": 35,
+      "spd": 50,
+      "spe": 63
+    },
+    "bst": 320,
+    "rarity": "common",
+    "baseCp": 1351,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 119,
+    "name": "Seaking",
+    "slug": "seaking",
+    "gen": 1,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 92,
+      "def": 65,
+      "spa": 65,
+      "spd": 80,
+      "spe": 68
+    },
+    "bst": 450,
+    "rarity": "uncommon",
+    "baseCp": 2832,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 120,
+    "name": "Staryu",
+    "slug": "staryu",
+    "gen": 1,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 45,
+      "def": 55,
+      "spa": 70,
+      "spd": 55,
+      "spe": 85
+    },
+    "bst": 340,
+    "rarity": "common",
+    "baseCp": 1243,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 121,
+    "name": "Starmie",
+    "slug": "starmie",
+    "gen": 1,
+    "types": [
+      "Water",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 75,
+      "def": 85,
+      "spa": 100,
+      "spd": 85,
+      "spe": 115
+    },
+    "bst": 520,
+    "rarity": "rare",
+    "baseCp": 3149,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 122,
+    "name": "Mr. Mime",
+    "slug": "mr-mime",
+    "gen": 1,
+    "types": [
+      "Psychic",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 45,
+      "def": 65,
+      "spa": 100,
+      "spd": 120,
+      "spe": 90
+    },
+    "bst": 460,
+    "rarity": "rare",
+    "baseCp": 2452,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 123,
+    "name": "Scyther",
+    "slug": "scyther",
+    "gen": 1,
+    "types": [
+      "Bug",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 110,
+      "def": 80,
+      "spa": 55,
+      "spd": 80,
+      "spe": 105
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3300,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 124,
+    "name": "Jynx",
+    "slug": "jynx",
+    "gen": 1,
+    "types": [
+      "Ice",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 50,
+      "def": 35,
+      "spa": 115,
+      "spd": 95,
+      "spe": 95
+    },
+    "bst": 455,
+    "rarity": "uncommon",
+    "baseCp": 2996,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 125,
+    "name": "Electabuzz",
+    "slug": "electabuzz",
+    "gen": 1,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 83,
+      "def": 57,
+      "spa": 95,
+      "spd": 85,
+      "spe": 105
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 2948,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 126,
+    "name": "Magmar",
+    "slug": "magmar",
+    "gen": 1,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 95,
+      "def": 57,
+      "spa": 100,
+      "spd": 85,
+      "spe": 93
+    },
+    "bst": 495,
+    "rarity": "rare",
+    "baseCp": 3042,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 127,
+    "name": "Pinsir",
+    "slug": "pinsir",
+    "gen": 1,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 125,
+      "def": 100,
+      "spa": 55,
+      "spd": 70,
+      "spe": 85
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3506,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 128,
+    "name": "Tauros",
+    "slug": "tauros",
+    "gen": 1,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 100,
+      "def": 95,
+      "spa": 40,
+      "spd": 70,
+      "spe": 110
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 3234,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 129,
+    "name": "Magikarp",
+    "slug": "magikarp",
+    "gen": 1,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 20,
+      "atk": 10,
+      "def": 55,
+      "spa": 15,
+      "spd": 20,
+      "spe": 80
+    },
+    "bst": 200,
+    "rarity": "common",
+    "baseCp": 348,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 130,
+    "name": "Gyarados",
+    "slug": "gyarados",
+    "gen": 1,
+    "types": [
+      "Water",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 125,
+      "def": 79,
+      "spa": 60,
+      "spd": 100,
+      "spe": 81
+    },
+    "bst": 540,
+    "rarity": "epic",
+    "baseCp": 4332,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 131,
+    "name": "Lapras",
+    "slug": "lapras",
+    "gen": 1,
+    "types": [
+      "Water",
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 130,
+      "atk": 85,
+      "def": 80,
+      "spa": 85,
+      "spd": 95,
+      "spe": 60
+    },
+    "bst": 535,
+    "rarity": "epic",
+    "baseCp": 3873,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 132,
+    "name": "Ditto",
+    "slug": "ditto",
+    "gen": 1,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 48,
+      "atk": 48,
+      "def": 48,
+      "spa": 48,
+      "spd": 48,
+      "spe": 48
+    },
+    "bst": 288,
+    "rarity": "common",
+    "baseCp": 1037,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 133,
+    "name": "Eevee",
+    "slug": "eevee",
+    "gen": 1,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 55,
+      "def": 50,
+      "spa": 45,
+      "spd": 65,
+      "spe": 55
+    },
+    "bst": 325,
+    "rarity": "common",
+    "baseCp": 1359,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 134,
+    "name": "Vaporeon",
+    "slug": "vaporeon",
+    "gen": 1,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 130,
+      "atk": 65,
+      "def": 60,
+      "spa": 110,
+      "spd": 95,
+      "spe": 65
+    },
+    "bst": 525,
+    "rarity": "rare",
+    "baseCp": 4248,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 135,
+    "name": "Jolteon",
+    "slug": "jolteon",
+    "gen": 1,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 65,
+      "def": 60,
+      "spa": 110,
+      "spd": 95,
+      "spe": 130
+    },
+    "bst": 525,
+    "rarity": "rare",
+    "baseCp": 3428,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 136,
+    "name": "Flareon",
+    "slug": "flareon",
+    "gen": 1,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 130,
+      "def": 60,
+      "spa": 95,
+      "spd": 110,
+      "spe": 65
+    },
+    "bst": 525,
+    "rarity": "rare",
+    "baseCp": 3786,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 137,
+    "name": "Porygon",
+    "slug": "porygon",
+    "gen": 1,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 60,
+      "def": 70,
+      "spa": 85,
+      "spd": 75,
+      "spe": 40
+    },
+    "bst": 395,
+    "rarity": "uncommon",
+    "baseCp": 2201,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 138,
+    "name": "Omanyte",
+    "slug": "omanyte",
+    "gen": 1,
+    "types": [
+      "Rock",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 40,
+      "def": 100,
+      "spa": 90,
+      "spd": 55,
+      "spe": 35
+    },
+    "bst": 355,
+    "rarity": "common",
+    "baseCp": 1663,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 139,
+    "name": "Omastar",
+    "slug": "omastar",
+    "gen": 1,
+    "types": [
+      "Rock",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 60,
+      "def": 125,
+      "spa": 115,
+      "spd": 70,
+      "spe": 55
+    },
+    "bst": 495,
+    "rarity": "rare",
+    "baseCp": 3515,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 140,
+    "name": "Kabuto",
+    "slug": "kabuto",
+    "gen": 1,
+    "types": [
+      "Rock",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 80,
+      "def": 90,
+      "spa": 55,
+      "spd": 45,
+      "spe": 55
+    },
+    "bst": 355,
+    "rarity": "common",
+    "baseCp": 1464,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 141,
+    "name": "Kabutops",
+    "slug": "kabutops",
+    "gen": 1,
+    "types": [
+      "Rock",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 115,
+      "def": 105,
+      "spa": 65,
+      "spd": 70,
+      "spe": 80
+    },
+    "bst": 495,
+    "rarity": "rare",
+    "baseCp": 3259,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 142,
+    "name": "Aerodactyl",
+    "slug": "aerodactyl",
+    "gen": 1,
+    "types": [
+      "Rock",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 105,
+      "def": 65,
+      "spa": 60,
+      "spd": 75,
+      "spe": 130
+    },
+    "bst": 515,
+    "rarity": "rare",
+    "baseCp": 3425,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 143,
+    "name": "Snorlax",
+    "slug": "snorlax",
+    "gen": 1,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 160,
+      "atk": 110,
+      "def": 65,
+      "spa": 65,
+      "spd": 110,
+      "spe": 30
+    },
+    "bst": 540,
+    "rarity": "epic",
+    "baseCp": 4640,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 144,
+    "name": "Articuno",
+    "slug": "articuno",
+    "gen": 1,
+    "types": [
+      "Ice",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 85,
+      "def": 100,
+      "spa": 95,
+      "spd": 125,
+      "spe": 85
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 4166,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 145,
+    "name": "Zapdos",
+    "slug": "zapdos",
+    "gen": 1,
+    "types": [
+      "Electric",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 90,
+      "def": 85,
+      "spa": 125,
+      "spd": 90,
+      "spe": 100
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 4525,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 146,
+    "name": "Moltres",
+    "slug": "moltres",
+    "gen": 1,
+    "types": [
+      "Fire",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 100,
+      "def": 90,
+      "spa": 125,
+      "spd": 85,
+      "spe": 90
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 4525,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 147,
+    "name": "Dratini",
+    "slug": "dratini",
+    "gen": 1,
+    "types": [
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 41,
+      "atk": 64,
+      "def": 45,
+      "spa": 50,
+      "spd": 50,
+      "spe": 50
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 1166,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 148,
+    "name": "Dragonair",
+    "slug": "dragonair",
+    "gen": 1,
+    "types": [
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 61,
+      "atk": 84,
+      "def": 65,
+      "spa": 70,
+      "spd": 70,
+      "spe": 70
+    },
+    "bst": 420,
+    "rarity": "uncommon",
+    "baseCp": 2273,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 149,
+    "name": "Dragonite",
+    "slug": "dragonite",
+    "gen": 1,
+    "types": [
+      "Dragon",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 91,
+      "atk": 134,
+      "def": 95,
+      "spa": 100,
+      "spd": 100,
+      "spe": 80
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 150,
+    "name": "Mewtwo",
+    "slug": "mewtwo",
+    "gen": 1,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 106,
+      "atk": 110,
+      "def": 90,
+      "spa": 154,
+      "spd": 90,
+      "spe": 130
+    },
+    "bst": 680,
+    "rarity": "legendary",
+    "baseCp": 4800,
+    "baseCatchRate": 0.12
+  },
+  {
+    "id": 151,
+    "name": "Mew",
+    "slug": "mew",
+    "gen": 1,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 100,
+      "def": 100,
+      "spa": 100,
+      "spd": 100,
+      "spe": 100
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4500,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 152,
+    "name": "Chikorita",
+    "slug": "chikorita",
+    "gen": 2,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 49,
+      "def": 65,
+      "spa": 49,
+      "spd": 65,
+      "spe": 45
+    },
+    "bst": 318,
+    "rarity": "common",
+    "baseCp": 1173,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 153,
+    "name": "Bayleef",
+    "slug": "bayleef",
+    "gen": 2,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 62,
+      "def": 80,
+      "spa": 63,
+      "spd": 80,
+      "spe": 60
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 1940,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 154,
+    "name": "Meganium",
+    "slug": "meganium",
+    "gen": 2,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 82,
+      "def": 100,
+      "spa": 83,
+      "spd": 100,
+      "spe": 80
+    },
+    "bst": 525,
+    "rarity": "rare",
+    "baseCp": 3308,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 155,
+    "name": "Cyndaquil",
+    "slug": "cyndaquil",
+    "gen": 2,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 39,
+      "atk": 52,
+      "def": 43,
+      "spa": 60,
+      "spd": 50,
+      "spe": 65
+    },
+    "bst": 309,
+    "rarity": "common",
+    "baseCp": 1147,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 156,
+    "name": "Quilava",
+    "slug": "quilava",
+    "gen": 2,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 58,
+      "atk": 64,
+      "def": 58,
+      "spa": 80,
+      "spd": 65,
+      "spe": 80
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 2075,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 157,
+    "name": "Typhlosion",
+    "slug": "typhlosion",
+    "gen": 2,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 78,
+      "atk": 84,
+      "def": 78,
+      "spa": 109,
+      "spd": 85,
+      "spe": 100
+    },
+    "bst": 534,
+    "rarity": "epic",
+    "baseCp": 3683,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 158,
+    "name": "Totodile",
+    "slug": "totodile",
+    "gen": 2,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 65,
+      "def": 64,
+      "spa": 44,
+      "spd": 48,
+      "spe": 43
+    },
+    "bst": 314,
+    "rarity": "common",
+    "baseCp": 1362,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 159,
+    "name": "Croconaw",
+    "slug": "croconaw",
+    "gen": 2,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 80,
+      "def": 80,
+      "spa": 59,
+      "spd": 63,
+      "spe": 58
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 2217,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 160,
+    "name": "Feraligatr",
+    "slug": "feraligatr",
+    "gen": 2,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 105,
+      "def": 100,
+      "spa": 79,
+      "spd": 83,
+      "spe": 78
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 3781,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 161,
+    "name": "Sentret",
+    "slug": "sentret",
+    "gen": 2,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 46,
+      "def": 34,
+      "spa": 35,
+      "spd": 45,
+      "spe": 20
+    },
+    "bst": 215,
+    "rarity": "common",
+    "baseCp": 655,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 162,
+    "name": "Furret",
+    "slug": "furret",
+    "gen": 2,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 76,
+      "def": 64,
+      "spa": 45,
+      "spd": 55,
+      "spe": 90
+    },
+    "bst": 415,
+    "rarity": "uncommon",
+    "baseCp": 2341,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 163,
+    "name": "Hoothoot",
+    "slug": "hoothoot",
+    "gen": 2,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 30,
+      "def": 30,
+      "spa": 36,
+      "spd": 56,
+      "spe": 50
+    },
+    "bst": 262,
+    "rarity": "common",
+    "baseCp": 885,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 164,
+    "name": "Noctowl",
+    "slug": "noctowl",
+    "gen": 2,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 50,
+      "def": 50,
+      "spa": 86,
+      "spd": 96,
+      "spe": 70
+    },
+    "bst": 452,
+    "rarity": "uncommon",
+    "baseCp": 2997,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 165,
+    "name": "Ledyba",
+    "slug": "ledyba",
+    "gen": 2,
+    "types": [
+      "Bug",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 20,
+      "def": 30,
+      "spa": 40,
+      "spd": 80,
+      "spe": 55
+    },
+    "bst": 265,
+    "rarity": "common",
+    "baseCp": 860,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 166,
+    "name": "Ledian",
+    "slug": "ledian",
+    "gen": 2,
+    "types": [
+      "Bug",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 35,
+      "def": 50,
+      "spa": 55,
+      "spd": 110,
+      "spe": 85
+    },
+    "bst": 390,
+    "rarity": "uncommon",
+    "baseCp": 1764,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 167,
+    "name": "Spinarak",
+    "slug": "spinarak",
+    "gen": 2,
+    "types": [
+      "Bug",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 60,
+      "def": 40,
+      "spa": 40,
+      "spd": 40,
+      "spe": 30
+    },
+    "bst": 250,
+    "rarity": "common",
+    "baseCp": 900,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 168,
+    "name": "Ariados",
+    "slug": "ariados",
+    "gen": 2,
+    "types": [
+      "Bug",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 90,
+      "def": 70,
+      "spa": 60,
+      "spd": 70,
+      "spe": 40
+    },
+    "bst": 400,
+    "rarity": "uncommon",
+    "baseCp": 2331,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 169,
+    "name": "Crobat",
+    "slug": "crobat",
+    "gen": 2,
+    "types": [
+      "Poison",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 90,
+      "def": 80,
+      "spa": 70,
+      "spd": 80,
+      "spe": 130
+    },
+    "bst": 535,
+    "rarity": "epic",
+    "baseCp": 3488,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 170,
+    "name": "Chinchou",
+    "slug": "chinchou",
+    "gen": 2,
+    "types": [
+      "Water",
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 38,
+      "def": 38,
+      "spa": 56,
+      "spd": 56,
+      "spe": 67
+    },
+    "bst": 330,
+    "rarity": "common",
+    "baseCp": 1487,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 171,
+    "name": "Lanturn",
+    "slug": "lanturn",
+    "gen": 2,
+    "types": [
+      "Water",
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 125,
+      "atk": 58,
+      "def": 58,
+      "spa": 76,
+      "spd": 76,
+      "spe": 67
+    },
+    "bst": 460,
+    "rarity": "rare",
+    "baseCp": 2947,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 172,
+    "name": "Pichu",
+    "slug": "pichu",
+    "gen": 2,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 20,
+      "atk": 40,
+      "def": 15,
+      "spa": 35,
+      "spd": 35,
+      "spe": 60
+    },
+    "bst": 205,
+    "rarity": "common",
+    "baseCp": 450,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 173,
+    "name": "Cleffa",
+    "slug": "cleffa",
+    "gen": 2,
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 25,
+      "def": 28,
+      "spa": 45,
+      "spd": 55,
+      "spe": 15
+    },
+    "bst": 218,
+    "rarity": "common",
+    "baseCp": 741,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 174,
+    "name": "Igglybuff",
+    "slug": "igglybuff",
+    "gen": 2,
+    "types": [
+      "Normal",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 30,
+      "def": 15,
+      "spa": 40,
+      "spd": 20,
+      "spe": 15
+    },
+    "bst": 210,
+    "rarity": "common",
+    "baseCp": 598,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 175,
+    "name": "Togepi",
+    "slug": "togepi",
+    "gen": 2,
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 20,
+      "def": 65,
+      "spa": 40,
+      "spd": 65,
+      "spe": 20
+    },
+    "bst": 245,
+    "rarity": "common",
+    "baseCp": 687,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 176,
+    "name": "Togetic",
+    "slug": "togetic",
+    "gen": 2,
+    "types": [
+      "Fairy",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 40,
+      "def": 85,
+      "spa": 80,
+      "spd": 105,
+      "spe": 40
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 2103,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 177,
+    "name": "Natu",
+    "slug": "natu",
+    "gen": 2,
+    "types": [
+      "Psychic",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 50,
+      "def": 45,
+      "spa": 70,
+      "spd": 45,
+      "spe": 70
+    },
+    "bst": 320,
+    "rarity": "common",
+    "baseCp": 1260,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 178,
+    "name": "Xatu",
+    "slug": "xatu",
+    "gen": 2,
+    "types": [
+      "Psychic",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 75,
+      "def": 70,
+      "spa": 95,
+      "spd": 70,
+      "spe": 95
+    },
+    "bst": 470,
+    "rarity": "rare",
+    "baseCp": 2762,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 179,
+    "name": "Mareep",
+    "slug": "mareep",
+    "gen": 2,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 40,
+      "def": 40,
+      "spa": 65,
+      "spd": 45,
+      "spe": 35
+    },
+    "bst": 280,
+    "rarity": "common",
+    "baseCp": 1182,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 180,
+    "name": "Flaaffy",
+    "slug": "flaaffy",
+    "gen": 2,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 55,
+      "def": 55,
+      "spa": 80,
+      "spd": 60,
+      "spe": 45
+    },
+    "bst": 365,
+    "rarity": "common",
+    "baseCp": 1949,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 181,
+    "name": "Ampharos",
+    "slug": "ampharos",
+    "gen": 2,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 75,
+      "def": 85,
+      "spa": 115,
+      "spd": 90,
+      "spe": 55
+    },
+    "bst": 510,
+    "rarity": "rare",
+    "baseCp": 3804,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 182,
+    "name": "Bellossom",
+    "slug": "bellossom",
+    "gen": 2,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 80,
+      "def": 95,
+      "spa": 90,
+      "spd": 100,
+      "spe": 50
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 3086,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 183,
+    "name": "Marill",
+    "slug": "marill",
+    "gen": 2,
+    "types": [
+      "Water",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 20,
+      "def": 50,
+      "spa": 20,
+      "spd": 50,
+      "spe": 40
+    },
+    "bst": 250,
+    "rarity": "common",
+    "baseCp": 639,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 184,
+    "name": "Azumarill",
+    "slug": "azumarill",
+    "gen": 2,
+    "types": [
+      "Water",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 50,
+      "def": 80,
+      "spa": 60,
+      "spd": 80,
+      "spe": 50
+    },
+    "bst": 420,
+    "rarity": "uncommon",
+    "baseCp": 2254,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 185,
+    "name": "Sudowoodo",
+    "slug": "sudowoodo",
+    "gen": 2,
+    "types": [
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 100,
+      "def": 115,
+      "spa": 30,
+      "spd": 65,
+      "spe": 30
+    },
+    "bst": 410,
+    "rarity": "uncommon",
+    "baseCp": 2642,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 186,
+    "name": "Politoed",
+    "slug": "politoed",
+    "gen": 2,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 75,
+      "def": 75,
+      "spa": 90,
+      "spd": 100,
+      "spe": 70
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3362,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 187,
+    "name": "Hoppip",
+    "slug": "hoppip",
+    "gen": 2,
+    "types": [
+      "Grass",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 35,
+      "def": 40,
+      "spa": 35,
+      "spd": 55,
+      "spe": 50
+    },
+    "bst": 250,
+    "rarity": "common",
+    "baseCp": 708,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 188,
+    "name": "Skiploom",
+    "slug": "skiploom",
+    "gen": 2,
+    "types": [
+      "Grass",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 45,
+      "def": 50,
+      "spa": 45,
+      "spd": 65,
+      "spe": 80
+    },
+    "bst": 340,
+    "rarity": "common",
+    "baseCp": 1333,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 189,
+    "name": "Jumpluff",
+    "slug": "jumpluff",
+    "gen": 2,
+    "types": [
+      "Grass",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 55,
+      "def": 70,
+      "spa": 55,
+      "spd": 95,
+      "spe": 110
+    },
+    "bst": 460,
+    "rarity": "rare",
+    "baseCp": 2372,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 190,
+    "name": "Aipom",
+    "slug": "aipom",
+    "gen": 2,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 70,
+      "def": 55,
+      "spa": 40,
+      "spd": 55,
+      "spe": 85
+    },
+    "bst": 360,
+    "rarity": "common",
+    "baseCp": 1659,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 191,
+    "name": "Sunkern",
+    "slug": "sunkern",
+    "gen": 2,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 30,
+      "def": 30,
+      "spa": 30,
+      "spd": 30,
+      "spe": 30
+    },
+    "bst": 180,
+    "rarity": "common",
+    "baseCp": 405,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 192,
+    "name": "Sunflora",
+    "slug": "sunflora",
+    "gen": 2,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 75,
+      "def": 55,
+      "spa": 105,
+      "spd": 85,
+      "spe": 30
+    },
+    "bst": 425,
+    "rarity": "uncommon",
+    "baseCp": 2797,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 193,
+    "name": "Yanma",
+    "slug": "yanma",
+    "gen": 2,
+    "types": [
+      "Bug",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 65,
+      "def": 45,
+      "spa": 75,
+      "spd": 45,
+      "spe": 95
+    },
+    "bst": 390,
+    "rarity": "uncommon",
+    "baseCp": 1874,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 194,
+    "name": "Wooper",
+    "slug": "wooper",
+    "gen": 2,
+    "types": [
+      "Water",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 45,
+      "def": 45,
+      "spa": 25,
+      "spd": 25,
+      "spe": 15
+    },
+    "bst": 210,
+    "rarity": "common",
+    "baseCp": 710,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 195,
+    "name": "Quagsire",
+    "slug": "quagsire",
+    "gen": 2,
+    "types": [
+      "Water",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 85,
+      "def": 85,
+      "spa": 65,
+      "spd": 65,
+      "spe": 35
+    },
+    "bst": 430,
+    "rarity": "uncommon",
+    "baseCp": 2732,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 196,
+    "name": "Espeon",
+    "slug": "espeon",
+    "gen": 2,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 65,
+      "def": 60,
+      "spa": 130,
+      "spd": 95,
+      "spe": 110
+    },
+    "bst": 525,
+    "rarity": "rare",
+    "baseCp": 3690,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 197,
+    "name": "Umbreon",
+    "slug": "umbreon",
+    "gen": 2,
+    "types": [
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 65,
+      "def": 110,
+      "spa": 60,
+      "spd": 130,
+      "spe": 65
+    },
+    "bst": 525,
+    "rarity": "rare",
+    "baseCp": 3101,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 198,
+    "name": "Murkrow",
+    "slug": "murkrow",
+    "gen": 2,
+    "types": [
+      "Dark",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 85,
+      "def": 42,
+      "spa": 85,
+      "spd": 42,
+      "spe": 91
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 1948,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 199,
+    "name": "Slowking",
+    "slug": "slowking",
+    "gen": 2,
+    "types": [
+      "Water",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 75,
+      "def": 80,
+      "spa": 100,
+      "spd": 110,
+      "spe": 30
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 3517,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 200,
+    "name": "Misdreavus",
+    "slug": "misdreavus",
+    "gen": 2,
+    "types": [
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 60,
+      "def": 60,
+      "spa": 85,
+      "spd": 85,
+      "spe": 85
+    },
+    "bst": 435,
+    "rarity": "uncommon",
+    "baseCp": 2415,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 201,
+    "name": "Unown",
+    "slug": "unown",
+    "gen": 2,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 48,
+      "atk": 72,
+      "def": 48,
+      "spa": 72,
+      "spd": 48,
+      "spe": 48
+    },
+    "bst": 336,
+    "rarity": "common",
+    "baseCp": 1452,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 202,
+    "name": "Wobbuffet",
+    "slug": "wobbuffet",
+    "gen": 2,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 190,
+      "atk": 33,
+      "def": 58,
+      "spa": 33,
+      "spd": 58,
+      "spe": 33
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 1559,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 203,
+    "name": "Girafarig",
+    "slug": "girafarig",
+    "gen": 2,
+    "types": [
+      "Normal",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 80,
+      "def": 65,
+      "spa": 90,
+      "spd": 65,
+      "spe": 85
+    },
+    "bst": 455,
+    "rarity": "uncommon",
+    "baseCp": 2641,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 204,
+    "name": "Pineco",
+    "slug": "pineco",
+    "gen": 2,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 65,
+      "def": 90,
+      "spa": 35,
+      "spd": 35,
+      "spe": 15
+    },
+    "bst": 290,
+    "rarity": "common",
+    "baseCp": 1286,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 205,
+    "name": "Forretress",
+    "slug": "forretress",
+    "gen": 2,
+    "types": [
+      "Bug",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 90,
+      "def": 140,
+      "spa": 60,
+      "spd": 60,
+      "spe": 40
+    },
+    "bst": 465,
+    "rarity": "rare",
+    "baseCp": 2997,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 206,
+    "name": "Dunsparce",
+    "slug": "dunsparce",
+    "gen": 2,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 70,
+      "def": 70,
+      "spa": 65,
+      "spd": 65,
+      "spe": 45
+    },
+    "bst": 415,
+    "rarity": "uncommon",
+    "baseCp": 2375,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 207,
+    "name": "Gligar",
+    "slug": "gligar",
+    "gen": 2,
+    "types": [
+      "Ground",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 75,
+      "def": 105,
+      "spa": 35,
+      "spd": 65,
+      "spe": 85
+    },
+    "bst": 430,
+    "rarity": "uncommon",
+    "baseCp": 2362,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 208,
+    "name": "Steelix",
+    "slug": "steelix",
+    "gen": 2,
+    "types": [
+      "Steel",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 85,
+      "def": 200,
+      "spa": 55,
+      "spd": 65,
+      "spe": 30
+    },
+    "bst": 510,
+    "rarity": "rare",
+    "baseCp": 3202,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 209,
+    "name": "Snubbull",
+    "slug": "snubbull",
+    "gen": 2,
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 80,
+      "def": 50,
+      "spa": 40,
+      "spd": 40,
+      "spe": 30
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 1466,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 210,
+    "name": "Granbull",
+    "slug": "granbull",
+    "gen": 2,
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 120,
+      "def": 75,
+      "spa": 60,
+      "spd": 60,
+      "spe": 45
+    },
+    "bst": 450,
+    "rarity": "uncommon",
+    "baseCp": 3298,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 211,
+    "name": "Qwilfish",
+    "slug": "qwilfish",
+    "gen": 2,
+    "types": [
+      "Water",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 95,
+      "def": 85,
+      "spa": 55,
+      "spd": 55,
+      "spe": 85
+    },
+    "bst": 440,
+    "rarity": "uncommon",
+    "baseCp": 2635,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 212,
+    "name": "Scizor",
+    "slug": "scizor",
+    "gen": 2,
+    "types": [
+      "Bug",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 130,
+      "def": 100,
+      "spa": 55,
+      "spd": 80,
+      "spe": 65
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3684,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 213,
+    "name": "Shuckle",
+    "slug": "shuckle",
+    "gen": 2,
+    "types": [
+      "Bug",
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 20,
+      "atk": 10,
+      "def": 230,
+      "spa": 10,
+      "spd": 230,
+      "spe": 5
+    },
+    "bst": 505,
+    "rarity": "rare",
+    "baseCp": 275,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 214,
+    "name": "Heracross",
+    "slug": "heracross",
+    "gen": 2,
+    "types": [
+      "Bug",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 125,
+      "def": 75,
+      "spa": 40,
+      "spd": 95,
+      "spe": 85
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3754,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 215,
+    "name": "Sneasel",
+    "slug": "sneasel",
+    "gen": 2,
+    "types": [
+      "Dark",
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 95,
+      "def": 55,
+      "spa": 35,
+      "spd": 75,
+      "spe": 115
+    },
+    "bst": 430,
+    "rarity": "uncommon",
+    "baseCp": 2377,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 216,
+    "name": "Teddiursa",
+    "slug": "teddiursa",
+    "gen": 2,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 80,
+      "def": 50,
+      "spa": 50,
+      "spd": 50,
+      "spe": 40
+    },
+    "bst": 330,
+    "rarity": "common",
+    "baseCp": 1626,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 217,
+    "name": "Ursaring",
+    "slug": "ursaring",
+    "gen": 2,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 130,
+      "def": 75,
+      "spa": 75,
+      "spd": 75,
+      "spe": 55
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3845,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 218,
+    "name": "Slugma",
+    "slug": "slugma",
+    "gen": 2,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 40,
+      "def": 40,
+      "spa": 70,
+      "spd": 40,
+      "spe": 20
+    },
+    "bst": 250,
+    "rarity": "common",
+    "baseCp": 972,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 219,
+    "name": "Magcargo",
+    "slug": "magcargo",
+    "gen": 2,
+    "types": [
+      "Fire",
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 50,
+      "def": 120,
+      "spa": 90,
+      "spd": 80,
+      "spe": 30
+    },
+    "bst": 430,
+    "rarity": "uncommon",
+    "baseCp": 2489,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 220,
+    "name": "Swinub",
+    "slug": "swinub",
+    "gen": 2,
+    "types": [
+      "Ice",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 50,
+      "def": 40,
+      "spa": 30,
+      "spd": 30,
+      "spe": 50
+    },
+    "bst": 250,
+    "rarity": "common",
+    "baseCp": 878,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 221,
+    "name": "Piloswine",
+    "slug": "piloswine",
+    "gen": 2,
+    "types": [
+      "Ice",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 100,
+      "def": 80,
+      "spa": 60,
+      "spd": 60,
+      "spe": 50
+    },
+    "bst": 450,
+    "rarity": "uncommon",
+    "baseCp": 3131,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 222,
+    "name": "Corsola",
+    "slug": "corsola",
+    "gen": 2,
+    "types": [
+      "Water",
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 55,
+      "def": 95,
+      "spa": 65,
+      "spd": 95,
+      "spe": 35
+    },
+    "bst": 410,
+    "rarity": "uncommon",
+    "baseCp": 2016,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 223,
+    "name": "Remoraid",
+    "slug": "remoraid",
+    "gen": 2,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 65,
+      "def": 35,
+      "spa": 65,
+      "spd": 35,
+      "spe": 65
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 1024,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 224,
+    "name": "Octillery",
+    "slug": "octillery",
+    "gen": 2,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 105,
+      "def": 75,
+      "spa": 105,
+      "spd": 75,
+      "spe": 45
+    },
+    "bst": 480,
+    "rarity": "rare",
+    "baseCp": 3139,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 225,
+    "name": "Delibird",
+    "slug": "delibird",
+    "gen": 2,
+    "types": [
+      "Ice",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 55,
+      "def": 45,
+      "spa": 65,
+      "spd": 45,
+      "spe": 75
+    },
+    "bst": 330,
+    "rarity": "common",
+    "baseCp": 1317,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 226,
+    "name": "Mantine",
+    "slug": "mantine",
+    "gen": 2,
+    "types": [
+      "Water",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 40,
+      "def": 70,
+      "spa": 80,
+      "spd": 140,
+      "spe": 70
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 3074,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 227,
+    "name": "Skarmory",
+    "slug": "skarmory",
+    "gen": 2,
+    "types": [
+      "Steel",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 80,
+      "def": 140,
+      "spa": 40,
+      "spd": 70,
+      "spe": 70
+    },
+    "bst": 465,
+    "rarity": "rare",
+    "baseCp": 2687,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 228,
+    "name": "Houndour",
+    "slug": "houndour",
+    "gen": 2,
+    "types": [
+      "Dark",
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 60,
+      "def": 30,
+      "spa": 80,
+      "spd": 50,
+      "spe": 65
+    },
+    "bst": 330,
+    "rarity": "common",
+    "baseCp": 1428,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 229,
+    "name": "Houndoom",
+    "slug": "houndoom",
+    "gen": 2,
+    "types": [
+      "Dark",
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 90,
+      "def": 50,
+      "spa": 110,
+      "spd": 80,
+      "spe": 95
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3310,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 230,
+    "name": "Kingdra",
+    "slug": "kingdra",
+    "gen": 2,
+    "types": [
+      "Water",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 95,
+      "def": 95,
+      "spa": 95,
+      "spd": 95,
+      "spe": 85
+    },
+    "bst": 540,
+    "rarity": "epic",
+    "baseCp": 3533,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 231,
+    "name": "Phanpy",
+    "slug": "phanpy",
+    "gen": 2,
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 60,
+      "def": 60,
+      "spa": 40,
+      "spd": 40,
+      "spe": 40
+    },
+    "bst": 330,
+    "rarity": "common",
+    "baseCp": 1601,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 232,
+    "name": "Donphan",
+    "slug": "donphan",
+    "gen": 2,
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 120,
+      "def": 120,
+      "spa": 60,
+      "spd": 60,
+      "spe": 50
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3932,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 233,
+    "name": "Porygon2",
+    "slug": "porygon2",
+    "gen": 2,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 80,
+      "def": 90,
+      "spa": 105,
+      "spd": 95,
+      "spe": 60
+    },
+    "bst": 515,
+    "rarity": "rare",
+    "baseCp": 3641,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 234,
+    "name": "Stantler",
+    "slug": "stantler",
+    "gen": 2,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 73,
+      "atk": 95,
+      "def": 62,
+      "spa": 85,
+      "spd": 65,
+      "spe": 85
+    },
+    "bst": 465,
+    "rarity": "rare",
+    "baseCp": 2795,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 235,
+    "name": "Smeargle",
+    "slug": "smeargle",
+    "gen": 2,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 20,
+      "def": 35,
+      "spa": 20,
+      "spd": 45,
+      "spe": 75
+    },
+    "bst": 250,
+    "rarity": "common",
+    "baseCp": 662,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 236,
+    "name": "Tyrogue",
+    "slug": "tyrogue",
+    "gen": 2,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 35,
+      "def": 35,
+      "spa": 35,
+      "spd": 35,
+      "spe": 35
+    },
+    "bst": 210,
+    "rarity": "common",
+    "baseCp": 552,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 237,
+    "name": "Hitmontop",
+    "slug": "hitmontop",
+    "gen": 2,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 95,
+      "def": 95,
+      "spa": 35,
+      "spd": 110,
+      "spe": 70
+    },
+    "bst": 455,
+    "rarity": "uncommon",
+    "baseCp": 2531,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 238,
+    "name": "Smoochum",
+    "slug": "smoochum",
+    "gen": 2,
+    "types": [
+      "Ice",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 30,
+      "def": 15,
+      "spa": 85,
+      "spd": 65,
+      "spe": 65
+    },
+    "bst": 305,
+    "rarity": "common",
+    "baseCp": 1418,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 239,
+    "name": "Elekid",
+    "slug": "elekid",
+    "gen": 2,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 63,
+      "def": 37,
+      "spa": 65,
+      "spd": 55,
+      "spe": 95
+    },
+    "bst": 360,
+    "rarity": "common",
+    "baseCp": 1473,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 240,
+    "name": "Magby",
+    "slug": "magby",
+    "gen": 2,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 75,
+      "def": 37,
+      "spa": 70,
+      "spd": 55,
+      "spe": 83
+    },
+    "bst": 365,
+    "rarity": "common",
+    "baseCp": 1578,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 241,
+    "name": "Miltank",
+    "slug": "miltank",
+    "gen": 2,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 80,
+      "def": 105,
+      "spa": 40,
+      "spd": 70,
+      "spe": 100
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 3180,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 242,
+    "name": "Blissey",
+    "slug": "blissey",
+    "gen": 2,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 255,
+      "atk": 10,
+      "def": 10,
+      "spa": 75,
+      "spd": 135,
+      "spe": 55
+    },
+    "bst": 540,
+    "rarity": "epic",
+    "baseCp": 3843,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 243,
+    "name": "Raikou",
+    "slug": "raikou",
+    "gen": 2,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 85,
+      "def": 75,
+      "spa": 115,
+      "spd": 100,
+      "spe": 115
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 4415,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 244,
+    "name": "Entei",
+    "slug": "entei",
+    "gen": 2,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 115,
+      "atk": 115,
+      "def": 85,
+      "spa": 90,
+      "spd": 75,
+      "spe": 100
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 4648,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 245,
+    "name": "Suicune",
+    "slug": "suicune",
+    "gen": 2,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 75,
+      "def": 115,
+      "spa": 90,
+      "spd": 115,
+      "spe": 85
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 4150,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 246,
+    "name": "Larvitar",
+    "slug": "larvitar",
+    "gen": 2,
+    "types": [
+      "Rock",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 64,
+      "def": 50,
+      "spa": 45,
+      "spd": 50,
+      "spe": 41
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 1251,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 247,
+    "name": "Pupitar",
+    "slug": "pupitar",
+    "gen": 2,
+    "types": [
+      "Rock",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 84,
+      "def": 70,
+      "spa": 65,
+      "spd": 70,
+      "spe": 51
+    },
+    "bst": 410,
+    "rarity": "uncommon",
+    "baseCp": 2318,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 248,
+    "name": "Tyranitar",
+    "slug": "tyranitar",
+    "gen": 2,
+    "types": [
+      "Rock",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 134,
+      "def": 110,
+      "spa": 95,
+      "spd": 100,
+      "spe": 61
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 249,
+    "name": "Lugia",
+    "slug": "lugia",
+    "gen": 2,
+    "types": [
+      "Psychic",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 106,
+      "atk": 90,
+      "def": 130,
+      "spa": 90,
+      "spd": 154,
+      "spe": 110
+    },
+    "bst": 680,
+    "rarity": "legendary",
+    "baseCp": 4800,
+    "baseCatchRate": 0.12
+  },
+  {
+    "id": 250,
+    "name": "Ho-Oh",
+    "slug": "ho-oh",
+    "gen": 2,
+    "types": [
+      "Fire",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 106,
+      "atk": 130,
+      "def": 90,
+      "spa": 110,
+      "spd": 154,
+      "spe": 90
+    },
+    "bst": 680,
+    "rarity": "legendary",
+    "baseCp": 4800,
+    "baseCatchRate": 0.12
+  },
+  {
+    "id": 251,
+    "name": "Celebi",
+    "slug": "celebi",
+    "gen": 2,
+    "types": [
+      "Psychic",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 100,
+      "def": 100,
+      "spa": 100,
+      "spd": 100,
+      "spe": 100
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4500,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 252,
+    "name": "Treecko",
+    "slug": "treecko",
+    "gen": 3,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 45,
+      "def": 35,
+      "spa": 65,
+      "spd": 55,
+      "spe": 70
+    },
+    "bst": 310,
+    "rarity": "common",
+    "baseCp": 1210,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 253,
+    "name": "Grovyle",
+    "slug": "grovyle",
+    "gen": 3,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 65,
+      "def": 45,
+      "spa": 85,
+      "spd": 65,
+      "spe": 95
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 1994,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 254,
+    "name": "Sceptile",
+    "slug": "sceptile",
+    "gen": 3,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 85,
+      "def": 65,
+      "spa": 105,
+      "spd": 85,
+      "spe": 120
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 3436,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 255,
+    "name": "Torchic",
+    "slug": "torchic",
+    "gen": 3,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 60,
+      "def": 40,
+      "spa": 70,
+      "spd": 50,
+      "spe": 45
+    },
+    "bst": 310,
+    "rarity": "common",
+    "baseCp": 1290,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 256,
+    "name": "Combusken",
+    "slug": "combusken",
+    "gen": 3,
+    "types": [
+      "Fire",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 85,
+      "def": 60,
+      "spa": 85,
+      "spd": 60,
+      "spe": 55
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 2133,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 257,
+    "name": "Blaziken",
+    "slug": "blaziken",
+    "gen": 3,
+    "types": [
+      "Fire",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 120,
+      "def": 70,
+      "spa": 110,
+      "spd": 70,
+      "spe": 80
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 3704,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 258,
+    "name": "Mudkip",
+    "slug": "mudkip",
+    "gen": 3,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 70,
+      "def": 50,
+      "spa": 50,
+      "spd": 50,
+      "spe": 40
+    },
+    "bst": 310,
+    "rarity": "common",
+    "baseCp": 1350,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 259,
+    "name": "Marshtomp",
+    "slug": "marshtomp",
+    "gen": 3,
+    "types": [
+      "Water",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 85,
+      "def": 70,
+      "spa": 60,
+      "spd": 70,
+      "spe": 50
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 2300,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 260,
+    "name": "Swampert",
+    "slug": "swampert",
+    "gen": 3,
+    "types": [
+      "Water",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 110,
+      "def": 90,
+      "spa": 85,
+      "spd": 90,
+      "spe": 60
+    },
+    "bst": 535,
+    "rarity": "epic",
+    "baseCp": 4055,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 261,
+    "name": "Poochyena",
+    "slug": "poochyena",
+    "gen": 3,
+    "types": [
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 55,
+      "def": 35,
+      "spa": 30,
+      "spd": 30,
+      "spe": 35
+    },
+    "bst": 220,
+    "rarity": "common",
+    "baseCp": 704,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 262,
+    "name": "Mightyena",
+    "slug": "mightyena",
+    "gen": 3,
+    "types": [
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 90,
+      "def": 70,
+      "spa": 60,
+      "spd": 60,
+      "spe": 70
+    },
+    "bst": 420,
+    "rarity": "uncommon",
+    "baseCp": 2447,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 263,
+    "name": "Zigzagoon",
+    "slug": "zigzagoon",
+    "gen": 3,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 38,
+      "atk": 30,
+      "def": 41,
+      "spa": 30,
+      "spd": 41,
+      "spe": 60
+    },
+    "bst": 240,
+    "rarity": "common",
+    "baseCp": 639,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 264,
+    "name": "Linoone",
+    "slug": "linoone",
+    "gen": 3,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 78,
+      "atk": 70,
+      "def": 61,
+      "spa": 50,
+      "spd": 61,
+      "spe": 100
+    },
+    "bst": 420,
+    "rarity": "uncommon",
+    "baseCp": 2235,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 265,
+    "name": "Wurmple",
+    "slug": "wurmple",
+    "gen": 3,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 45,
+      "def": 35,
+      "spa": 20,
+      "spd": 30,
+      "spe": 20
+    },
+    "bst": 195,
+    "rarity": "common",
+    "baseCp": 607,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 266,
+    "name": "Silcoon",
+    "slug": "silcoon",
+    "gen": 3,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 35,
+      "def": 55,
+      "spa": 25,
+      "spd": 25,
+      "spe": 15
+    },
+    "bst": 205,
+    "rarity": "common",
+    "baseCp": 605,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 267,
+    "name": "Beautifly",
+    "slug": "beautifly",
+    "gen": 3,
+    "types": [
+      "Bug",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 70,
+      "def": 50,
+      "spa": 100,
+      "spd": 50,
+      "spe": 65
+    },
+    "bst": 395,
+    "rarity": "uncommon",
+    "baseCp": 2145,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 268,
+    "name": "Cascoon",
+    "slug": "cascoon",
+    "gen": 3,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 35,
+      "def": 55,
+      "spa": 25,
+      "spd": 25,
+      "spe": 15
+    },
+    "bst": 205,
+    "rarity": "common",
+    "baseCp": 605,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 269,
+    "name": "Dustox",
+    "slug": "dustox",
+    "gen": 3,
+    "types": [
+      "Bug",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 50,
+      "def": 70,
+      "spa": 50,
+      "spd": 90,
+      "spe": 65
+    },
+    "bst": 385,
+    "rarity": "uncommon",
+    "baseCp": 1673,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 270,
+    "name": "Lotad",
+    "slug": "lotad",
+    "gen": 3,
+    "types": [
+      "Water",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 30,
+      "def": 30,
+      "spa": 40,
+      "spd": 50,
+      "spe": 30
+    },
+    "bst": 220,
+    "rarity": "common",
+    "baseCp": 664,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 271,
+    "name": "Lombre",
+    "slug": "lombre",
+    "gen": 3,
+    "types": [
+      "Water",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 50,
+      "def": 50,
+      "spa": 60,
+      "spd": 70,
+      "spe": 50
+    },
+    "bst": 340,
+    "rarity": "common",
+    "baseCp": 1537,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 272,
+    "name": "Ludicolo",
+    "slug": "ludicolo",
+    "gen": 3,
+    "types": [
+      "Water",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 70,
+      "def": 70,
+      "spa": 90,
+      "spd": 100,
+      "spe": 70
+    },
+    "bst": 480,
+    "rarity": "rare",
+    "baseCp": 3096,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 273,
+    "name": "Seedot",
+    "slug": "seedot",
+    "gen": 3,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 40,
+      "def": 50,
+      "spa": 30,
+      "spd": 30,
+      "spe": 30
+    },
+    "bst": 220,
+    "rarity": "common",
+    "baseCp": 664,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 274,
+    "name": "Nuzleaf",
+    "slug": "nuzleaf",
+    "gen": 3,
+    "types": [
+      "Grass",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 70,
+      "def": 40,
+      "spa": 60,
+      "spd": 40,
+      "spe": 60
+    },
+    "bst": 340,
+    "rarity": "common",
+    "baseCp": 1571,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 275,
+    "name": "Shiftry",
+    "slug": "shiftry",
+    "gen": 3,
+    "types": [
+      "Grass",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 100,
+      "def": 60,
+      "spa": 90,
+      "spd": 60,
+      "spe": 80
+    },
+    "bst": 480,
+    "rarity": "rare",
+    "baseCp": 3109,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 276,
+    "name": "Taillow",
+    "slug": "taillow",
+    "gen": 3,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 55,
+      "def": 30,
+      "spa": 30,
+      "spd": 30,
+      "spe": 85
+    },
+    "bst": 270,
+    "rarity": "common",
+    "baseCp": 873,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 277,
+    "name": "Swellow",
+    "slug": "swellow",
+    "gen": 3,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 85,
+      "def": 60,
+      "spa": 75,
+      "spd": 50,
+      "spe": 125
+    },
+    "bst": 455,
+    "rarity": "uncommon",
+    "baseCp": 2373,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 278,
+    "name": "Wingull",
+    "slug": "wingull",
+    "gen": 3,
+    "types": [
+      "Water",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 30,
+      "def": 30,
+      "spa": 55,
+      "spd": 30,
+      "spe": 85
+    },
+    "bst": 270,
+    "rarity": "common",
+    "baseCp": 873,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 279,
+    "name": "Pelipper",
+    "slug": "pelipper",
+    "gen": 3,
+    "types": [
+      "Water",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 50,
+      "def": 100,
+      "spa": 95,
+      "spd": 70,
+      "spe": 65
+    },
+    "bst": 440,
+    "rarity": "uncommon",
+    "baseCp": 2616,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 280,
+    "name": "Ralts",
+    "slug": "ralts",
+    "gen": 3,
+    "types": [
+      "Psychic",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 28,
+      "atk": 25,
+      "def": 25,
+      "spa": 45,
+      "spd": 35,
+      "spe": 40
+    },
+    "bst": 198,
+    "rarity": "common",
+    "baseCp": 530,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 281,
+    "name": "Kirlia",
+    "slug": "kirlia",
+    "gen": 3,
+    "types": [
+      "Psychic",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 38,
+      "atk": 35,
+      "def": 35,
+      "spa": 65,
+      "spd": 55,
+      "spe": 50
+    },
+    "bst": 278,
+    "rarity": "common",
+    "baseCp": 1065,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 282,
+    "name": "Gardevoir",
+    "slug": "gardevoir",
+    "gen": 3,
+    "types": [
+      "Psychic",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 68,
+      "atk": 65,
+      "def": 65,
+      "spa": 125,
+      "spd": 115,
+      "spe": 80
+    },
+    "bst": 518,
+    "rarity": "rare",
+    "baseCp": 3761,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 283,
+    "name": "Surskit",
+    "slug": "surskit",
+    "gen": 3,
+    "types": [
+      "Bug",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 30,
+      "def": 32,
+      "spa": 50,
+      "spd": 52,
+      "spe": 65
+    },
+    "bst": 269,
+    "rarity": "common",
+    "baseCp": 925,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 284,
+    "name": "Masquerain",
+    "slug": "masquerain",
+    "gen": 3,
+    "types": [
+      "Bug",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 60,
+      "def": 62,
+      "spa": 100,
+      "spd": 82,
+      "spe": 80
+    },
+    "bst": 454,
+    "rarity": "uncommon",
+    "baseCp": 2850,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 285,
+    "name": "Shroomish",
+    "slug": "shroomish",
+    "gen": 3,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 40,
+      "def": 60,
+      "spa": 40,
+      "spd": 60,
+      "spe": 35
+    },
+    "bst": 295,
+    "rarity": "common",
+    "baseCp": 1053,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 286,
+    "name": "Breloom",
+    "slug": "breloom",
+    "gen": 3,
+    "types": [
+      "Grass",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 130,
+      "def": 80,
+      "spa": 60,
+      "spd": 60,
+      "spe": 70
+    },
+    "bst": 460,
+    "rarity": "rare",
+    "baseCp": 3076,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 287,
+    "name": "Slakoth",
+    "slug": "slakoth",
+    "gen": 3,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 60,
+      "def": 60,
+      "spa": 35,
+      "spd": 35,
+      "spe": 30
+    },
+    "bst": 280,
+    "rarity": "common",
+    "baseCp": 1208,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 288,
+    "name": "Vigoroth",
+    "slug": "vigoroth",
+    "gen": 3,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 80,
+      "def": 80,
+      "spa": 55,
+      "spd": 55,
+      "spe": 90
+    },
+    "bst": 440,
+    "rarity": "uncommon",
+    "baseCp": 2593,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 289,
+    "name": "Slaking",
+    "slug": "slaking",
+    "gen": 3,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 150,
+      "atk": 160,
+      "def": 100,
+      "spa": 95,
+      "spd": 65,
+      "spe": 100
+    },
+    "bst": 670,
+    "rarity": "legendary",
+    "baseCp": 4800,
+    "baseCatchRate": 0.12
+  },
+  {
+    "id": 290,
+    "name": "Nincada",
+    "slug": "nincada",
+    "gen": 3,
+    "types": [
+      "Bug",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 31,
+      "atk": 45,
+      "def": 90,
+      "spa": 30,
+      "spd": 30,
+      "spe": 40
+    },
+    "bst": 266,
+    "rarity": "common",
+    "baseCp": 834,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 291,
+    "name": "Ninjask",
+    "slug": "ninjask",
+    "gen": 3,
+    "types": [
+      "Bug",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 61,
+      "atk": 90,
+      "def": 45,
+      "spa": 50,
+      "spd": 50,
+      "spe": 160
+    },
+    "bst": 456,
+    "rarity": "uncommon",
+    "baseCp": 2337,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 292,
+    "name": "Shedinja",
+    "slug": "shedinja",
+    "gen": 3,
+    "types": [
+      "Bug",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 1,
+      "atk": 90,
+      "def": 45,
+      "spa": 30,
+      "spd": 30,
+      "spe": 40
+    },
+    "bst": 236,
+    "rarity": "common",
+    "baseCp": 191,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 293,
+    "name": "Whismur",
+    "slug": "whismur",
+    "gen": 3,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 64,
+      "atk": 51,
+      "def": 23,
+      "spa": 51,
+      "spd": 23,
+      "spe": 28
+    },
+    "bst": 240,
+    "rarity": "common",
+    "baseCp": 801,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 294,
+    "name": "Loudred",
+    "slug": "loudred",
+    "gen": 3,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 84,
+      "atk": 71,
+      "def": 43,
+      "spa": 71,
+      "spd": 43,
+      "spe": 48
+    },
+    "bst": 360,
+    "rarity": "common",
+    "baseCp": 1796,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 295,
+    "name": "Exploud",
+    "slug": "exploud",
+    "gen": 3,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 104,
+      "atk": 91,
+      "def": 63,
+      "spa": 91,
+      "spd": 73,
+      "spe": 68
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 3294,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 296,
+    "name": "Makuhita",
+    "slug": "makuhita",
+    "gen": 3,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 72,
+      "atk": 60,
+      "def": 30,
+      "spa": 20,
+      "spd": 30,
+      "spe": 25
+    },
+    "bst": 237,
+    "rarity": "common",
+    "baseCp": 941,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 297,
+    "name": "Hariyama",
+    "slug": "hariyama",
+    "gen": 3,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 144,
+      "atk": 120,
+      "def": 60,
+      "spa": 40,
+      "spd": 60,
+      "spe": 50
+    },
+    "bst": 474,
+    "rarity": "rare",
+    "baseCp": 3765,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 298,
+    "name": "Azurill",
+    "slug": "azurill",
+    "gen": 3,
+    "types": [
+      "Normal",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 20,
+      "def": 40,
+      "spa": 20,
+      "spd": 40,
+      "spe": 20
+    },
+    "bst": 190,
+    "rarity": "common",
+    "baseCp": 402,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 299,
+    "name": "Nosepass",
+    "slug": "nosepass",
+    "gen": 3,
+    "types": [
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 45,
+      "def": 135,
+      "spa": 45,
+      "spd": 90,
+      "spe": 30
+    },
+    "bst": 375,
+    "rarity": "uncommon",
+    "baseCp": 1120,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 300,
+    "name": "Skitty",
+    "slug": "skitty",
+    "gen": 3,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 45,
+      "def": 45,
+      "spa": 35,
+      "spd": 35,
+      "spe": 50
+    },
+    "bst": 260,
+    "rarity": "common",
+    "baseCp": 896,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 301,
+    "name": "Delcatty",
+    "slug": "delcatty",
+    "gen": 3,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 65,
+      "def": 65,
+      "spa": 55,
+      "spd": 55,
+      "spe": 90
+    },
+    "bst": 400,
+    "rarity": "uncommon",
+    "baseCp": 2000,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 302,
+    "name": "Sableye",
+    "slug": "sableye",
+    "gen": 3,
+    "types": [
+      "Dark",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 75,
+      "def": 75,
+      "spa": 65,
+      "spd": 65,
+      "spe": 50
+    },
+    "bst": 380,
+    "rarity": "uncommon",
+    "baseCp": 1823,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 303,
+    "name": "Mawile",
+    "slug": "mawile",
+    "gen": 3,
+    "types": [
+      "Steel",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 85,
+      "def": 85,
+      "spa": 55,
+      "spd": 55,
+      "spe": 50
+    },
+    "bst": 380,
+    "rarity": "uncommon",
+    "baseCp": 1958,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 304,
+    "name": "Aron",
+    "slug": "aron",
+    "gen": 3,
+    "types": [
+      "Steel",
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 70,
+      "def": 100,
+      "spa": 40,
+      "spd": 40,
+      "spe": 30
+    },
+    "bst": 330,
+    "rarity": "common",
+    "baseCp": 1553,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 305,
+    "name": "Lairon",
+    "slug": "lairon",
+    "gen": 3,
+    "types": [
+      "Steel",
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 90,
+      "def": 140,
+      "spa": 50,
+      "spd": 50,
+      "spe": 40
+    },
+    "bst": 430,
+    "rarity": "uncommon",
+    "baseCp": 2560,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 306,
+    "name": "Aggron",
+    "slug": "aggron",
+    "gen": 3,
+    "types": [
+      "Steel",
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 110,
+      "def": 180,
+      "spa": 60,
+      "spd": 60,
+      "spe": 50
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 3806,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 307,
+    "name": "Meditite",
+    "slug": "meditite",
+    "gen": 3,
+    "types": [
+      "Fighting",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 40,
+      "def": 55,
+      "spa": 40,
+      "spd": 55,
+      "spe": 60
+    },
+    "bst": 280,
+    "rarity": "common",
+    "baseCp": 805,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 308,
+    "name": "Medicham",
+    "slug": "medicham",
+    "gen": 3,
+    "types": [
+      "Fighting",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 60,
+      "def": 75,
+      "spa": 60,
+      "spd": 75,
+      "spe": 80
+    },
+    "bst": 410,
+    "rarity": "uncommon",
+    "baseCp": 1932,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 309,
+    "name": "Electrike",
+    "slug": "electrike",
+    "gen": 3,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 45,
+      "def": 40,
+      "spa": 65,
+      "spd": 40,
+      "spe": 65
+    },
+    "bst": 295,
+    "rarity": "common",
+    "baseCp": 1098,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 310,
+    "name": "Manectric",
+    "slug": "manectric",
+    "gen": 3,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 75,
+      "def": 60,
+      "spa": 105,
+      "spd": 60,
+      "spe": 105
+    },
+    "bst": 475,
+    "rarity": "rare",
+    "baseCp": 2887,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 311,
+    "name": "Plusle",
+    "slug": "plusle",
+    "gen": 3,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 50,
+      "def": 40,
+      "spa": 85,
+      "spd": 75,
+      "spe": 95
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 2178,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 312,
+    "name": "Minun",
+    "slug": "minun",
+    "gen": 3,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 40,
+      "def": 50,
+      "spa": 75,
+      "spd": 85,
+      "spe": 95
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 2115,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 313,
+    "name": "Volbeat",
+    "slug": "volbeat",
+    "gen": 3,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 73,
+      "def": 75,
+      "spa": 47,
+      "spd": 85,
+      "spe": 85
+    },
+    "bst": 430,
+    "rarity": "uncommon",
+    "baseCp": 2292,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 314,
+    "name": "Illumise",
+    "slug": "illumise",
+    "gen": 3,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 47,
+      "def": 75,
+      "spa": 73,
+      "spd": 85,
+      "spe": 85
+    },
+    "bst": 430,
+    "rarity": "uncommon",
+    "baseCp": 2292,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 315,
+    "name": "Roselia",
+    "slug": "roselia",
+    "gen": 3,
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 60,
+      "def": 45,
+      "spa": 100,
+      "spd": 80,
+      "spe": 65
+    },
+    "bst": 400,
+    "rarity": "uncommon",
+    "baseCp": 2197,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 316,
+    "name": "Gulpin",
+    "slug": "gulpin",
+    "gen": 3,
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 43,
+      "def": 53,
+      "spa": 43,
+      "spd": 53,
+      "spe": 40
+    },
+    "bst": 302,
+    "rarity": "common",
+    "baseCp": 1162,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 317,
+    "name": "Swalot",
+    "slug": "swalot",
+    "gen": 3,
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 73,
+      "def": 83,
+      "spa": 73,
+      "spd": 83,
+      "spe": 55
+    },
+    "bst": 467,
+    "rarity": "rare",
+    "baseCp": 2845,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 318,
+    "name": "Carvanha",
+    "slug": "carvanha",
+    "gen": 3,
+    "types": [
+      "Water",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 90,
+      "def": 20,
+      "spa": 65,
+      "spd": 20,
+      "spe": 65
+    },
+    "bst": 305,
+    "rarity": "common",
+    "baseCp": 1080,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 319,
+    "name": "Sharpedo",
+    "slug": "sharpedo",
+    "gen": 3,
+    "types": [
+      "Water",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 120,
+      "def": 40,
+      "spa": 95,
+      "spd": 40,
+      "spe": 95
+    },
+    "bst": 460,
+    "rarity": "rare",
+    "baseCp": 2619,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 320,
+    "name": "Wailmer",
+    "slug": "wailmer",
+    "gen": 3,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 130,
+      "atk": 70,
+      "def": 35,
+      "spa": 70,
+      "spd": 35,
+      "spe": 60
+    },
+    "bst": 400,
+    "rarity": "uncommon",
+    "baseCp": 2064,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 321,
+    "name": "Wailord",
+    "slug": "wailord",
+    "gen": 3,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 170,
+      "atk": 90,
+      "def": 45,
+      "spa": 90,
+      "spd": 45,
+      "spe": 60
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3306,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 322,
+    "name": "Numel",
+    "slug": "numel",
+    "gen": 3,
+    "types": [
+      "Fire",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 60,
+      "def": 40,
+      "spa": 65,
+      "spd": 45,
+      "spe": 35
+    },
+    "bst": 305,
+    "rarity": "common",
+    "baseCp": 1326,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 323,
+    "name": "Camerupt",
+    "slug": "camerupt",
+    "gen": 3,
+    "types": [
+      "Fire",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 100,
+      "def": 70,
+      "spa": 105,
+      "spd": 75,
+      "spe": 40
+    },
+    "bst": 460,
+    "rarity": "rare",
+    "baseCp": 2928,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 324,
+    "name": "Torkoal",
+    "slug": "torkoal",
+    "gen": 3,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 85,
+      "def": 140,
+      "spa": 85,
+      "spd": 70,
+      "spe": 20
+    },
+    "bst": 470,
+    "rarity": "rare",
+    "baseCp": 2869,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 325,
+    "name": "Spoink",
+    "slug": "spoink",
+    "gen": 3,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 25,
+      "def": 35,
+      "spa": 70,
+      "spd": 80,
+      "spe": 60
+    },
+    "bst": 330,
+    "rarity": "common",
+    "baseCp": 1619,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 326,
+    "name": "Grumpig",
+    "slug": "grumpig",
+    "gen": 3,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 45,
+      "def": 65,
+      "spa": 90,
+      "spd": 110,
+      "spe": 80
+    },
+    "bst": 470,
+    "rarity": "rare",
+    "baseCp": 3050,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 327,
+    "name": "Spinda",
+    "slug": "spinda",
+    "gen": 3,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 60,
+      "def": 60,
+      "spa": 60,
+      "spd": 60,
+      "spe": 60
+    },
+    "bst": 360,
+    "rarity": "common",
+    "baseCp": 1620,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 328,
+    "name": "Trapinch",
+    "slug": "trapinch",
+    "gen": 3,
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 100,
+      "def": 45,
+      "spa": 45,
+      "spd": 45,
+      "spe": 10
+    },
+    "bst": 290,
+    "rarity": "common",
+    "baseCp": 1438,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 329,
+    "name": "Vibrava",
+    "slug": "vibrava",
+    "gen": 3,
+    "types": [
+      "Ground",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 70,
+      "def": 50,
+      "spa": 50,
+      "spd": 50,
+      "spe": 70
+    },
+    "bst": 340,
+    "rarity": "common",
+    "baseCp": 1485,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 330,
+    "name": "Flygon",
+    "slug": "flygon",
+    "gen": 3,
+    "types": [
+      "Ground",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 100,
+      "def": 80,
+      "spa": 80,
+      "spd": 80,
+      "spe": 100
+    },
+    "bst": 520,
+    "rarity": "rare",
+    "baseCp": 3456,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 331,
+    "name": "Cacnea",
+    "slug": "cacnea",
+    "gen": 3,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 85,
+      "def": 40,
+      "spa": 85,
+      "spd": 40,
+      "spe": 35
+    },
+    "bst": 335,
+    "rarity": "common",
+    "baseCp": 1509,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 332,
+    "name": "Cacturne",
+    "slug": "cacturne",
+    "gen": 3,
+    "types": [
+      "Grass",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 115,
+      "def": 60,
+      "spa": 115,
+      "spd": 60,
+      "spe": 55
+    },
+    "bst": 475,
+    "rarity": "rare",
+    "baseCp": 3004,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 333,
+    "name": "Swablu",
+    "slug": "swablu",
+    "gen": 3,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 40,
+      "def": 60,
+      "spa": 40,
+      "spd": 75,
+      "spe": 50
+    },
+    "bst": 310,
+    "rarity": "common",
+    "baseCp": 1053,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 334,
+    "name": "Altaria",
+    "slug": "altaria",
+    "gen": 3,
+    "types": [
+      "Dragon",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 70,
+      "def": 90,
+      "spa": 70,
+      "spd": 105,
+      "spe": 80
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 2792,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 335,
+    "name": "Zangoose",
+    "slug": "zangoose",
+    "gen": 3,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 73,
+      "atk": 115,
+      "def": 60,
+      "spa": 60,
+      "spd": 60,
+      "spe": 90
+    },
+    "bst": 458,
+    "rarity": "uncommon",
+    "baseCp": 2948,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 336,
+    "name": "Seviper",
+    "slug": "seviper",
+    "gen": 3,
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 73,
+      "atk": 100,
+      "def": 60,
+      "spa": 100,
+      "spd": 60,
+      "spe": 65
+    },
+    "bst": 458,
+    "rarity": "uncommon",
+    "baseCp": 2769,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 337,
+    "name": "Lunatone",
+    "slug": "lunatone",
+    "gen": 3,
+    "types": [
+      "Rock",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 55,
+      "def": 65,
+      "spa": 95,
+      "spd": 85,
+      "spe": 70
+    },
+    "bst": 460,
+    "rarity": "rare",
+    "baseCp": 3072,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 338,
+    "name": "Solrock",
+    "slug": "solrock",
+    "gen": 3,
+    "types": [
+      "Rock",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 95,
+      "def": 85,
+      "spa": 55,
+      "spd": 65,
+      "spe": 70
+    },
+    "bst": 460,
+    "rarity": "rare",
+    "baseCp": 3072,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 339,
+    "name": "Barboach",
+    "slug": "barboach",
+    "gen": 3,
+    "types": [
+      "Water",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 48,
+      "def": 43,
+      "spa": 46,
+      "spd": 41,
+      "spe": 60
+    },
+    "bst": 288,
+    "rarity": "common",
+    "baseCp": 1033,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 340,
+    "name": "Whiscash",
+    "slug": "whiscash",
+    "gen": 3,
+    "types": [
+      "Water",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 110,
+      "atk": 78,
+      "def": 73,
+      "spa": 76,
+      "spd": 71,
+      "spe": 60
+    },
+    "bst": 468,
+    "rarity": "rare",
+    "baseCp": 2967,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 341,
+    "name": "Corphish",
+    "slug": "corphish",
+    "gen": 3,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 43,
+      "atk": 80,
+      "def": 65,
+      "spa": 50,
+      "spd": 35,
+      "spe": 35
+    },
+    "bst": 308,
+    "rarity": "common",
+    "baseCp": 1397,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 342,
+    "name": "Crawdaunt",
+    "slug": "crawdaunt",
+    "gen": 3,
+    "types": [
+      "Water",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 63,
+      "atk": 120,
+      "def": 85,
+      "spa": 90,
+      "spd": 55,
+      "spe": 55
+    },
+    "bst": 468,
+    "rarity": "rare",
+    "baseCp": 3083,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 343,
+    "name": "Baltoy",
+    "slug": "baltoy",
+    "gen": 3,
+    "types": [
+      "Ground",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 40,
+      "def": 55,
+      "spa": 40,
+      "spd": 70,
+      "spe": 55
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 979,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 344,
+    "name": "Claydol",
+    "slug": "claydol",
+    "gen": 3,
+    "types": [
+      "Ground",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 70,
+      "def": 105,
+      "spa": 70,
+      "spd": 120,
+      "spe": 75
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 2642,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 345,
+    "name": "Lileep",
+    "slug": "lileep",
+    "gen": 3,
+    "types": [
+      "Rock",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 66,
+      "atk": 41,
+      "def": 77,
+      "spa": 61,
+      "spd": 87,
+      "spe": 23
+    },
+    "bst": 355,
+    "rarity": "common",
+    "baseCp": 1645,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 346,
+    "name": "Cradily",
+    "slug": "cradily",
+    "gen": 3,
+    "types": [
+      "Rock",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 86,
+      "atk": 81,
+      "def": 97,
+      "spa": 81,
+      "spd": 107,
+      "spe": 43
+    },
+    "bst": 495,
+    "rarity": "rare",
+    "baseCp": 3109,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 347,
+    "name": "Anorith",
+    "slug": "anorith",
+    "gen": 3,
+    "types": [
+      "Rock",
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 95,
+      "def": 50,
+      "spa": 40,
+      "spd": 50,
+      "spe": 75
+    },
+    "bst": 355,
+    "rarity": "common",
+    "baseCp": 1707,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 348,
+    "name": "Armaldo",
+    "slug": "armaldo",
+    "gen": 3,
+    "types": [
+      "Rock",
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 125,
+      "def": 100,
+      "spa": 70,
+      "spd": 80,
+      "spe": 45
+    },
+    "bst": 495,
+    "rarity": "rare",
+    "baseCp": 3663,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 349,
+    "name": "Feebas",
+    "slug": "feebas",
+    "gen": 3,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 20,
+      "atk": 15,
+      "def": 20,
+      "spa": 10,
+      "spd": 55,
+      "spe": 80
+    },
+    "bst": 200,
+    "rarity": "common",
+    "baseCp": 348,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 350,
+    "name": "Milotic",
+    "slug": "milotic",
+    "gen": 3,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 60,
+      "def": 79,
+      "spa": 100,
+      "spd": 125,
+      "spe": 81
+    },
+    "bst": 540,
+    "rarity": "epic",
+    "baseCp": 3994,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 351,
+    "name": "Castform",
+    "slug": "castform",
+    "gen": 3,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 70,
+      "def": 70,
+      "spa": 70,
+      "spd": 70,
+      "spe": 70
+    },
+    "bst": 420,
+    "rarity": "uncommon",
+    "baseCp": 2205,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 352,
+    "name": "Kecleon",
+    "slug": "kecleon",
+    "gen": 3,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 90,
+      "def": 70,
+      "spa": 60,
+      "spd": 120,
+      "spe": 40
+    },
+    "bst": 440,
+    "rarity": "uncommon",
+    "baseCp": 2579,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 353,
+    "name": "Shuppet",
+    "slug": "shuppet",
+    "gen": 3,
+    "types": [
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 44,
+      "atk": 75,
+      "def": 35,
+      "spa": 63,
+      "spd": 33,
+      "spe": 45
+    },
+    "bst": 295,
+    "rarity": "common",
+    "baseCp": 1163,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 354,
+    "name": "Banette",
+    "slug": "banette",
+    "gen": 3,
+    "types": [
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 64,
+      "atk": 115,
+      "def": 65,
+      "spa": 83,
+      "spd": 63,
+      "spe": 65
+    },
+    "bst": 455,
+    "rarity": "uncommon",
+    "baseCp": 2844,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 355,
+    "name": "Duskull",
+    "slug": "duskull",
+    "gen": 3,
+    "types": [
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 20,
+      "atk": 40,
+      "def": 90,
+      "spa": 30,
+      "spd": 90,
+      "spe": 25
+    },
+    "bst": 295,
+    "rarity": "common",
+    "baseCp": 668,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 356,
+    "name": "Dusclops",
+    "slug": "dusclops",
+    "gen": 3,
+    "types": [
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 70,
+      "def": 130,
+      "spa": 60,
+      "spd": 130,
+      "spe": 25
+    },
+    "bst": 455,
+    "rarity": "uncommon",
+    "baseCp": 1914,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 357,
+    "name": "Tropius",
+    "slug": "tropius",
+    "gen": 3,
+    "types": [
+      "Grass",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 99,
+      "atk": 68,
+      "def": 83,
+      "spa": 72,
+      "spd": 87,
+      "spe": 51
+    },
+    "bst": 460,
+    "rarity": "rare",
+    "baseCp": 2772,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 358,
+    "name": "Chimecho",
+    "slug": "chimecho",
+    "gen": 3,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 50,
+      "def": 80,
+      "spa": 95,
+      "spd": 90,
+      "spe": 65
+    },
+    "bst": 455,
+    "rarity": "uncommon",
+    "baseCp": 2891,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 359,
+    "name": "Absol",
+    "slug": "absol",
+    "gen": 3,
+    "types": [
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 130,
+      "def": 60,
+      "spa": 75,
+      "spd": 60,
+      "spe": 75
+    },
+    "bst": 465,
+    "rarity": "rare",
+    "baseCp": 3035,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 360,
+    "name": "Wynaut",
+    "slug": "wynaut",
+    "gen": 3,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 23,
+      "def": 48,
+      "spa": 23,
+      "spd": 48,
+      "spe": 23
+    },
+    "bst": 260,
+    "rarity": "common",
+    "baseCp": 699,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 361,
+    "name": "Snorunt",
+    "slug": "snorunt",
+    "gen": 3,
+    "types": [
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 50,
+      "def": 50,
+      "spa": 50,
+      "spd": 50,
+      "spe": 50
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 1125,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 362,
+    "name": "Glalie",
+    "slug": "glalie",
+    "gen": 3,
+    "types": [
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 80,
+      "def": 80,
+      "spa": 80,
+      "spd": 80,
+      "spe": 80
+    },
+    "bst": 480,
+    "rarity": "rare",
+    "baseCp": 2880,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 363,
+    "name": "Spheal",
+    "slug": "spheal",
+    "gen": 3,
+    "types": [
+      "Ice",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 40,
+      "def": 50,
+      "spa": 55,
+      "spd": 50,
+      "spe": 25
+    },
+    "bst": 290,
+    "rarity": "common",
+    "baseCp": 1225,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 364,
+    "name": "Sealeo",
+    "slug": "sealeo",
+    "gen": 3,
+    "types": [
+      "Ice",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 60,
+      "def": 70,
+      "spa": 75,
+      "spd": 70,
+      "spe": 45
+    },
+    "bst": 410,
+    "rarity": "uncommon",
+    "baseCp": 2357,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 365,
+    "name": "Walrein",
+    "slug": "walrein",
+    "gen": 3,
+    "types": [
+      "Ice",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 110,
+      "atk": 80,
+      "def": 90,
+      "spa": 95,
+      "spd": 90,
+      "spe": 65
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 3850,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 366,
+    "name": "Clamperl",
+    "slug": "clamperl",
+    "gen": 3,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 64,
+      "def": 85,
+      "spa": 74,
+      "spd": 55,
+      "spe": 32
+    },
+    "bst": 345,
+    "rarity": "common",
+    "baseCp": 1446,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 367,
+    "name": "Huntail",
+    "slug": "huntail",
+    "gen": 3,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 104,
+      "def": 105,
+      "spa": 94,
+      "spd": 75,
+      "spe": 52
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 2948,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 368,
+    "name": "Gorebyss",
+    "slug": "gorebyss",
+    "gen": 3,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 84,
+      "def": 105,
+      "spa": 114,
+      "spd": 75,
+      "spe": 52
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 3077,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 369,
+    "name": "Relicanth",
+    "slug": "relicanth",
+    "gen": 3,
+    "types": [
+      "Water",
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 90,
+      "def": 130,
+      "spa": 45,
+      "spd": 65,
+      "spe": 55
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 3396,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 370,
+    "name": "Luvdisc",
+    "slug": "luvdisc",
+    "gen": 3,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 43,
+      "atk": 30,
+      "def": 55,
+      "spa": 40,
+      "spd": 65,
+      "spe": 97
+    },
+    "bst": 330,
+    "rarity": "common",
+    "baseCp": 1139,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 371,
+    "name": "Bagon",
+    "slug": "bagon",
+    "gen": 3,
+    "types": [
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 75,
+      "def": 60,
+      "spa": 40,
+      "spd": 30,
+      "spe": 50
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 1318,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 372,
+    "name": "Shelgon",
+    "slug": "shelgon",
+    "gen": 3,
+    "types": [
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 95,
+      "def": 100,
+      "spa": 60,
+      "spd": 50,
+      "spe": 50
+    },
+    "bst": 420,
+    "rarity": "uncommon",
+    "baseCp": 2563,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 373,
+    "name": "Salamence",
+    "slug": "salamence",
+    "gen": 3,
+    "types": [
+      "Dragon",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 135,
+      "def": 80,
+      "spa": 110,
+      "spd": 80,
+      "spe": 100
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 374,
+    "name": "Beldum",
+    "slug": "beldum",
+    "gen": 3,
+    "types": [
+      "Steel",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 55,
+      "def": 80,
+      "spa": 35,
+      "spd": 60,
+      "spe": 30
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 1111,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 375,
+    "name": "Metang",
+    "slug": "metang",
+    "gen": 3,
+    "types": [
+      "Steel",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 75,
+      "def": 100,
+      "spa": 55,
+      "spd": 80,
+      "spe": 50
+    },
+    "bst": 420,
+    "rarity": "uncommon",
+    "baseCp": 2207,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 376,
+    "name": "Metagross",
+    "slug": "metagross",
+    "gen": 3,
+    "types": [
+      "Steel",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 135,
+      "def": 130,
+      "spa": 95,
+      "spd": 90,
+      "spe": 70
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 377,
+    "name": "Regirock",
+    "slug": "regirock",
+    "gen": 3,
+    "types": [
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 100,
+      "def": 200,
+      "spa": 50,
+      "spd": 100,
+      "spe": 50
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 4073,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 378,
+    "name": "Regice",
+    "slug": "regice",
+    "gen": 3,
+    "types": [
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 50,
+      "def": 100,
+      "spa": 100,
+      "spd": 200,
+      "spe": 50
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 4073,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 379,
+    "name": "Registeel",
+    "slug": "registeel",
+    "gen": 3,
+    "types": [
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 75,
+      "def": 150,
+      "spa": 75,
+      "spd": 150,
+      "spe": 50
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 3451,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 380,
+    "name": "Latias",
+    "slug": "latias",
+    "gen": 3,
+    "types": [
+      "Dragon",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 80,
+      "def": 90,
+      "spa": 110,
+      "spd": 130,
+      "spe": 110
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4469,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 381,
+    "name": "Latios",
+    "slug": "latios",
+    "gen": 3,
+    "types": [
+      "Dragon",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 90,
+      "def": 80,
+      "spa": 130,
+      "spd": 110,
+      "spe": 110
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4702,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 382,
+    "name": "Kyogre",
+    "slug": "kyogre",
+    "gen": 3,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 100,
+      "def": 90,
+      "spa": 150,
+      "spd": 140,
+      "spe": 90
+    },
+    "bst": 670,
+    "rarity": "legendary",
+    "baseCp": 4800,
+    "baseCatchRate": 0.12
+  },
+  {
+    "id": 383,
+    "name": "Groudon",
+    "slug": "groudon",
+    "gen": 3,
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 150,
+      "def": 140,
+      "spa": 100,
+      "spd": 90,
+      "spe": 90
+    },
+    "bst": 670,
+    "rarity": "legendary",
+    "baseCp": 4800,
+    "baseCatchRate": 0.12
+  },
+  {
+    "id": 384,
+    "name": "Rayquaza",
+    "slug": "rayquaza",
+    "gen": 3,
+    "types": [
+      "Dragon",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 105,
+      "atk": 150,
+      "def": 90,
+      "spa": 150,
+      "spd": 90,
+      "spe": 95
+    },
+    "bst": 680,
+    "rarity": "legendary",
+    "baseCp": 4800,
+    "baseCatchRate": 0.12
+  },
+  {
+    "id": 385,
+    "name": "Jirachi",
+    "slug": "jirachi",
+    "gen": 3,
+    "types": [
+      "Steel",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 100,
+      "def": 100,
+      "spa": 100,
+      "spd": 100,
+      "spe": 100
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4500,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 386,
+    "name": "Deoxys",
+    "slug": "deoxys",
+    "gen": 3,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 150,
+      "def": 50,
+      "spa": 150,
+      "spd": 50,
+      "spe": 150
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 3375,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 387,
+    "name": "Turtwig",
+    "slug": "turtwig",
+    "gen": 4,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 68,
+      "def": 64,
+      "spa": 45,
+      "spd": 55,
+      "spe": 31
+    },
+    "bst": 318,
+    "rarity": "common",
+    "baseCp": 1453,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 388,
+    "name": "Grotle",
+    "slug": "grotle",
+    "gen": 4,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 89,
+      "def": 85,
+      "spa": 55,
+      "spd": 65,
+      "spe": 36
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 2449,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 389,
+    "name": "Torterra",
+    "slug": "torterra",
+    "gen": 4,
+    "types": [
+      "Grass",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 109,
+      "def": 105,
+      "spa": 75,
+      "spd": 85,
+      "spe": 56
+    },
+    "bst": 525,
+    "rarity": "rare",
+    "baseCp": 3957,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 390,
+    "name": "Chimchar",
+    "slug": "chimchar",
+    "gen": 4,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 44,
+      "atk": 58,
+      "def": 44,
+      "spa": 58,
+      "spd": 44,
+      "spe": 61
+    },
+    "bst": 309,
+    "rarity": "common",
+    "baseCp": 1160,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 391,
+    "name": "Monferno",
+    "slug": "monferno",
+    "gen": 4,
+    "types": [
+      "Fire",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 64,
+      "atk": 78,
+      "def": 52,
+      "spa": 78,
+      "spd": 52,
+      "spe": 81
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 2040,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 392,
+    "name": "Infernape",
+    "slug": "infernape",
+    "gen": 4,
+    "types": [
+      "Fire",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 76,
+      "atk": 104,
+      "def": 71,
+      "spa": 104,
+      "spd": 71,
+      "spe": 108
+    },
+    "bst": 534,
+    "rarity": "epic",
+    "baseCp": 3464,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 393,
+    "name": "Piplup",
+    "slug": "piplup",
+    "gen": 4,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 53,
+      "atk": 51,
+      "def": 53,
+      "spa": 61,
+      "spd": 56,
+      "spe": 40
+    },
+    "bst": 314,
+    "rarity": "common",
+    "baseCp": 1329,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 394,
+    "name": "Prinplup",
+    "slug": "prinplup",
+    "gen": 4,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 64,
+      "atk": 66,
+      "def": 68,
+      "spa": 81,
+      "spd": 76,
+      "spe": 50
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 2205,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 395,
+    "name": "Empoleon",
+    "slug": "empoleon",
+    "gen": 4,
+    "types": [
+      "Water",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 84,
+      "atk": 86,
+      "def": 88,
+      "spa": 111,
+      "spd": 101,
+      "spe": 60
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 3867,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 396,
+    "name": "Starly",
+    "slug": "starly",
+    "gen": 4,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 55,
+      "def": 30,
+      "spa": 30,
+      "spd": 30,
+      "spe": 60
+    },
+    "bst": 245,
+    "rarity": "common",
+    "baseCp": 795,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 397,
+    "name": "Staravia",
+    "slug": "staravia",
+    "gen": 4,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 75,
+      "def": 50,
+      "spa": 40,
+      "spd": 40,
+      "spe": 80
+    },
+    "bst": 340,
+    "rarity": "common",
+    "baseCp": 1562,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 398,
+    "name": "Staraptor",
+    "slug": "staraptor",
+    "gen": 4,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 120,
+      "def": 70,
+      "spa": 50,
+      "spd": 60,
+      "spe": 100
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 3438,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 399,
+    "name": "Bidoof",
+    "slug": "bidoof",
+    "gen": 4,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 59,
+      "atk": 45,
+      "def": 40,
+      "spa": 35,
+      "spd": 40,
+      "spe": 31
+    },
+    "bst": 250,
+    "rarity": "common",
+    "baseCp": 878,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 400,
+    "name": "Bibarel",
+    "slug": "bibarel",
+    "gen": 4,
+    "types": [
+      "Normal",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 79,
+      "atk": 85,
+      "def": 60,
+      "spa": 55,
+      "spd": 60,
+      "spe": 71
+    },
+    "bst": 410,
+    "rarity": "uncommon",
+    "baseCp": 2361,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 401,
+    "name": "Kricketot",
+    "slug": "kricketot",
+    "gen": 4,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 37,
+      "atk": 25,
+      "def": 41,
+      "spa": 25,
+      "spd": 41,
+      "spe": 25
+    },
+    "bst": 194,
+    "rarity": "common",
+    "baseCp": 438,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 402,
+    "name": "Kricketune",
+    "slug": "kricketune",
+    "gen": 4,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 77,
+      "atk": 85,
+      "def": 51,
+      "spa": 55,
+      "spd": 51,
+      "spe": 65
+    },
+    "bst": 384,
+    "rarity": "uncommon",
+    "baseCp": 2115,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 403,
+    "name": "Shinx",
+    "slug": "shinx",
+    "gen": 4,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 65,
+      "def": 34,
+      "spa": 40,
+      "spd": 34,
+      "spe": 45
+    },
+    "bst": 263,
+    "rarity": "common",
+    "baseCp": 986,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 404,
+    "name": "Luxio",
+    "slug": "luxio",
+    "gen": 4,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 85,
+      "def": 49,
+      "spa": 60,
+      "spd": 49,
+      "spe": 60
+    },
+    "bst": 363,
+    "rarity": "common",
+    "baseCp": 1830,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 405,
+    "name": "Luxray",
+    "slug": "luxray",
+    "gen": 4,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 120,
+      "def": 79,
+      "spa": 95,
+      "spd": 79,
+      "spe": 70
+    },
+    "bst": 523,
+    "rarity": "rare",
+    "baseCp": 3757,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 406,
+    "name": "Budew",
+    "slug": "budew",
+    "gen": 4,
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 30,
+      "def": 35,
+      "spa": 50,
+      "spd": 70,
+      "spe": 55
+    },
+    "bst": 280,
+    "rarity": "common",
+    "baseCp": 1001,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 407,
+    "name": "Roserade",
+    "slug": "roserade",
+    "gen": 4,
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 70,
+      "def": 65,
+      "spa": 125,
+      "spd": 105,
+      "spe": 90
+    },
+    "bst": 515,
+    "rarity": "rare",
+    "baseCp": 3519,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 408,
+    "name": "Cranidos",
+    "slug": "cranidos",
+    "gen": 4,
+    "types": [
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 67,
+      "atk": 125,
+      "def": 40,
+      "spa": 30,
+      "spd": 30,
+      "spe": 58
+    },
+    "bst": 350,
+    "rarity": "common",
+    "baseCp": 2047,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 409,
+    "name": "Rampardos",
+    "slug": "rampardos",
+    "gen": 4,
+    "types": [
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 97,
+      "atk": 165,
+      "def": 60,
+      "spa": 65,
+      "spd": 50,
+      "spe": 58
+    },
+    "bst": 495,
+    "rarity": "rare",
+    "baseCp": 4100,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 410,
+    "name": "Shieldon",
+    "slug": "shieldon",
+    "gen": 4,
+    "types": [
+      "Rock",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 42,
+      "def": 118,
+      "spa": 42,
+      "spd": 88,
+      "spe": 30
+    },
+    "bst": 350,
+    "rarity": "common",
+    "baseCp": 1005,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 411,
+    "name": "Bastiodon",
+    "slug": "bastiodon",
+    "gen": 4,
+    "types": [
+      "Rock",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 52,
+      "def": 168,
+      "spa": 47,
+      "spd": 138,
+      "spe": 30
+    },
+    "bst": 495,
+    "rarity": "rare",
+    "baseCp": 2029,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 412,
+    "name": "Burmy",
+    "slug": "burmy",
+    "gen": 4,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 29,
+      "def": 45,
+      "spa": 29,
+      "spd": 45,
+      "spe": 36
+    },
+    "bst": 224,
+    "rarity": "common",
+    "baseCp": 581,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 413,
+    "name": "Wormadam",
+    "slug": "wormadam",
+    "gen": 4,
+    "types": [
+      "Bug",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 59,
+      "def": 85,
+      "spa": 79,
+      "spd": 105,
+      "spe": 36
+    },
+    "bst": 424,
+    "rarity": "uncommon",
+    "baseCp": 2280,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 414,
+    "name": "Mothim",
+    "slug": "mothim",
+    "gen": 4,
+    "types": [
+      "Bug",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 94,
+      "def": 50,
+      "spa": 94,
+      "spd": 50,
+      "spe": 66
+    },
+    "bst": 424,
+    "rarity": "uncommon",
+    "baseCp": 2354,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 415,
+    "name": "Combee",
+    "slug": "combee",
+    "gen": 4,
+    "types": [
+      "Bug",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 30,
+      "def": 42,
+      "spa": 30,
+      "spd": 42,
+      "spe": 70
+    },
+    "bst": 244,
+    "rarity": "common",
+    "baseCp": 607,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 416,
+    "name": "Vespiquen",
+    "slug": "vespiquen",
+    "gen": 4,
+    "types": [
+      "Bug",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 80,
+      "def": 102,
+      "spa": 80,
+      "spd": 102,
+      "spe": 40
+    },
+    "bst": 474,
+    "rarity": "rare",
+    "baseCp": 2738,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 417,
+    "name": "Pachirisu",
+    "slug": "pachirisu",
+    "gen": 4,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 45,
+      "def": 70,
+      "spa": 45,
+      "spd": 90,
+      "spe": 95
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 1736,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 418,
+    "name": "Buizel",
+    "slug": "buizel",
+    "gen": 4,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 65,
+      "def": 35,
+      "spa": 60,
+      "spd": 30,
+      "spe": 85
+    },
+    "bst": 330,
+    "rarity": "common",
+    "baseCp": 1303,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 419,
+    "name": "Floatzel",
+    "slug": "floatzel",
+    "gen": 4,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 105,
+      "def": 55,
+      "spa": 85,
+      "spd": 50,
+      "spe": 115
+    },
+    "bst": 495,
+    "rarity": "rare",
+    "baseCp": 3111,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 420,
+    "name": "Cherubi",
+    "slug": "cherubi",
+    "gen": 4,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 35,
+      "def": 45,
+      "spa": 62,
+      "spd": 53,
+      "spe": 35
+    },
+    "bst": 275,
+    "rarity": "common",
+    "baseCp": 1091,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 421,
+    "name": "Cherrim",
+    "slug": "cherrim",
+    "gen": 4,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 60,
+      "def": 70,
+      "spa": 87,
+      "spd": 78,
+      "spe": 85
+    },
+    "bst": 450,
+    "rarity": "uncommon",
+    "baseCp": 2644,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 422,
+    "name": "Shellos",
+    "slug": "shellos",
+    "gen": 4,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 76,
+      "atk": 48,
+      "def": 48,
+      "spa": 57,
+      "spd": 62,
+      "spe": 34
+    },
+    "bst": 325,
+    "rarity": "common",
+    "baseCp": 1490,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 423,
+    "name": "Gastrodon",
+    "slug": "gastrodon",
+    "gen": 4,
+    "types": [
+      "Water",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 111,
+      "atk": 83,
+      "def": 68,
+      "spa": 92,
+      "spd": 82,
+      "spe": 39
+    },
+    "bst": 475,
+    "rarity": "rare",
+    "baseCp": 3299,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 424,
+    "name": "Ambipom",
+    "slug": "ambipom",
+    "gen": 4,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 100,
+      "def": 66,
+      "spa": 60,
+      "spd": 66,
+      "spe": 115
+    },
+    "bst": 482,
+    "rarity": "rare",
+    "baseCp": 3008,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 425,
+    "name": "Drifloon",
+    "slug": "drifloon",
+    "gen": 4,
+    "types": [
+      "Ghost",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 50,
+      "def": 34,
+      "spa": 60,
+      "spd": 44,
+      "spe": 70
+    },
+    "bst": 348,
+    "rarity": "common",
+    "baseCp": 1620,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 426,
+    "name": "Drifblim",
+    "slug": "drifblim",
+    "gen": 4,
+    "types": [
+      "Ghost",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 150,
+      "atk": 80,
+      "def": 44,
+      "spa": 90,
+      "spd": 54,
+      "spe": 80
+    },
+    "bst": 498,
+    "rarity": "rare",
+    "baseCp": 3352,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 427,
+    "name": "Buneary",
+    "slug": "buneary",
+    "gen": 4,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 66,
+      "def": 44,
+      "spa": 44,
+      "spd": 56,
+      "spe": 85
+    },
+    "bst": 350,
+    "rarity": "common",
+    "baseCp": 1562,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 428,
+    "name": "Lopunny",
+    "slug": "lopunny",
+    "gen": 4,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 76,
+      "def": 84,
+      "spa": 54,
+      "spd": 96,
+      "spe": 105
+    },
+    "bst": 480,
+    "rarity": "rare",
+    "baseCp": 2682,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 429,
+    "name": "Mismagius",
+    "slug": "mismagius",
+    "gen": 4,
+    "types": [
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 60,
+      "def": 60,
+      "spa": 105,
+      "spd": 105,
+      "spe": 105
+    },
+    "bst": 495,
+    "rarity": "rare",
+    "baseCp": 3121,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 430,
+    "name": "Honchkrow",
+    "slug": "honchkrow",
+    "gen": 4,
+    "types": [
+      "Dark",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 125,
+      "def": 52,
+      "spa": 105,
+      "spd": 52,
+      "spe": 71
+    },
+    "bst": 505,
+    "rarity": "rare",
+    "baseCp": 3576,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 431,
+    "name": "Glameow",
+    "slug": "glameow",
+    "gen": 4,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 49,
+      "atk": 55,
+      "def": 42,
+      "spa": 42,
+      "spd": 37,
+      "spe": 85
+    },
+    "bst": 310,
+    "rarity": "common",
+    "baseCp": 1164,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 432,
+    "name": "Purugly",
+    "slug": "purugly",
+    "gen": 4,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 71,
+      "atk": 82,
+      "def": 64,
+      "spa": 64,
+      "spd": 59,
+      "spe": 112
+    },
+    "bst": 452,
+    "rarity": "uncommon",
+    "baseCp": 2520,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 433,
+    "name": "Chingling",
+    "slug": "chingling",
+    "gen": 4,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 30,
+      "def": 50,
+      "spa": 65,
+      "spd": 50,
+      "spe": 45
+    },
+    "bst": 285,
+    "rarity": "common",
+    "baseCp": 1153,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 434,
+    "name": "Stunky",
+    "slug": "stunky",
+    "gen": 4,
+    "types": [
+      "Poison",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 63,
+      "atk": 63,
+      "def": 47,
+      "spa": 41,
+      "spd": 41,
+      "spe": 74
+    },
+    "bst": 329,
+    "rarity": "common",
+    "baseCp": 1450,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 435,
+    "name": "Skuntank",
+    "slug": "skuntank",
+    "gen": 4,
+    "types": [
+      "Poison",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 103,
+      "atk": 93,
+      "def": 67,
+      "spa": 71,
+      "spd": 61,
+      "spe": 84
+    },
+    "bst": 479,
+    "rarity": "rare",
+    "baseCp": 3186,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 436,
+    "name": "Bronzor",
+    "slug": "bronzor",
+    "gen": 4,
+    "types": [
+      "Steel",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 57,
+      "atk": 24,
+      "def": 86,
+      "spa": 24,
+      "spd": 86,
+      "spe": 23
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 750,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 437,
+    "name": "Bronzong",
+    "slug": "bronzong",
+    "gen": 4,
+    "types": [
+      "Steel",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 67,
+      "atk": 89,
+      "def": 116,
+      "spa": 79,
+      "spd": 116,
+      "spe": 33
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3007,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 438,
+    "name": "Bonsly",
+    "slug": "bonsly",
+    "gen": 4,
+    "types": [
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 80,
+      "def": 95,
+      "spa": 10,
+      "spd": 45,
+      "spe": 10
+    },
+    "bst": 290,
+    "rarity": "common",
+    "baseCp": 1433,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 439,
+    "name": "Mime Jr.",
+    "slug": "mime-jr",
+    "gen": 4,
+    "types": [
+      "Psychic",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 20,
+      "atk": 25,
+      "def": 45,
+      "spa": 70,
+      "spd": 90,
+      "spe": 60
+    },
+    "bst": 310,
+    "rarity": "common",
+    "baseCp": 1007,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 440,
+    "name": "Happiny",
+    "slug": "happiny",
+    "gen": 4,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 5,
+      "def": 5,
+      "spa": 15,
+      "spd": 65,
+      "spe": 30
+    },
+    "bst": 220,
+    "rarity": "common",
+    "baseCp": 461,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 441,
+    "name": "Chatot",
+    "slug": "chatot",
+    "gen": 4,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 76,
+      "atk": 65,
+      "def": 45,
+      "spa": 92,
+      "spd": 42,
+      "spe": 91
+    },
+    "bst": 411,
+    "rarity": "uncommon",
+    "baseCp": 2243,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 442,
+    "name": "Spiritomb",
+    "slug": "spiritomb",
+    "gen": 4,
+    "types": [
+      "Ghost",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 92,
+      "def": 108,
+      "spa": 92,
+      "spd": 108,
+      "spe": 35
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 2665,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 443,
+    "name": "Gible",
+    "slug": "gible",
+    "gen": 4,
+    "types": [
+      "Dragon",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 58,
+      "atk": 70,
+      "def": 45,
+      "spa": 40,
+      "spd": 45,
+      "spe": 42
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 1343,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 444,
+    "name": "Gabite",
+    "slug": "gabite",
+    "gen": 4,
+    "types": [
+      "Dragon",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 68,
+      "atk": 90,
+      "def": 65,
+      "spa": 50,
+      "spd": 55,
+      "spe": 82
+    },
+    "bst": 410,
+    "rarity": "uncommon",
+    "baseCp": 2330,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 445,
+    "name": "Garchomp",
+    "slug": "garchomp",
+    "gen": 4,
+    "types": [
+      "Dragon",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 108,
+      "atk": 130,
+      "def": 95,
+      "spa": 80,
+      "spd": 85,
+      "spe": 102
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 446,
+    "name": "Munchlax",
+    "slug": "munchlax",
+    "gen": 4,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 135,
+      "atk": 85,
+      "def": 40,
+      "spa": 40,
+      "spd": 85,
+      "spe": 5
+    },
+    "bst": 390,
+    "rarity": "uncommon",
+    "baseCp": 2568,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 447,
+    "name": "Riolu",
+    "slug": "riolu",
+    "gen": 4,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 70,
+      "def": 40,
+      "spa": 35,
+      "spd": 40,
+      "spe": 60
+    },
+    "bst": 285,
+    "rarity": "common",
+    "baseCp": 1098,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 448,
+    "name": "Lucario",
+    "slug": "lucario",
+    "gen": 4,
+    "types": [
+      "Fighting",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 110,
+      "def": 70,
+      "spa": 115,
+      "spd": 70,
+      "spe": 90
+    },
+    "bst": 525,
+    "rarity": "rare",
+    "baseCp": 3434,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 449,
+    "name": "Hippopotas",
+    "slug": "hippopotas",
+    "gen": 4,
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 68,
+      "atk": 72,
+      "def": 78,
+      "spa": 38,
+      "spd": 42,
+      "spe": 32
+    },
+    "bst": 330,
+    "rarity": "common",
+    "baseCp": 1693,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 450,
+    "name": "Hippowdon",
+    "slug": "hippowdon",
+    "gen": 4,
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 108,
+      "atk": 112,
+      "def": 118,
+      "spa": 68,
+      "spd": 72,
+      "spe": 47
+    },
+    "bst": 525,
+    "rarity": "rare",
+    "baseCp": 4210,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 451,
+    "name": "Skorupi",
+    "slug": "skorupi",
+    "gen": 4,
+    "types": [
+      "Poison",
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 50,
+      "def": 90,
+      "spa": 30,
+      "spd": 55,
+      "spe": 65
+    },
+    "bst": 330,
+    "rarity": "common",
+    "baseCp": 1216,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 452,
+    "name": "Drapion",
+    "slug": "drapion",
+    "gen": 4,
+    "types": [
+      "Poison",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 90,
+      "def": 110,
+      "spa": 60,
+      "spd": 75,
+      "spe": 95
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3136,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 453,
+    "name": "Croagunk",
+    "slug": "croagunk",
+    "gen": 4,
+    "types": [
+      "Poison",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 48,
+      "atk": 61,
+      "def": 40,
+      "spa": 61,
+      "spd": 40,
+      "spe": 50
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 1159,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 454,
+    "name": "Toxicroak",
+    "slug": "toxicroak",
+    "gen": 4,
+    "types": [
+      "Poison",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 83,
+      "atk": 106,
+      "def": 65,
+      "spa": 86,
+      "spd": 65,
+      "spe": 85
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 3233,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 455,
+    "name": "Carnivine",
+    "slug": "carnivine",
+    "gen": 4,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 74,
+      "atk": 100,
+      "def": 72,
+      "spa": 90,
+      "spd": 72,
+      "spe": 46
+    },
+    "bst": 454,
+    "rarity": "uncommon",
+    "baseCp": 2865,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 456,
+    "name": "Finneon",
+    "slug": "finneon",
+    "gen": 4,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 49,
+      "atk": 49,
+      "def": 56,
+      "spa": 49,
+      "spd": 61,
+      "spe": 66
+    },
+    "bst": 330,
+    "rarity": "common",
+    "baseCp": 1268,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 457,
+    "name": "Lumineon",
+    "slug": "lumineon",
+    "gen": 4,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 69,
+      "atk": 69,
+      "def": 76,
+      "spa": 69,
+      "spd": 86,
+      "spe": 91
+    },
+    "bst": 460,
+    "rarity": "rare",
+    "baseCp": 2485,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 458,
+    "name": "Mantyke",
+    "slug": "mantyke",
+    "gen": 4,
+    "types": [
+      "Water",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 20,
+      "def": 50,
+      "spa": 60,
+      "spd": 120,
+      "spe": 50
+    },
+    "bst": 345,
+    "rarity": "common",
+    "baseCp": 1448,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 459,
+    "name": "Snover",
+    "slug": "snover",
+    "gen": 4,
+    "types": [
+      "Grass",
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 62,
+      "def": 50,
+      "spa": 62,
+      "spd": 60,
+      "spe": 40
+    },
+    "bst": 334,
+    "rarity": "common",
+    "baseCp": 1502,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 460,
+    "name": "Abomasnow",
+    "slug": "abomasnow",
+    "gen": 4,
+    "types": [
+      "Grass",
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 92,
+      "def": 75,
+      "spa": 92,
+      "spd": 85,
+      "spe": 60
+    },
+    "bst": 494,
+    "rarity": "rare",
+    "baseCp": 3289,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 461,
+    "name": "Weavile",
+    "slug": "weavile",
+    "gen": 4,
+    "types": [
+      "Dark",
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 120,
+      "def": 65,
+      "spa": 45,
+      "spd": 85,
+      "spe": 125
+    },
+    "bst": 510,
+    "rarity": "rare",
+    "baseCp": 3502,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 462,
+    "name": "Magnezone",
+    "slug": "magnezone",
+    "gen": 4,
+    "types": [
+      "Electric",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 70,
+      "def": 115,
+      "spa": 130,
+      "spd": 90,
+      "spe": 60
+    },
+    "bst": 535,
+    "rarity": "epic",
+    "baseCp": 4012,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 463,
+    "name": "Lickilicky",
+    "slug": "lickilicky",
+    "gen": 4,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 110,
+      "atk": 85,
+      "def": 95,
+      "spa": 80,
+      "spd": 95,
+      "spe": 50
+    },
+    "bst": 515,
+    "rarity": "rare",
+    "baseCp": 3542,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 464,
+    "name": "Rhyperior",
+    "slug": "rhyperior",
+    "gen": 4,
+    "types": [
+      "Ground",
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 115,
+      "atk": 140,
+      "def": 130,
+      "spa": 55,
+      "spd": 55,
+      "spe": 40
+    },
+    "bst": 535,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 465,
+    "name": "Tangrowth",
+    "slug": "tangrowth",
+    "gen": 4,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 100,
+      "def": 125,
+      "spa": 110,
+      "spd": 50,
+      "spe": 50
+    },
+    "bst": 535,
+    "rarity": "epic",
+    "baseCp": 4210,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 466,
+    "name": "Electivire",
+    "slug": "electivire",
+    "gen": 4,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 123,
+      "def": 67,
+      "spa": 95,
+      "spd": 85,
+      "spe": 95
+    },
+    "bst": 540,
+    "rarity": "epic",
+    "baseCp": 3843,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 467,
+    "name": "Magmortar",
+    "slug": "magmortar",
+    "gen": 4,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 95,
+      "def": 67,
+      "spa": 125,
+      "spd": 95,
+      "spe": 83
+    },
+    "bst": 540,
+    "rarity": "epic",
+    "baseCp": 3946,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 468,
+    "name": "Togekiss",
+    "slug": "togekiss",
+    "gen": 4,
+    "types": [
+      "Fairy",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 50,
+      "def": 95,
+      "spa": 120,
+      "spd": 115,
+      "spe": 80
+    },
+    "bst": 545,
+    "rarity": "epic",
+    "baseCp": 4206,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 469,
+    "name": "Yanmega",
+    "slug": "yanmega",
+    "gen": 4,
+    "types": [
+      "Bug",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 86,
+      "atk": 76,
+      "def": 86,
+      "spa": 116,
+      "spd": 56,
+      "spe": 95
+    },
+    "bst": 515,
+    "rarity": "rare",
+    "baseCp": 3726,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 470,
+    "name": "Leafeon",
+    "slug": "leafeon",
+    "gen": 4,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 110,
+      "def": 130,
+      "spa": 60,
+      "spd": 65,
+      "spe": 95
+    },
+    "bst": 525,
+    "rarity": "rare",
+    "baseCp": 3589,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 471,
+    "name": "Glaceon",
+    "slug": "glaceon",
+    "gen": 4,
+    "types": [
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 60,
+      "def": 110,
+      "spa": 130,
+      "spd": 95,
+      "spe": 65
+    },
+    "bst": 525,
+    "rarity": "rare",
+    "baseCp": 3811,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 472,
+    "name": "Gliscor",
+    "slug": "gliscor",
+    "gen": 4,
+    "types": [
+      "Ground",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 95,
+      "def": 125,
+      "spa": 45,
+      "spd": 75,
+      "spe": 95
+    },
+    "bst": 510,
+    "rarity": "rare",
+    "baseCp": 3395,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 473,
+    "name": "Mamoswine",
+    "slug": "mamoswine",
+    "gen": 4,
+    "types": [
+      "Ice",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 110,
+      "atk": 130,
+      "def": 80,
+      "spa": 70,
+      "spd": 60,
+      "spe": 80
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 4325,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 474,
+    "name": "Porygon-Z",
+    "slug": "porygon-z",
+    "gen": 4,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 80,
+      "def": 70,
+      "spa": 135,
+      "spd": 75,
+      "spe": 90
+    },
+    "bst": 535,
+    "rarity": "epic",
+    "baseCp": 4076,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 475,
+    "name": "Gallade",
+    "slug": "gallade",
+    "gen": 4,
+    "types": [
+      "Psychic",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 68,
+      "atk": 125,
+      "def": 65,
+      "spa": 65,
+      "spd": 115,
+      "spe": 80
+    },
+    "bst": 518,
+    "rarity": "rare",
+    "baseCp": 3761,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 476,
+    "name": "Probopass",
+    "slug": "probopass",
+    "gen": 4,
+    "types": [
+      "Rock",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 55,
+      "def": 145,
+      "spa": 75,
+      "spd": 150,
+      "spe": 40
+    },
+    "bst": 525,
+    "rarity": "rare",
+    "baseCp": 2714,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 477,
+    "name": "Dusknoir",
+    "slug": "dusknoir",
+    "gen": 4,
+    "types": [
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 100,
+      "def": 135,
+      "spa": 65,
+      "spd": 135,
+      "spe": 45
+    },
+    "bst": 525,
+    "rarity": "rare",
+    "baseCp": 2876,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 478,
+    "name": "Froslass",
+    "slug": "froslass",
+    "gen": 4,
+    "types": [
+      "Ice",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 80,
+      "def": 70,
+      "spa": 80,
+      "spd": 70,
+      "spe": 110
+    },
+    "bst": 480,
+    "rarity": "rare",
+    "baseCp": 2709,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 479,
+    "name": "Rotom",
+    "slug": "rotom",
+    "gen": 4,
+    "types": [
+      "Electric",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 50,
+      "def": 77,
+      "spa": 95,
+      "spd": 77,
+      "spe": 91
+    },
+    "bst": 440,
+    "rarity": "uncommon",
+    "baseCp": 2379,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 480,
+    "name": "Uxie",
+    "slug": "uxie",
+    "gen": 4,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 75,
+      "def": 130,
+      "spa": 75,
+      "spd": 130,
+      "spe": 95
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 3510,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 481,
+    "name": "Mesprit",
+    "slug": "mesprit",
+    "gen": 4,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 105,
+      "def": 105,
+      "spa": 105,
+      "spd": 105,
+      "spe": 80
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 4125,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 482,
+    "name": "Azelf",
+    "slug": "azelf",
+    "gen": 4,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 125,
+      "def": 70,
+      "spa": 125,
+      "spd": 70,
+      "spe": 115
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 4010,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 483,
+    "name": "Dialga",
+    "slug": "dialga",
+    "gen": 4,
+    "types": [
+      "Steel",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 120,
+      "def": 120,
+      "spa": 150,
+      "spd": 100,
+      "spe": 90
+    },
+    "bst": 680,
+    "rarity": "legendary",
+    "baseCp": 4800,
+    "baseCatchRate": 0.12
+  },
+  {
+    "id": 484,
+    "name": "Palkia",
+    "slug": "palkia",
+    "gen": 4,
+    "types": [
+      "Water",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 120,
+      "def": 100,
+      "spa": 150,
+      "spd": 120,
+      "spe": 100
+    },
+    "bst": 680,
+    "rarity": "legendary",
+    "baseCp": 4800,
+    "baseCatchRate": 0.12
+  },
+  {
+    "id": 485,
+    "name": "Heatran",
+    "slug": "heatran",
+    "gen": 4,
+    "types": [
+      "Fire",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 91,
+      "atk": 90,
+      "def": 106,
+      "spa": 130,
+      "spd": 106,
+      "spe": 77
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 486,
+    "name": "Regigigas",
+    "slug": "regigigas",
+    "gen": 4,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 110,
+      "atk": 160,
+      "def": 110,
+      "spa": 80,
+      "spd": 110,
+      "spe": 100
+    },
+    "bst": 670,
+    "rarity": "legendary",
+    "baseCp": 4800,
+    "baseCatchRate": 0.12
+  },
+  {
+    "id": 487,
+    "name": "Giratina",
+    "slug": "giratina",
+    "gen": 4,
+    "types": [
+      "Ghost",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 150,
+      "atk": 100,
+      "def": 120,
+      "spa": 100,
+      "spd": 120,
+      "spe": 90
+    },
+    "bst": 680,
+    "rarity": "legendary",
+    "baseCp": 4800,
+    "baseCatchRate": 0.12
+  },
+  {
+    "id": 488,
+    "name": "Cresselia",
+    "slug": "cresselia",
+    "gen": 4,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 120,
+      "atk": 70,
+      "def": 110,
+      "spa": 75,
+      "spd": 120,
+      "spe": 85
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 4035,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 489,
+    "name": "Phione",
+    "slug": "phione",
+    "gen": 4,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 80,
+      "def": 80,
+      "spa": 80,
+      "spd": 80,
+      "spe": 80
+    },
+    "bst": 480,
+    "rarity": "epic",
+    "baseCp": 2880,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 490,
+    "name": "Manaphy",
+    "slug": "manaphy",
+    "gen": 4,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 100,
+      "def": 100,
+      "spa": 100,
+      "spd": 100,
+      "spe": 100
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4500,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 491,
+    "name": "Darkrai",
+    "slug": "darkrai",
+    "gen": 4,
+    "types": [
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 90,
+      "def": 90,
+      "spa": 135,
+      "spd": 90,
+      "spe": 125
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4429,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 492,
+    "name": "Shaymin",
+    "slug": "shaymin",
+    "gen": 4,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 100,
+      "def": 100,
+      "spa": 100,
+      "spd": 100,
+      "spe": 100
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4500,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 493,
+    "name": "Arceus",
+    "slug": "arceus",
+    "gen": 4,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 120,
+      "atk": 120,
+      "def": 120,
+      "spa": 120,
+      "spd": 120,
+      "spe": 120
+    },
+    "bst": 720,
+    "rarity": "legendary",
+    "baseCp": 4800,
+    "baseCatchRate": 0.12
+  },
+  {
+    "id": 494,
+    "name": "Victini",
+    "slug": "victini",
+    "gen": 5,
+    "types": [
+      "Psychic",
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 100,
+      "def": 100,
+      "spa": 100,
+      "spd": 100,
+      "spe": 100
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4500,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 495,
+    "name": "Snivy",
+    "slug": "snivy",
+    "gen": 5,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 45,
+      "def": 55,
+      "spa": 45,
+      "spd": 55,
+      "spe": 63
+    },
+    "bst": 308,
+    "rarity": "common",
+    "baseCp": 1088,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 496,
+    "name": "Servine",
+    "slug": "servine",
+    "gen": 5,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 60,
+      "def": 75,
+      "spa": 60,
+      "spd": 75,
+      "spe": 83
+    },
+    "bst": 413,
+    "rarity": "uncommon",
+    "baseCp": 1950,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 497,
+    "name": "Serperior",
+    "slug": "serperior",
+    "gen": 5,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 75,
+      "def": 95,
+      "spa": 75,
+      "spd": 95,
+      "spe": 113
+    },
+    "bst": 528,
+    "rarity": "rare",
+    "baseCp": 3137,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 498,
+    "name": "Tepig",
+    "slug": "tepig",
+    "gen": 5,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 63,
+      "def": 45,
+      "spa": 45,
+      "spd": 45,
+      "spe": 45
+    },
+    "bst": 308,
+    "rarity": "common",
+    "baseCp": 1358,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 499,
+    "name": "Pignite",
+    "slug": "pignite",
+    "gen": 5,
+    "types": [
+      "Fire",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 93,
+      "def": 55,
+      "spa": 70,
+      "spd": 55,
+      "spe": 55
+    },
+    "bst": 418,
+    "rarity": "uncommon",
+    "baseCp": 2558,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 500,
+    "name": "Emboar",
+    "slug": "emboar",
+    "gen": 5,
+    "types": [
+      "Fire",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 110,
+      "atk": 123,
+      "def": 65,
+      "spa": 100,
+      "spd": 65,
+      "spe": 65
+    },
+    "bst": 528,
+    "rarity": "rare",
+    "baseCp": 4064,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 501,
+    "name": "Oshawott",
+    "slug": "oshawott",
+    "gen": 5,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 55,
+      "def": 45,
+      "spa": 63,
+      "spd": 45,
+      "spe": 45
+    },
+    "bst": 308,
+    "rarity": "common",
+    "baseCp": 1294,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 502,
+    "name": "Dewott",
+    "slug": "dewott",
+    "gen": 5,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 75,
+      "def": 60,
+      "spa": 83,
+      "spd": 60,
+      "spe": 60
+    },
+    "bst": 413,
+    "rarity": "uncommon",
+    "baseCp": 2318,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 503,
+    "name": "Samurott",
+    "slug": "samurott",
+    "gen": 5,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 100,
+      "def": 85,
+      "spa": 108,
+      "spd": 70,
+      "spe": 70
+    },
+    "bst": 528,
+    "rarity": "rare",
+    "baseCp": 3852,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 504,
+    "name": "Patrat",
+    "slug": "patrat",
+    "gen": 5,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 55,
+      "def": 39,
+      "spa": 35,
+      "spd": 39,
+      "spe": 42
+    },
+    "bst": 255,
+    "rarity": "common",
+    "baseCp": 913,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 505,
+    "name": "Watchog",
+    "slug": "watchog",
+    "gen": 5,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 85,
+      "def": 69,
+      "spa": 60,
+      "spd": 69,
+      "spe": 77
+    },
+    "bst": 420,
+    "rarity": "uncommon",
+    "baseCp": 2270,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 506,
+    "name": "Lillipup",
+    "slug": "lillipup",
+    "gen": 5,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 60,
+      "def": 45,
+      "spa": 25,
+      "spd": 45,
+      "spe": 55
+    },
+    "bst": 275,
+    "rarity": "common",
+    "baseCp": 1053,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 507,
+    "name": "Herdier",
+    "slug": "herdier",
+    "gen": 5,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 80,
+      "def": 65,
+      "spa": 35,
+      "spd": 65,
+      "spe": 60
+    },
+    "bst": 370,
+    "rarity": "uncommon",
+    "baseCp": 1960,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 508,
+    "name": "Stoutland",
+    "slug": "stoutland",
+    "gen": 5,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 110,
+      "def": 90,
+      "spa": 45,
+      "spd": 90,
+      "spe": 80
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3582,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 509,
+    "name": "Purrloin",
+    "slug": "purrloin",
+    "gen": 5,
+    "types": [
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 41,
+      "atk": 50,
+      "def": 37,
+      "spa": 50,
+      "spd": 37,
+      "spe": 66
+    },
+    "bst": 281,
+    "rarity": "common",
+    "baseCp": 932,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 510,
+    "name": "Liepard",
+    "slug": "liepard",
+    "gen": 5,
+    "types": [
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 64,
+      "atk": 88,
+      "def": 50,
+      "spa": 88,
+      "spd": 50,
+      "spe": 106
+    },
+    "bst": 446,
+    "rarity": "uncommon",
+    "baseCp": 2332,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 511,
+    "name": "Pansage",
+    "slug": "pansage",
+    "gen": 5,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 53,
+      "def": 48,
+      "spa": 53,
+      "spd": 48,
+      "spe": 64
+    },
+    "bst": 316,
+    "rarity": "common",
+    "baseCp": 1217,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 512,
+    "name": "Simisage",
+    "slug": "simisage",
+    "gen": 5,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 98,
+      "def": 63,
+      "spa": 98,
+      "spd": 63,
+      "spe": 101
+    },
+    "bst": 498,
+    "rarity": "rare",
+    "baseCp": 3050,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 513,
+    "name": "Pansear",
+    "slug": "pansear",
+    "gen": 5,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 53,
+      "def": 48,
+      "spa": 53,
+      "spd": 48,
+      "spe": 64
+    },
+    "bst": 316,
+    "rarity": "common",
+    "baseCp": 1217,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 514,
+    "name": "Simisear",
+    "slug": "simisear",
+    "gen": 5,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 98,
+      "def": 63,
+      "spa": 98,
+      "spd": 63,
+      "spe": 101
+    },
+    "bst": 498,
+    "rarity": "rare",
+    "baseCp": 3050,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 515,
+    "name": "Panpour",
+    "slug": "panpour",
+    "gen": 5,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 53,
+      "def": 48,
+      "spa": 53,
+      "spd": 48,
+      "spe": 64
+    },
+    "bst": 316,
+    "rarity": "common",
+    "baseCp": 1217,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 516,
+    "name": "Simipour",
+    "slug": "simipour",
+    "gen": 5,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 98,
+      "def": 63,
+      "spa": 98,
+      "spd": 63,
+      "spe": 101
+    },
+    "bst": 498,
+    "rarity": "rare",
+    "baseCp": 3050,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 517,
+    "name": "Munna",
+    "slug": "munna",
+    "gen": 5,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 76,
+      "atk": 25,
+      "def": 45,
+      "spa": 67,
+      "spd": 55,
+      "spe": 24
+    },
+    "bst": 292,
+    "rarity": "common",
+    "baseCp": 1400,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 518,
+    "name": "Musharna",
+    "slug": "musharna",
+    "gen": 5,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 116,
+      "atk": 55,
+      "def": 85,
+      "spa": 107,
+      "spd": 95,
+      "spe": 29
+    },
+    "bst": 487,
+    "rarity": "rare",
+    "baseCp": 3745,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 519,
+    "name": "Pidove",
+    "slug": "pidove",
+    "gen": 5,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 55,
+      "def": 50,
+      "spa": 36,
+      "spd": 30,
+      "spe": 43
+    },
+    "bst": 264,
+    "rarity": "common",
+    "baseCp": 1006,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 520,
+    "name": "Tranquill",
+    "slug": "tranquill",
+    "gen": 5,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 62,
+      "atk": 77,
+      "def": 62,
+      "spa": 50,
+      "spd": 42,
+      "spe": 65
+    },
+    "bst": 358,
+    "rarity": "common",
+    "baseCp": 1802,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 521,
+    "name": "Unfezant",
+    "slug": "unfezant",
+    "gen": 5,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 115,
+      "def": 80,
+      "spa": 65,
+      "spd": 55,
+      "spe": 93
+    },
+    "bst": 488,
+    "rarity": "rare",
+    "baseCp": 3388,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 522,
+    "name": "Blitzle",
+    "slug": "blitzle",
+    "gen": 5,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 60,
+      "def": 32,
+      "spa": 50,
+      "spd": 32,
+      "spe": 76
+    },
+    "bst": 295,
+    "rarity": "common",
+    "baseCp": 1045,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 523,
+    "name": "Zebstrika",
+    "slug": "zebstrika",
+    "gen": 5,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 100,
+      "def": 63,
+      "spa": 80,
+      "spd": 63,
+      "spe": 116
+    },
+    "bst": 497,
+    "rarity": "rare",
+    "baseCp": 3068,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 524,
+    "name": "Roggenrola",
+    "slug": "roggenrola",
+    "gen": 5,
+    "types": [
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 75,
+      "def": 85,
+      "spa": 25,
+      "spd": 25,
+      "spe": 15
+    },
+    "bst": 280,
+    "rarity": "common",
+    "baseCp": 1382,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 525,
+    "name": "Boldore",
+    "slug": "boldore",
+    "gen": 5,
+    "types": [
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 105,
+      "def": 105,
+      "spa": 50,
+      "spd": 40,
+      "spe": 20
+    },
+    "bst": 390,
+    "rarity": "uncommon",
+    "baseCp": 2577,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 526,
+    "name": "Gigalith",
+    "slug": "gigalith",
+    "gen": 5,
+    "types": [
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 135,
+      "def": 130,
+      "spa": 60,
+      "spd": 80,
+      "spe": 25
+    },
+    "bst": 515,
+    "rarity": "rare",
+    "baseCp": 4264,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 527,
+    "name": "Woobat",
+    "slug": "woobat",
+    "gen": 5,
+    "types": [
+      "Psychic",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 45,
+      "def": 43,
+      "spa": 55,
+      "spd": 43,
+      "spe": 72
+    },
+    "bst": 323,
+    "rarity": "common",
+    "baseCp": 1342,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 528,
+    "name": "Swoobat",
+    "slug": "swoobat",
+    "gen": 5,
+    "types": [
+      "Psychic",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 67,
+      "atk": 57,
+      "def": 55,
+      "spa": 77,
+      "spd": 55,
+      "spe": 114
+    },
+    "bst": 425,
+    "rarity": "uncommon",
+    "baseCp": 2196,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 529,
+    "name": "Drilbur",
+    "slug": "drilbur",
+    "gen": 5,
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 85,
+      "def": 40,
+      "spa": 30,
+      "spd": 45,
+      "spe": 68
+    },
+    "bst": 328,
+    "rarity": "common",
+    "baseCp": 1614,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 530,
+    "name": "Excadrill",
+    "slug": "excadrill",
+    "gen": 5,
+    "types": [
+      "Ground",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 110,
+      "atk": 135,
+      "def": 60,
+      "spa": 50,
+      "spd": 65,
+      "spe": 88
+    },
+    "bst": 508,
+    "rarity": "rare",
+    "baseCp": 4068,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 531,
+    "name": "Audino",
+    "slug": "audino",
+    "gen": 5,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 103,
+      "atk": 60,
+      "def": 86,
+      "spa": 60,
+      "spd": 86,
+      "spe": 50
+    },
+    "bst": 445,
+    "rarity": "uncommon",
+    "baseCp": 2456,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 532,
+    "name": "Timburr",
+    "slug": "timburr",
+    "gen": 5,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 80,
+      "def": 55,
+      "spa": 25,
+      "spd": 35,
+      "spe": 35
+    },
+    "bst": 305,
+    "rarity": "common",
+    "baseCp": 1603,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 533,
+    "name": "Gurdurr",
+    "slug": "gurdurr",
+    "gen": 5,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 105,
+      "def": 85,
+      "spa": 40,
+      "spd": 50,
+      "spe": 40
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 2762,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 534,
+    "name": "Conkeldurr",
+    "slug": "conkeldurr",
+    "gen": 5,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 105,
+      "atk": 140,
+      "def": 95,
+      "spa": 55,
+      "spd": 65,
+      "spe": 45
+    },
+    "bst": 505,
+    "rarity": "rare",
+    "baseCp": 4369,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 535,
+    "name": "Tympole",
+    "slug": "tympole",
+    "gen": 5,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 50,
+      "def": 40,
+      "spa": 50,
+      "spd": 40,
+      "spe": 64
+    },
+    "bst": 294,
+    "rarity": "common",
+    "baseCp": 1063,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 536,
+    "name": "Palpitoad",
+    "slug": "palpitoad",
+    "gen": 5,
+    "types": [
+      "Water",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 65,
+      "def": 55,
+      "spa": 65,
+      "spd": 55,
+      "spe": 69
+    },
+    "bst": 384,
+    "rarity": "uncommon",
+    "baseCp": 1902,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 537,
+    "name": "Seismitoad",
+    "slug": "seismitoad",
+    "gen": 5,
+    "types": [
+      "Water",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 105,
+      "atk": 95,
+      "def": 75,
+      "spa": 85,
+      "spd": 75,
+      "spe": 74
+    },
+    "bst": 509,
+    "rarity": "rare",
+    "baseCp": 3546,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 538,
+    "name": "Throh",
+    "slug": "throh",
+    "gen": 5,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 120,
+      "atk": 100,
+      "def": 85,
+      "spa": 30,
+      "spd": 85,
+      "spe": 45
+    },
+    "bst": 465,
+    "rarity": "rare",
+    "baseCp": 3408,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 539,
+    "name": "Sawk",
+    "slug": "sawk",
+    "gen": 5,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 125,
+      "def": 75,
+      "spa": 30,
+      "spd": 75,
+      "spe": 85
+    },
+    "bst": 465,
+    "rarity": "rare",
+    "baseCp": 3308,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 540,
+    "name": "Sewaddle",
+    "slug": "sewaddle",
+    "gen": 5,
+    "types": [
+      "Bug",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 53,
+      "def": 70,
+      "spa": 40,
+      "spd": 60,
+      "spe": 42
+    },
+    "bst": 310,
+    "rarity": "common",
+    "baseCp": 1182,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 541,
+    "name": "Swadloon",
+    "slug": "swadloon",
+    "gen": 5,
+    "types": [
+      "Bug",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 63,
+      "def": 90,
+      "spa": 50,
+      "spd": 80,
+      "spe": 42
+    },
+    "bst": 380,
+    "rarity": "uncommon",
+    "baseCp": 1740,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 542,
+    "name": "Leavanny",
+    "slug": "leavanny",
+    "gen": 5,
+    "types": [
+      "Bug",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 103,
+      "def": 80,
+      "spa": 70,
+      "spd": 80,
+      "spe": 92
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3283,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 543,
+    "name": "Venipede",
+    "slug": "venipede",
+    "gen": 5,
+    "types": [
+      "Bug",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 45,
+      "def": 59,
+      "spa": 30,
+      "spd": 39,
+      "spe": 57
+    },
+    "bst": 260,
+    "rarity": "common",
+    "baseCp": 781,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 544,
+    "name": "Whirlipede",
+    "slug": "whirlipede",
+    "gen": 5,
+    "types": [
+      "Bug",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 55,
+      "def": 99,
+      "spa": 40,
+      "spd": 79,
+      "spe": 47
+    },
+    "bst": 360,
+    "rarity": "common",
+    "baseCp": 1368,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 545,
+    "name": "Scolipede",
+    "slug": "scolipede",
+    "gen": 5,
+    "types": [
+      "Bug",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 100,
+      "def": 89,
+      "spa": 55,
+      "spd": 69,
+      "spe": 112
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 2930,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 546,
+    "name": "Cottonee",
+    "slug": "cottonee",
+    "gen": 5,
+    "types": [
+      "Grass",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 27,
+      "def": 60,
+      "spa": 37,
+      "spd": 50,
+      "spe": 66
+    },
+    "bst": 280,
+    "rarity": "common",
+    "baseCp": 869,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 547,
+    "name": "Whimsicott",
+    "slug": "whimsicott",
+    "gen": 5,
+    "types": [
+      "Grass",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 67,
+      "def": 85,
+      "spa": 77,
+      "spd": 75,
+      "spe": 116
+    },
+    "bst": 480,
+    "rarity": "rare",
+    "baseCp": 2597,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 548,
+    "name": "Petilil",
+    "slug": "petilil",
+    "gen": 5,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 35,
+      "def": 50,
+      "spa": 70,
+      "spd": 50,
+      "spe": 30
+    },
+    "bst": 280,
+    "rarity": "common",
+    "baseCp": 1174,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 549,
+    "name": "Lilligant",
+    "slug": "lilligant",
+    "gen": 5,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 60,
+      "def": 75,
+      "spa": 110,
+      "spd": 75,
+      "spe": 90
+    },
+    "bst": 480,
+    "rarity": "rare",
+    "baseCp": 3130,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 550,
+    "name": "Basculin",
+    "slug": "basculin",
+    "gen": 5,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 92,
+      "def": 65,
+      "spa": 80,
+      "spd": 55,
+      "spe": 98
+    },
+    "bst": 460,
+    "rarity": "rare",
+    "baseCp": 2670,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 551,
+    "name": "Sandile",
+    "slug": "sandile",
+    "gen": 5,
+    "types": [
+      "Ground",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 72,
+      "def": 35,
+      "spa": 35,
+      "spd": 35,
+      "spe": 65
+    },
+    "bst": 292,
+    "rarity": "common",
+    "baseCp": 1190,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 552,
+    "name": "Krokorok",
+    "slug": "krokorok",
+    "gen": 5,
+    "types": [
+      "Ground",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 82,
+      "def": 45,
+      "spa": 45,
+      "spd": 45,
+      "spe": 74
+    },
+    "bst": 351,
+    "rarity": "common",
+    "baseCp": 1707,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 553,
+    "name": "Krookodile",
+    "slug": "krookodile",
+    "gen": 5,
+    "types": [
+      "Ground",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 117,
+      "def": 80,
+      "spa": 65,
+      "spd": 70,
+      "spe": 92
+    },
+    "bst": 519,
+    "rarity": "rare",
+    "baseCp": 3885,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 554,
+    "name": "Darumaka",
+    "slug": "darumaka",
+    "gen": 5,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 90,
+      "def": 45,
+      "spa": 15,
+      "spd": 45,
+      "spe": 50
+    },
+    "bst": 315,
+    "rarity": "common",
+    "baseCp": 1692,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 555,
+    "name": "Darmanitan",
+    "slug": "darmanitan",
+    "gen": 5,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 105,
+      "atk": 140,
+      "def": 55,
+      "spa": 30,
+      "spd": 55,
+      "spe": 95
+    },
+    "bst": 480,
+    "rarity": "rare",
+    "baseCp": 3728,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 556,
+    "name": "Maractus",
+    "slug": "maractus",
+    "gen": 5,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 86,
+      "def": 67,
+      "spa": 106,
+      "spd": 67,
+      "spe": 60
+    },
+    "bst": 461,
+    "rarity": "rare",
+    "baseCp": 2960,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 557,
+    "name": "Dwebble",
+    "slug": "dwebble",
+    "gen": 5,
+    "types": [
+      "Bug",
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 65,
+      "def": 85,
+      "spa": 35,
+      "spd": 35,
+      "spe": 55
+    },
+    "bst": 325,
+    "rarity": "common",
+    "baseCp": 1463,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 558,
+    "name": "Crustle",
+    "slug": "crustle",
+    "gen": 5,
+    "types": [
+      "Bug",
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 105,
+      "def": 125,
+      "spa": 65,
+      "spd": 75,
+      "spe": 45
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 3280,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 559,
+    "name": "Scraggy",
+    "slug": "scraggy",
+    "gen": 5,
+    "types": [
+      "Dark",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 75,
+      "def": 70,
+      "spa": 35,
+      "spd": 70,
+      "spe": 48
+    },
+    "bst": 348,
+    "rarity": "common",
+    "baseCp": 1640,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 560,
+    "name": "Scrafty",
+    "slug": "scrafty",
+    "gen": 5,
+    "types": [
+      "Dark",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 90,
+      "def": 115,
+      "spa": 45,
+      "spd": 115,
+      "spe": 58
+    },
+    "bst": 488,
+    "rarity": "rare",
+    "baseCp": 2903,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 561,
+    "name": "Sigilyph",
+    "slug": "sigilyph",
+    "gen": 5,
+    "types": [
+      "Psychic",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 72,
+      "atk": 58,
+      "def": 80,
+      "spa": 103,
+      "spd": 80,
+      "spe": 97
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 3170,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 562,
+    "name": "Yamask",
+    "slug": "yamask",
+    "gen": 5,
+    "types": [
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 38,
+      "atk": 30,
+      "def": 85,
+      "spa": 55,
+      "spd": 65,
+      "spe": 30
+    },
+    "bst": 303,
+    "rarity": "common",
+    "baseCp": 1095,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 563,
+    "name": "Cofagrigus",
+    "slug": "cofagrigus",
+    "gen": 5,
+    "types": [
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 58,
+      "atk": 50,
+      "def": 145,
+      "spa": 95,
+      "spd": 105,
+      "spe": 30
+    },
+    "bst": 483,
+    "rarity": "rare",
+    "baseCp": 2841,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 564,
+    "name": "Tirtouga",
+    "slug": "tirtouga",
+    "gen": 5,
+    "types": [
+      "Water",
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 54,
+      "atk": 78,
+      "def": 103,
+      "spa": 53,
+      "spd": 45,
+      "spe": 22
+    },
+    "bst": 355,
+    "rarity": "common",
+    "baseCp": 1825,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 565,
+    "name": "Carracosta",
+    "slug": "carracosta",
+    "gen": 5,
+    "types": [
+      "Water",
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 74,
+      "atk": 108,
+      "def": 133,
+      "spa": 83,
+      "spd": 65,
+      "spe": 32
+    },
+    "bst": 495,
+    "rarity": "rare",
+    "baseCp": 3496,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 566,
+    "name": "Archen",
+    "slug": "archen",
+    "gen": 5,
+    "types": [
+      "Rock",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 112,
+      "def": 45,
+      "spa": 74,
+      "spd": 45,
+      "spe": 70
+    },
+    "bst": 401,
+    "rarity": "uncommon",
+    "baseCp": 2149,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 567,
+    "name": "Archeops",
+    "slug": "archeops",
+    "gen": 5,
+    "types": [
+      "Rock",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 140,
+      "def": 65,
+      "spa": 112,
+      "spd": 65,
+      "spe": 110
+    },
+    "bst": 567,
+    "rarity": "epic",
+    "baseCp": 4035,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 568,
+    "name": "Trubbish",
+    "slug": "trubbish",
+    "gen": 5,
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 50,
+      "def": 62,
+      "spa": 40,
+      "spd": 62,
+      "spe": 65
+    },
+    "bst": 329,
+    "rarity": "common",
+    "baseCp": 1278,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 569,
+    "name": "Garbodor",
+    "slug": "garbodor",
+    "gen": 5,
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 95,
+      "def": 82,
+      "spa": 60,
+      "spd": 82,
+      "spe": 75
+    },
+    "bst": 474,
+    "rarity": "rare",
+    "baseCp": 3062,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 570,
+    "name": "Zorua",
+    "slug": "zorua",
+    "gen": 5,
+    "types": [
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 65,
+      "def": 40,
+      "spa": 80,
+      "spd": 40,
+      "spe": 65
+    },
+    "bst": 330,
+    "rarity": "common",
+    "baseCp": 1332,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 571,
+    "name": "Zoroark",
+    "slug": "zoroark",
+    "gen": 5,
+    "types": [
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 105,
+      "def": 60,
+      "spa": 120,
+      "spd": 60,
+      "spe": 105
+    },
+    "bst": 510,
+    "rarity": "rare",
+    "baseCp": 3078,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 572,
+    "name": "Minccino",
+    "slug": "minccino",
+    "gen": 5,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 50,
+      "def": 40,
+      "spa": 40,
+      "spd": 40,
+      "spe": 75
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 1119,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 573,
+    "name": "Cinccino",
+    "slug": "cinccino",
+    "gen": 5,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 95,
+      "def": 60,
+      "spa": 65,
+      "spd": 60,
+      "spe": 115
+    },
+    "bst": 470,
+    "rarity": "rare",
+    "baseCp": 2807,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 574,
+    "name": "Gothita",
+    "slug": "gothita",
+    "gen": 5,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 30,
+      "def": 50,
+      "spa": 55,
+      "spd": 65,
+      "spe": 45
+    },
+    "bst": 290,
+    "rarity": "common",
+    "baseCp": 1113,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 575,
+    "name": "Gothorita",
+    "slug": "gothorita",
+    "gen": 5,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 45,
+      "def": 70,
+      "spa": 75,
+      "spd": 85,
+      "spe": 55
+    },
+    "bst": 390,
+    "rarity": "uncommon",
+    "baseCp": 2014,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 576,
+    "name": "Gothitelle",
+    "slug": "gothitelle",
+    "gen": 5,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 55,
+      "def": 95,
+      "spa": 95,
+      "spd": 110,
+      "spe": 65
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 3110,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 577,
+    "name": "Solosis",
+    "slug": "solosis",
+    "gen": 5,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 30,
+      "def": 40,
+      "spa": 105,
+      "spd": 50,
+      "spe": 20
+    },
+    "bst": 290,
+    "rarity": "common",
+    "baseCp": 1495,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 578,
+    "name": "Duosion",
+    "slug": "duosion",
+    "gen": 5,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 40,
+      "def": 50,
+      "spa": 125,
+      "spd": 60,
+      "spe": 30
+    },
+    "bst": 370,
+    "rarity": "uncommon",
+    "baseCp": 2417,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 579,
+    "name": "Reuniclus",
+    "slug": "reuniclus",
+    "gen": 5,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 110,
+      "atk": 65,
+      "def": 75,
+      "spa": 125,
+      "spd": 85,
+      "spe": 30
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 3992,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 580,
+    "name": "Ducklett",
+    "slug": "ducklett",
+    "gen": 5,
+    "types": [
+      "Water",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 62,
+      "atk": 44,
+      "def": 50,
+      "spa": 44,
+      "spd": 50,
+      "spe": 55
+    },
+    "bst": 305,
+    "rarity": "common",
+    "baseCp": 1157,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 581,
+    "name": "Swanna",
+    "slug": "swanna",
+    "gen": 5,
+    "types": [
+      "Water",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 87,
+      "def": 63,
+      "spa": 87,
+      "spd": 63,
+      "spe": 98
+    },
+    "bst": 473,
+    "rarity": "rare",
+    "baseCp": 2759,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 582,
+    "name": "Vanillite",
+    "slug": "vanillite",
+    "gen": 5,
+    "types": [
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 36,
+      "atk": 50,
+      "def": 50,
+      "spa": 65,
+      "spd": 60,
+      "spe": 44
+    },
+    "bst": 305,
+    "rarity": "common",
+    "baseCp": 1168,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 583,
+    "name": "Vanillish",
+    "slug": "vanillish",
+    "gen": 5,
+    "types": [
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 51,
+      "atk": 65,
+      "def": 65,
+      "spa": 80,
+      "spd": 75,
+      "spe": 59
+    },
+    "bst": 395,
+    "rarity": "uncommon",
+    "baseCp": 1971,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 584,
+    "name": "Vanilluxe",
+    "slug": "vanilluxe",
+    "gen": 5,
+    "types": [
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 71,
+      "atk": 95,
+      "def": 85,
+      "spa": 110,
+      "spd": 95,
+      "spe": 79
+    },
+    "bst": 535,
+    "rarity": "epic",
+    "baseCp": 3646,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 585,
+    "name": "Deerling",
+    "slug": "deerling",
+    "gen": 5,
+    "types": [
+      "Normal",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 60,
+      "def": 50,
+      "spa": 40,
+      "spd": 50,
+      "spe": 75
+    },
+    "bst": 335,
+    "rarity": "common",
+    "baseCp": 1454,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 586,
+    "name": "Sawsbuck",
+    "slug": "sawsbuck",
+    "gen": 5,
+    "types": [
+      "Normal",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 100,
+      "def": 70,
+      "spa": 60,
+      "spd": 70,
+      "spe": 95
+    },
+    "bst": 475,
+    "rarity": "rare",
+    "baseCp": 3065,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 587,
+    "name": "Emolga",
+    "slug": "emolga",
+    "gen": 5,
+    "types": [
+      "Electric",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 75,
+      "def": 60,
+      "spa": 75,
+      "spd": 60,
+      "spe": 103
+    },
+    "bst": 428,
+    "rarity": "uncommon",
+    "baseCp": 2084,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 588,
+    "name": "Karrablast",
+    "slug": "karrablast",
+    "gen": 5,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 75,
+      "def": 45,
+      "spa": 40,
+      "spd": 45,
+      "spe": 60
+    },
+    "bst": 315,
+    "rarity": "common",
+    "baseCp": 1388,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 589,
+    "name": "Escavalier",
+    "slug": "escavalier",
+    "gen": 5,
+    "types": [
+      "Bug",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 135,
+      "def": 105,
+      "spa": 60,
+      "spd": 105,
+      "spe": 20
+    },
+    "bst": 495,
+    "rarity": "rare",
+    "baseCp": 3742,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 590,
+    "name": "Foongus",
+    "slug": "foongus",
+    "gen": 5,
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 69,
+      "atk": 55,
+      "def": 45,
+      "spa": 55,
+      "spd": 55,
+      "spe": 15
+    },
+    "bst": 294,
+    "rarity": "common",
+    "baseCp": 1255,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 591,
+    "name": "Amoonguss",
+    "slug": "amoonguss",
+    "gen": 5,
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 114,
+      "atk": 85,
+      "def": 70,
+      "spa": 85,
+      "spd": 80,
+      "spe": 30
+    },
+    "bst": 464,
+    "rarity": "rare",
+    "baseCp": 3100,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 592,
+    "name": "Frillish",
+    "slug": "frillish",
+    "gen": 5,
+    "types": [
+      "Water",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 40,
+      "def": 50,
+      "spa": 65,
+      "spd": 85,
+      "spe": 40
+    },
+    "bst": 335,
+    "rarity": "common",
+    "baseCp": 1546,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 593,
+    "name": "Jellicent",
+    "slug": "jellicent",
+    "gen": 5,
+    "types": [
+      "Water",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 60,
+      "def": 70,
+      "spa": 85,
+      "spd": 105,
+      "spe": 60
+    },
+    "bst": 480,
+    "rarity": "rare",
+    "baseCp": 3219,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 594,
+    "name": "Alomomola",
+    "slug": "alomomola",
+    "gen": 5,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 165,
+      "atk": 75,
+      "def": 80,
+      "spa": 40,
+      "spd": 45,
+      "spe": 65
+    },
+    "bst": 470,
+    "rarity": "rare",
+    "baseCp": 3100,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 595,
+    "name": "Joltik",
+    "slug": "joltik",
+    "gen": 5,
+    "types": [
+      "Bug",
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 47,
+      "def": 50,
+      "spa": 57,
+      "spd": 50,
+      "spe": 65
+    },
+    "bst": 319,
+    "rarity": "common",
+    "baseCp": 1274,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 596,
+    "name": "Galvantula",
+    "slug": "galvantula",
+    "gen": 5,
+    "types": [
+      "Bug",
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 77,
+      "def": 60,
+      "spa": 97,
+      "spd": 60,
+      "spe": 108
+    },
+    "bst": 472,
+    "rarity": "rare",
+    "baseCp": 2777,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 597,
+    "name": "Ferroseed",
+    "slug": "ferroseed",
+    "gen": 5,
+    "types": [
+      "Grass",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 44,
+      "atk": 50,
+      "def": 91,
+      "spa": 24,
+      "spd": 86,
+      "spe": 10
+    },
+    "bst": 305,
+    "rarity": "common",
+    "baseCp": 1036,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 598,
+    "name": "Ferrothorn",
+    "slug": "ferrothorn",
+    "gen": 5,
+    "types": [
+      "Grass",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 74,
+      "atk": 94,
+      "def": 131,
+      "spa": 54,
+      "spd": 116,
+      "spe": 20
+    },
+    "bst": 489,
+    "rarity": "rare",
+    "baseCp": 3082,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 599,
+    "name": "Klink",
+    "slug": "klink",
+    "gen": 5,
+    "types": [
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 55,
+      "def": 70,
+      "spa": 45,
+      "spd": 60,
+      "spe": 30
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 1110,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 600,
+    "name": "Klang",
+    "slug": "klang",
+    "gen": 5,
+    "types": [
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 80,
+      "def": 95,
+      "spa": 70,
+      "spd": 85,
+      "spe": 50
+    },
+    "bst": 440,
+    "rarity": "uncommon",
+    "baseCp": 2394,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 601,
+    "name": "Klinklang",
+    "slug": "klinklang",
+    "gen": 5,
+    "types": [
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 100,
+      "def": 115,
+      "spa": 70,
+      "spd": 85,
+      "spe": 90
+    },
+    "bst": 520,
+    "rarity": "rare",
+    "baseCp": 3254,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 602,
+    "name": "Tynamo",
+    "slug": "tynamo",
+    "gen": 5,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 55,
+      "def": 40,
+      "spa": 45,
+      "spd": 40,
+      "spe": 60
+    },
+    "bst": 275,
+    "rarity": "common",
+    "baseCp": 909,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 603,
+    "name": "Eelektrik",
+    "slug": "eelektrik",
+    "gen": 5,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 85,
+      "def": 70,
+      "spa": 75,
+      "spd": 70,
+      "spe": 40
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 2246,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 604,
+    "name": "Eelektross",
+    "slug": "eelektross",
+    "gen": 5,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 115,
+      "def": 80,
+      "spa": 105,
+      "spd": 80,
+      "spe": 50
+    },
+    "bst": 515,
+    "rarity": "rare",
+    "baseCp": 3711,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 605,
+    "name": "Elgyem",
+    "slug": "elgyem",
+    "gen": 5,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 55,
+      "def": 55,
+      "spa": 85,
+      "spd": 55,
+      "spe": 30
+    },
+    "bst": 335,
+    "rarity": "common",
+    "baseCp": 1683,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 606,
+    "name": "Beheeyem",
+    "slug": "beheeyem",
+    "gen": 5,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 75,
+      "def": 75,
+      "spa": 125,
+      "spd": 95,
+      "spe": 40
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 3562,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 607,
+    "name": "Litwick",
+    "slug": "litwick",
+    "gen": 5,
+    "types": [
+      "Ghost",
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 30,
+      "def": 55,
+      "spa": 65,
+      "spd": 55,
+      "spe": 20
+    },
+    "bst": 275,
+    "rarity": "common",
+    "baseCp": 1157,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 608,
+    "name": "Lampent",
+    "slug": "lampent",
+    "gen": 5,
+    "types": [
+      "Ghost",
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 40,
+      "def": 60,
+      "spa": 95,
+      "spd": 60,
+      "spe": 55
+    },
+    "bst": 370,
+    "rarity": "uncommon",
+    "baseCp": 2052,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 609,
+    "name": "Chandelure",
+    "slug": "chandelure",
+    "gen": 5,
+    "types": [
+      "Ghost",
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 55,
+      "def": 90,
+      "spa": 145,
+      "spd": 90,
+      "spe": 80
+    },
+    "bst": 520,
+    "rarity": "rare",
+    "baseCp": 3770,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 610,
+    "name": "Axew",
+    "slug": "axew",
+    "gen": 5,
+    "types": [
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 46,
+      "atk": 87,
+      "def": 60,
+      "spa": 30,
+      "spd": 40,
+      "spe": 57
+    },
+    "bst": 320,
+    "rarity": "common",
+    "baseCp": 1532,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 611,
+    "name": "Fraxure",
+    "slug": "fraxure",
+    "gen": 5,
+    "types": [
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 66,
+      "atk": 117,
+      "def": 70,
+      "spa": 40,
+      "spd": 50,
+      "spe": 67
+    },
+    "bst": 410,
+    "rarity": "uncommon",
+    "baseCp": 2637,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 612,
+    "name": "Haxorus",
+    "slug": "haxorus",
+    "gen": 5,
+    "types": [
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 76,
+      "atk": 147,
+      "def": 90,
+      "spa": 60,
+      "spd": 70,
+      "spe": 97
+    },
+    "bst": 540,
+    "rarity": "epic",
+    "baseCp": 4249,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 613,
+    "name": "Cubchoo",
+    "slug": "cubchoo",
+    "gen": 5,
+    "types": [
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 70,
+      "def": 40,
+      "spa": 60,
+      "spd": 40,
+      "spe": 40
+    },
+    "bst": 305,
+    "rarity": "common",
+    "baseCp": 1309,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 614,
+    "name": "Beartic",
+    "slug": "beartic",
+    "gen": 5,
+    "types": [
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 130,
+      "def": 80,
+      "spa": 70,
+      "spd": 80,
+      "spe": 50
+    },
+    "bst": 505,
+    "rarity": "rare",
+    "baseCp": 4001,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 615,
+    "name": "Cryogonal",
+    "slug": "cryogonal",
+    "gen": 5,
+    "types": [
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 50,
+      "def": 50,
+      "spa": 95,
+      "spd": 135,
+      "spe": 105
+    },
+    "bst": 515,
+    "rarity": "rare",
+    "baseCp": 3560,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 616,
+    "name": "Shelmet",
+    "slug": "shelmet",
+    "gen": 5,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 40,
+      "def": 85,
+      "spa": 40,
+      "spd": 65,
+      "spe": 25
+    },
+    "bst": 305,
+    "rarity": "common",
+    "baseCp": 1033,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 617,
+    "name": "Accelgor",
+    "slug": "accelgor",
+    "gen": 5,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 70,
+      "def": 40,
+      "spa": 100,
+      "spd": 60,
+      "spe": 145
+    },
+    "bst": 495,
+    "rarity": "rare",
+    "baseCp": 2990,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 618,
+    "name": "Stunfisk",
+    "slug": "stunfisk",
+    "gen": 5,
+    "types": [
+      "Ground",
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 109,
+      "atk": 66,
+      "def": 84,
+      "spa": 81,
+      "spd": 99,
+      "spe": 32
+    },
+    "bst": 471,
+    "rarity": "rare",
+    "baseCp": 3090,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 619,
+    "name": "Mienfoo",
+    "slug": "mienfoo",
+    "gen": 5,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 85,
+      "def": 50,
+      "spa": 55,
+      "spd": 50,
+      "spe": 65
+    },
+    "bst": 350,
+    "rarity": "common",
+    "baseCp": 1601,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 620,
+    "name": "Mienshao",
+    "slug": "mienshao",
+    "gen": 5,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 125,
+      "def": 60,
+      "spa": 95,
+      "spd": 60,
+      "spe": 105
+    },
+    "bst": 510,
+    "rarity": "rare",
+    "baseCp": 3232,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 621,
+    "name": "Druddigon",
+    "slug": "druddigon",
+    "gen": 5,
+    "types": [
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 77,
+      "atk": 120,
+      "def": 90,
+      "spa": 60,
+      "spd": 90,
+      "spe": 48
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 3506,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 622,
+    "name": "Golett",
+    "slug": "golett",
+    "gen": 5,
+    "types": [
+      "Ground",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 59,
+      "atk": 74,
+      "def": 50,
+      "spa": 35,
+      "spd": 50,
+      "spe": 35
+    },
+    "bst": 303,
+    "rarity": "common",
+    "baseCp": 1427,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 623,
+    "name": "Golurk",
+    "slug": "golurk",
+    "gen": 5,
+    "types": [
+      "Ground",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 89,
+      "atk": 124,
+      "def": 80,
+      "spa": 55,
+      "spd": 80,
+      "spe": 55
+    },
+    "bst": 483,
+    "rarity": "rare",
+    "baseCp": 3660,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 624,
+    "name": "Pawniard",
+    "slug": "pawniard",
+    "gen": 5,
+    "types": [
+      "Dark",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 85,
+      "def": 70,
+      "spa": 40,
+      "spd": 40,
+      "spe": 60
+    },
+    "bst": 340,
+    "rarity": "common",
+    "baseCp": 1633,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 625,
+    "name": "Bisharp",
+    "slug": "bisharp",
+    "gen": 5,
+    "types": [
+      "Dark",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 125,
+      "def": 100,
+      "spa": 60,
+      "spd": 70,
+      "spe": 70
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 3437,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 626,
+    "name": "Bouffalant",
+    "slug": "bouffalant",
+    "gen": 5,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 110,
+      "def": 95,
+      "spa": 40,
+      "spd": 95,
+      "spe": 55
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 3634,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 627,
+    "name": "Rufflet",
+    "slug": "rufflet",
+    "gen": 5,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 83,
+      "def": 50,
+      "spa": 37,
+      "spd": 50,
+      "spe": 60
+    },
+    "bst": 350,
+    "rarity": "common",
+    "baseCp": 1842,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 628,
+    "name": "Braviary",
+    "slug": "braviary",
+    "gen": 5,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 123,
+      "def": 75,
+      "spa": 57,
+      "spd": 75,
+      "spe": 80
+    },
+    "bst": 510,
+    "rarity": "rare",
+    "baseCp": 3944,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 629,
+    "name": "Vullaby",
+    "slug": "vullaby",
+    "gen": 5,
+    "types": [
+      "Dark",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 55,
+      "def": 75,
+      "spa": 45,
+      "spd": 65,
+      "spe": 60
+    },
+    "bst": 370,
+    "rarity": "uncommon",
+    "baseCp": 1713,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 630,
+    "name": "Mandibuzz",
+    "slug": "mandibuzz",
+    "gen": 5,
+    "types": [
+      "Dark",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 110,
+      "atk": 65,
+      "def": 105,
+      "spa": 55,
+      "spd": 95,
+      "spe": 80
+    },
+    "bst": 510,
+    "rarity": "rare",
+    "baseCp": 3130,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 631,
+    "name": "Heatmor",
+    "slug": "heatmor",
+    "gen": 5,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 97,
+      "def": 66,
+      "spa": 105,
+      "spd": 66,
+      "spe": 65
+    },
+    "bst": 484,
+    "rarity": "rare",
+    "baseCp": 3216,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 632,
+    "name": "Durant",
+    "slug": "durant",
+    "gen": 5,
+    "types": [
+      "Bug",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 58,
+      "atk": 109,
+      "def": 112,
+      "spa": 48,
+      "spd": 48,
+      "spe": 109
+    },
+    "bst": 484,
+    "rarity": "rare",
+    "baseCp": 3083,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 633,
+    "name": "Deino",
+    "slug": "deino",
+    "gen": 5,
+    "types": [
+      "Dark",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 52,
+      "atk": 65,
+      "def": 50,
+      "spa": 45,
+      "spd": 50,
+      "spe": 38
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 1276,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 634,
+    "name": "Zweilous",
+    "slug": "zweilous",
+    "gen": 5,
+    "types": [
+      "Dark",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 72,
+      "atk": 85,
+      "def": 70,
+      "spa": 65,
+      "spd": 70,
+      "spe": 58
+    },
+    "bst": 420,
+    "rarity": "uncommon",
+    "baseCp": 2416,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 635,
+    "name": "Hydreigon",
+    "slug": "hydreigon",
+    "gen": 5,
+    "types": [
+      "Dark",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 92,
+      "atk": 105,
+      "def": 90,
+      "spa": 125,
+      "spd": 90,
+      "spe": 98
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4733,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 636,
+    "name": "Larvesta",
+    "slug": "larvesta",
+    "gen": 5,
+    "types": [
+      "Bug",
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 85,
+      "def": 55,
+      "spa": 50,
+      "spd": 55,
+      "spe": 60
+    },
+    "bst": 360,
+    "rarity": "common",
+    "baseCp": 1807,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 637,
+    "name": "Volcarona",
+    "slug": "volcarona",
+    "gen": 5,
+    "types": [
+      "Bug",
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 60,
+      "def": 65,
+      "spa": 135,
+      "spd": 105,
+      "spe": 100
+    },
+    "bst": 550,
+    "rarity": "epic",
+    "baseCp": 4423,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 638,
+    "name": "Cobalion",
+    "slug": "cobalion",
+    "gen": 5,
+    "types": [
+      "Steel",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 91,
+      "atk": 90,
+      "def": 129,
+      "spa": 90,
+      "spd": 72,
+      "spe": 108
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 4141,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 639,
+    "name": "Terrakion",
+    "slug": "terrakion",
+    "gen": 5,
+    "types": [
+      "Rock",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 91,
+      "atk": 129,
+      "def": 90,
+      "spa": 72,
+      "spd": 90,
+      "spe": 108
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 4618,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 640,
+    "name": "Virizion",
+    "slug": "virizion",
+    "gen": 5,
+    "types": [
+      "Grass",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 91,
+      "atk": 90,
+      "def": 72,
+      "spa": 90,
+      "spd": 129,
+      "spe": 108
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 4141,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 641,
+    "name": "Tornadus",
+    "slug": "tornadus",
+    "gen": 5,
+    "types": [
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 79,
+      "atk": 115,
+      "def": 70,
+      "spa": 125,
+      "spd": 80,
+      "spe": 111
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 4191,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 642,
+    "name": "Thundurus",
+    "slug": "thundurus",
+    "gen": 5,
+    "types": [
+      "Electric",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 79,
+      "atk": 115,
+      "def": 70,
+      "spa": 125,
+      "spd": 80,
+      "spe": 111
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 4191,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 643,
+    "name": "Reshiram",
+    "slug": "reshiram",
+    "gen": 5,
+    "types": [
+      "Dragon",
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 120,
+      "def": 100,
+      "spa": 150,
+      "spd": 120,
+      "spe": 90
+    },
+    "bst": 680,
+    "rarity": "legendary",
+    "baseCp": 4800,
+    "baseCatchRate": 0.12
+  },
+  {
+    "id": 644,
+    "name": "Zekrom",
+    "slug": "zekrom",
+    "gen": 5,
+    "types": [
+      "Dragon",
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 150,
+      "def": 120,
+      "spa": 120,
+      "spd": 100,
+      "spe": 90
+    },
+    "bst": 680,
+    "rarity": "legendary",
+    "baseCp": 4800,
+    "baseCatchRate": 0.12
+  },
+  {
+    "id": 645,
+    "name": "Landorus",
+    "slug": "landorus",
+    "gen": 5,
+    "types": [
+      "Ground",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 89,
+      "atk": 125,
+      "def": 90,
+      "spa": 115,
+      "spd": 80,
+      "spe": 101
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4653,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 646,
+    "name": "Kyurem",
+    "slug": "kyurem",
+    "gen": 5,
+    "types": [
+      "Dragon",
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 125,
+      "atk": 130,
+      "def": 90,
+      "spa": 130,
+      "spd": 90,
+      "spe": 95
+    },
+    "bst": 660,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 647,
+    "name": "Keldeo",
+    "slug": "keldeo",
+    "gen": 5,
+    "types": [
+      "Water",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 91,
+      "atk": 72,
+      "def": 90,
+      "spa": 129,
+      "spd": 90,
+      "spe": 108
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 4618,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 648,
+    "name": "Meloetta",
+    "slug": "meloetta",
+    "gen": 5,
+    "types": [
+      "Normal",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 77,
+      "def": 77,
+      "spa": 128,
+      "spd": 128,
+      "spe": 90
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 649,
+    "name": "Genesect",
+    "slug": "genesect",
+    "gen": 5,
+    "types": [
+      "Bug",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 71,
+      "atk": 120,
+      "def": 95,
+      "spa": 120,
+      "spd": 95,
+      "spe": 99
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4280,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 650,
+    "name": "Chespin",
+    "slug": "chespin",
+    "gen": 6,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 56,
+      "atk": 61,
+      "def": 65,
+      "spa": 48,
+      "spd": 45,
+      "spe": 38
+    },
+    "bst": 313,
+    "rarity": "common",
+    "baseCp": 1368,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 651,
+    "name": "Quilladin",
+    "slug": "quilladin",
+    "gen": 6,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 61,
+      "atk": 78,
+      "def": 95,
+      "spa": 56,
+      "spd": 58,
+      "spe": 57
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 2184,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 652,
+    "name": "Chesnaught",
+    "slug": "chesnaught",
+    "gen": 6,
+    "types": [
+      "Grass",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 88,
+      "atk": 107,
+      "def": 122,
+      "spa": 74,
+      "spd": 75,
+      "spe": 64
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 3937,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 653,
+    "name": "Fennekin",
+    "slug": "fennekin",
+    "gen": 6,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 45,
+      "def": 40,
+      "spa": 62,
+      "spd": 60,
+      "spe": 60
+    },
+    "bst": 307,
+    "rarity": "common",
+    "baseCp": 1194,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 654,
+    "name": "Braixen",
+    "slug": "braixen",
+    "gen": 6,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 59,
+      "atk": 59,
+      "def": 58,
+      "spa": 90,
+      "spd": 70,
+      "spe": 73
+    },
+    "bst": 409,
+    "rarity": "uncommon",
+    "baseCp": 2244,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 655,
+    "name": "Delphox",
+    "slug": "delphox",
+    "gen": 6,
+    "types": [
+      "Fire",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 69,
+      "def": 72,
+      "spa": 114,
+      "spd": 100,
+      "spe": 104
+    },
+    "bst": 534,
+    "rarity": "epic",
+    "baseCp": 3783,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 656,
+    "name": "Froakie",
+    "slug": "froakie",
+    "gen": 6,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 41,
+      "atk": 56,
+      "def": 40,
+      "spa": 62,
+      "spd": 44,
+      "spe": 71
+    },
+    "bst": 314,
+    "rarity": "common",
+    "baseCp": 1175,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 657,
+    "name": "Frogadier",
+    "slug": "frogadier",
+    "gen": 6,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 54,
+      "atk": 63,
+      "def": 52,
+      "spa": 83,
+      "spd": 56,
+      "spe": 97
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 1995,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 658,
+    "name": "Greninja",
+    "slug": "greninja",
+    "gen": 6,
+    "types": [
+      "Water",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 72,
+      "atk": 95,
+      "def": 67,
+      "spa": 103,
+      "spd": 71,
+      "spe": 122
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 3346,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 659,
+    "name": "Bunnelby",
+    "slug": "bunnelby",
+    "gen": 6,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 38,
+      "atk": 36,
+      "def": 38,
+      "spa": 32,
+      "spd": 36,
+      "spe": 57
+    },
+    "bst": 237,
+    "rarity": "common",
+    "baseCp": 667,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 660,
+    "name": "Diggersby",
+    "slug": "diggersby",
+    "gen": 6,
+    "types": [
+      "Normal",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 56,
+      "def": 77,
+      "spa": 50,
+      "spd": 77,
+      "spe": 78
+    },
+    "bst": 423,
+    "rarity": "uncommon",
+    "baseCp": 2156,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 661,
+    "name": "Fletchling",
+    "slug": "fletchling",
+    "gen": 6,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 50,
+      "def": 43,
+      "spa": 40,
+      "spd": 38,
+      "spe": 62
+    },
+    "bst": 278,
+    "rarity": "common",
+    "baseCp": 974,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 662,
+    "name": "Fletchinder",
+    "slug": "fletchinder",
+    "gen": 6,
+    "types": [
+      "Fire",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 62,
+      "atk": 73,
+      "def": 55,
+      "spa": 56,
+      "spd": 52,
+      "spe": 84
+    },
+    "bst": 382,
+    "rarity": "uncommon",
+    "baseCp": 1866,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 663,
+    "name": "Talonflame",
+    "slug": "talonflame",
+    "gen": 6,
+    "types": [
+      "Fire",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 78,
+      "atk": 81,
+      "def": 71,
+      "spa": 74,
+      "spd": 69,
+      "spe": 126
+    },
+    "bst": 499,
+    "rarity": "rare",
+    "baseCp": 2950,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 664,
+    "name": "Scatterbug",
+    "slug": "scatterbug",
+    "gen": 6,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 38,
+      "atk": 35,
+      "def": 40,
+      "spa": 27,
+      "spd": 25,
+      "spe": 35
+    },
+    "bst": 200,
+    "rarity": "common",
+    "baseCp": 540,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 665,
+    "name": "Spewpa",
+    "slug": "spewpa",
+    "gen": 6,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 22,
+      "def": 60,
+      "spa": 27,
+      "spd": 30,
+      "spe": 29
+    },
+    "bst": 213,
+    "rarity": "common",
+    "baseCp": 552,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 666,
+    "name": "Vivillon",
+    "slug": "vivillon",
+    "gen": 6,
+    "types": [
+      "Bug",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 52,
+      "def": 50,
+      "spa": 90,
+      "spd": 50,
+      "spe": 89
+    },
+    "bst": 411,
+    "rarity": "uncommon",
+    "baseCp": 2339,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 667,
+    "name": "Litleo",
+    "slug": "litleo",
+    "gen": 6,
+    "types": [
+      "Fire",
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 62,
+      "atk": 50,
+      "def": 58,
+      "spa": 73,
+      "spd": 54,
+      "spe": 72
+    },
+    "bst": 369,
+    "rarity": "common",
+    "baseCp": 1814,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 668,
+    "name": "Pyroar",
+    "slug": "pyroar",
+    "gen": 6,
+    "types": [
+      "Fire",
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 86,
+      "atk": 68,
+      "def": 72,
+      "spa": 109,
+      "spd": 66,
+      "spe": 106
+    },
+    "bst": 507,
+    "rarity": "rare",
+    "baseCp": 3488,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 669,
+    "name": "Flabe\\u0301be\\u0301",
+    "slug": "flabe-u0301be-u0301",
+    "gen": 6,
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 44,
+      "atk": 38,
+      "def": 39,
+      "spa": 61,
+      "spd": 79,
+      "spe": 42
+    },
+    "bst": 303,
+    "rarity": "common",
+    "baseCp": 1247,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 670,
+    "name": "Floette",
+    "slug": "floette",
+    "gen": 6,
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 54,
+      "atk": 45,
+      "def": 47,
+      "spa": 75,
+      "spd": 98,
+      "spe": 52
+    },
+    "bst": 371,
+    "rarity": "uncommon",
+    "baseCp": 1876,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 671,
+    "name": "Florges",
+    "slug": "florges",
+    "gen": 6,
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 78,
+      "atk": 65,
+      "def": 68,
+      "spa": 112,
+      "spd": 154,
+      "spe": 75
+    },
+    "bst": 552,
+    "rarity": "epic",
+    "baseCp": 4137,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 672,
+    "name": "Skiddo",
+    "slug": "skiddo",
+    "gen": 6,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 66,
+      "atk": 65,
+      "def": 48,
+      "spa": 62,
+      "spd": 57,
+      "spe": 52
+    },
+    "bst": 350,
+    "rarity": "common",
+    "baseCp": 1651,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 673,
+    "name": "Gogoat",
+    "slug": "gogoat",
+    "gen": 6,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 123,
+      "atk": 100,
+      "def": 62,
+      "spa": 97,
+      "spd": 81,
+      "spe": 68
+    },
+    "bst": 531,
+    "rarity": "epic",
+    "baseCp": 3976,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 674,
+    "name": "Pancham",
+    "slug": "pancham",
+    "gen": 6,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 67,
+      "atk": 82,
+      "def": 62,
+      "spa": 46,
+      "spd": 48,
+      "spe": 43
+    },
+    "bst": 348,
+    "rarity": "common",
+    "baseCp": 1853,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 675,
+    "name": "Pangoro",
+    "slug": "pangoro",
+    "gen": 6,
+    "types": [
+      "Fighting",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 124,
+      "def": 78,
+      "spa": 69,
+      "spd": 71,
+      "spe": 58
+    },
+    "bst": 495,
+    "rarity": "rare",
+    "baseCp": 3796,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 676,
+    "name": "Furfrou",
+    "slug": "furfrou",
+    "gen": 6,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 80,
+      "def": 60,
+      "spa": 65,
+      "spd": 90,
+      "spe": 102
+    },
+    "bst": 472,
+    "rarity": "rare",
+    "baseCp": 2802,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 677,
+    "name": "Espurr",
+    "slug": "espurr",
+    "gen": 6,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 62,
+      "atk": 48,
+      "def": 54,
+      "spa": 63,
+      "spd": 60,
+      "spe": 68
+    },
+    "bst": 355,
+    "rarity": "common",
+    "baseCp": 1641,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 678,
+    "name": "Meowstic",
+    "slug": "meowstic",
+    "gen": 6,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 74,
+      "atk": 48,
+      "def": 76,
+      "spa": 83,
+      "spd": 81,
+      "spe": 104
+    },
+    "bst": 466,
+    "rarity": "rare",
+    "baseCp": 2759,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 679,
+    "name": "Honedge",
+    "slug": "honedge",
+    "gen": 6,
+    "types": [
+      "Steel",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 80,
+      "def": 100,
+      "spa": 35,
+      "spd": 37,
+      "spe": 28
+    },
+    "bst": 325,
+    "rarity": "common",
+    "baseCp": 1582,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 680,
+    "name": "Doublade",
+    "slug": "doublade",
+    "gen": 6,
+    "types": [
+      "Steel",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 59,
+      "atk": 110,
+      "def": 150,
+      "spa": 45,
+      "spd": 49,
+      "spe": 35
+    },
+    "bst": 448,
+    "rarity": "uncommon",
+    "baseCp": 2967,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 681,
+    "name": "Aegislash",
+    "slug": "aegislash",
+    "gen": 6,
+    "types": [
+      "Steel",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 50,
+      "def": 140,
+      "spa": 50,
+      "spd": 140,
+      "spe": 60
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 2145,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 682,
+    "name": "Spritzee",
+    "slug": "spritzee",
+    "gen": 6,
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 78,
+      "atk": 52,
+      "def": 60,
+      "spa": 63,
+      "spd": 65,
+      "spe": 23
+    },
+    "bst": 341,
+    "rarity": "common",
+    "baseCp": 1666,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 683,
+    "name": "Aromatisse",
+    "slug": "aromatisse",
+    "gen": 6,
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 101,
+      "atk": 72,
+      "def": 72,
+      "spa": 99,
+      "spd": 89,
+      "spe": 29
+    },
+    "bst": 462,
+    "rarity": "rare",
+    "baseCp": 3263,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 684,
+    "name": "Swirlix",
+    "slug": "swirlix",
+    "gen": 6,
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 62,
+      "atk": 48,
+      "def": 66,
+      "spa": 59,
+      "spd": 57,
+      "spe": 49
+    },
+    "bst": 341,
+    "rarity": "common",
+    "baseCp": 1534,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 685,
+    "name": "Slurpuff",
+    "slug": "slurpuff",
+    "gen": 6,
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 82,
+      "atk": 80,
+      "def": 86,
+      "spa": 85,
+      "spd": 75,
+      "spe": 72
+    },
+    "bst": 480,
+    "rarity": "rare",
+    "baseCp": 2996,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 686,
+    "name": "Inkay",
+    "slug": "inkay",
+    "gen": 6,
+    "types": [
+      "Dark",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 53,
+      "atk": 54,
+      "def": 53,
+      "spa": 37,
+      "spd": 46,
+      "spe": 45
+    },
+    "bst": 288,
+    "rarity": "common",
+    "baseCp": 1133,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 687,
+    "name": "Malamar",
+    "slug": "malamar",
+    "gen": 6,
+    "types": [
+      "Dark",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 86,
+      "atk": 92,
+      "def": 88,
+      "spa": 68,
+      "spd": 75,
+      "spe": 73
+    },
+    "bst": 482,
+    "rarity": "rare",
+    "baseCp": 3167,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 688,
+    "name": "Binacle",
+    "slug": "binacle",
+    "gen": 6,
+    "types": [
+      "Rock",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 42,
+      "atk": 52,
+      "def": 67,
+      "spa": 39,
+      "spd": 56,
+      "spe": 50
+    },
+    "bst": 306,
+    "rarity": "common",
+    "baseCp": 1130,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 689,
+    "name": "Barbaracle",
+    "slug": "barbaracle",
+    "gen": 6,
+    "types": [
+      "Rock",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 72,
+      "atk": 105,
+      "def": 115,
+      "spa": 54,
+      "spd": 86,
+      "spe": 68
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3394,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 690,
+    "name": "Skrelp",
+    "slug": "skrelp",
+    "gen": 6,
+    "types": [
+      "Poison",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 60,
+      "def": 60,
+      "spa": 60,
+      "spd": 60,
+      "spe": 30
+    },
+    "bst": 320,
+    "rarity": "common",
+    "baseCp": 1331,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 691,
+    "name": "Dragalge",
+    "slug": "dragalge",
+    "gen": 6,
+    "types": [
+      "Poison",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 75,
+      "def": 90,
+      "spa": 97,
+      "spd": 123,
+      "spe": 44
+    },
+    "bst": 494,
+    "rarity": "rare",
+    "baseCp": 3118,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 692,
+    "name": "Clauncher",
+    "slug": "clauncher",
+    "gen": 6,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 53,
+      "def": 62,
+      "spa": 58,
+      "spd": 63,
+      "spe": 44
+    },
+    "bst": 330,
+    "rarity": "common",
+    "baseCp": 1364,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 693,
+    "name": "Clawitzer",
+    "slug": "clawitzer",
+    "gen": 6,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 71,
+      "atk": 73,
+      "def": 88,
+      "spa": 120,
+      "spd": 89,
+      "spe": 59
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3512,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 694,
+    "name": "Helioptile",
+    "slug": "helioptile",
+    "gen": 6,
+    "types": [
+      "Electric",
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 44,
+      "atk": 38,
+      "def": 33,
+      "spa": 61,
+      "spd": 43,
+      "spe": 70
+    },
+    "bst": 289,
+    "rarity": "common",
+    "baseCp": 1085,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 695,
+    "name": "Heliolisk",
+    "slug": "heliolisk",
+    "gen": 6,
+    "types": [
+      "Electric",
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 62,
+      "atk": 55,
+      "def": 52,
+      "spa": 109,
+      "spd": 94,
+      "spe": 109
+    },
+    "bst": 481,
+    "rarity": "rare",
+    "baseCp": 3057,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 696,
+    "name": "Tyrunt",
+    "slug": "tyrunt",
+    "gen": 6,
+    "types": [
+      "Rock",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 58,
+      "atk": 89,
+      "def": 77,
+      "spa": 45,
+      "spd": 45,
+      "spe": 48
+    },
+    "bst": 362,
+    "rarity": "common",
+    "baseCp": 1977,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 697,
+    "name": "Tyrantrum",
+    "slug": "tyrantrum",
+    "gen": 6,
+    "types": [
+      "Rock",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 82,
+      "atk": 121,
+      "def": 119,
+      "spa": 69,
+      "spd": 59,
+      "spe": 71
+    },
+    "bst": 521,
+    "rarity": "rare",
+    "baseCp": 3996,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 698,
+    "name": "Amaura",
+    "slug": "amaura",
+    "gen": 6,
+    "types": [
+      "Rock",
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 77,
+      "atk": 59,
+      "def": 50,
+      "spa": 67,
+      "spd": 63,
+      "spe": 46
+    },
+    "bst": 362,
+    "rarity": "common",
+    "baseCp": 1837,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 699,
+    "name": "Aurorus",
+    "slug": "aurorus",
+    "gen": 6,
+    "types": [
+      "Rock",
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 123,
+      "atk": 77,
+      "def": 72,
+      "spa": 99,
+      "spd": 92,
+      "spe": 58
+    },
+    "bst": 521,
+    "rarity": "rare",
+    "baseCp": 3952,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 700,
+    "name": "Sylveon",
+    "slug": "sylveon",
+    "gen": 6,
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 65,
+      "def": 65,
+      "spa": 110,
+      "spd": 130,
+      "spe": 60
+    },
+    "bst": 525,
+    "rarity": "rare",
+    "baseCp": 4071,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 701,
+    "name": "Hawlucha",
+    "slug": "hawlucha",
+    "gen": 6,
+    "types": [
+      "Fighting",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 78,
+      "atk": 92,
+      "def": 75,
+      "spa": 74,
+      "spd": 63,
+      "spe": 118
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3117,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 702,
+    "name": "Dedenne",
+    "slug": "dedenne",
+    "gen": 6,
+    "types": [
+      "Electric",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 67,
+      "atk": 58,
+      "def": 57,
+      "spa": 81,
+      "spd": 67,
+      "spe": 101
+    },
+    "bst": 431,
+    "rarity": "uncommon",
+    "baseCp": 2351,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 703,
+    "name": "Carbink",
+    "slug": "carbink",
+    "gen": 6,
+    "types": [
+      "Rock",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 50,
+      "def": 150,
+      "spa": 50,
+      "spd": 150,
+      "spe": 50
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 1949,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 704,
+    "name": "Goomy",
+    "slug": "goomy",
+    "gen": 6,
+    "types": [
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 50,
+      "def": 35,
+      "spa": 55,
+      "spd": 75,
+      "spe": 40
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 1183,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 705,
+    "name": "Sliggoo",
+    "slug": "sliggoo",
+    "gen": 6,
+    "types": [
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 68,
+      "atk": 75,
+      "def": 53,
+      "spa": 83,
+      "spd": 113,
+      "spe": 60
+    },
+    "bst": 452,
+    "rarity": "uncommon",
+    "baseCp": 2688,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 706,
+    "name": "Goodra",
+    "slug": "goodra",
+    "gen": 6,
+    "types": [
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 100,
+      "def": 70,
+      "spa": 110,
+      "spd": 150,
+      "spe": 80
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4730,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 707,
+    "name": "Klefki",
+    "slug": "klefki",
+    "gen": 6,
+    "types": [
+      "Steel",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 57,
+      "atk": 80,
+      "def": 91,
+      "spa": 80,
+      "spd": 87,
+      "spe": 75
+    },
+    "bst": 470,
+    "rarity": "rare",
+    "baseCp": 2538,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 708,
+    "name": "Phantump",
+    "slug": "phantump",
+    "gen": 6,
+    "types": [
+      "Ghost",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 43,
+      "atk": 70,
+      "def": 48,
+      "spa": 50,
+      "spd": 60,
+      "spe": 38
+    },
+    "bst": 309,
+    "rarity": "common",
+    "baseCp": 1307,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 709,
+    "name": "Trevenant",
+    "slug": "trevenant",
+    "gen": 6,
+    "types": [
+      "Ghost",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 110,
+      "def": 76,
+      "spa": 65,
+      "spd": 82,
+      "spe": 56
+    },
+    "bst": 474,
+    "rarity": "rare",
+    "baseCp": 3339,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 710,
+    "name": "Pumpkaboo",
+    "slug": "pumpkaboo",
+    "gen": 6,
+    "types": [
+      "Ghost",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 49,
+      "atk": 66,
+      "def": 70,
+      "spa": 44,
+      "spd": 55,
+      "spe": 51
+    },
+    "bst": 335,
+    "rarity": "common",
+    "baseCp": 1477,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 711,
+    "name": "Gourgeist",
+    "slug": "gourgeist",
+    "gen": 6,
+    "types": [
+      "Ghost",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 90,
+      "def": 122,
+      "spa": 58,
+      "spd": 75,
+      "spe": 84
+    },
+    "bst": 494,
+    "rarity": "rare",
+    "baseCp": 3037,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 712,
+    "name": "Bergmite",
+    "slug": "bergmite",
+    "gen": 6,
+    "types": [
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 69,
+      "def": 85,
+      "spa": 32,
+      "spd": 35,
+      "spe": 28
+    },
+    "bst": 304,
+    "rarity": "common",
+    "baseCp": 1436,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 713,
+    "name": "Avalugg",
+    "slug": "avalugg",
+    "gen": 6,
+    "types": [
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 117,
+      "def": 184,
+      "spa": 44,
+      "spd": 46,
+      "spe": 28
+    },
+    "bst": 514,
+    "rarity": "rare",
+    "baseCp": 4211,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 714,
+    "name": "Noibat",
+    "slug": "noibat",
+    "gen": 6,
+    "types": [
+      "Flying",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 30,
+      "def": 35,
+      "spa": 45,
+      "spd": 40,
+      "spe": 55
+    },
+    "bst": 245,
+    "rarity": "common",
+    "baseCp": 772,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 715,
+    "name": "Noivern",
+    "slug": "noivern",
+    "gen": 6,
+    "types": [
+      "Flying",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 70,
+      "def": 80,
+      "spa": 97,
+      "spd": 80,
+      "spe": 123
+    },
+    "bst": 535,
+    "rarity": "epic",
+    "baseCp": 3592,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 716,
+    "name": "Xerneas",
+    "slug": "xerneas",
+    "gen": 6,
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 126,
+      "atk": 131,
+      "def": 95,
+      "spa": 131,
+      "spd": 98,
+      "spe": 99
+    },
+    "bst": 680,
+    "rarity": "legendary",
+    "baseCp": 4800,
+    "baseCatchRate": 0.12
+  },
+  {
+    "id": 717,
+    "name": "Yveltal",
+    "slug": "yveltal",
+    "gen": 6,
+    "types": [
+      "Dark",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 126,
+      "atk": 131,
+      "def": 95,
+      "spa": 131,
+      "spd": 98,
+      "spe": 99
+    },
+    "bst": 680,
+    "rarity": "legendary",
+    "baseCp": 4800,
+    "baseCatchRate": 0.12
+  },
+  {
+    "id": 718,
+    "name": "Zygarde",
+    "slug": "zygarde",
+    "gen": 6,
+    "types": [
+      "Dragon",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 108,
+      "atk": 100,
+      "def": 121,
+      "spa": 81,
+      "spd": 95,
+      "spe": 95
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4682,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 719,
+    "name": "Diancie",
+    "slug": "diancie",
+    "gen": 6,
+    "types": [
+      "Rock",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 100,
+      "def": 150,
+      "spa": 100,
+      "spd": 150,
+      "spe": 50
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 3507,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 720,
+    "name": "Hoopa",
+    "slug": "hoopa",
+    "gen": 6,
+    "types": [
+      "Psychic",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 110,
+      "def": 60,
+      "spa": 150,
+      "spd": 130,
+      "spe": 70
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 721,
+    "name": "Volcanion",
+    "slug": "volcanion",
+    "gen": 6,
+    "types": [
+      "Fire",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 110,
+      "def": 120,
+      "spa": 130,
+      "spd": 90,
+      "spe": 70
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4768,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 722,
+    "name": "Rowlet",
+    "slug": "rowlet",
+    "gen": 7,
+    "types": [
+      "Grass",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 68,
+      "atk": 55,
+      "def": 55,
+      "spa": 50,
+      "spd": 50,
+      "spe": 42
+    },
+    "bst": 320,
+    "rarity": "common",
+    "baseCp": 1389,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 723,
+    "name": "Dartrix",
+    "slug": "dartrix",
+    "gen": 7,
+    "types": [
+      "Grass",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 78,
+      "atk": 75,
+      "def": 75,
+      "spa": 70,
+      "spd": 70,
+      "spe": 52
+    },
+    "bst": 420,
+    "rarity": "uncommon",
+    "baseCp": 2356,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 724,
+    "name": "Decidueye",
+    "slug": "decidueye",
+    "gen": 7,
+    "types": [
+      "Grass",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 78,
+      "atk": 107,
+      "def": 75,
+      "spa": 100,
+      "spd": 100,
+      "spe": 70
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 3703,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 725,
+    "name": "Litten",
+    "slug": "litten",
+    "gen": 7,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 65,
+      "def": 40,
+      "spa": 60,
+      "spd": 40,
+      "spe": 70
+    },
+    "bst": 320,
+    "rarity": "common",
+    "baseCp": 1241,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 726,
+    "name": "Torracat",
+    "slug": "torracat",
+    "gen": 7,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 85,
+      "def": 50,
+      "spa": 80,
+      "spd": 50,
+      "spe": 90
+    },
+    "bst": 420,
+    "rarity": "uncommon",
+    "baseCp": 2181,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 727,
+    "name": "Incineroar",
+    "slug": "incineroar",
+    "gen": 7,
+    "types": [
+      "Fire",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 115,
+      "def": 90,
+      "spa": 80,
+      "spd": 90,
+      "spe": 60
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 4037,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 728,
+    "name": "Popplio",
+    "slug": "popplio",
+    "gen": 7,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 54,
+      "def": 54,
+      "spa": 66,
+      "spd": 56,
+      "spe": 40
+    },
+    "bst": 320,
+    "rarity": "common",
+    "baseCp": 1381,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 729,
+    "name": "Brionne",
+    "slug": "brionne",
+    "gen": 7,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 69,
+      "def": 69,
+      "spa": 91,
+      "spd": 81,
+      "spe": 50
+    },
+    "bst": 420,
+    "rarity": "uncommon",
+    "baseCp": 2386,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 730,
+    "name": "Primarina",
+    "slug": "primarina",
+    "gen": 7,
+    "types": [
+      "Water",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 74,
+      "def": 74,
+      "spa": 126,
+      "spd": 116,
+      "spe": 60
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 4105,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 731,
+    "name": "Pikipek",
+    "slug": "pikipek",
+    "gen": 7,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 75,
+      "def": 30,
+      "spa": 30,
+      "spd": 30,
+      "spe": 65
+    },
+    "bst": 265,
+    "rarity": "common",
+    "baseCp": 933,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 732,
+    "name": "Trumbeak",
+    "slug": "trumbeak",
+    "gen": 7,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 85,
+      "def": 50,
+      "spa": 40,
+      "spd": 50,
+      "spe": 75
+    },
+    "bst": 355,
+    "rarity": "common",
+    "baseCp": 1746,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 733,
+    "name": "Toucannon",
+    "slug": "toucannon",
+    "gen": 7,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 120,
+      "def": 75,
+      "spa": 75,
+      "spd": 75,
+      "spe": 60
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 3451,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 734,
+    "name": "Yungoos",
+    "slug": "yungoos",
+    "gen": 7,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 48,
+      "atk": 70,
+      "def": 30,
+      "spa": 30,
+      "spd": 30,
+      "spe": 45
+    },
+    "bst": 253,
+    "rarity": "common",
+    "baseCp": 973,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 735,
+    "name": "Gumshoos",
+    "slug": "gumshoos",
+    "gen": 7,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 88,
+      "atk": 110,
+      "def": 60,
+      "spa": 55,
+      "spd": 60,
+      "spe": 45
+    },
+    "bst": 418,
+    "rarity": "uncommon",
+    "baseCp": 2813,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 736,
+    "name": "Grubbin",
+    "slug": "grubbin",
+    "gen": 7,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 47,
+      "atk": 62,
+      "def": 45,
+      "spa": 55,
+      "spd": 45,
+      "spe": 46
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 1188,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 737,
+    "name": "Charjabug",
+    "slug": "charjabug",
+    "gen": 7,
+    "types": [
+      "Bug",
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 57,
+      "atk": 82,
+      "def": 95,
+      "spa": 55,
+      "spd": 75,
+      "spe": 36
+    },
+    "bst": 400,
+    "rarity": "uncommon",
+    "baseCp": 2136,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 738,
+    "name": "Vikavolt",
+    "slug": "vikavolt",
+    "gen": 7,
+    "types": [
+      "Bug",
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 77,
+      "atk": 70,
+      "def": 90,
+      "spa": 145,
+      "spd": 75,
+      "spe": 43
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3966,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 739,
+    "name": "Crabrawler",
+    "slug": "crabrawler",
+    "gen": 7,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 47,
+      "atk": 82,
+      "def": 57,
+      "spa": 42,
+      "spd": 47,
+      "spe": 63
+    },
+    "bst": 338,
+    "rarity": "common",
+    "baseCp": 1577,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 740,
+    "name": "Crabominable",
+    "slug": "crabominable",
+    "gen": 7,
+    "types": [
+      "Fighting",
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 97,
+      "atk": 132,
+      "def": 77,
+      "spa": 62,
+      "spd": 67,
+      "spe": 43
+    },
+    "bst": 478,
+    "rarity": "rare",
+    "baseCp": 3794,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 741,
+    "name": "Oricorio",
+    "slug": "oricorio",
+    "gen": 7,
+    "types": [
+      "Fire",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 70,
+      "def": 70,
+      "spa": 98,
+      "spd": 70,
+      "spe": 93
+    },
+    "bst": 476,
+    "rarity": "rare",
+    "baseCp": 2980,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 742,
+    "name": "Cutiefly",
+    "slug": "cutiefly",
+    "gen": 7,
+    "types": [
+      "Bug",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 45,
+      "def": 40,
+      "spa": 55,
+      "spd": 40,
+      "spe": 84
+    },
+    "bst": 304,
+    "rarity": "common",
+    "baseCp": 1058,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 743,
+    "name": "Ribombee",
+    "slug": "ribombee",
+    "gen": 7,
+    "types": [
+      "Bug",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 55,
+      "def": 60,
+      "spa": 95,
+      "spd": 70,
+      "spe": 124
+    },
+    "bst": 464,
+    "rarity": "rare",
+    "baseCp": 2628,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 744,
+    "name": "Rockruff",
+    "slug": "rockruff",
+    "gen": 7,
+    "types": [
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 65,
+      "def": 40,
+      "spa": 30,
+      "spd": 40,
+      "spe": 60
+    },
+    "bst": 280,
+    "rarity": "common",
+    "baseCp": 1088,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 745,
+    "name": "Lycanroc",
+    "slug": "lycanroc",
+    "gen": 7,
+    "types": [
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 115,
+      "def": 65,
+      "spa": 55,
+      "spd": 65,
+      "spe": 112
+    },
+    "bst": 487,
+    "rarity": "rare",
+    "baseCp": 3218,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 746,
+    "name": "Wishiwashi",
+    "slug": "wishiwashi",
+    "gen": 7,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 20,
+      "def": 20,
+      "spa": 25,
+      "spd": 25,
+      "spe": 40
+    },
+    "bst": 175,
+    "rarity": "common",
+    "baseCp": 391,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 747,
+    "name": "Mareanie",
+    "slug": "mareanie",
+    "gen": 7,
+    "types": [
+      "Poison",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 53,
+      "def": 62,
+      "spa": 43,
+      "spd": 52,
+      "spe": 45
+    },
+    "bst": 305,
+    "rarity": "common",
+    "baseCp": 1197,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 748,
+    "name": "Toxapex",
+    "slug": "toxapex",
+    "gen": 7,
+    "types": [
+      "Poison",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 63,
+      "def": 152,
+      "spa": 53,
+      "spd": 142,
+      "spe": 35
+    },
+    "bst": 495,
+    "rarity": "rare",
+    "baseCp": 2145,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 749,
+    "name": "Mudbray",
+    "slug": "mudbray",
+    "gen": 7,
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 100,
+      "def": 70,
+      "spa": 45,
+      "spd": 55,
+      "spe": 45
+    },
+    "bst": 385,
+    "rarity": "uncommon",
+    "baseCp": 2349,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 750,
+    "name": "Mudsdale",
+    "slug": "mudsdale",
+    "gen": 7,
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 125,
+      "def": 100,
+      "spa": 55,
+      "spd": 85,
+      "spe": 35
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 4057,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 751,
+    "name": "Dewpider",
+    "slug": "dewpider",
+    "gen": 7,
+    "types": [
+      "Water",
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 38,
+      "atk": 40,
+      "def": 52,
+      "spa": 40,
+      "spd": 72,
+      "spe": 27
+    },
+    "bst": 269,
+    "rarity": "common",
+    "baseCp": 830,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 752,
+    "name": "Araquanid",
+    "slug": "araquanid",
+    "gen": 7,
+    "types": [
+      "Water",
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 68,
+      "atk": 70,
+      "def": 92,
+      "spa": 50,
+      "spd": 132,
+      "spe": 42
+    },
+    "bst": 454,
+    "rarity": "uncommon",
+    "baseCp": 2414,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 753,
+    "name": "Fomantis",
+    "slug": "fomantis",
+    "gen": 7,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 55,
+      "def": 35,
+      "spa": 50,
+      "spd": 35,
+      "spe": 35
+    },
+    "bst": 250,
+    "rarity": "common",
+    "baseCp": 842,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 754,
+    "name": "Lurantis",
+    "slug": "lurantis",
+    "gen": 7,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 105,
+      "def": 90,
+      "spa": 80,
+      "spd": 90,
+      "spe": 45
+    },
+    "bst": 480,
+    "rarity": "rare",
+    "baseCp": 3143,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 755,
+    "name": "Morelull",
+    "slug": "morelull",
+    "gen": 7,
+    "types": [
+      "Grass",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 35,
+      "def": 55,
+      "spa": 65,
+      "spd": 75,
+      "spe": 15
+    },
+    "bst": 285,
+    "rarity": "common",
+    "baseCp": 1141,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 756,
+    "name": "Shiinotic",
+    "slug": "shiinotic",
+    "gen": 7,
+    "types": [
+      "Grass",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 45,
+      "def": 80,
+      "spa": 90,
+      "spd": 100,
+      "spe": 30
+    },
+    "bst": 405,
+    "rarity": "uncommon",
+    "baseCp": 2307,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 757,
+    "name": "Salandit",
+    "slug": "salandit",
+    "gen": 7,
+    "types": [
+      "Poison",
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 48,
+      "atk": 44,
+      "def": 40,
+      "spa": 71,
+      "spd": 40,
+      "spe": 77
+    },
+    "bst": 320,
+    "rarity": "common",
+    "baseCp": 1318,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 758,
+    "name": "Salazzle",
+    "slug": "salazzle",
+    "gen": 7,
+    "types": [
+      "Poison",
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 68,
+      "atk": 64,
+      "def": 60,
+      "spa": 111,
+      "spd": 60,
+      "spe": 117
+    },
+    "bst": 480,
+    "rarity": "rare",
+    "baseCp": 2955,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 759,
+    "name": "Stufful",
+    "slug": "stufful",
+    "gen": 7,
+    "types": [
+      "Normal",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 75,
+      "def": 50,
+      "spa": 45,
+      "spd": 50,
+      "spe": 50
+    },
+    "bst": 340,
+    "rarity": "common",
+    "baseCp": 1704,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 760,
+    "name": "Bewear",
+    "slug": "bewear",
+    "gen": 7,
+    "types": [
+      "Normal",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 120,
+      "atk": 125,
+      "def": 80,
+      "spa": 55,
+      "spd": 60,
+      "spe": 60
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 4100,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 761,
+    "name": "Bounsweet",
+    "slug": "bounsweet",
+    "gen": 7,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 42,
+      "atk": 30,
+      "def": 38,
+      "spa": 30,
+      "spd": 38,
+      "spe": 32
+    },
+    "bst": 210,
+    "rarity": "common",
+    "baseCp": 546,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 762,
+    "name": "Steenee",
+    "slug": "steenee",
+    "gen": 7,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 52,
+      "atk": 40,
+      "def": 48,
+      "spa": 40,
+      "spd": 48,
+      "spe": 62
+    },
+    "bst": 290,
+    "rarity": "common",
+    "baseCp": 998,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 763,
+    "name": "Tsareena",
+    "slug": "tsareena",
+    "gen": 7,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 72,
+      "atk": 120,
+      "def": 98,
+      "spa": 50,
+      "spd": 98,
+      "spe": 72
+    },
+    "bst": 510,
+    "rarity": "rare",
+    "baseCp": 3644,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 764,
+    "name": "Comfey",
+    "slug": "comfey",
+    "gen": 7,
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 51,
+      "atk": 52,
+      "def": 90,
+      "spa": 82,
+      "spd": 110,
+      "spe": 100
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 2584,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 765,
+    "name": "Oranguru",
+    "slug": "oranguru",
+    "gen": 7,
+    "types": [
+      "Normal",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 60,
+      "def": 80,
+      "spa": 90,
+      "spd": 110,
+      "spe": 60
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 3297,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 766,
+    "name": "Passimian",
+    "slug": "passimian",
+    "gen": 7,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 120,
+      "def": 90,
+      "spa": 40,
+      "spd": 60,
+      "spe": 80
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 3815,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 767,
+    "name": "Wimpod",
+    "slug": "wimpod",
+    "gen": 7,
+    "types": [
+      "Bug",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 25,
+      "atk": 35,
+      "def": 40,
+      "spa": 20,
+      "spd": 30,
+      "spe": 80
+    },
+    "bst": 230,
+    "rarity": "common",
+    "baseCp": 554,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 768,
+    "name": "Golisopod",
+    "slug": "golisopod",
+    "gen": 7,
+    "types": [
+      "Bug",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 125,
+      "def": 140,
+      "spa": 60,
+      "spd": 90,
+      "spe": 40
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 4055,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 769,
+    "name": "Sandygast",
+    "slug": "sandygast",
+    "gen": 7,
+    "types": [
+      "Ghost",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 55,
+      "def": 80,
+      "spa": 70,
+      "spd": 45,
+      "spe": 15
+    },
+    "bst": 320,
+    "rarity": "common",
+    "baseCp": 1518,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 770,
+    "name": "Palossand",
+    "slug": "palossand",
+    "gen": 7,
+    "types": [
+      "Ghost",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 75,
+      "def": 110,
+      "spa": 100,
+      "spd": 75,
+      "spe": 35
+    },
+    "bst": 480,
+    "rarity": "rare",
+    "baseCp": 3334,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 771,
+    "name": "Pyukumuku",
+    "slug": "pyukumuku",
+    "gen": 7,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 60,
+      "def": 130,
+      "spa": 30,
+      "spd": 130,
+      "spe": 5
+    },
+    "bst": 410,
+    "rarity": "uncommon",
+    "baseCp": 1636,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 772,
+    "name": "Type: Null",
+    "slug": "type-null",
+    "gen": 7,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 95,
+      "def": 95,
+      "spa": 95,
+      "spd": 95,
+      "spe": 59
+    },
+    "bst": 534,
+    "rarity": "epic",
+    "baseCp": 3753,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 773,
+    "name": "Silvally",
+    "slug": "silvally",
+    "gen": 7,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 95,
+      "def": 95,
+      "spa": 95,
+      "spd": 95,
+      "spe": 95
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4062,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 774,
+    "name": "Minior",
+    "slug": "minior",
+    "gen": 7,
+    "types": [
+      "Rock",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 100,
+      "def": 60,
+      "spa": 100,
+      "spd": 60,
+      "spe": 120
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 2808,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 775,
+    "name": "Komala",
+    "slug": "komala",
+    "gen": 7,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 115,
+      "def": 65,
+      "spa": 75,
+      "spd": 95,
+      "spe": 65
+    },
+    "bst": 480,
+    "rarity": "rare",
+    "baseCp": 3206,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 776,
+    "name": "Turtonator",
+    "slug": "turtonator",
+    "gen": 7,
+    "types": [
+      "Fire",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 78,
+      "def": 135,
+      "spa": 91,
+      "spd": 85,
+      "spe": 36
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 2894,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 777,
+    "name": "Togedemaru",
+    "slug": "togedemaru",
+    "gen": 7,
+    "types": [
+      "Electric",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 98,
+      "def": 63,
+      "spa": 40,
+      "spd": 73,
+      "spe": 96
+    },
+    "bst": 435,
+    "rarity": "uncommon",
+    "baseCp": 2592,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 778,
+    "name": "Mimikyu",
+    "slug": "mimikyu",
+    "gen": 7,
+    "types": [
+      "Ghost",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 90,
+      "def": 80,
+      "spa": 50,
+      "spd": 105,
+      "spe": 96
+    },
+    "bst": 476,
+    "rarity": "rare",
+    "baseCp": 2706,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 779,
+    "name": "Bruxish",
+    "slug": "bruxish",
+    "gen": 7,
+    "types": [
+      "Water",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 68,
+      "atk": 105,
+      "def": 70,
+      "spa": 70,
+      "spd": 70,
+      "spe": 92
+    },
+    "bst": 475,
+    "rarity": "rare",
+    "baseCp": 2962,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 780,
+    "name": "Drampa",
+    "slug": "drampa",
+    "gen": 7,
+    "types": [
+      "Normal",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 78,
+      "atk": 60,
+      "def": 85,
+      "spa": 135,
+      "spd": 91,
+      "spe": 36
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 3749,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 781,
+    "name": "Dhelmise",
+    "slug": "dhelmise",
+    "gen": 7,
+    "types": [
+      "Ghost",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 131,
+      "def": 100,
+      "spa": 86,
+      "spd": 90,
+      "spe": 40
+    },
+    "bst": 517,
+    "rarity": "rare",
+    "baseCp": 3830,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 782,
+    "name": "Jangmo-o",
+    "slug": "jangmo-o",
+    "gen": 7,
+    "types": [
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 55,
+      "def": 65,
+      "spa": 45,
+      "spd": 45,
+      "spe": 45
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 1162,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 783,
+    "name": "Hakamo-o",
+    "slug": "hakamo-o",
+    "gen": 7,
+    "types": [
+      "Dragon",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 75,
+      "def": 90,
+      "spa": 65,
+      "spd": 70,
+      "spe": 65
+    },
+    "bst": 420,
+    "rarity": "uncommon",
+    "baseCp": 2146,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 784,
+    "name": "Kommo-o",
+    "slug": "kommo-o",
+    "gen": 7,
+    "types": [
+      "Dragon",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 110,
+      "def": 125,
+      "spa": 100,
+      "spd": 105,
+      "spe": 85
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4342,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 785,
+    "name": "Tapu Koko",
+    "slug": "tapu-koko",
+    "gen": 7,
+    "types": [
+      "Electric",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 115,
+      "def": 85,
+      "spa": 95,
+      "spd": 75,
+      "spe": 130
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 3863,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 786,
+    "name": "Tapu Lele",
+    "slug": "tapu-lele",
+    "gen": 7,
+    "types": [
+      "Psychic",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 85,
+      "def": 75,
+      "spa": 130,
+      "spd": 115,
+      "spe": 95
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4271,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 787,
+    "name": "Tapu Bulu",
+    "slug": "tapu-bulu",
+    "gen": 7,
+    "types": [
+      "Grass",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 130,
+      "def": 115,
+      "spa": 85,
+      "spd": 95,
+      "spe": 75
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4284,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 788,
+    "name": "Tapu Fini",
+    "slug": "tapu-fini",
+    "gen": 7,
+    "types": [
+      "Water",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 75,
+      "def": 115,
+      "spa": 95,
+      "spd": 130,
+      "spe": 85
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 3731,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 789,
+    "name": "Cosmog",
+    "slug": "cosmog",
+    "gen": 7,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 43,
+      "atk": 29,
+      "def": 31,
+      "spa": 29,
+      "spd": 31,
+      "spe": 37
+    },
+    "bst": 200,
+    "rarity": "epic",
+    "baseCp": 503,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 790,
+    "name": "Cosmoem",
+    "slug": "cosmoem",
+    "gen": 7,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 43,
+      "atk": 29,
+      "def": 131,
+      "spa": 29,
+      "spd": 131,
+      "spe": 37
+    },
+    "bst": 400,
+    "rarity": "epic",
+    "baseCp": 1033,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 791,
+    "name": "Solgaleo",
+    "slug": "solgaleo",
+    "gen": 7,
+    "types": [
+      "Psychic",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 137,
+      "atk": 137,
+      "def": 107,
+      "spa": 113,
+      "spd": 89,
+      "spe": 97
+    },
+    "bst": 680,
+    "rarity": "legendary",
+    "baseCp": 4800,
+    "baseCatchRate": 0.12
+  },
+  {
+    "id": 792,
+    "name": "Lunala",
+    "slug": "lunala",
+    "gen": 7,
+    "types": [
+      "Psychic",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 137,
+      "atk": 113,
+      "def": 89,
+      "spa": 137,
+      "spd": 107,
+      "spe": 97
+    },
+    "bst": 680,
+    "rarity": "legendary",
+    "baseCp": 4800,
+    "baseCatchRate": 0.12
+  },
+  {
+    "id": 793,
+    "name": "Nihilego",
+    "slug": "nihilego",
+    "gen": 7,
+    "types": [
+      "Rock",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 109,
+      "atk": 53,
+      "def": 47,
+      "spa": 127,
+      "spd": 131,
+      "spe": 103
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 794,
+    "name": "Buzzwole",
+    "slug": "buzzwole",
+    "gen": 7,
+    "types": [
+      "Bug",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 107,
+      "atk": 139,
+      "def": 139,
+      "spa": 53,
+      "spd": 53,
+      "spe": 79
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 795,
+    "name": "Pheromosa",
+    "slug": "pheromosa",
+    "gen": 7,
+    "types": [
+      "Bug",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 71,
+      "atk": 137,
+      "def": 37,
+      "spa": 137,
+      "spd": 37,
+      "spe": 151
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 3225,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 796,
+    "name": "Xurkitree",
+    "slug": "xurkitree",
+    "gen": 7,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 83,
+      "atk": 89,
+      "def": 71,
+      "spa": 173,
+      "spd": 71,
+      "spe": 83
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4775,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 797,
+    "name": "Celesteela",
+    "slug": "celesteela",
+    "gen": 7,
+    "types": [
+      "Steel",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 97,
+      "atk": 101,
+      "def": 103,
+      "spa": 107,
+      "spd": 101,
+      "spe": 61
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4328,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 798,
+    "name": "Kartana",
+    "slug": "kartana",
+    "gen": 7,
+    "types": [
+      "Grass",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 59,
+      "atk": 181,
+      "def": 131,
+      "spa": 59,
+      "spd": 31,
+      "spe": 109
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4689,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 799,
+    "name": "Guzzlord",
+    "slug": "guzzlord",
+    "gen": 7,
+    "types": [
+      "Dark",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 223,
+      "atk": 101,
+      "def": 53,
+      "spa": 97,
+      "spd": 53,
+      "spe": 43
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4334,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 800,
+    "name": "Necrozma",
+    "slug": "necrozma",
+    "gen": 7,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 97,
+      "atk": 107,
+      "def": 101,
+      "spa": 127,
+      "spd": 89,
+      "spe": 79
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 801,
+    "name": "Magearna",
+    "slug": "magearna",
+    "gen": 7,
+    "types": [
+      "Steel",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 95,
+      "def": 115,
+      "spa": 130,
+      "spd": 115,
+      "spe": 65
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4748,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 802,
+    "name": "Marshadow",
+    "slug": "marshadow",
+    "gen": 7,
+    "types": [
+      "Fighting",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 125,
+      "def": 80,
+      "spa": 90,
+      "spd": 90,
+      "spe": 125
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4672,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 803,
+    "name": "Poipole",
+    "slug": "poipole",
+    "gen": 7,
+    "types": [
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 67,
+      "atk": 73,
+      "def": 67,
+      "spa": 73,
+      "spd": 67,
+      "spe": 73
+    },
+    "bst": 420,
+    "rarity": "epic",
+    "baseCp": 2201,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 804,
+    "name": "Naganadel",
+    "slug": "naganadel",
+    "gen": 7,
+    "types": [
+      "Poison",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 73,
+      "atk": 73,
+      "def": 73,
+      "spa": 127,
+      "spd": 73,
+      "spe": 121
+    },
+    "bst": 540,
+    "rarity": "epic",
+    "baseCp": 3778,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 805,
+    "name": "Stakataka",
+    "slug": "stakataka",
+    "gen": 7,
+    "types": [
+      "Rock",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 61,
+      "atk": 131,
+      "def": 211,
+      "spa": 53,
+      "spd": 101,
+      "spe": 13
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4170,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 806,
+    "name": "Blacephalon",
+    "slug": "blacephalon",
+    "gen": 7,
+    "types": [
+      "Fire",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 53,
+      "atk": 127,
+      "def": 53,
+      "spa": 151,
+      "spd": 79,
+      "spe": 107
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 3728,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 807,
+    "name": "Zeraora",
+    "slug": "zeraora",
+    "gen": 7,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 88,
+      "atk": 112,
+      "def": 75,
+      "spa": 102,
+      "spd": 80,
+      "spe": 143
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4333,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 808,
+    "name": "Meltan",
+    "slug": "meltan",
+    "gen": 7,
+    "types": [
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 46,
+      "atk": 65,
+      "def": 65,
+      "spa": 55,
+      "spd": 35,
+      "spe": 34
+    },
+    "bst": 300,
+    "rarity": "epic",
+    "baseCp": 1262,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 809,
+    "name": "Melmetal",
+    "slug": "melmetal",
+    "gen": 7,
+    "types": [
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 135,
+      "atk": 143,
+      "def": 143,
+      "spa": 80,
+      "spd": 65,
+      "spe": 34
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 810,
+    "name": "Grookey",
+    "slug": "grookey",
+    "gen": 8,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 65,
+      "def": 50,
+      "spa": 40,
+      "spd": 40,
+      "spe": 65
+    },
+    "bst": 310,
+    "rarity": "common",
+    "baseCp": 1295,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 811,
+    "name": "Thwackey",
+    "slug": "thwackey",
+    "gen": 8,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 85,
+      "def": 70,
+      "spa": 55,
+      "spd": 60,
+      "spe": 80
+    },
+    "bst": 420,
+    "rarity": "uncommon",
+    "baseCp": 2386,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 812,
+    "name": "Rillaboom",
+    "slug": "rillaboom",
+    "gen": 8,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 125,
+      "def": 90,
+      "spa": 60,
+      "spd": 70,
+      "spe": 85
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 4238,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 813,
+    "name": "Scorbunny",
+    "slug": "scorbunny",
+    "gen": 8,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 71,
+      "def": 40,
+      "spa": 40,
+      "spd": 40,
+      "spe": 69
+    },
+    "bst": 310,
+    "rarity": "common",
+    "baseCp": 1296,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 814,
+    "name": "Raboot",
+    "slug": "raboot",
+    "gen": 8,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 86,
+      "def": 60,
+      "spa": 55,
+      "spd": 60,
+      "spe": 94
+    },
+    "bst": 420,
+    "rarity": "uncommon",
+    "baseCp": 2288,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 815,
+    "name": "Cinderace",
+    "slug": "cinderace",
+    "gen": 8,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 116,
+      "def": 75,
+      "spa": 65,
+      "spd": 75,
+      "spe": 119
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 3709,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 816,
+    "name": "Sobble",
+    "slug": "sobble",
+    "gen": 8,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 40,
+      "def": 40,
+      "spa": 70,
+      "spd": 40,
+      "spe": 70
+    },
+    "bst": 310,
+    "rarity": "common",
+    "baseCp": 1288,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 817,
+    "name": "Drizzile",
+    "slug": "drizzile",
+    "gen": 8,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 60,
+      "def": 55,
+      "spa": 95,
+      "spd": 55,
+      "spe": 90
+    },
+    "bst": 420,
+    "rarity": "uncommon",
+    "baseCp": 2341,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 818,
+    "name": "Inteleon",
+    "slug": "inteleon",
+    "gen": 8,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 85,
+      "def": 65,
+      "spa": 125,
+      "spd": 65,
+      "spe": 120
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 3521,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 819,
+    "name": "Skwovet",
+    "slug": "skwovet",
+    "gen": 8,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 55,
+      "def": 55,
+      "spa": 35,
+      "spd": 35,
+      "spe": 25
+    },
+    "bst": 275,
+    "rarity": "common",
+    "baseCp": 1162,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 820,
+    "name": "Greedent",
+    "slug": "greedent",
+    "gen": 8,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 120,
+      "atk": 95,
+      "def": 95,
+      "spa": 55,
+      "spd": 75,
+      "spe": 20
+    },
+    "bst": 460,
+    "rarity": "rare",
+    "baseCp": 3310,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 821,
+    "name": "Rookidee",
+    "slug": "rookidee",
+    "gen": 8,
+    "types": [
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 38,
+      "atk": 47,
+      "def": 35,
+      "spa": 33,
+      "spd": 35,
+      "spe": 57
+    },
+    "bst": 245,
+    "rarity": "common",
+    "baseCp": 758,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 822,
+    "name": "Corvisquire",
+    "slug": "corvisquire",
+    "gen": 8,
+    "types": [
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 68,
+      "atk": 67,
+      "def": 55,
+      "spa": 43,
+      "spd": 55,
+      "spe": 77
+    },
+    "bst": 365,
+    "rarity": "common",
+    "baseCp": 1767,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 823,
+    "name": "Corviknight",
+    "slug": "corviknight",
+    "gen": 8,
+    "types": [
+      "Flying",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 98,
+      "atk": 87,
+      "def": 105,
+      "spa": 53,
+      "spd": 85,
+      "spe": 67
+    },
+    "bst": 495,
+    "rarity": "rare",
+    "baseCp": 3344,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 824,
+    "name": "Blipbug",
+    "slug": "blipbug",
+    "gen": 8,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 25,
+      "atk": 20,
+      "def": 20,
+      "spa": 25,
+      "spd": 45,
+      "spe": 45
+    },
+    "bst": 180,
+    "rarity": "common",
+    "baseCp": 373,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 825,
+    "name": "Dottler",
+    "slug": "dottler",
+    "gen": 8,
+    "types": [
+      "Bug",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 35,
+      "def": 80,
+      "spa": 50,
+      "spd": 90,
+      "spe": 30
+    },
+    "bst": 335,
+    "rarity": "common",
+    "baseCp": 1269,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 826,
+    "name": "Orbeetle",
+    "slug": "orbeetle",
+    "gen": 8,
+    "types": [
+      "Bug",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 45,
+      "def": 110,
+      "spa": 80,
+      "spd": 120,
+      "spe": 90
+    },
+    "bst": 505,
+    "rarity": "rare",
+    "baseCp": 2815,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 827,
+    "name": "Nickit",
+    "slug": "nickit",
+    "gen": 8,
+    "types": [
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 28,
+      "def": 28,
+      "spa": 47,
+      "spd": 52,
+      "spe": 50
+    },
+    "bst": 245,
+    "rarity": "common",
+    "baseCp": 812,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 828,
+    "name": "Thievul",
+    "slug": "thievul",
+    "gen": 8,
+    "types": [
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 58,
+      "def": 58,
+      "spa": 87,
+      "spd": 92,
+      "spe": 90
+    },
+    "bst": 455,
+    "rarity": "uncommon",
+    "baseCp": 2727,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 829,
+    "name": "Gossifleur",
+    "slug": "gossifleur",
+    "gen": 8,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 40,
+      "def": 60,
+      "spa": 40,
+      "spd": 60,
+      "spe": 10
+    },
+    "bst": 250,
+    "rarity": "common",
+    "baseCp": 750,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 830,
+    "name": "Eldegoss",
+    "slug": "eldegoss",
+    "gen": 8,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 50,
+      "def": 90,
+      "spa": 80,
+      "spd": 120,
+      "spe": 60
+    },
+    "bst": 460,
+    "rarity": "rare",
+    "baseCp": 2535,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 831,
+    "name": "Wooloo",
+    "slug": "wooloo",
+    "gen": 8,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 42,
+      "atk": 40,
+      "def": 55,
+      "spa": 40,
+      "spd": 45,
+      "spe": 48
+    },
+    "bst": 270,
+    "rarity": "common",
+    "baseCp": 867,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 832,
+    "name": "Dubwool",
+    "slug": "dubwool",
+    "gen": 8,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 72,
+      "atk": 80,
+      "def": 100,
+      "spa": 60,
+      "spd": 90,
+      "spe": 88
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 2903,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 833,
+    "name": "Chewtle",
+    "slug": "chewtle",
+    "gen": 8,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 64,
+      "def": 50,
+      "spa": 38,
+      "spd": 38,
+      "spe": 44
+    },
+    "bst": 284,
+    "rarity": "common",
+    "baseCp": 1173,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 834,
+    "name": "Drednaw",
+    "slug": "drednaw",
+    "gen": 8,
+    "types": [
+      "Water",
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 115,
+      "def": 90,
+      "spa": 48,
+      "spd": 68,
+      "spe": 74
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 3593,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 835,
+    "name": "Yamper",
+    "slug": "yamper",
+    "gen": 8,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 59,
+      "atk": 45,
+      "def": 50,
+      "spa": 40,
+      "spd": 50,
+      "spe": 26
+    },
+    "bst": 270,
+    "rarity": "common",
+    "baseCp": 983,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 836,
+    "name": "Boltund",
+    "slug": "boltund",
+    "gen": 8,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 69,
+      "atk": 90,
+      "def": 60,
+      "spa": 90,
+      "spd": 60,
+      "spe": 121
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 2786,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 837,
+    "name": "Rolycoly",
+    "slug": "rolycoly",
+    "gen": 8,
+    "types": [
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 40,
+      "def": 50,
+      "spa": 40,
+      "spd": 50,
+      "spe": 30
+    },
+    "bst": 240,
+    "rarity": "common",
+    "baseCp": 662,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 838,
+    "name": "Carkol",
+    "slug": "carkol",
+    "gen": 8,
+    "types": [
+      "Rock",
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 60,
+      "def": 90,
+      "spa": 60,
+      "spd": 70,
+      "spe": 50
+    },
+    "bst": 410,
+    "rarity": "uncommon",
+    "baseCp": 2114,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 839,
+    "name": "Coalossal",
+    "slug": "coalossal",
+    "gen": 8,
+    "types": [
+      "Rock",
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 110,
+      "atk": 80,
+      "def": 120,
+      "spa": 80,
+      "spd": 90,
+      "spe": 30
+    },
+    "bst": 510,
+    "rarity": "rare",
+    "baseCp": 3434,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 840,
+    "name": "Applin",
+    "slug": "applin",
+    "gen": 8,
+    "types": [
+      "Grass",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 40,
+      "def": 80,
+      "spa": 40,
+      "spd": 40,
+      "spe": 20
+    },
+    "bst": 260,
+    "rarity": "common",
+    "baseCp": 820,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 841,
+    "name": "Flapple",
+    "slug": "flapple",
+    "gen": 8,
+    "types": [
+      "Grass",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 110,
+      "def": 80,
+      "spa": 95,
+      "spd": 60,
+      "spe": 70
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 3163,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 842,
+    "name": "Appletun",
+    "slug": "appletun",
+    "gen": 8,
+    "types": [
+      "Grass",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 110,
+      "atk": 85,
+      "def": 80,
+      "spa": 100,
+      "spd": 80,
+      "spe": 30
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 3504,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 843,
+    "name": "Silicobra",
+    "slug": "silicobra",
+    "gen": 8,
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 52,
+      "atk": 57,
+      "def": 75,
+      "spa": 35,
+      "spd": 50,
+      "spe": 46
+    },
+    "bst": 315,
+    "rarity": "common",
+    "baseCp": 1319,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 844,
+    "name": "Sandaconda",
+    "slug": "sandaconda",
+    "gen": 8,
+    "types": [
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 72,
+      "atk": 107,
+      "def": 125,
+      "spa": 65,
+      "spd": 70,
+      "spe": 71
+    },
+    "bst": 510,
+    "rarity": "rare",
+    "baseCp": 3542,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 845,
+    "name": "Cramorant",
+    "slug": "cramorant",
+    "gen": 8,
+    "types": [
+      "Flying",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 85,
+      "def": 55,
+      "spa": 85,
+      "spd": 95,
+      "spe": 85
+    },
+    "bst": 475,
+    "rarity": "rare",
+    "baseCp": 2844,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 846,
+    "name": "Arrokuda",
+    "slug": "arrokuda",
+    "gen": 8,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 41,
+      "atk": 63,
+      "def": 40,
+      "spa": 40,
+      "spd": 30,
+      "spe": 66
+    },
+    "bst": 280,
+    "rarity": "common",
+    "baseCp": 1020,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 847,
+    "name": "Barraskewda",
+    "slug": "barraskewda",
+    "gen": 8,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 61,
+      "atk": 123,
+      "def": 60,
+      "spa": 60,
+      "spd": 50,
+      "spe": 136
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 2972,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 848,
+    "name": "Toxel",
+    "slug": "toxel",
+    "gen": 8,
+    "types": [
+      "Electric",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 38,
+      "def": 35,
+      "spa": 54,
+      "spd": 35,
+      "spe": 40
+    },
+    "bst": 242,
+    "rarity": "common",
+    "baseCp": 808,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 849,
+    "name": "Toxtricity",
+    "slug": "toxtricity",
+    "gen": 8,
+    "types": [
+      "Electric",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 98,
+      "def": 70,
+      "spa": 114,
+      "spd": 70,
+      "spe": 75
+    },
+    "bst": 502,
+    "rarity": "rare",
+    "baseCp": 3359,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 850,
+    "name": "Sizzlipede",
+    "slug": "sizzlipede",
+    "gen": 8,
+    "types": [
+      "Fire",
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 65,
+      "def": 45,
+      "spa": 50,
+      "spd": 50,
+      "spe": 45
+    },
+    "bst": 305,
+    "rarity": "common",
+    "baseCp": 1279,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 851,
+    "name": "Centiskorch",
+    "slug": "centiskorch",
+    "gen": 8,
+    "types": [
+      "Fire",
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 115,
+      "def": 65,
+      "spa": 90,
+      "spd": 90,
+      "spe": 65
+    },
+    "bst": 525,
+    "rarity": "rare",
+    "baseCp": 4025,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 852,
+    "name": "Clobbopus",
+    "slug": "clobbopus",
+    "gen": 8,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 68,
+      "def": 60,
+      "spa": 50,
+      "spd": 50,
+      "spe": 32
+    },
+    "bst": 310,
+    "rarity": "common",
+    "baseCp": 1362,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 853,
+    "name": "Grapploct",
+    "slug": "grapploct",
+    "gen": 8,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 118,
+      "def": 90,
+      "spa": 70,
+      "spd": 80,
+      "spe": 42
+    },
+    "bst": 480,
+    "rarity": "rare",
+    "baseCp": 3479,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 854,
+    "name": "Sinistea",
+    "slug": "sinistea",
+    "gen": 8,
+    "types": [
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 45,
+      "def": 45,
+      "spa": 74,
+      "spd": 54,
+      "spe": 50
+    },
+    "bst": 308,
+    "rarity": "common",
+    "baseCp": 1281,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 855,
+    "name": "Polteageist",
+    "slug": "polteageist",
+    "gen": 8,
+    "types": [
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 65,
+      "def": 65,
+      "spa": 134,
+      "spd": 114,
+      "spe": 70
+    },
+    "bst": 508,
+    "rarity": "rare",
+    "baseCp": 3637,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 856,
+    "name": "Hatenna",
+    "slug": "hatenna",
+    "gen": 8,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 42,
+      "atk": 30,
+      "def": 45,
+      "spa": 56,
+      "spd": 53,
+      "spe": 39
+    },
+    "bst": 265,
+    "rarity": "common",
+    "baseCp": 976,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 857,
+    "name": "Hattrem",
+    "slug": "hattrem",
+    "gen": 8,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 57,
+      "atk": 40,
+      "def": 65,
+      "spa": 86,
+      "spd": 73,
+      "spe": 49
+    },
+    "bst": 370,
+    "rarity": "uncommon",
+    "baseCp": 1970,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 858,
+    "name": "Hatterene",
+    "slug": "hatterene",
+    "gen": 8,
+    "types": [
+      "Psychic",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 57,
+      "atk": 90,
+      "def": 95,
+      "spa": 136,
+      "spd": 103,
+      "spe": 29
+    },
+    "bst": 510,
+    "rarity": "rare",
+    "baseCp": 3578,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 859,
+    "name": "Impidimp",
+    "slug": "impidimp",
+    "gen": 8,
+    "types": [
+      "Dark",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 45,
+      "def": 30,
+      "spa": 55,
+      "spd": 40,
+      "spe": 50
+    },
+    "bst": 265,
+    "rarity": "common",
+    "baseCp": 941,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 860,
+    "name": "Morgrem",
+    "slug": "morgrem",
+    "gen": 8,
+    "types": [
+      "Dark",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 60,
+      "def": 45,
+      "spa": 75,
+      "spd": 55,
+      "spe": 70
+    },
+    "bst": 370,
+    "rarity": "uncommon",
+    "baseCp": 1840,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 861,
+    "name": "Grimmsnarl",
+    "slug": "grimmsnarl",
+    "gen": 8,
+    "types": [
+      "Dark",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 120,
+      "def": 65,
+      "spa": 95,
+      "spd": 75,
+      "spe": 60
+    },
+    "bst": 510,
+    "rarity": "rare",
+    "baseCp": 3807,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 862,
+    "name": "Obstagoon",
+    "slug": "obstagoon",
+    "gen": 8,
+    "types": [
+      "Dark",
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 93,
+      "atk": 90,
+      "def": 101,
+      "spa": 60,
+      "spd": 81,
+      "spe": 95
+    },
+    "bst": 520,
+    "rarity": "rare",
+    "baseCp": 3557,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 863,
+    "name": "Perrserker",
+    "slug": "perrserker",
+    "gen": 8,
+    "types": [
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 110,
+      "def": 100,
+      "spa": 50,
+      "spd": 60,
+      "spe": 50
+    },
+    "bst": 440,
+    "rarity": "uncommon",
+    "baseCp": 2967,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 864,
+    "name": "Cursola",
+    "slug": "cursola",
+    "gen": 8,
+    "types": [
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 95,
+      "def": 50,
+      "spa": 145,
+      "spd": 130,
+      "spe": 30
+    },
+    "bst": 510,
+    "rarity": "rare",
+    "baseCp": 3865,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 865,
+    "name": "Sirfetch\\u2019d",
+    "slug": "sirfetch-u2019d",
+    "gen": 8,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 62,
+      "atk": 135,
+      "def": 95,
+      "spa": 68,
+      "spd": 82,
+      "spe": 65
+    },
+    "bst": 507,
+    "rarity": "rare",
+    "baseCp": 3613,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 866,
+    "name": "Mr. Rime",
+    "slug": "mr-rime",
+    "gen": 8,
+    "types": [
+      "Ice",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 85,
+      "def": 75,
+      "spa": 110,
+      "spd": 100,
+      "spe": 70
+    },
+    "bst": 520,
+    "rarity": "rare",
+    "baseCp": 3704,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 867,
+    "name": "Runerigus",
+    "slug": "runerigus",
+    "gen": 8,
+    "types": [
+      "Ground",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 58,
+      "atk": 95,
+      "def": 145,
+      "spa": 50,
+      "spd": 105,
+      "spe": 30
+    },
+    "bst": 483,
+    "rarity": "rare",
+    "baseCp": 2841,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 868,
+    "name": "Milcery",
+    "slug": "milcery",
+    "gen": 8,
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 40,
+      "def": 40,
+      "spa": 50,
+      "spd": 61,
+      "spe": 34
+    },
+    "bst": 270,
+    "rarity": "common",
+    "baseCp": 981,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 869,
+    "name": "Alcremie",
+    "slug": "alcremie",
+    "gen": 8,
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 60,
+      "def": 75,
+      "spa": 110,
+      "spd": 121,
+      "spe": 64
+    },
+    "bst": 495,
+    "rarity": "rare",
+    "baseCp": 3337,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 870,
+    "name": "Falinks",
+    "slug": "falinks",
+    "gen": 8,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 100,
+      "def": 100,
+      "spa": 70,
+      "spd": 60,
+      "spe": 75
+    },
+    "bst": 470,
+    "rarity": "rare",
+    "baseCp": 2959,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 871,
+    "name": "Pincurchin",
+    "slug": "pincurchin",
+    "gen": 8,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 48,
+      "atk": 101,
+      "def": 95,
+      "spa": 91,
+      "spd": 85,
+      "spe": 15
+    },
+    "bst": 435,
+    "rarity": "uncommon",
+    "baseCp": 2433,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 872,
+    "name": "Snom",
+    "slug": "snom",
+    "gen": 8,
+    "types": [
+      "Ice",
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 25,
+      "def": 35,
+      "spa": 45,
+      "spd": 30,
+      "spe": 20
+    },
+    "bst": 185,
+    "rarity": "common",
+    "baseCp": 509,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 873,
+    "name": "Frosmoth",
+    "slug": "frosmoth",
+    "gen": 8,
+    "types": [
+      "Ice",
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 65,
+      "def": 60,
+      "spa": 125,
+      "spd": 90,
+      "spe": 65
+    },
+    "bst": 475,
+    "rarity": "rare",
+    "baseCp": 3359,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 874,
+    "name": "Stonjourner",
+    "slug": "stonjourner",
+    "gen": 8,
+    "types": [
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 125,
+      "def": 135,
+      "spa": 20,
+      "spd": 20,
+      "spe": 70
+    },
+    "bst": 470,
+    "rarity": "rare",
+    "baseCp": 3948,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 875,
+    "name": "Eiscue",
+    "slug": "eiscue",
+    "gen": 8,
+    "types": [
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 80,
+      "def": 110,
+      "spa": 65,
+      "spd": 90,
+      "spe": 50
+    },
+    "bst": 470,
+    "rarity": "rare",
+    "baseCp": 2795,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 876,
+    "name": "Indeedee",
+    "slug": "indeedee",
+    "gen": 8,
+    "types": [
+      "Psychic",
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 65,
+      "def": 55,
+      "spa": 105,
+      "spd": 95,
+      "spe": 95
+    },
+    "bst": 475,
+    "rarity": "rare",
+    "baseCp": 2943,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 877,
+    "name": "Morpeko",
+    "slug": "morpeko",
+    "gen": 8,
+    "types": [
+      "Electric",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 58,
+      "atk": 95,
+      "def": 58,
+      "spa": 70,
+      "spd": 58,
+      "spe": 97
+    },
+    "bst": 436,
+    "rarity": "uncommon",
+    "baseCp": 2360,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 878,
+    "name": "Cufant",
+    "slug": "cufant",
+    "gen": 8,
+    "types": [
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 72,
+      "atk": 80,
+      "def": 49,
+      "spa": 40,
+      "spd": 49,
+      "spe": 40
+    },
+    "bst": 330,
+    "rarity": "common",
+    "baseCp": 1711,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 879,
+    "name": "Copperajah",
+    "slug": "copperajah",
+    "gen": 8,
+    "types": [
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 122,
+      "atk": 130,
+      "def": 69,
+      "spa": 80,
+      "spd": 69,
+      "spe": 30
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 4128,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 880,
+    "name": "Dracozolt",
+    "slug": "dracozolt",
+    "gen": 8,
+    "types": [
+      "Electric",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 100,
+      "def": 90,
+      "spa": 80,
+      "spd": 70,
+      "spe": 75
+    },
+    "bst": 505,
+    "rarity": "rare",
+    "baseCp": 3518,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 881,
+    "name": "Arctozolt",
+    "slug": "arctozolt",
+    "gen": 8,
+    "types": [
+      "Electric",
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 100,
+      "def": 90,
+      "spa": 90,
+      "spd": 80,
+      "spe": 55
+    },
+    "bst": 505,
+    "rarity": "rare",
+    "baseCp": 3524,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 882,
+    "name": "Dracovish",
+    "slug": "dracovish",
+    "gen": 8,
+    "types": [
+      "Water",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 90,
+      "def": 100,
+      "spa": 70,
+      "spd": 80,
+      "spe": 75
+    },
+    "bst": 505,
+    "rarity": "rare",
+    "baseCp": 3398,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 883,
+    "name": "Arctovish",
+    "slug": "arctovish",
+    "gen": 8,
+    "types": [
+      "Water",
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 90,
+      "def": 100,
+      "spa": 80,
+      "spd": 90,
+      "spe": 55
+    },
+    "bst": 505,
+    "rarity": "rare",
+    "baseCp": 3389,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 884,
+    "name": "Duraludon",
+    "slug": "duraludon",
+    "gen": 8,
+    "types": [
+      "Steel",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 95,
+      "def": 115,
+      "spa": 120,
+      "spd": 50,
+      "spe": 85
+    },
+    "bst": 535,
+    "rarity": "epic",
+    "baseCp": 3836,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 885,
+    "name": "Dreepy",
+    "slug": "dreepy",
+    "gen": 8,
+    "types": [
+      "Dragon",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 28,
+      "atk": 60,
+      "def": 30,
+      "spa": 40,
+      "spd": 30,
+      "spe": 82
+    },
+    "bst": 270,
+    "rarity": "common",
+    "baseCp": 788,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 886,
+    "name": "Drakloak",
+    "slug": "drakloak",
+    "gen": 8,
+    "types": [
+      "Dragon",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 68,
+      "atk": 80,
+      "def": 50,
+      "spa": 60,
+      "spd": 50,
+      "spe": 102
+    },
+    "bst": 410,
+    "rarity": "uncommon",
+    "baseCp": 2110,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 887,
+    "name": "Dragapult",
+    "slug": "dragapult",
+    "gen": 8,
+    "types": [
+      "Dragon",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 88,
+      "atk": 120,
+      "def": 75,
+      "spa": 100,
+      "spd": 75,
+      "spe": 142
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4402,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 888,
+    "name": "Zacian",
+    "slug": "zacian",
+    "gen": 8,
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 92,
+      "atk": 120,
+      "def": 115,
+      "spa": 80,
+      "spd": 115,
+      "spe": 138
+    },
+    "bst": 660,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 889,
+    "name": "Zamazenta",
+    "slug": "zamazenta",
+    "gen": 8,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 92,
+      "atk": 120,
+      "def": 115,
+      "spa": 80,
+      "spd": 115,
+      "spe": 138
+    },
+    "bst": 660,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 890,
+    "name": "Eternatus",
+    "slug": "eternatus",
+    "gen": 8,
+    "types": [
+      "Poison",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 140,
+      "atk": 85,
+      "def": 95,
+      "spa": 145,
+      "spd": 95,
+      "spe": 130
+    },
+    "bst": 690,
+    "rarity": "legendary",
+    "baseCp": 4800,
+    "baseCatchRate": 0.12
+  },
+  {
+    "id": 891,
+    "name": "Kubfu",
+    "slug": "kubfu",
+    "gen": 8,
+    "types": [
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 90,
+      "def": 60,
+      "spa": 53,
+      "spd": 50,
+      "spe": 72
+    },
+    "bst": 385,
+    "rarity": "epic",
+    "baseCp": 2061,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 892,
+    "name": "Urshifu",
+    "slug": "urshifu",
+    "gen": 8,
+    "types": [
+      "Fighting",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 130,
+      "def": 100,
+      "spa": 63,
+      "spd": 60,
+      "spe": 97
+    },
+    "bst": 550,
+    "rarity": "epic",
+    "baseCp": 4537,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 893,
+    "name": "Zarude",
+    "slug": "zarude",
+    "gen": 8,
+    "types": [
+      "Dark",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 105,
+      "atk": 120,
+      "def": 105,
+      "spa": 70,
+      "spd": 95,
+      "spe": 105
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 894,
+    "name": "Regieleki",
+    "slug": "regieleki",
+    "gen": 8,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 100,
+      "def": 50,
+      "spa": 100,
+      "spd": 50,
+      "spe": 200
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 3416,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 895,
+    "name": "Regidrago",
+    "slug": "regidrago",
+    "gen": 8,
+    "types": [
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 200,
+      "atk": 100,
+      "def": 50,
+      "spa": 100,
+      "spd": 50,
+      "spe": 80
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 4320,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 896,
+    "name": "Glastrier",
+    "slug": "glastrier",
+    "gen": 8,
+    "types": [
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 145,
+      "def": 130,
+      "spa": 65,
+      "spd": 110,
+      "spe": 30
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 897,
+    "name": "Spectrier",
+    "slug": "spectrier",
+    "gen": 8,
+    "types": [
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 65,
+      "def": 60,
+      "spa": 145,
+      "spd": 80,
+      "spe": 130
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 898,
+    "name": "Calyrex",
+    "slug": "calyrex",
+    "gen": 8,
+    "types": [
+      "Psychic",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 80,
+      "def": 80,
+      "spa": 80,
+      "spd": 80,
+      "spe": 80
+    },
+    "bst": 500,
+    "rarity": "epic",
+    "baseCp": 3220,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 899,
+    "name": "Wyrdeer",
+    "slug": "wyrdeer",
+    "gen": 8,
+    "types": [
+      "Normal",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 103,
+      "atk": 105,
+      "def": 72,
+      "spa": 105,
+      "spd": 75,
+      "spe": 65
+    },
+    "bst": 525,
+    "rarity": "rare",
+    "baseCp": 3806,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 900,
+    "name": "Kleavor",
+    "slug": "kleavor",
+    "gen": 8,
+    "types": [
+      "Bug",
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 135,
+      "def": 95,
+      "spa": 45,
+      "spd": 70,
+      "spe": 85
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3714,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 901,
+    "name": "Ursaluna",
+    "slug": "ursaluna",
+    "gen": 8,
+    "types": [
+      "Ground",
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 130,
+      "atk": 140,
+      "def": 105,
+      "spa": 45,
+      "spd": 80,
+      "spe": 50
+    },
+    "bst": 550,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 902,
+    "name": "Basculegion",
+    "slug": "basculegion",
+    "gen": 8,
+    "types": [
+      "Water",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 120,
+      "atk": 112,
+      "def": 65,
+      "spa": 80,
+      "spd": 75,
+      "spe": 78
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 4104,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 903,
+    "name": "Sneasler",
+    "slug": "sneasler",
+    "gen": 8,
+    "types": [
+      "Fighting",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 130,
+      "def": 60,
+      "spa": 40,
+      "spd": 80,
+      "spe": 120
+    },
+    "bst": 510,
+    "rarity": "rare",
+    "baseCp": 3757,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 904,
+    "name": "Overqwil",
+    "slug": "overqwil",
+    "gen": 8,
+    "types": [
+      "Dark",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 115,
+      "def": 95,
+      "spa": 65,
+      "spd": 65,
+      "spe": 85
+    },
+    "bst": 510,
+    "rarity": "rare",
+    "baseCp": 3742,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 905,
+    "name": "Enamorus",
+    "slug": "enamorus",
+    "gen": 8,
+    "types": [
+      "Fairy",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 74,
+      "atk": 115,
+      "def": 70,
+      "spa": 135,
+      "spd": 80,
+      "spe": 106
+    },
+    "bst": 580,
+    "rarity": "epic",
+    "baseCp": 4226,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 906,
+    "name": "Sprigatito",
+    "slug": "sprigatito",
+    "gen": 9,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 61,
+      "def": 54,
+      "spa": 45,
+      "spd": 45,
+      "spe": 65
+    },
+    "bst": 310,
+    "rarity": "common",
+    "baseCp": 1184,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 907,
+    "name": "Floragato",
+    "slug": "floragato",
+    "gen": 9,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 61,
+      "atk": 80,
+      "def": 63,
+      "spa": 60,
+      "spd": 63,
+      "spe": 83
+    },
+    "bst": 410,
+    "rarity": "uncommon",
+    "baseCp": 2137,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 908,
+    "name": "Meowscarada",
+    "slug": "meowscarada",
+    "gen": 9,
+    "types": [
+      "Grass",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 76,
+      "atk": 110,
+      "def": 70,
+      "spa": 81,
+      "spd": 70,
+      "spe": 123
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 3506,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 909,
+    "name": "Fuecoco",
+    "slug": "fuecoco",
+    "gen": 9,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 67,
+      "atk": 45,
+      "def": 59,
+      "spa": 63,
+      "spd": 40,
+      "spe": 36
+    },
+    "bst": 310,
+    "rarity": "common",
+    "baseCp": 1426,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 910,
+    "name": "Crocalor",
+    "slug": "crocalor",
+    "gen": 9,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 81,
+      "atk": 55,
+      "def": 78,
+      "spa": 90,
+      "spd": 58,
+      "spe": 49
+    },
+    "bst": 411,
+    "rarity": "uncommon",
+    "baseCp": 2534,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 911,
+    "name": "Skeledirge",
+    "slug": "skeledirge",
+    "gen": 9,
+    "types": [
+      "Fire",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 104,
+      "atk": 75,
+      "def": 100,
+      "spa": 110,
+      "spd": 75,
+      "spe": 66
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 4101,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 912,
+    "name": "Quaxly",
+    "slug": "quaxly",
+    "gen": 9,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 65,
+      "def": 45,
+      "spa": 50,
+      "spd": 45,
+      "spe": 50
+    },
+    "bst": 310,
+    "rarity": "common",
+    "baseCp": 1321,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 913,
+    "name": "Quaxwell",
+    "slug": "quaxwell",
+    "gen": 9,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 85,
+      "def": 65,
+      "spa": 65,
+      "spd": 60,
+      "spe": 65
+    },
+    "bst": 410,
+    "rarity": "uncommon",
+    "baseCp": 2301,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 914,
+    "name": "Quaquaval",
+    "slug": "quaquaval",
+    "gen": 9,
+    "types": [
+      "Water",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 120,
+      "def": 80,
+      "spa": 85,
+      "spd": 75,
+      "spe": 85
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 3884,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 915,
+    "name": "Lechonk",
+    "slug": "lechonk",
+    "gen": 9,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 54,
+      "atk": 45,
+      "def": 40,
+      "spa": 35,
+      "spd": 45,
+      "spe": 35
+    },
+    "bst": 254,
+    "rarity": "common",
+    "baseCp": 889,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 916,
+    "name": "Oinkologne",
+    "slug": "oinkologne",
+    "gen": 9,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 110,
+      "atk": 100,
+      "def": 75,
+      "spa": 59,
+      "spd": 80,
+      "spe": 65
+    },
+    "bst": 489,
+    "rarity": "rare",
+    "baseCp": 3534,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 917,
+    "name": "Tarountula",
+    "slug": "tarountula",
+    "gen": 9,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 41,
+      "def": 45,
+      "spa": 29,
+      "spd": 40,
+      "spe": 20
+    },
+    "bst": 210,
+    "rarity": "common",
+    "baseCp": 600,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 918,
+    "name": "Spidops",
+    "slug": "spidops",
+    "gen": 9,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 79,
+      "def": 92,
+      "spa": 52,
+      "spd": 86,
+      "spe": 35
+    },
+    "bst": 404,
+    "rarity": "uncommon",
+    "baseCp": 2138,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 919,
+    "name": "Nymble",
+    "slug": "nymble",
+    "gen": 9,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 33,
+      "atk": 46,
+      "def": 40,
+      "spa": 21,
+      "spd": 25,
+      "spe": 45
+    },
+    "bst": 210,
+    "rarity": "common",
+    "baseCp": 615,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 920,
+    "name": "Lokix",
+    "slug": "lokix",
+    "gen": 9,
+    "types": [
+      "Bug",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 71,
+      "atk": 102,
+      "def": 78,
+      "spa": 52,
+      "spd": 55,
+      "spe": 92
+    },
+    "bst": 450,
+    "rarity": "uncommon",
+    "baseCp": 2831,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 921,
+    "name": "Pawmi",
+    "slug": "pawmi",
+    "gen": 9,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 50,
+      "def": 20,
+      "spa": 40,
+      "spd": 25,
+      "spe": 60
+    },
+    "bst": 240,
+    "rarity": "common",
+    "baseCp": 724,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 922,
+    "name": "Pawmo",
+    "slug": "pawmo",
+    "gen": 9,
+    "types": [
+      "Electric",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 75,
+      "def": 40,
+      "spa": 50,
+      "spd": 40,
+      "spe": 85
+    },
+    "bst": 350,
+    "rarity": "common",
+    "baseCp": 1588,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 923,
+    "name": "Pawmot",
+    "slug": "pawmot",
+    "gen": 9,
+    "types": [
+      "Electric",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 115,
+      "def": 70,
+      "spa": 70,
+      "spd": 60,
+      "spe": 105
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 3181,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 924,
+    "name": "Tandemaus",
+    "slug": "tandemaus",
+    "gen": 9,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 50,
+      "def": 45,
+      "spa": 40,
+      "spd": 45,
+      "spe": 75
+    },
+    "bst": 305,
+    "rarity": "common",
+    "baseCp": 1131,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 925,
+    "name": "Maushold",
+    "slug": "maushold",
+    "gen": 9,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 74,
+      "atk": 75,
+      "def": 70,
+      "spa": 65,
+      "spd": 75,
+      "spe": 111
+    },
+    "bst": 470,
+    "rarity": "rare",
+    "baseCp": 2652,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 926,
+    "name": "Fidough",
+    "slug": "fidough",
+    "gen": 9,
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 37,
+      "atk": 55,
+      "def": 70,
+      "spa": 30,
+      "spd": 55,
+      "spe": 65
+    },
+    "bst": 312,
+    "rarity": "common",
+    "baseCp": 1139,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 927,
+    "name": "Dachsbun",
+    "slug": "dachsbun",
+    "gen": 9,
+    "types": [
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 57,
+      "atk": 80,
+      "def": 115,
+      "spa": 50,
+      "spd": 80,
+      "spe": 95
+    },
+    "bst": 477,
+    "rarity": "rare",
+    "baseCp": 2629,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 928,
+    "name": "Smoliv",
+    "slug": "smoliv",
+    "gen": 9,
+    "types": [
+      "Grass",
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 41,
+      "atk": 35,
+      "def": 45,
+      "spa": 58,
+      "spd": 51,
+      "spe": 30
+    },
+    "bst": 260,
+    "rarity": "common",
+    "baseCp": 960,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 929,
+    "name": "Dolliv",
+    "slug": "dolliv",
+    "gen": 9,
+    "types": [
+      "Grass",
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 52,
+      "atk": 53,
+      "def": 60,
+      "spa": 78,
+      "spd": 78,
+      "spe": 33
+    },
+    "bst": 354,
+    "rarity": "common",
+    "baseCp": 1748,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 930,
+    "name": "Arboliva",
+    "slug": "arboliva",
+    "gen": 9,
+    "types": [
+      "Grass",
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 78,
+      "atk": 69,
+      "def": 90,
+      "spa": 125,
+      "spd": 109,
+      "spe": 39
+    },
+    "bst": 510,
+    "rarity": "rare",
+    "baseCp": 3866,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 931,
+    "name": "Squawkabilly",
+    "slug": "squawkabilly",
+    "gen": 9,
+    "types": [
+      "Normal",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 82,
+      "atk": 96,
+      "def": 51,
+      "spa": 45,
+      "spd": 51,
+      "spe": 92
+    },
+    "bst": 417,
+    "rarity": "uncommon",
+    "baseCp": 2473,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 932,
+    "name": "Nacli",
+    "slug": "nacli",
+    "gen": 9,
+    "types": [
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 55,
+      "def": 75,
+      "spa": 35,
+      "spd": 35,
+      "spe": 25
+    },
+    "bst": 280,
+    "rarity": "common",
+    "baseCp": 1154,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 933,
+    "name": "Naclstack",
+    "slug": "naclstack",
+    "gen": 9,
+    "types": [
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 60,
+      "def": 100,
+      "spa": 35,
+      "spd": 65,
+      "spe": 35
+    },
+    "bst": 355,
+    "rarity": "common",
+    "baseCp": 1616,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 934,
+    "name": "Garganacl",
+    "slug": "garganacl",
+    "gen": 9,
+    "types": [
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 100,
+      "def": 130,
+      "spa": 45,
+      "spd": 90,
+      "spe": 35
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3651,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 935,
+    "name": "Charcadet",
+    "slug": "charcadet",
+    "gen": 9,
+    "types": [
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 50,
+      "def": 40,
+      "spa": 50,
+      "spd": 40,
+      "spe": 35
+    },
+    "bst": 255,
+    "rarity": "common",
+    "baseCp": 846,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 936,
+    "name": "Armarouge",
+    "slug": "armarouge",
+    "gen": 9,
+    "types": [
+      "Fire",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 60,
+      "def": 100,
+      "spa": 125,
+      "spd": 80,
+      "spe": 75
+    },
+    "bst": 525,
+    "rarity": "rare",
+    "baseCp": 4059,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 937,
+    "name": "Ceruledge",
+    "slug": "ceruledge",
+    "gen": 9,
+    "types": [
+      "Fire",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 125,
+      "def": 80,
+      "spa": 60,
+      "spd": 100,
+      "spe": 85
+    },
+    "bst": 525,
+    "rarity": "rare",
+    "baseCp": 3887,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 938,
+    "name": "Tadbulb",
+    "slug": "tadbulb",
+    "gen": 9,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 61,
+      "atk": 31,
+      "def": 41,
+      "spa": 59,
+      "spd": 35,
+      "spe": 45
+    },
+    "bst": 272,
+    "rarity": "common",
+    "baseCp": 1105,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 939,
+    "name": "Bellibolt",
+    "slug": "bellibolt",
+    "gen": 9,
+    "types": [
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 109,
+      "atk": 64,
+      "def": 91,
+      "spa": 103,
+      "spd": 83,
+      "spe": 45
+    },
+    "bst": 495,
+    "rarity": "rare",
+    "baseCp": 3680,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 940,
+    "name": "Wattrel",
+    "slug": "wattrel",
+    "gen": 9,
+    "types": [
+      "Electric",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 40,
+      "def": 35,
+      "spa": 55,
+      "spd": 40,
+      "spe": 70
+    },
+    "bst": 280,
+    "rarity": "common",
+    "baseCp": 965,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 941,
+    "name": "Kilowattrel",
+    "slug": "kilowattrel",
+    "gen": 9,
+    "types": [
+      "Electric",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 70,
+      "def": 60,
+      "spa": 105,
+      "spd": 60,
+      "spe": 125
+    },
+    "bst": 490,
+    "rarity": "rare",
+    "baseCp": 2975,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 942,
+    "name": "Maschiff",
+    "slug": "maschiff",
+    "gen": 9,
+    "types": [
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 60,
+      "atk": 78,
+      "def": 60,
+      "spa": 40,
+      "spd": 51,
+      "spe": 51
+    },
+    "bst": 340,
+    "rarity": "common",
+    "baseCp": 1702,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 943,
+    "name": "Mabosstiff",
+    "slug": "mabosstiff",
+    "gen": 9,
+    "types": [
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 120,
+      "def": 90,
+      "spa": 60,
+      "spd": 70,
+      "spe": 85
+    },
+    "bst": 505,
+    "rarity": "rare",
+    "baseCp": 3681,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 944,
+    "name": "Shroodle",
+    "slug": "shroodle",
+    "gen": 9,
+    "types": [
+      "Poison",
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 65,
+      "def": 35,
+      "spa": 40,
+      "spd": 35,
+      "spe": 75
+    },
+    "bst": 290,
+    "rarity": "common",
+    "baseCp": 1044,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 945,
+    "name": "Grafaiai",
+    "slug": "grafaiai",
+    "gen": 9,
+    "types": [
+      "Poison",
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 63,
+      "atk": 95,
+      "def": 65,
+      "spa": 80,
+      "spd": 72,
+      "spe": 110
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 2822,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 946,
+    "name": "Bramblin",
+    "slug": "bramblin",
+    "gen": 9,
+    "types": [
+      "Grass",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 65,
+      "def": 30,
+      "spa": 45,
+      "spd": 35,
+      "spe": 60
+    },
+    "bst": 275,
+    "rarity": "common",
+    "baseCp": 981,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 947,
+    "name": "Brambleghast",
+    "slug": "brambleghast",
+    "gen": 9,
+    "types": [
+      "Grass",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 115,
+      "def": 70,
+      "spa": 80,
+      "spd": 70,
+      "spe": 90
+    },
+    "bst": 480,
+    "rarity": "rare",
+    "baseCp": 2876,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 948,
+    "name": "Toedscool",
+    "slug": "toedscool",
+    "gen": 9,
+    "types": [
+      "Ground",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 40,
+      "def": 35,
+      "spa": 50,
+      "spd": 100,
+      "spe": 70
+    },
+    "bst": 335,
+    "rarity": "common",
+    "baseCp": 1274,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 949,
+    "name": "Toedscruel",
+    "slug": "toedscruel",
+    "gen": 9,
+    "types": [
+      "Ground",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 70,
+      "def": 65,
+      "spa": 80,
+      "spd": 120,
+      "spe": 100
+    },
+    "bst": 515,
+    "rarity": "rare",
+    "baseCp": 3267,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 950,
+    "name": "Klawf",
+    "slug": "klawf",
+    "gen": 9,
+    "types": [
+      "Rock"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 100,
+      "def": 115,
+      "spa": 35,
+      "spd": 55,
+      "spe": 75
+    },
+    "bst": 450,
+    "rarity": "uncommon",
+    "baseCp": 2945,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 951,
+    "name": "Capsakid",
+    "slug": "capsakid",
+    "gen": 9,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 62,
+      "def": 40,
+      "spa": 62,
+      "spd": 40,
+      "spe": 50
+    },
+    "bst": 304,
+    "rarity": "common",
+    "baseCp": 1200,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 952,
+    "name": "Scovillain",
+    "slug": "scovillain",
+    "gen": 9,
+    "types": [
+      "Grass",
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 108,
+      "def": 65,
+      "spa": 108,
+      "spd": 65,
+      "spe": 75
+    },
+    "bst": 486,
+    "rarity": "rare",
+    "baseCp": 2966,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 953,
+    "name": "Rellor",
+    "slug": "rellor",
+    "gen": 9,
+    "types": [
+      "Bug"
+    ],
+    "baseStats": {
+      "hp": 41,
+      "atk": 50,
+      "def": 60,
+      "spa": 31,
+      "spd": 58,
+      "spe": 30
+    },
+    "bst": 270,
+    "rarity": "common",
+    "baseCp": 936,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 954,
+    "name": "Rabsca",
+    "slug": "rabsca",
+    "gen": 9,
+    "types": [
+      "Bug",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 75,
+      "atk": 50,
+      "def": 85,
+      "spa": 115,
+      "spd": 100,
+      "spe": 45
+    },
+    "bst": 470,
+    "rarity": "rare",
+    "baseCp": 3325,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 955,
+    "name": "Flittle",
+    "slug": "flittle",
+    "gen": 9,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 30,
+      "atk": 35,
+      "def": 30,
+      "spa": 55,
+      "spd": 30,
+      "spe": 75
+    },
+    "bst": 255,
+    "rarity": "common",
+    "baseCp": 743,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 956,
+    "name": "Espathra",
+    "slug": "espathra",
+    "gen": 9,
+    "types": [
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 95,
+      "atk": 60,
+      "def": 60,
+      "spa": 101,
+      "spd": 60,
+      "spe": 105
+    },
+    "bst": 481,
+    "rarity": "rare",
+    "baseCp": 3180,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 957,
+    "name": "Tinkatink",
+    "slug": "tinkatink",
+    "gen": 9,
+    "types": [
+      "Fairy",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 45,
+      "def": 45,
+      "spa": 35,
+      "spd": 64,
+      "spe": 58
+    },
+    "bst": 297,
+    "rarity": "common",
+    "baseCp": 1090,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 958,
+    "name": "Tinkatuff",
+    "slug": "tinkatuff",
+    "gen": 9,
+    "types": [
+      "Fairy",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 55,
+      "def": 55,
+      "spa": 45,
+      "spd": 82,
+      "spe": 78
+    },
+    "bst": 380,
+    "rarity": "uncommon",
+    "baseCp": 1763,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 959,
+    "name": "Tinkaton",
+    "slug": "tinkaton",
+    "gen": 9,
+    "types": [
+      "Fairy",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 75,
+      "def": 77,
+      "spa": 70,
+      "spd": 105,
+      "spe": 94
+    },
+    "bst": 506,
+    "rarity": "rare",
+    "baseCp": 3126,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 960,
+    "name": "Wiglett",
+    "slug": "wiglett",
+    "gen": 9,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 10,
+      "atk": 55,
+      "def": 25,
+      "spa": 35,
+      "spd": 25,
+      "spe": 95
+    },
+    "bst": 245,
+    "rarity": "common",
+    "baseCp": 419,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 961,
+    "name": "Wugtrio",
+    "slug": "wugtrio",
+    "gen": 9,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 35,
+      "atk": 100,
+      "def": 50,
+      "spa": 50,
+      "spd": 70,
+      "spe": 120
+    },
+    "bst": 425,
+    "rarity": "uncommon",
+    "baseCp": 1970,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 962,
+    "name": "Bombirdier",
+    "slug": "bombirdier",
+    "gen": 9,
+    "types": [
+      "Flying",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 103,
+      "def": 85,
+      "spa": 60,
+      "spd": 85,
+      "spe": 82
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 3131,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 963,
+    "name": "Finizen",
+    "slug": "finizen",
+    "gen": 9,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 45,
+      "def": 40,
+      "spa": 45,
+      "spd": 40,
+      "spe": 75
+    },
+    "bst": 315,
+    "rarity": "common",
+    "baseCp": 1214,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 964,
+    "name": "Palafin",
+    "slug": "palafin",
+    "gen": 9,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 70,
+      "def": 72,
+      "spa": 53,
+      "spd": 62,
+      "spe": 100
+    },
+    "bst": 457,
+    "rarity": "uncommon",
+    "baseCp": 2694,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 965,
+    "name": "Varoom",
+    "slug": "varoom",
+    "gen": 9,
+    "types": [
+      "Steel",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 70,
+      "def": 63,
+      "spa": 30,
+      "spd": 45,
+      "spe": 47
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 1294,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 966,
+    "name": "Revavroom",
+    "slug": "revavroom",
+    "gen": 9,
+    "types": [
+      "Steel",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 119,
+      "def": 90,
+      "spa": 54,
+      "spd": 67,
+      "spe": 90
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3625,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 967,
+    "name": "Cyclizar",
+    "slug": "cyclizar",
+    "gen": 9,
+    "types": [
+      "Dragon",
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 95,
+      "def": 65,
+      "spa": 85,
+      "spd": 65,
+      "spe": 121
+    },
+    "bst": 501,
+    "rarity": "rare",
+    "baseCp": 2981,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 968,
+    "name": "Orthworm",
+    "slug": "orthworm",
+    "gen": 9,
+    "types": [
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "atk": 85,
+      "def": 145,
+      "spa": 60,
+      "spd": 55,
+      "spe": 65
+    },
+    "bst": 480,
+    "rarity": "rare",
+    "baseCp": 2987,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 969,
+    "name": "Glimmet",
+    "slug": "glimmet",
+    "gen": 9,
+    "types": [
+      "Rock",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 48,
+      "atk": 35,
+      "def": 42,
+      "spa": 105,
+      "spd": 60,
+      "spe": 60
+    },
+    "bst": 350,
+    "rarity": "common",
+    "baseCp": 1858,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 970,
+    "name": "Glimmora",
+    "slug": "glimmora",
+    "gen": 9,
+    "types": [
+      "Rock",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 83,
+      "atk": 55,
+      "def": 90,
+      "spa": 130,
+      "spd": 81,
+      "spe": 86
+    },
+    "bst": 525,
+    "rarity": "rare",
+    "baseCp": 4047,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 971,
+    "name": "Greavard",
+    "slug": "greavard",
+    "gen": 9,
+    "types": [
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 50,
+      "atk": 61,
+      "def": 60,
+      "spa": 30,
+      "spd": 55,
+      "spe": 34
+    },
+    "bst": 290,
+    "rarity": "common",
+    "baseCp": 1197,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 972,
+    "name": "Houndstone",
+    "slug": "houndstone",
+    "gen": 9,
+    "types": [
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 72,
+      "atk": 101,
+      "def": 100,
+      "spa": 50,
+      "spd": 97,
+      "spe": 68
+    },
+    "bst": 488,
+    "rarity": "rare",
+    "baseCp": 3196,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 973,
+    "name": "Flamigo",
+    "slug": "flamigo",
+    "gen": 9,
+    "types": [
+      "Flying",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 82,
+      "atk": 115,
+      "def": 74,
+      "spa": 75,
+      "spd": 64,
+      "spe": 90
+    },
+    "bst": 500,
+    "rarity": "rare",
+    "baseCp": 3478,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 974,
+    "name": "Cetoddle",
+    "slug": "cetoddle",
+    "gen": 9,
+    "types": [
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 108,
+      "atk": 68,
+      "def": 45,
+      "spa": 30,
+      "spd": 40,
+      "spe": 43
+    },
+    "bst": 334,
+    "rarity": "common",
+    "baseCp": 1699,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 975,
+    "name": "Cetitan",
+    "slug": "cetitan",
+    "gen": 9,
+    "types": [
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 170,
+      "atk": 113,
+      "def": 65,
+      "spa": 45,
+      "spd": 55,
+      "spe": 73
+    },
+    "bst": 521,
+    "rarity": "rare",
+    "baseCp": 4189,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 976,
+    "name": "Veluza",
+    "slug": "veluza",
+    "gen": 9,
+    "types": [
+      "Water",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 102,
+      "def": 73,
+      "spa": 78,
+      "spd": 65,
+      "spe": 70
+    },
+    "bst": 478,
+    "rarity": "rare",
+    "baseCp": 3238,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 977,
+    "name": "Dondozo",
+    "slug": "dondozo",
+    "gen": 9,
+    "types": [
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 150,
+      "atk": 100,
+      "def": 115,
+      "spa": 65,
+      "spd": 65,
+      "spe": 35
+    },
+    "bst": 530,
+    "rarity": "epic",
+    "baseCp": 4298,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 978,
+    "name": "Tatsugiri",
+    "slug": "tatsugiri",
+    "gen": 9,
+    "types": [
+      "Dragon",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 68,
+      "atk": 50,
+      "def": 60,
+      "spa": 120,
+      "spd": 95,
+      "spe": 82
+    },
+    "bst": 475,
+    "rarity": "rare",
+    "baseCp": 3286,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 979,
+    "name": "Annihilape",
+    "slug": "annihilape",
+    "gen": 9,
+    "types": [
+      "Fighting",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 110,
+      "atk": 115,
+      "def": 80,
+      "spa": 50,
+      "spd": 90,
+      "spe": 90
+    },
+    "bst": 535,
+    "rarity": "epic",
+    "baseCp": 4245,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 980,
+    "name": "Clodsire",
+    "slug": "clodsire",
+    "gen": 9,
+    "types": [
+      "Poison",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 130,
+      "atk": 75,
+      "def": 60,
+      "spa": 45,
+      "spd": 100,
+      "spe": 20
+    },
+    "bst": 430,
+    "rarity": "uncommon",
+    "baseCp": 2727,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 981,
+    "name": "Farigiraf",
+    "slug": "farigiraf",
+    "gen": 9,
+    "types": [
+      "Normal",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 120,
+      "atk": 90,
+      "def": 70,
+      "spa": 110,
+      "spd": 70,
+      "spe": 60
+    },
+    "bst": 520,
+    "rarity": "rare",
+    "baseCp": 3959,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 982,
+    "name": "Dudunsparce",
+    "slug": "dudunsparce",
+    "gen": 9,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 125,
+      "atk": 100,
+      "def": 80,
+      "spa": 85,
+      "spd": 75,
+      "spe": 55
+    },
+    "bst": 520,
+    "rarity": "rare",
+    "baseCp": 3911,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 983,
+    "name": "Kingambit",
+    "slug": "kingambit",
+    "gen": 9,
+    "types": [
+      "Dark",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 135,
+      "def": 120,
+      "spa": 60,
+      "spd": 85,
+      "spe": 50
+    },
+    "bst": 550,
+    "rarity": "epic",
+    "baseCp": 4772,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 984,
+    "name": "Great Tusk",
+    "slug": "great-tusk",
+    "gen": 9,
+    "types": [
+      "Ground",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 115,
+      "atk": 131,
+      "def": 131,
+      "spa": 53,
+      "spd": 53,
+      "spe": 87
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 985,
+    "name": "Scream Tail",
+    "slug": "scream-tail",
+    "gen": 9,
+    "types": [
+      "Fairy",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 115,
+      "atk": 65,
+      "def": 99,
+      "spa": 65,
+      "spd": 115,
+      "spe": 111
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 3731,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 986,
+    "name": "Brute Bonnet",
+    "slug": "brute-bonnet",
+    "gen": 9,
+    "types": [
+      "Grass",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 111,
+      "atk": 127,
+      "def": 99,
+      "spa": 79,
+      "spd": 99,
+      "spe": 55
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 987,
+    "name": "Flutter Mane",
+    "slug": "flutter-mane",
+    "gen": 9,
+    "types": [
+      "Ghost",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 55,
+      "def": 55,
+      "spa": 135,
+      "spd": 135,
+      "spe": 135
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4030,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 988,
+    "name": "Slither Wing",
+    "slug": "slither-wing",
+    "gen": 9,
+    "types": [
+      "Bug",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 135,
+      "def": 79,
+      "spa": 85,
+      "spd": 105,
+      "spe": 81
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4608,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 989,
+    "name": "Sandy Shocks",
+    "slug": "sandy-shocks",
+    "gen": 9,
+    "types": [
+      "Electric",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 81,
+      "def": 97,
+      "spa": 121,
+      "spd": 85,
+      "spe": 101
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4343,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 990,
+    "name": "Iron Treads",
+    "slug": "iron-treads",
+    "gen": 9,
+    "types": [
+      "Ground",
+      "Steel"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 112,
+      "def": 120,
+      "spa": 72,
+      "spd": 70,
+      "spe": 106
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4388,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 991,
+    "name": "Iron Bundle",
+    "slug": "iron-bundle",
+    "gen": 9,
+    "types": [
+      "Ice",
+      "Water"
+    ],
+    "baseStats": {
+      "hp": 56,
+      "atk": 80,
+      "def": 114,
+      "spa": 124,
+      "spd": 60,
+      "spe": 136
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 3807,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 992,
+    "name": "Iron Hands",
+    "slug": "iron-hands",
+    "gen": 9,
+    "types": [
+      "Fighting",
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 154,
+      "atk": 140,
+      "def": 108,
+      "spa": 50,
+      "spd": 68,
+      "spe": 50
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 993,
+    "name": "Iron Jugulis",
+    "slug": "iron-jugulis",
+    "gen": 9,
+    "types": [
+      "Dark",
+      "Flying"
+    ],
+    "baseStats": {
+      "hp": 94,
+      "atk": 80,
+      "def": 86,
+      "spa": 122,
+      "spd": 80,
+      "spe": 108
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4420,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 994,
+    "name": "Iron Moth",
+    "slug": "iron-moth",
+    "gen": 9,
+    "types": [
+      "Fire",
+      "Poison"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 70,
+      "def": 60,
+      "spa": 140,
+      "spd": 110,
+      "spe": 110
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4582,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 995,
+    "name": "Iron Thorns",
+    "slug": "iron-thorns",
+    "gen": 9,
+    "types": [
+      "Rock",
+      "Electric"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 134,
+      "def": 110,
+      "spa": 70,
+      "spd": 84,
+      "spe": 72
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 996,
+    "name": "Frigibax",
+    "slug": "frigibax",
+    "gen": 9,
+    "types": [
+      "Dragon",
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "atk": 75,
+      "def": 45,
+      "spa": 35,
+      "spd": 45,
+      "spe": 55
+    },
+    "bst": 320,
+    "rarity": "common",
+    "baseCp": 1534,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 997,
+    "name": "Arctibax",
+    "slug": "arctibax",
+    "gen": 9,
+    "types": [
+      "Dragon",
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 95,
+      "def": 66,
+      "spa": 45,
+      "spd": 65,
+      "spe": 62
+    },
+    "bst": 423,
+    "rarity": "uncommon",
+    "baseCp": 2711,
+    "baseCatchRate": 0.55
+  },
+  {
+    "id": 998,
+    "name": "Baxcalibur",
+    "slug": "baxcalibur",
+    "gen": 9,
+    "types": [
+      "Dragon",
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 115,
+      "atk": 145,
+      "def": 92,
+      "spa": 75,
+      "spd": 86,
+      "spe": 87
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 999,
+    "name": "Gimmighoul",
+    "slug": "gimmighoul",
+    "gen": 9,
+    "types": [
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 45,
+      "atk": 30,
+      "def": 70,
+      "spa": 75,
+      "spd": 70,
+      "spe": 10
+    },
+    "bst": 300,
+    "rarity": "common",
+    "baseCp": 1338,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 1000,
+    "name": "Gholdengo",
+    "slug": "gholdengo",
+    "gen": 9,
+    "types": [
+      "Steel",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 87,
+      "atk": 60,
+      "def": 95,
+      "spa": 133,
+      "spd": 91,
+      "spe": 84
+    },
+    "bst": 550,
+    "rarity": "epic",
+    "baseCp": 4406,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 1001,
+    "name": "Wo-Chien",
+    "slug": "wo-chien",
+    "gen": 9,
+    "types": [
+      "Dark",
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "atk": 85,
+      "def": 100,
+      "spa": 95,
+      "spd": 135,
+      "spe": 70
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4016,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 1002,
+    "name": "Chien-Pao",
+    "slug": "chien-pao",
+    "gen": 9,
+    "types": [
+      "Dark",
+      "Ice"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 120,
+      "def": 80,
+      "spa": 90,
+      "spd": 65,
+      "spe": 135
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4051,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 1003,
+    "name": "Ting-Lu",
+    "slug": "ting-lu",
+    "gen": 9,
+    "types": [
+      "Dark",
+      "Ground"
+    ],
+    "baseStats": {
+      "hp": 155,
+      "atk": 110,
+      "def": 125,
+      "spa": 55,
+      "spd": 80,
+      "spe": 45
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 1004,
+    "name": "Chi-Yu",
+    "slug": "chi-yu",
+    "gen": 9,
+    "types": [
+      "Dark",
+      "Fire"
+    ],
+    "baseStats": {
+      "hp": 55,
+      "atk": 80,
+      "def": 80,
+      "spa": 135,
+      "spd": 120,
+      "spe": 100
+    },
+    "bst": 570,
+    "rarity": "epic",
+    "baseCp": 3982,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 1005,
+    "name": "Roaring Moon",
+    "slug": "roaring-moon",
+    "gen": 9,
+    "types": [
+      "Dragon",
+      "Dark"
+    ],
+    "baseStats": {
+      "hp": 105,
+      "atk": 139,
+      "def": 71,
+      "spa": 55,
+      "spd": 101,
+      "spe": 119
+    },
+    "bst": 590,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 1006,
+    "name": "Iron Valiant",
+    "slug": "iron-valiant",
+    "gen": 9,
+    "types": [
+      "Fairy",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 74,
+      "atk": 130,
+      "def": 90,
+      "spa": 120,
+      "spd": 60,
+      "spe": 116
+    },
+    "bst": 590,
+    "rarity": "epic",
+    "baseCp": 4280,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 1007,
+    "name": "Koraidon",
+    "slug": "koraidon",
+    "gen": 9,
+    "types": [
+      "Fighting",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 135,
+      "def": 115,
+      "spa": 85,
+      "spd": 100,
+      "spe": 135
+    },
+    "bst": 670,
+    "rarity": "legendary",
+    "baseCp": 4800,
+    "baseCatchRate": 0.12
+  },
+  {
+    "id": 1008,
+    "name": "Miraidon",
+    "slug": "miraidon",
+    "gen": 9,
+    "types": [
+      "Electric",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 100,
+      "atk": 85,
+      "def": 100,
+      "spa": 135,
+      "spd": 115,
+      "spe": 135
+    },
+    "bst": 670,
+    "rarity": "legendary",
+    "baseCp": 4800,
+    "baseCatchRate": 0.12
+  },
+  {
+    "id": 1009,
+    "name": "Walking Wake",
+    "slug": "walking-wake",
+    "gen": 9,
+    "types": [
+      "Water",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 99,
+      "atk": 83,
+      "def": 91,
+      "spa": 125,
+      "spd": 83,
+      "spe": 109
+    },
+    "bst": 590,
+    "rarity": "epic",
+    "baseCp": 4757,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 1010,
+    "name": "Iron Leaves",
+    "slug": "iron-leaves",
+    "gen": 9,
+    "types": [
+      "Grass",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 130,
+      "def": 88,
+      "spa": 70,
+      "spd": 108,
+      "spe": 104
+    },
+    "bst": 590,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 1011,
+    "name": "Dipplin",
+    "slug": "dipplin",
+    "gen": 9,
+    "types": [
+      "Grass",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 80,
+      "def": 110,
+      "spa": 95,
+      "spd": 80,
+      "spe": 40
+    },
+    "bst": 485,
+    "rarity": "rare",
+    "baseCp": 3227,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 1012,
+    "name": "Poltchageist",
+    "slug": "poltchageist",
+    "gen": 9,
+    "types": [
+      "Grass",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 40,
+      "atk": 45,
+      "def": 45,
+      "spa": 74,
+      "spd": 54,
+      "spe": 50
+    },
+    "bst": 308,
+    "rarity": "common",
+    "baseCp": 1281,
+    "baseCatchRate": 0.75
+  },
+  {
+    "id": 1013,
+    "name": "Sinistcha",
+    "slug": "sinistcha",
+    "gen": 9,
+    "types": [
+      "Grass",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 71,
+      "atk": 60,
+      "def": 106,
+      "spa": 121,
+      "spd": 80,
+      "spe": 70
+    },
+    "bst": 508,
+    "rarity": "rare",
+    "baseCp": 3656,
+    "baseCatchRate": 0.38
+  },
+  {
+    "id": 1014,
+    "name": "Okidogi",
+    "slug": "okidogi",
+    "gen": 9,
+    "types": [
+      "Poison",
+      "Fighting"
+    ],
+    "baseStats": {
+      "hp": 88,
+      "atk": 128,
+      "def": 115,
+      "spa": 58,
+      "spd": 86,
+      "spe": 80
+    },
+    "bst": 555,
+    "rarity": "epic",
+    "baseCp": 4481,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 1015,
+    "name": "Munkidori",
+    "slug": "munkidori",
+    "gen": 9,
+    "types": [
+      "Poison",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 88,
+      "atk": 75,
+      "def": 66,
+      "spa": 130,
+      "spd": 90,
+      "spe": 106
+    },
+    "bst": 555,
+    "rarity": "epic",
+    "baseCp": 4323,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 1016,
+    "name": "Fezandipiti",
+    "slug": "fezandipiti",
+    "gen": 9,
+    "types": [
+      "Poison",
+      "Fairy"
+    ],
+    "baseStats": {
+      "hp": 88,
+      "atk": 91,
+      "def": 82,
+      "spa": 70,
+      "spd": 125,
+      "spe": 99
+    },
+    "bst": 555,
+    "rarity": "epic",
+    "baseCp": 3875,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 1017,
+    "name": "Ogerpon",
+    "slug": "ogerpon",
+    "gen": 9,
+    "types": [
+      "Grass"
+    ],
+    "baseStats": {
+      "hp": 80,
+      "atk": 120,
+      "def": 84,
+      "spa": 60,
+      "spd": 96,
+      "spe": 110
+    },
+    "bst": 550,
+    "rarity": "epic",
+    "baseCp": 4074,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 1018,
+    "name": "Archaludon",
+    "slug": "archaludon",
+    "gen": 9,
+    "types": [
+      "Steel",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 105,
+      "def": 130,
+      "spa": 125,
+      "spd": 65,
+      "spe": 85
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 1019,
+    "name": "Hydrapple",
+    "slug": "hydrapple",
+    "gen": 9,
+    "types": [
+      "Grass",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 106,
+      "atk": 80,
+      "def": 110,
+      "spa": 120,
+      "spd": 80,
+      "spe": 44
+    },
+    "bst": 540,
+    "rarity": "epic",
+    "baseCp": 4440,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 1020,
+    "name": "Gouging Fire",
+    "slug": "gouging-fire",
+    "gen": 9,
+    "types": [
+      "Fire",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 105,
+      "atk": 115,
+      "def": 121,
+      "spa": 65,
+      "spd": 93,
+      "spe": 91
+    },
+    "bst": 590,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 1021,
+    "name": "Raging Bolt",
+    "slug": "raging-bolt",
+    "gen": 9,
+    "types": [
+      "Electric",
+      "Dragon"
+    ],
+    "baseStats": {
+      "hp": 125,
+      "atk": 73,
+      "def": 91,
+      "spa": 137,
+      "spd": 89,
+      "spe": 75
+    },
+    "bst": 590,
+    "rarity": "epic",
+    "baseCp": 4800,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 1022,
+    "name": "Iron Boulder",
+    "slug": "iron-boulder",
+    "gen": 9,
+    "types": [
+      "Rock",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 120,
+      "def": 80,
+      "spa": 68,
+      "spd": 108,
+      "spe": 124
+    },
+    "bst": 590,
+    "rarity": "epic",
+    "baseCp": 4637,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 1023,
+    "name": "Iron Crown",
+    "slug": "iron-crown",
+    "gen": 9,
+    "types": [
+      "Steel",
+      "Psychic"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 72,
+      "def": 100,
+      "spa": 122,
+      "spd": 108,
+      "spe": 98
+    },
+    "bst": 590,
+    "rarity": "epic",
+    "baseCp": 4685,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 1024,
+    "name": "Terapagos",
+    "slug": "terapagos",
+    "gen": 9,
+    "types": [
+      "Normal"
+    ],
+    "baseStats": {
+      "hp": 90,
+      "atk": 65,
+      "def": 85,
+      "spa": 65,
+      "spd": 85,
+      "spe": 60
+    },
+    "bst": 450,
+    "rarity": "epic",
+    "baseCp": 2519,
+    "baseCatchRate": 0.25
+  },
+  {
+    "id": 1025,
+    "name": "Pecharunt",
+    "slug": "pecharunt",
+    "gen": 9,
+    "types": [
+      "Poison",
+      "Ghost"
+    ],
+    "baseStats": {
+      "hp": 88,
+      "atk": 88,
+      "def": 160,
+      "spa": 88,
+      "spd": 88,
+      "spe": 88
+    },
+    "bst": 600,
+    "rarity": "epic",
+    "baseCp": 4255,
+    "baseCatchRate": 0.25
+  }
+];
+
+export const POKEMON_BY_ID = new Map<number, NationalDexPokemon>(
+  ALL_POKEMON.map((p) => [p.id, p])
+);
+
+export const POKEMON_BY_NAME = new Map<string, NationalDexPokemon>(
+  ALL_POKEMON.map((p) => [p.name.toLowerCase(), p])
+);
+
+export const POKEMON_BY_SLUG = new Map<string, NationalDexPokemon>(
+  ALL_POKEMON.map((p) => [p.slug, p])
+);
+
+export function getPokemonById(id: number): NationalDexPokemon | undefined {
+  return POKEMON_BY_ID.get(id);
+}
+
+export function getPokemonByName(name: string): NationalDexPokemon | undefined {
+  if (!name) return undefined;
+  const clean = name.toLowerCase().trim();
+  return POKEMON_BY_NAME.get(clean) || POKEMON_BY_SLUG.get(clean.replace(/[^a-z0-9]+/g, "-"));
+}
+
+export function getPokemonByGen(gen: number): NationalDexPokemon[] {
+  return ALL_POKEMON.filter((p) => p.gen === gen);
+}
+
+export function getRandomPokemon(filter?: (p: NationalDexPokemon) => boolean): NationalDexPokemon {
+  const pool = filter ? ALL_POKEMON.filter(filter) : ALL_POKEMON;
+  const list = pool.length > 0 ? pool : ALL_POKEMON;
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+export const GENERATION_METADATA = [
+  { gen: 1, name: "Gen 1 (Kanto)", range: "#0001 - #0151", count: 151, badge: "🔴 KANTO" },
+  { gen: 2, name: "Gen 2 (Johto)", range: "#0152 - #0251", count: 100, badge: "🟡 JOHTO" },
+  { gen: 3, name: "Gen 3 (Hoenn)", range: "#0252 - #0386", count: 135, badge: "🟢 HOENN" },
+  { gen: 4, name: "Gen 4 (Sinnoh)", range: "#0387 - #0493", count: 107, badge: "💎 SINNOH" },
+  { gen: 5, name: "Gen 5 (Unova)", range: "#0494 - #0649", count: 156, badge: "⚪ UNOVA" },
+  { gen: 6, name: "Gen 6 (Kalos)", range: "#0650 - #0721", count: 72, badge: "✨ KALOS" },
+  { gen: 7, name: "Gen 7 (Alola)", range: "#0722 - #0809", count: 88, badge: "🌺 ALOLA" },
+  { gen: 8, name: "Gen 8 (Galar)", range: "#0810 - #0905", count: 96, badge: "🛡️ GALAR" },
+  { gen: 9, name: "Gen 9 (Paldea)", range: "#0906 - #1025", count: 120, badge: "🟣 PALDEA" },
+];
