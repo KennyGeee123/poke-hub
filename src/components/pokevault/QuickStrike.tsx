@@ -46,25 +46,40 @@ function money(l: Listing) {
 export type ConditionFilter =
   | "all"
   | "raw"
+  | "raw_mint"
+  | "raw_nm"
+  | "raw_lp"
+  | "raw_mp"
+  | "raw_hp"
+  | "raw_dmg"
   | "slab"
   | "psa10"
   | "psa9"
   | "psa8"
-  | "nm"
-  | "lp"
-  | "mp"
-  | "hp";
+  | "psa7"
+  | "bgs"
+  | "cgc"
+  | "sgc";
 
-const CONDITION_OPTIONS: { id: ConditionFilter; label: string }[] = [
-  { id: "all", label: "Any Condition (Cheapest)" },
-  { id: "raw", label: "Raw / Ungraded Only" },
-  { id: "slab", label: "Graded Slabs Only (PSA/BGS/CGC)" },
-  { id: "psa10", label: "PSA 10 Slabs" },
-  { id: "psa9", label: "PSA 9 Slabs" },
-  { id: "nm", label: "Near Mint (NM)" },
-  { id: "lp", label: "Lightly Played (LP)" },
-  { id: "mp", label: "Moderately Played (MP)" },
-  { id: "hp", label: "Heavily Played (HP)" },
+const UNGRADED_OPTIONS: { id: ConditionFilter; label: string }[] = [
+  { id: "raw", label: "All Raw / Ungraded" },
+  { id: "raw_mint", label: "Raw Mint (Pack Fresh)" },
+  { id: "raw_nm", label: "Raw Near Mint (NM)" },
+  { id: "raw_lp", label: "Raw Lightly Played (LP / EX)" },
+  { id: "raw_mp", label: "Raw Moderately Played (MP / VG)" },
+  { id: "raw_hp", label: "Raw Heavily Played (HP / Good)" },
+  { id: "raw_dmg", label: "Raw Damaged (DMG / Poor)" },
+];
+
+const SLAB_OPTIONS: { id: ConditionFilter; label: string }[] = [
+  { id: "slab", label: "All Graded Slabs (PSA / BGS / CGC / SGC)" },
+  { id: "psa10", label: "PSA 10 Gem Mint Slabs" },
+  { id: "psa9", label: "PSA 9 Mint Slabs" },
+  { id: "psa8", label: "PSA 8 NM-MT Slabs" },
+  { id: "psa7", label: "PSA 7 Near Mint Slabs" },
+  { id: "bgs", label: "BGS / Beckett Slabs" },
+  { id: "cgc", label: "CGC Cards Slabs" },
+  { id: "sgc", label: "SGC Tuxedo Slabs" },
 ];
 
 export function QuickStrike({ card, selectedGrade }: { card: TCGCard; selectedGrade?: CardGrade }) {
@@ -303,18 +318,28 @@ export function QuickStrike({ card, selectedGrade }: { card: TCGCard; selectedGr
             color: "var(--t1)",
             border: "1px solid var(--brd)",
             borderRadius: 6,
-            padding: "5px 8px",
+            padding: "6px 8px",
             fontSize: 11,
             fontFamily: "var(--mono, monospace)",
             outline: "none",
             cursor: "pointer",
           }}
         >
-          {CONDITION_OPTIONS.map((opt) => (
-            <option key={opt.id} value={opt.id}>
-              {opt.label}
-            </option>
-          ))}
+          <option value="all">⚡ Any Condition or Grade (Absolute Lowest)</option>
+          <optgroup label="📋 UNGRADED CONDITIONS (RAW)">
+            {UNGRADED_OPTIONS.map((opt) => (
+              <option key={opt.id} value={opt.id}>
+                {opt.label}
+              </option>
+            ))}
+          </optgroup>
+          <optgroup label="🏆 GRADED SLABS">
+            {SLAB_OPTIONS.map((opt) => (
+              <option key={opt.id} value={opt.id}>
+                {opt.label}
+              </option>
+            ))}
+          </optgroup>
         </select>
       </div>
 

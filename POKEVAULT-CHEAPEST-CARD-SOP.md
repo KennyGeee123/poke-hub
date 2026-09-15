@@ -243,3 +243,27 @@ bun run dev
 
 ---
 *Authored by Geek Squad Quantum Ops & The PokeVault Engineering Council.*
+
+---
+
+## 9. AI Pre-Grade Predetermination Protocol & Ungraded Quality Hierarchy
+
+### 9.1 The Dual-Tier Condition Classification
+The PokeVault engine recognizes ungraded quality on an identical, standardized scale alongside professional grading slabs:
+
+1. **Raw Mint (`raw_mint`)**: Multiplier $1.15\times$. Pack-fresh condition, $\ge 96\%$ centering, zero whitening. PSA 10 estimated probability: $\ge 78\%$.
+2. **Raw Near Mint (`raw_nm`)**: Multiplier $1.00\times$. Clean collector copy, minor allowable edge variance. PSA 9 estimated probability: $\ge 48\%$.
+3. **Raw Lightly Played (`raw_lp`)**: Multiplier $0.82\times$. Minor corner/edge wear, small surface scratch. PSA 8 estimated probability: $\ge 46\%$.
+4. **Raw Moderately Played (`raw_mp`)**: Multiplier $0.62\times$. Visible whitening, binder indent, or light crease.
+5. **Raw Heavily Played (`raw_hp`)**: Multiplier $0.42\times$. Significant creasing, edge silvering, surface wear.
+6. **Raw Damaged (`raw_dmg`)**: Multiplier $0.22\times$. Structural creases, water wear, or paper separation.
+
+### 9.2 Pre-Grade Expected Value (EV) Formula
+The engine predetermines whether an ungraded card found online is mathematically profitable to purchase and submit for grading:
+
+$$\text{EV}_{\text{gross}} = \sum_{g \in \{\text{PSA 10}, \text{PSA 9}, \text{PSA 8}\}} P(g) \times V_{\text{slab}}(g) + P(\text{Sub-8}) \times V_{\text{raw}} \times 0.7$$
+
+$$\text{Net Projected Gain} = \text{EV}_{\text{gross}} - (P_{\text{raw purchase}} + C_{\text{grading fee}})$$
+
+* If $\text{Net Projected Gain} \ge \$25.00$ and $P(\text{PSA 10} + \text{PSA 9}) \ge 65\%$, the engine tags the listing as **`SUBMIT FOR GRADING`**.
+* If $\text{Net Projected Gain} < \$0.00$, the engine tags the listing as **`SELL AS RAW SINGLE / KEEP RAW`**.

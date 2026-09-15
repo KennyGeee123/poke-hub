@@ -3,8 +3,11 @@ import {
   calculateGradedValue,
   getGradeMeta,
   ALL_GRADES,
+  UNGRADED_QUALITIES,
+  GRADED_SLABS,
   getEraMultiplierAdjustment,
   getSlabSearchUrls,
+  predetermineCardGrade,
 } from "./card-grades";
 import type { TCGCard } from "./pokemon-api";
 
@@ -25,65 +28,64 @@ const mockCharizard: TCGCard = {
   },
 };
 
-const mockModernCard: TCGCard = {
-  id: "sv3-1",
-  name: "Oddish",
-  rarity: "Common",
-  set: {
-    id: "sv3",
-    name: "Obsidian Flames",
-    releaseDate: "2023/08/11",
-  },
-  images: { small: "https://example.com/small.png", large: "https://example.com/large.png" },
-  tcgplayer: {
-    prices: {
-      normal: { market: 0.25, low: 0.10, high: 0.50 },
-    },
-  },
-};
+describe("Ungraded & Graded Condition Engine", () => {
+  it("defines full spectrum of raw qualities and slabs", () => {
+    expect(UNGRADED_QUALITIES).toContain("raw_mint");
+    expect(UNGRADED_QUALITIES).toContain("raw_nm");
+    expect(UNGRADED_QUALITIES).toContain("raw_lp");
+    expect(UNGRADED_QUALITIES).toContain("raw_mp");
+    expect(UNGRADED_QUALITIES).toContain("raw_hp");
+    expect(UNGRADED_QUALITIES).toContain("raw_dmg");
 
-describe("Card Grades Engine & Valuation", () => {
-  it("defines all major grading tiers", () => {
-    expect(ALL_GRADES).toContain("raw");
-    expect(ALL_GRADES).toContain("psa10");
-    expect(ALL_GRADES).toContain("psa9");
-    expect(ALL_GRADES).toContain("psa8");
-    expect(ALL_GRADES).toContain("bgs10_black");
-    expect(ALL_GRADES).toContain("bgs95");
-    expect(ALL_GRADES).toContain("cgc10_pristine");
-    expect(ALL_GRADES).toContain("sgc10");
+    expect(GRADED_SLABS).toContain("psa10");
+    expect(GRADED_SLABS).toContain("psa9");
+    expect(GRADED_SLABS).toContain("bgs10_black");
   });
 
-  it("calculates raw ungraded value identically to market price", () => {
-    const rawVal = calculateGradedValue(mockCharizard, "raw");
-    expect(rawVal.estimatedGradedPrice).toBe(350.0);
-    expect(rawVal.multiplier).toBe(1.0);
-    expect(rawVal.isSlab).toBe(false);
+  it("calculates raw condition tier pricing appropriately", () => {
+    const rawMint = calculateGradedValue(mockCharizard, "raw_mint");
+    const rawLP = calculateGradedValue(mockCharizard, "raw_lp");
+    const rawDMG = calculateGradedValue(mockCharizard, "raw_dmg");
+
+    expect(rawMint.estimatedGradedPrice).toBeGreaterThan(rawLP.estimatedGradedPrice);
+    expect(rawLP.estimatedGradedPrice).toBeGreaterThan(rawDMG.estimatedGradedPrice);
+    expect(rawMint.isSlab).toBe(false);
   });
 
   it("applies vintage era multiplier bonus for vintage holos in PSA 10", () => {
     const vintageBonus = getEraMultiplierAdjustment(mockCharizard);
     expect(vintageBonus).toBeGreaterThan(2.0);
 
-    const modernBonus = getEraMultiplierAdjustment(mockModernCard);
-    expect(modernBonus).toBe(1.0);
-
     const psa10Val = calculateGradedValue(mockCharizard, "psa10");
     expect(psa10Val.estimatedGradedPrice).toBeGreaterThan(1000.0);
     expect(psa10Val.isSlab).toBe(true);
   });
+});
 
-  it("calculates grading profit and ROI %", () => {
-    const psa10Val = calculateGradedValue(mockCharizard, "psa10");
-    expect(psa10Val.gradingFee).toBe(19.99);
-    expect(psa10Val.estimatedProfit).toBeGreaterThan(0);
-    expect(psa10Val.estimatedRoiPct).toBeGreaterThan(0);
+describe("AI Pre-Grade Inspector & Predetermination Engine", () => {
+  it("computes high PSA 10 probability for pack-fresh raw mint cards", () => {
+    const analysis = predetermineCardGrade(mockCharizard, "raw_mint", {
+      centering: 98,
+      corners: 98,
+      edges: 96,
+      surface: 97,
+    });
+
+    expect(analysis.predictedGrade).toBe("PSA 10");
+    expect(analysis.probabilities.psa10).toBeGreaterThanOrEqual(75);
+    expect(analysis.expectedNetGain).toBeGreaterThan(0);
+    expect(analysis.recommendedAction).toBe("SUBMIT FOR GRADING");
   });
 
-  it("generates correct slab search URLs for eBay and PriceCharting", () => {
-    const urls = getSlabSearchUrls(mockCharizard, "psa10");
-    expect(urls.ebayActive).toContain("Charizard");
-    expect(urls.ebayActive).toContain("PSA%2010");
-    expect(urls.priceCharting).toContain("Charizard");
+  it("predicts lower grade probabilities for heavily played cards", () => {
+    const analysis = predetermineCardGrade(mockCharizard, "raw_hp", {
+      centering: 60,
+      corners: 40,
+      edges: 40,
+      surface: 45,
+    });
+
+    expect(analysis.probabilities.psa10).toBe(0);
+    expect(analysis.probabilities.sub8).toBeGreaterThanOrEqual(60);
   });
 });

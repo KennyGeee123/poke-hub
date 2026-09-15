@@ -93,12 +93,14 @@ export function PriceComparePanel({ query, cardId, initialCondition = "all" }: {
       {/* Condition & Slab filter chips */}
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: "8px 0 12px" }}>
         {[
-          { id: "all", label: "All Lows" },
-          { id: "raw", label: "Raw / NM" },
-          { id: "slab", label: "All Slabs" },
-          { id: "psa10", label: "PSA 10 Slabs" },
-          { id: "psa9", label: "PSA 9 Slabs" },
-          { id: "lp", label: "Lightly Played" },
+          { id: "all", label: "⚡ All Lows" },
+          { id: "raw_nm", label: "📋 Raw NM" },
+          { id: "raw_mint", label: "📋 Raw Mint" },
+          { id: "raw_lp", label: "📋 Raw LP" },
+          { id: "raw_mp", label: "📋 Raw MP" },
+          { id: "slab", label: "🏆 All Slabs" },
+          { id: "psa10", label: "🏆 PSA 10 Slabs" },
+          { id: "psa9", label: "🏆 PSA 9 Slabs" },
         ].map((c) => (
           <button
             key={c.id}

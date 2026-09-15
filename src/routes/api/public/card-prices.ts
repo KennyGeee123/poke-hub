@@ -893,17 +893,20 @@ export const Route = createFileRoute("/api/public/card-prices")({
           const blob = `${l.title || ""} ${l.variant || ""} ${l.condition || ""}`.toLowerCase();
           if (condition === "raw") return !slab;
           if (condition === "slab" || condition === "graded") return slab;
-          if (condition === "psa10") return /psa\s*10|gem\s*mint\s*10/i.test(blob);
-          if (condition === "psa9") return /psa\s*9\b|mint\s*9/i.test(blob);
-          if (condition === "psa8") return /psa\s*8\b|nm\s*mt\s*8/i.test(blob);
-          if (condition === "bgs") return /bgs|beckett/i.test(blob);
-          if (condition === "cgc") return /cgc/i.test(blob);
-          if (condition === "sgc") return /sgc/i.test(blob);
-          if (condition === "nm") return !slab && /near\s*mint|\bnm\b|normal|holofoil|mint/i.test(blob) && !/played|damaged|hp|mp/i.test(blob);
-          if (condition === "lp") return !slab && /lightly\s*played|\blp\b/i.test(blob);
-          if (condition === "mp") return !slab && /moderately\s*played|\bmp\b/i.test(blob);
-          if (condition === "hp") return !slab && /heavily\s*played|\bhp\b/i.test(blob);
-          if (condition === "dmg") return !slab && /damaged|\bdmg\b/i.test(blob);
+          if (condition === "psa10") return slab && /psa\s*10|gem\s*mint\s*10/i.test(blob);
+          if (condition === "psa9") return slab && /psa\s*9\b|mint\s*9/i.test(blob);
+          if (condition === "psa8") return slab && /psa\s*8\b|nm\s*mt\s*8/i.test(blob);
+          if (condition === "psa7") return slab && /psa\s*7\b|near\s*mint\s*7/i.test(blob);
+          if (condition === "bgs" || condition === "bgs95" || condition === "bgs10_black") return slab && /bgs|beckett/i.test(blob);
+          if (condition === "cgc" || condition === "cgc10_pristine" || condition === "cgc95" || condition === "cgc9") return slab && /cgc/i.test(blob);
+          if (condition === "sgc" || condition === "sgc10") return slab && /sgc/i.test(blob);
+
+          if (condition === "raw_mint") return !slab && /mint|pack\s*fresh|gem\s*raw/i.test(blob) && !/played|damaged|hp|mp|lp/i.test(blob);
+          if (condition === "raw_nm" || condition === "nm") return !slab && /near\s*mint|\bnm\b|normal|holofoil|mint/i.test(blob) && !/played|damaged|hp|mp/i.test(blob);
+          if (condition === "raw_lp" || condition === "lp") return !slab && /lightly\s*played|\blp\b|excellent/i.test(blob);
+          if (condition === "raw_mp" || condition === "mp") return !slab && /moderately\s*played|\bmp\b|fine|very\s*good/i.test(blob);
+          if (condition === "raw_hp" || condition === "hp") return !slab && /heavily\s*played|\bhp\b|good/i.test(blob);
+          if (condition === "raw_dmg" || condition === "dmg") return !slab && /damaged|\bdmg\b|poor/i.test(blob);
           return true;
         };
 

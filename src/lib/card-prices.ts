@@ -112,18 +112,20 @@ export function matchesConditionFilter(l: Listing, filter?: string | null): bool
 
   if (filter === "raw") return !slab;
   if (filter === "slab" || filter === "graded") return slab;
-  if (filter === "psa10") return /psa\s*10|gem\s*mint\s*10/i.test(text);
-  if (filter === "psa9") return /psa\s*9\b|mint\s*9/i.test(text);
-  if (filter === "psa8") return /psa\s*8\b|nm\s*mt\s*8/i.test(text);
-  if (filter === "bgs") return /bgs|beckett/i.test(text);
-  if (filter === "cgc") return /cgc/i.test(text);
-  if (filter === "sgc") return /sgc/i.test(text);
+  if (filter === "psa10") return slab && /psa\s*10|gem\s*mint\s*10/i.test(text);
+  if (filter === "psa9") return slab && /psa\s*9\b|mint\s*9/i.test(text);
+  if (filter === "psa8") return slab && /psa\s*8\b|nm\s*mt\s*8/i.test(text);
+  if (filter === "psa7") return slab && /psa\s*7\b|near\s*mint\s*7/i.test(text);
+  if (filter === "bgs" || filter === "bgs95" || filter === "bgs10_black") return slab && /bgs|beckett/i.test(text);
+  if (filter === "cgc" || filter === "cgc10_pristine" || filter === "cgc95" || filter === "cgc9") return slab && /cgc/i.test(text);
+  if (filter === "sgc" || filter === "sgc10") return slab && /sgc/i.test(text);
 
-  if (filter === "nm") return !slab && /near\s*mint|\bnm\b|normal|holofoil|mint/i.test(text) && !/played|damaged|hp|mp/i.test(text);
-  if (filter === "lp") return !slab && /lightly\s*played|\blp\b/i.test(text);
-  if (filter === "mp") return !slab && /moderately\s*played|\bmp\b/i.test(text);
-  if (filter === "hp") return !slab && /heavily\s*played|\bhp\b/i.test(text);
-  if (filter === "dmg") return !slab && /damaged|\bdmg\b/i.test(text);
+  if (filter === "raw_mint") return !slab && /mint|pack\s*fresh|gem\s*raw/i.test(text) && !/played|damaged|hp|mp|lp/i.test(text);
+  if (filter === "raw_nm" || filter === "nm") return !slab && /near\s*mint|\bnm\b|normal|holofoil|mint/i.test(text) && !/played|damaged|hp|mp/i.test(text);
+  if (filter === "raw_lp" || filter === "lp") return !slab && /lightly\s*played|\blp\b|excellent/i.test(text);
+  if (filter === "raw_mp" || filter === "mp") return !slab && /moderately\s*played|\bmp\b|fine|very\s*good/i.test(text);
+  if (filter === "raw_hp" || filter === "hp") return !slab && /heavily\s*played|\bhp\b|good/i.test(text);
+  if (filter === "raw_dmg" || filter === "dmg") return !slab && /damaged|\bdmg\b|poor/i.test(text);
 
   return true;
 }

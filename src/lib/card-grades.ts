@@ -1,9 +1,18 @@
-// Graded card valuation engine & slab multiplier calculations
+// Graded & Ungraded Condition Valuation Engine & AI Grade Pre-Determination Analyzer
 import type { TCGCard } from "./pokemon-api";
 import { getMarketPrice } from "./pokemon-api";
 
-export type CardGrade =
-  | "raw"
+export type QualityCategory = "ungraded" | "graded";
+
+export type RawQuality =
+  | "raw_mint"
+  | "raw_nm"
+  | "raw_lp"
+  | "raw_mp"
+  | "raw_hp"
+  | "raw_dmg";
+
+export type SlabGrade =
   | "psa10"
   | "psa9"
   | "psa8"
@@ -15,8 +24,11 @@ export type CardGrade =
   | "cgc9"
   | "sgc10";
 
+export type CardGrade = "raw" | RawQuality | SlabGrade;
+
 export type GradeMeta = {
   id: CardGrade;
+  category: QualityCategory;
   company: "RAW" | "PSA" | "BGS" | "CGC" | "SGC";
   gradeNum: number | null;
   label: string;
@@ -28,28 +40,108 @@ export type GradeMeta = {
   isSlab: boolean;
 };
 
-export const GRADING_FEE_ESTIMATE = 19.99; // Standard PSA/CGC/BGS submission cost baseline
+export const GRADING_FEE_ESTIMATE = 19.99; // Standard PSA/CGC submission cost
 
 export const GRADE_DEFINITIONS: Record<CardGrade, GradeMeta> = {
   raw: {
     id: "raw",
+    category: "ungraded",
     company: "RAW",
     gradeNum: null,
-    label: "Raw / Ungraded (NM)",
-    shortLabel: "RAW",
-    description: "Ungraded card in Near Mint condition",
+    label: "Raw / Near Mint (Standard Baseline)",
+    shortLabel: "RAW NM",
+    description: "Ungraded card in Near Mint baseline condition",
     badgeBg: "rgba(255,255,255,0.08)",
     badgeText: "var(--t1, #ffffff)",
     baseMultiplier: 1.0,
     isSlab: false,
   },
+  raw_mint: {
+    id: "raw_mint",
+    category: "ungraded",
+    company: "RAW",
+    gradeNum: 9.5,
+    label: "Raw Mint (Pack Fresh / Flawless)",
+    shortLabel: "MINT (RAW)",
+    description: "Pack-fresh ungraded card with crisp corners and pristine surface",
+    badgeBg: "rgba(34, 197, 94, 0.16)",
+    badgeText: "#4ade80",
+    baseMultiplier: 1.15,
+    isSlab: false,
+  },
+  raw_nm: {
+    id: "raw_nm",
+    category: "ungraded",
+    company: "RAW",
+    gradeNum: 8.5,
+    label: "Raw Near Mint (NM)",
+    shortLabel: "NM (RAW)",
+    description: "Near Mint with minimal surface or edge wear",
+    badgeBg: "rgba(59, 130, 246, 0.14)",
+    badgeText: "#60a5fa",
+    baseMultiplier: 1.0,
+    isSlab: false,
+  },
+  raw_lp: {
+    id: "raw_lp",
+    category: "ungraded",
+    company: "RAW",
+    gradeNum: 7.0,
+    label: "Raw Lightly Played (LP / EX)",
+    shortLabel: "LP (RAW)",
+    description: "Light edge whitening or minor surface scratches",
+    badgeBg: "rgba(234, 179, 8, 0.14)",
+    badgeText: "#facc15",
+    baseMultiplier: 0.82,
+    isSlab: false,
+  },
+  raw_mp: {
+    id: "raw_mp",
+    category: "ungraded",
+    company: "RAW",
+    gradeNum: 5.5,
+    label: "Raw Moderately Played (MP / Fine / VG)",
+    shortLabel: "MP (RAW)",
+    description: "Moderate edge wear, minor creasing, or binder rub",
+    badgeBg: "rgba(249, 115, 22, 0.14)",
+    badgeText: "#fb923c",
+    baseMultiplier: 0.62,
+    isSlab: false,
+  },
+  raw_hp: {
+    id: "raw_hp",
+    category: "ungraded",
+    company: "RAW",
+    gradeNum: 4.0,
+    label: "Raw Heavily Played (HP / Good)",
+    shortLabel: "HP (RAW)",
+    description: "Heavy whitening, small creases, or extensive surface wear",
+    badgeBg: "rgba(239, 68, 68, 0.14)",
+    badgeText: "#f87171",
+    baseMultiplier: 0.42,
+    isSlab: false,
+  },
+  raw_dmg: {
+    id: "raw_dmg",
+    category: "ungraded",
+    company: "RAW",
+    gradeNum: 2.0,
+    label: "Raw Damaged (DMG / Poor)",
+    shortLabel: "DMG (RAW)",
+    description: "Bends, structural creases, water damage, or tears",
+    badgeBg: "rgba(185, 28, 28, 0.18)",
+    badgeText: "#ef4444",
+    baseMultiplier: 0.22,
+    isSlab: false,
+  },
   psa10: {
     id: "psa10",
+    category: "graded",
     company: "PSA",
     gradeNum: 10,
     label: "PSA 10 (Gem Mint)",
     shortLabel: "PSA 10",
-    description: "Gem Mint 10 - Virtually flawless centering, corners, and surface",
+    description: "Gem Mint 10 - Virtually flawless centering, corners, edges, surface",
     badgeBg: "rgba(239, 68, 68, 0.18)",
     badgeText: "#f87171",
     baseMultiplier: 3.8,
@@ -57,6 +149,7 @@ export const GRADE_DEFINITIONS: Record<CardGrade, GradeMeta> = {
   },
   psa9: {
     id: "psa9",
+    category: "graded",
     company: "PSA",
     gradeNum: 9,
     label: "PSA 9 (Mint)",
@@ -69,6 +162,7 @@ export const GRADE_DEFINITIONS: Record<CardGrade, GradeMeta> = {
   },
   psa8: {
     id: "psa8",
+    category: "graded",
     company: "PSA",
     gradeNum: 8,
     label: "PSA 8 (NM-MT)",
@@ -81,6 +175,7 @@ export const GRADE_DEFINITIONS: Record<CardGrade, GradeMeta> = {
   },
   psa7: {
     id: "psa7",
+    category: "graded",
     company: "PSA",
     gradeNum: 7,
     label: "PSA 7 (Near Mint)",
@@ -93,18 +188,20 @@ export const GRADE_DEFINITIONS: Record<CardGrade, GradeMeta> = {
   },
   bgs10_black: {
     id: "bgs10_black",
+    category: "graded",
     company: "BGS",
     gradeNum: 10,
     label: "BGS 10 Black Label (Pristine)",
     shortLabel: "BGS 10 BL",
-    description: "Perfect 10 on all four subgrades: Centering, Corners, Edges, Surface",
-    badgeBg: "rgba(0, 0, 0, 0.6)",
+    description: "Perfect 10 on Centering, Corners, Edges, and Surface",
+    badgeBg: "rgba(0, 0, 0, 0.7)",
     badgeText: "#fbbf24",
     baseMultiplier: 8.5,
     isSlab: true,
   },
   bgs95: {
     id: "bgs95",
+    category: "graded",
     company: "BGS",
     gradeNum: 9.5,
     label: "BGS 9.5 (Gem Mint)",
@@ -117,6 +214,7 @@ export const GRADE_DEFINITIONS: Record<CardGrade, GradeMeta> = {
   },
   cgc10_pristine: {
     id: "cgc10_pristine",
+    category: "graded",
     company: "CGC",
     gradeNum: 10,
     label: "CGC 10 (Pristine)",
@@ -129,6 +227,7 @@ export const GRADE_DEFINITIONS: Record<CardGrade, GradeMeta> = {
   },
   cgc95: {
     id: "cgc95",
+    category: "graded",
     company: "CGC",
     gradeNum: 9.5,
     label: "CGC 9.5 (Gem Mint)",
@@ -141,6 +240,7 @@ export const GRADE_DEFINITIONS: Record<CardGrade, GradeMeta> = {
   },
   cgc9: {
     id: "cgc9",
+    category: "graded",
     company: "CGC",
     gradeNum: 9,
     label: "CGC 9 (Mint)",
@@ -153,6 +253,7 @@ export const GRADE_DEFINITIONS: Record<CardGrade, GradeMeta> = {
   },
   sgc10: {
     id: "sgc10",
+    category: "graded",
     company: "SGC",
     gradeNum: 10,
     label: "SGC 10 (Gem Mint - Tuxedo)",
@@ -165,8 +266,16 @@ export const GRADE_DEFINITIONS: Record<CardGrade, GradeMeta> = {
   },
 };
 
-export const ALL_GRADES: CardGrade[] = [
-  "raw",
+export const UNGRADED_QUALITIES: RawQuality[] = [
+  "raw_mint",
+  "raw_nm",
+  "raw_lp",
+  "raw_mp",
+  "raw_hp",
+  "raw_dmg",
+];
+
+export const GRADED_SLABS: SlabGrade[] = [
   "psa10",
   "psa9",
   "psa8",
@@ -177,6 +286,12 @@ export const ALL_GRADES: CardGrade[] = [
   "cgc95",
   "cgc9",
   "sgc10",
+];
+
+export const ALL_GRADES: CardGrade[] = [
+  "raw",
+  ...UNGRADED_QUALITIES,
+  ...GRADED_SLABS,
 ];
 
 export function getGradeMeta(grade: CardGrade): GradeMeta {
@@ -226,13 +341,15 @@ export function calculateGradedValue(card: TCGCard, grade: CardGrade): GradedVal
   const rawPrice = getMarketPrice(card) || 1.0;
   const meta = getGradeMeta(grade);
 
-  if (grade === "raw") {
+  if (!meta.isSlab) {
+    // Ungraded condition calculation
+    const condPrice = Math.round(rawPrice * meta.baseMultiplier * 100) / 100;
     return {
-      grade: "raw",
+      grade,
       meta,
       rawPrice,
-      estimatedGradedPrice: rawPrice,
-      multiplier: 1.0,
+      estimatedGradedPrice: condPrice,
+      multiplier: meta.baseMultiplier,
       gradingFee: 0,
       estimatedProfit: 0,
       estimatedRoiPct: 0,
@@ -274,10 +391,157 @@ export function calculateGradedValue(card: TCGCard, grade: CardGrade): GradedVal
   };
 }
 
+/**
+ * AI Pre-Grade Inspector & Grade Probability Engine.
+ * Analyzes an ungraded card and predicts the probability distribution of PSA 10, PSA 9, PSA 8,
+ * along with expected financial upside (Expected Value - EV).
+ */
+export type PreGradeAnalysis = {
+  quality: RawQuality;
+  centeringScore: number; // 0-100
+  cornersScore: number;   // 0-100
+  edgesScore: number;     // 0-100
+  surfaceScore: number;   // 0-100
+  compositeScore: number; // 0-100
+  predictedGrade: "PSA 10" | "PSA 9" | "PSA 8" | "PSA 7" | "Sub-7";
+  probabilities: {
+    psa10: number; // 0-100%
+    psa9: number;  // 0-100%
+    psa8: number;  // 0-100%
+    sub8: number;  // 0-100%
+  };
+  rawPurchasePrice: number;
+  gradingFee: number;
+  expectedGrossValue: number;
+  expectedNetGain: number;
+  recommendedAction: "SUBMIT FOR GRADING" | "KEEP RAW / BINDER" | "SELL AS RAW SINGLE";
+};
+
+export function predetermineCardGrade(
+  card: TCGCard,
+  quality: RawQuality = "raw_mint",
+  customOverrides?: { centering?: number; corners?: number; edges?: number; surface?: number }
+): PreGradeAnalysis {
+  const rawPrice = getMarketPrice(card) || 1.0;
+  const psa10Value = calculateGradedValue(card, "psa10").estimatedGradedPrice;
+  const psa9Value = calculateGradedValue(card, "psa9").estimatedGradedPrice;
+  const psa8Value = calculateGradedValue(card, "psa8").estimatedGradedPrice;
+  const sub8Value = rawPrice * 0.7;
+
+  let baseCentering = 95;
+  let baseCorners = 95;
+  let baseEdges = 95;
+  let baseSurface = 95;
+
+  switch (quality) {
+    case "raw_mint":
+      baseCentering = 96; baseCorners = 98; baseEdges = 97; baseSurface = 98;
+      break;
+    case "raw_nm":
+      baseCentering = 90; baseCorners = 92; baseEdges = 91; baseSurface = 92;
+      break;
+    case "raw_lp":
+      baseCentering = 82; baseCorners = 80; baseEdges = 78; baseSurface = 84;
+      break;
+    case "raw_mp":
+      baseCentering = 70; baseCorners = 65; baseEdges = 60; baseSurface = 68;
+      break;
+    case "raw_hp":
+      baseCentering = 55; baseCorners = 45; baseEdges = 40; baseSurface = 50;
+      break;
+    case "raw_dmg":
+      baseCentering = 35; baseCorners = 25; baseEdges = 20; baseSurface = 25;
+      break;
+  }
+
+  const centering = customOverrides?.centering ?? baseCentering;
+  const corners = customOverrides?.corners ?? baseCorners;
+  const edges = customOverrides?.edges ?? baseEdges;
+  const surface = customOverrides?.surface ?? baseSurface;
+
+  const composite = Math.round((centering * 0.25) + (corners * 0.25) + (edges * 0.25) + (surface * 0.25));
+
+  let prob10 = 0;
+  let prob9 = 0;
+  let prob8 = 0;
+  let probSub8 = 0;
+
+  if (composite >= 96) {
+    prob10 = 78;
+    prob9 = 19;
+    prob8 = 3;
+    probSub8 = 0;
+  } else if (composite >= 91) {
+    prob10 = 42;
+    prob9 = 48;
+    prob8 = 8;
+    probSub8 = 2;
+  } else if (composite >= 80) {
+    prob10 = 8;
+    prob9 = 38;
+    prob8 = 46;
+    probSub8 = 8;
+  } else if (composite >= 65) {
+    prob10 = 0;
+    prob9 = 8;
+    prob8 = 32;
+    probSub8 = 60;
+  } else {
+    prob10 = 0;
+    prob9 = 0;
+    prob8 = 5;
+    probSub8 = 95;
+  }
+
+  let predictedGrade: "PSA 10" | "PSA 9" | "PSA 8" | "PSA 7" | "Sub-7" = "Sub-7";
+  if (prob10 >= 50) predictedGrade = "PSA 10";
+  else if (prob9 >= 40) predictedGrade = "PSA 9";
+  else if (prob8 >= 40) predictedGrade = "PSA 8";
+  else if (composite >= 70) predictedGrade = "PSA 7";
+
+  const expectedGross = (
+    (prob10 / 100) * psa10Value +
+    (prob9 / 100) * psa9Value +
+    (prob8 / 100) * psa8Value +
+    (probSub8 / 100) * sub8Value
+  );
+
+  const rawCostBasis = rawPrice + GRADING_FEE_ESTIMATE;
+  const expectedNet = Math.round((expectedGross - rawCostBasis) * 100) / 100;
+
+  let recommendedAction: "SUBMIT FOR GRADING" | "KEEP RAW / BINDER" | "SELL AS RAW SINGLE" = "KEEP RAW / BINDER";
+  if (expectedNet >= 25.0 && (prob10 + prob9) >= 65) {
+    recommendedAction = "SUBMIT FOR GRADING";
+  } else if (expectedNet < 0) {
+    recommendedAction = "SELL AS RAW SINGLE";
+  }
+
+  return {
+    quality,
+    centeringScore: centering,
+    cornersScore: corners,
+    edgesScore: edges,
+    surfaceScore: surface,
+    compositeScore: composite,
+    predictedGrade,
+    probabilities: {
+      psa10: prob10,
+      psa9: prob9,
+      psa8: prob8,
+      sub8: probSub8,
+    },
+    rawPurchasePrice: rawPrice,
+    gradingFee: GRADING_FEE_ESTIMATE,
+    expectedGrossValue: Math.round(expectedGross * 100) / 100,
+    expectedNetGain: expectedNet,
+    recommendedAction,
+  };
+}
+
 export function getSlabSearchUrls(card: TCGCard, grade: CardGrade) {
   const meta = getGradeMeta(grade);
   const baseQuery = `${card.name} ${card.set?.name || ""} ${card.number || ""}`.trim();
-  const slabQuery = grade === "raw" ? `${baseQuery} raw` : `${baseQuery} ${meta.shortLabel}`;
+  const slabQuery = !meta.isSlab ? `${baseQuery} ${meta.shortLabel}` : `${baseQuery} ${meta.shortLabel}`;
 
   const enc = encodeURIComponent;
   return {

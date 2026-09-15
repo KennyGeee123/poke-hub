@@ -14,9 +14,12 @@ import { fallbackCardImages, resolveHDImage } from "@/lib/card-images";
 import {
   calculateGradedValue,
   type CardGrade,
-  ALL_GRADES,
+  type RawQuality,
+  UNGRADED_QUALITIES,
+  GRADED_SLABS,
   getGradeMeta,
   getSlabSearchUrls,
+  predetermineCardGrade,
 } from "@/lib/card-grades";
 
 export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack: () => void; onToast: (m: string) => void }) {
@@ -24,8 +27,16 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
   const [loaded, setLoaded] = useState(false);
   const [degraded, setDegraded] = useState(false);
   const [imgSrc, setImgSrc] = useState("");
-  const [selectedGrade, setSelectedGrade] = useState<CardGrade>("raw");
+  const [selectedGrade, setSelectedGrade] = useState<CardGrade>("raw_nm");
+  const [activeTab, setActiveTab] = useState<"pricing" | "ai_inspector">("pricing");
   const failedImgs = useRef<Set<string>>(new Set());
+
+  // AI Pre-Grade Scanner state
+  const [inspectQuality, setInspectQuality] = useState<RawQuality>("raw_mint");
+  const [centeringScore, setCenteringScore] = useState(96);
+  const [cornersScore, setCornersScore] = useState(98);
+  const [edgesScore, setEdgesScore] = useState(96);
+  const [surfaceScore, setSurfaceScore] = useState(97);
 
   useEffect(() => {
     const stub = stubCardFromId(cardId);
@@ -33,7 +44,7 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
     setLoaded(false);
     setDegraded(false);
     setImgSrc(stub.images?.large || stub.images?.small || "");
-    setSelectedGrade("raw");
+    setSelectedGrade("raw_nm");
     failedImgs.current = new Set();
     let live = true;
     getCard(cardId, getPrintLang())
@@ -72,6 +83,14 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
   const gradeMeta = getGradeMeta(selectedGrade);
   const slabUrls = getSlabSearchUrls(card, selectedGrade);
 
+  // Run AI Pre-Grade Predetermination Analysis
+  const preGradeAnalysis = predetermineCardGrade(card, inspectQuality, {
+    centering: centeringScore,
+    corners: cornersScore,
+    edges: edgesScore,
+    surface: surfaceScore,
+  });
+
   return (
     <div className="pad">
       <button className="pv-back" onClick={onBack}>← Back</button>
@@ -96,26 +115,24 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
                 if (next) setImgSrc(next);
               }}
             />
-            {selectedGrade !== "raw" && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: 10,
-                  left: 10,
-                  padding: "4px 8px",
-                  borderRadius: 6,
-                  fontSize: 11,
-                  fontWeight: 800,
-                  fontFamily: "var(--mono, monospace)",
-                  background: gradeMeta.badgeBg,
-                  color: gradeMeta.badgeText,
-                  border: `1px solid ${gradeMeta.badgeText}88`,
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.7)",
-                }}
-              >
-                {gradeMeta.shortLabel}
-              </div>
-            )}
+            <div
+              style={{
+                position: "absolute",
+                top: 10,
+                left: 10,
+                padding: "4px 8px",
+                borderRadius: 6,
+                fontSize: 11,
+                fontWeight: 800,
+                fontFamily: "var(--mono, monospace)",
+                background: gradeMeta.badgeBg,
+                color: gradeMeta.badgeText,
+                border: `1px solid ${gradeMeta.badgeText}88`,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.7)",
+              }}
+            >
+              {gradeMeta.shortLabel}
+            </div>
           </div>
 
           <CardActions card={card} onAfterAction={onToast} />
@@ -123,7 +140,7 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
           {/* Quick Strike Cheap Card Loop */}
           <QuickStrike card={card} selectedGrade={selectedGrade} />
 
-          {/* Graded Cost Dropdown & Valuation HUD */}
+          {/* Graded & Ungraded Condition Valuation HUD */}
           <div
             style={{
               marginTop: 12,
@@ -135,7 +152,7 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
               <div style={{ fontSize: 10, letterSpacing: 1.5, color: "#f87171", fontWeight: 800 }}>
-                🏆 GRADED COST & SLAB VALUATION
+                {gradeMeta.isSlab ? "🏆 GRADED SLAB VALUATION" : "📋 UNGRADED RATING & VALUE"}
               </div>
               <span
                 style={{
@@ -147,7 +164,7 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
                   fontWeight: 700,
                 }}
               >
-                {gradeMeta.company}
+                {gradeMeta.category.toUpperCase()}
               </span>
             </div>
 
@@ -159,7 +176,7 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
                 width: "100%",
                 padding: "8px 10px",
                 background: "rgba(10, 15, 29, 0.95)",
-                color: selectedGrade !== "raw" ? "#fbbf24" : "var(--t1)",
+                color: gradeMeta.isSlab ? "#fbbf24" : "var(--t1)",
                 border: "1px solid var(--brd)",
                 borderRadius: 8,
                 fontSize: 12,
@@ -170,15 +187,28 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
                 marginBottom: 10,
               }}
             >
-              {ALL_GRADES.map((g) => {
-                const gm = getGradeMeta(g);
-                const gv = calculateGradedValue(card, g);
-                return (
-                  <option key={g} value={g}>
-                    {gm.label} · {formatPrice(gv.estimatedGradedPrice)}
-                  </option>
-                );
-              })}
+              <optgroup label="📋 UNGRADED CONDITIONS (RAW)">
+                {UNGRADED_QUALITIES.map((g) => {
+                  const gm = getGradeMeta(g);
+                  const gv = calculateGradedValue(card, g);
+                  return (
+                    <option key={g} value={g}>
+                      {gm.label} · {formatPrice(gv.estimatedGradedPrice)}
+                    </option>
+                  );
+                })}
+              </optgroup>
+              <optgroup label="🏆 GRADED SLABS">
+                {GRADED_SLABS.map((g) => {
+                  const gm = getGradeMeta(g);
+                  const gv = calculateGradedValue(card, g);
+                  return (
+                    <option key={g} value={g}>
+                      {gm.label} · {formatPrice(gv.estimatedGradedPrice)}
+                    </option>
+                  );
+                })}
+              </optgroup>
             </select>
 
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
@@ -186,21 +216,19 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
                 <div style={{ fontSize: 9, color: "var(--t3)", letterSpacing: 1, textTransform: "uppercase" }}>
                   {gradeMeta.label}
                 </div>
-                <div style={{ fontFamily: "Bebas Neue", fontSize: 26, color: selectedGrade !== "raw" ? "#fbbf24" : "var(--gold)", letterSpacing: 1 }}>
+                <div style={{ fontFamily: "Bebas Neue", fontSize: 26, color: gradeMeta.isSlab ? "#fbbf24" : "var(--gold)", letterSpacing: 1 }}>
                   {formatPrice(gradedVal.estimatedGradedPrice)}
                 </div>
               </div>
-              {selectedGrade !== "raw" && (
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 9, color: "var(--t3)" }}>Multiplier</div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#4ade80" }}>
-                    {gradedVal.multiplier.toFixed(2)}×
-                  </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: 9, color: "var(--t3)" }}>Rating Multiplier</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: gradeMeta.isSlab ? "#4ade80" : "var(--t2)" }}>
+                  {gradedVal.multiplier.toFixed(2)}×
                 </div>
-              )}
+              </div>
             </div>
 
-            {selectedGrade !== "raw" && (
+            {gradeMeta.isSlab ? (
               <div
                 style={{
                   marginTop: 8,
@@ -228,6 +256,19 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
                   </span>
                 </div>
               </div>
+            ) : (
+              <div
+                style={{
+                  marginTop: 8,
+                  padding: "8px 10px",
+                  background: "rgba(0,0,0,0.3)",
+                  borderRadius: 8,
+                  fontSize: 11,
+                  color: "var(--t2)",
+                }}
+              >
+                {gradeMeta.description}
+              </div>
             )}
 
             <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
@@ -238,7 +279,7 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
                 className="pv-btn pv-btn-out"
                 style={{ flex: 1, textAlign: "center", fontSize: 10, padding: "6px 4px", textDecoration: "none" }}
               >
-                eBay Slabs ↗
+                eBay {gradeMeta.shortLabel} ↗
               </a>
               <a
                 href={slabUrls.ebaySold}
@@ -247,7 +288,7 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
                 className="pv-btn pv-btn-out"
                 style={{ flex: 1, textAlign: "center", fontSize: 10, padding: "6px 4px", textDecoration: "none" }}
               >
-                Sold Slabs ↗
+                Sold Comps ↗
               </a>
             </div>
           </div>
@@ -272,6 +313,227 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
             {card.lang && card.lang !== "en" ? `${printLangMeta(card.lang).name} print • ` : ""}
             {card.set.name} • #{card.number}/{card.set.printedTotal} {card.artist && `• Illus. ${card.artist}`}
           </div>
+
+          {/* AI Pre-Grade vs Market Tab Header */}
+          <div style={{ display: "flex", gap: 8, marginBottom: 14, borderBottom: "1px solid var(--brd)", paddingBottom: 8 }}>
+            <button
+              onClick={() => setActiveTab("pricing")}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: activeTab === "pricing" ? "var(--neon-yellow, #fbbf24)" : "var(--t3)",
+                fontWeight: activeTab === "pricing" ? 800 : 500,
+                borderBottom: activeTab === "pricing" ? "2px solid var(--neon-yellow, #fbbf24)" : "none",
+                padding: "4px 8px",
+                cursor: "pointer",
+                fontSize: 12,
+              }}
+            >
+              📈 Market Prices & Stats
+            </button>
+            <button
+              onClick={() => setActiveTab("ai_inspector")}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: activeTab === "ai_inspector" ? "var(--neon-cyan, #38bdf8)" : "var(--t3)",
+                fontWeight: activeTab === "ai_inspector" ? 800 : 500,
+                borderBottom: activeTab === "ai_inspector" ? "2px solid var(--neon-cyan, #38bdf8)" : "none",
+                padding: "4px 8px",
+                cursor: "pointer",
+                fontSize: 12,
+              }}
+            >
+              🔬 AI Pre-Grade Predetermination Analyzer
+            </button>
+          </div>
+
+          {activeTab === "ai_inspector" ? (
+            /* AI Pre-Grade Inspector HUD */
+            <div
+              style={{
+                padding: 16,
+                background: "linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(15, 23, 42, 0.8))",
+                border: "1px solid rgba(14, 165, 233, 0.3)",
+                borderRadius: 14,
+                marginBottom: 20,
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "#38bdf8", letterSpacing: 1 }}>
+                    🔬 AI PRE-GRADE PREDETERMINATION ENGINE
+                  </div>
+                  <div style={{ fontSize: 11, color: "var(--t3)" }}>
+                    Analyze raw ungraded card online to predict PSA 10 / 9 probability & expected ROI
+                  </div>
+                </div>
+                <span
+                  style={{
+                    padding: "4px 10px",
+                    borderRadius: 20,
+                    fontSize: 11,
+                    fontWeight: 800,
+                    background: preGradeAnalysis.expectedNetGain >= 20 ? "rgba(34,197,94,0.2)" : "rgba(234,179,8,0.2)",
+                    color: preGradeAnalysis.expectedNetGain >= 20 ? "#4ade80" : "#facc15",
+                    border: `1px solid ${preGradeAnalysis.expectedNetGain >= 20 ? "#4ade80" : "#facc15"}`,
+                  }}
+                >
+                  {preGradeAnalysis.recommendedAction}
+                </span>
+              </div>
+
+              {/* Raw Condition Preset Selector */}
+              <div style={{ margin: "12px 0" }}>
+                <div style={{ fontSize: 10, color: "var(--t3)", marginBottom: 4, fontWeight: 700 }}>
+                  RAW LISTING QUALITY PRESET:
+                </div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {UNGRADED_QUALITIES.map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => {
+                        setInspectQuality(q);
+                        if (q === "raw_mint") { setCenteringScore(96); setCornersScore(98); setEdgesScore(96); setSurfaceScore(97); }
+                        else if (q === "raw_nm") { setCenteringScore(90); setCornersScore(92); setEdgesScore(91); setSurfaceScore(92); }
+                        else if (q === "raw_lp") { setCenteringScore(82); setCornersScore(80); setEdgesScore(78); setSurfaceScore(84); }
+                        else if (q === "raw_mp") { setCenteringScore(70); setCornersScore(65); setEdgesScore(60); setSurfaceScore(68); }
+                        else { setCenteringScore(50); setCornersScore(45); setEdgesScore(40); setSurfaceScore(45); }
+                      }}
+                      style={{
+                        padding: "5px 10px",
+                        borderRadius: 6,
+                        fontSize: 11,
+                        fontFamily: "var(--mono, monospace)",
+                        border: inspectQuality === q ? "1px solid #38bdf8" : "1px solid var(--brd)",
+                        background: inspectQuality === q ? "rgba(56, 189, 248, 0.2)" : "rgba(255,255,255,0.04)",
+                        color: inspectQuality === q ? "#38bdf8" : "var(--t2)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {getGradeMeta(q).shortLabel}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Four Sub-grade Parameter Sliders */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, margin: "14px 0" }}>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 2 }}>
+                    <span>Centering (50/50 - 60/40)</span>
+                    <strong style={{ color: "#38bdf8" }}>{centeringScore}%</strong>
+                  </div>
+                  <input
+                    type="range"
+                    min="20"
+                    max="100"
+                    value={centeringScore}
+                    onChange={(e) => setCenteringScore(Number(e.target.value))}
+                    style={{ width: "100%", accentColor: "#38bdf8" }}
+                  />
+                </div>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 2 }}>
+                    <span>Corners (Sharpness)</span>
+                    <strong style={{ color: "#38bdf8" }}>{cornersScore}%</strong>
+                  </div>
+                  <input
+                    type="range"
+                    min="20"
+                    max="100"
+                    value={cornersScore}
+                    onChange={(e) => setCornersScore(Number(e.target.value))}
+                    style={{ width: "100%", accentColor: "#38bdf8" }}
+                  />
+                </div>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 2 }}>
+                    <span>Edges (Silvering / Whitening)</span>
+                    <strong style={{ color: "#38bdf8" }}>{edgesScore}%</strong>
+                  </div>
+                  <input
+                    type="range"
+                    min="20"
+                    max="100"
+                    value={edgesScore}
+                    onChange={(e) => setEdgesScore(Number(e.target.value))}
+                    style={{ width: "100%", accentColor: "#38bdf8" }}
+                  />
+                </div>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 2 }}>
+                    <span>Surface (Scratches / Print Lines)</span>
+                    <strong style={{ color: "#38bdf8" }}>{surfaceScore}%</strong>
+                  </div>
+                  <input
+                    type="range"
+                    min="20"
+                    max="100"
+                    value={surfaceScore}
+                    onChange={(e) => setSurfaceScore(Number(e.target.value))}
+                    style={{ width: "100%", accentColor: "#38bdf8" }}
+                  />
+                </div>
+              </div>
+
+              {/* Predetermined Probabilities Card */}
+              <div
+                style={{
+                  background: "rgba(0,0,0,0.4)",
+                  padding: 12,
+                  borderRadius: 10,
+                  display: "grid",
+                  gridTemplateColumns: "repeat(4, 1fr)",
+                  gap: 8,
+                  textAlign: "center",
+                  margin: "12px 0",
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: 10, color: "var(--t3)" }}>PSA 10 GEM</div>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: preGradeAnalysis.probabilities.psa10 >= 50 ? "#4ade80" : "var(--t1)" }}>
+                    {preGradeAnalysis.probabilities.psa10}%
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: "var(--t3)" }}>PSA 9 MINT</div>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: "#60a5fa" }}>
+                    {preGradeAnalysis.probabilities.psa9}%
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: "var(--t3)" }}>PSA 8 NM-MT</div>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: "#facc15" }}>
+                    {preGradeAnalysis.probabilities.psa8}%
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: "var(--t3)" }}>SUB-8 / RAW</div>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: "#f87171" }}>
+                    {preGradeAnalysis.probabilities.sub8}%
+                  </div>
+                </div>
+              </div>
+
+              {/* Expected ROI Summary */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(255,255,255,0.03)", padding: "10px 14px", borderRadius: 8 }}>
+                <div>
+                  <div style={{ fontSize: 10, color: "var(--t3)" }}>ESTIMATED GROSS VALUE AFTER GRADING</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "#fbbf24" }}>
+                    {formatPrice(preGradeAnalysis.expectedGrossValue)}
+                  </div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 10, color: "var(--t3)" }}>PROJECTED NET PROFIT (AFTER RAW + $19.99 FEE)</div>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: preGradeAnalysis.expectedNetGain >= 0 ? "#4ade80" : "#f87171" }}>
+                    {preGradeAnalysis.expectedNetGain >= 0 ? "+" : ""}{formatPrice(preGradeAnalysis.expectedNetGain)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
           {card.rarity && (
             <span className="pv-rar-badge" style={{ color: getRarityColor(card.rarity), borderColor: getRarityColor(card.rarity) + "55", background: getRarityColor(card.rarity) + "18" }}>
               {card.rarity}
@@ -378,7 +640,7 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
           <PriceComparePanel
             query={`${card.name} ${card.set.name} ${card.number ?? ""}`.trim()}
             cardId={card.id}
-            initialCondition={selectedGrade === "raw" ? "all" : selectedGrade}
+            initialCondition={selectedGrade}
           />
           <EbaySoldPanel query={`${card.name} ${card.set.name} ${card.number ?? ""}`.trim()} />
         </div>
