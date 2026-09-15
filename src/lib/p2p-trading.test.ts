@@ -34,9 +34,13 @@ describe("P2P Trading Engine & Valuation Fairness Index", () => {
   it("creates valid trade items with embedded RPG stats and market prices", () => {
     const item = createTradeItem(mockCardA, "psa10", "card");
     expect(item.grade).toBe("psa10");
-    expect(item.stats.level).toBe(100);
+    expect(item.stats.level).toBe(40);
     expect(item.stats.hasNaturalSlabBoost).toBe(true);
     expect(item.marketPrice).toBeGreaterThan(300);
+
+    const pristineItem = createTradeItem(mockCardA, "bgs10_black", "card");
+    expect(pristineItem.stats.level).toBe(50);
+    expect(pristineItem.stats.totalBoostPercent).toBe(50);
   });
 
   it("computes trade delta and fairness index for unbalanced trades", () => {

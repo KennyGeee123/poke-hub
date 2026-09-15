@@ -38,42 +38,43 @@ const mockCharizard: TCGCard = {
 };
 
 describe("RPG Battle Level & Condition Stat Boost Engine", () => {
-  it("calculates baseline Level 10 and 0% boost for Damaged cards", () => {
+  it("calculates baseline Level 5 and 0% boost for Damaged cards", () => {
     const stats = getCardLevelAndStats(mockCharizard, "raw_dmg");
-    expect(stats.level).toBe(10);
+    expect(stats.level).toBe(5);
     expect(stats.totalBoostPercent).toBe(0);
     expect(stats.boostedHp).toBe(120);
     expect(stats.boostedAtk).toBe(100);
     expect(stats.hasNaturalSlabBoost).toBe(false);
   });
 
-  it("calculates Level 85 and +50% max raw boost for Raw Gem-Mint", () => {
-    const stats = getCardLevelAndStats(mockCharizard, "raw_mint");
-    expect(stats.level).toBe(85);
-    expect(stats.conditionBoostPercent).toBe(50);
+  it("calculates Level 40 and +40% boost for Standard PSA 10 scans", () => {
+    const stats = getCardLevelAndStats(mockCharizard, "psa10");
+    expect(stats.level).toBe(40);
+    expect(stats.totalBoostPercent).toBe(40);
+    expect(stats.hasNaturalSlabBoost).toBe(true);
+    expect(stats.slabBoostPercent).toBe(20);
+    expect(stats.boostedHp).toBe(168); // 120 * 1.40
+    expect(stats.boostedAtk).toBe(140); // 100 * 1.40
+    expect(stats.tierBadge).toBe("GEM MINT 10 CHAMPION");
+  });
+
+  it("calculates Level 50 with max +50% stat boost for Pristine / BGS Black Label 10 scans", () => {
+    const stats = getCardLevelAndStats(mockCharizard, "bgs10_black");
+    expect(stats.level).toBe(50);
     expect(stats.totalBoostPercent).toBe(50);
+    expect(stats.hasNaturalSlabBoost).toBe(true);
+    expect(stats.slabBoostPercent).toBe(20);
+    expect(stats.conditionBoostPercent).toBe(30);
     expect(stats.boostedHp).toBe(180); // 120 * 1.50
     expect(stats.boostedAtk).toBe(150); // 100 * 1.50
+    expect(stats.tierBadge).toBe("PRISTINE GOD TIER");
   });
 
-  it("applies +20% Natural Graded Slab Synergy Boost to PSA 10 to reach Level 100 and +50% capped stats", () => {
-    const stats = getCardLevelAndStats(mockCharizard, "psa10");
-    expect(stats.level).toBe(100);
-    expect(stats.hasNaturalSlabBoost).toBe(true);
-    expect(stats.slabBoostPercent).toBe(20);
-    expect(stats.totalBoostPercent).toBe(50); // 30% grade + 20% slab = 50% max capped
+  it("calculates Level 50 with max +50% stat boost for CGC 10 Pristine", () => {
+    const stats = getCardLevelAndStats(mockCharizard, "cgc10_pristine");
+    expect(stats.level).toBe(50);
+    expect(stats.totalBoostPercent).toBe(50);
     expect(stats.boostedHp).toBe(180);
-    expect(stats.boostedAtk).toBe(150);
-    expect(stats.tierBadge).toBe("GEM MINT CHAMPION");
-  });
-
-  it("applies Natural Slab Boost to PSA 8 to reach Level 80 with +40% combined boost", () => {
-    const stats = getCardLevelAndStats(mockCharizard, "psa8");
-    expect(stats.level).toBe(80);
-    expect(stats.hasNaturalSlabBoost).toBe(true);
-    expect(stats.slabBoostPercent).toBe(20);
-    expect(stats.conditionBoostPercent).toBe(20);
-    expect(stats.totalBoostPercent).toBe(40); // 20% + 20% = 40%
-    expect(stats.boostedHp).toBe(168); // 120 * 1.40
+    expect(stats.tierBadge).toBe("PRISTINE GOD TIER");
   });
 });

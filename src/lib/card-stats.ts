@@ -45,66 +45,69 @@ export function getCardLevelAndStats(card: TCGCard, grade: CardGrade = "raw"): P
   const baseSpd = Math.round(50 + ((card.retreatCost?.length ?? 1) <= 1 ? 40 : 15));
   const baseCrit = 10; // 10% baseline
 
-  // 2. Condition-to-Level & Stat Boost Curves (Capped at 50% max)
-  let level = 70;
-  let conditionBoost = 0.25; // 25% baseline for standard NM
+  // 2. Condition-to-Level & Stat Boost Curves (Capped at Level 50 / 50% max)
+  // Rule: Standard 10 -> Level 40 (+40%). Pristine 10 -> Level 50 (+50%).
+  let level = 25;
+  let conditionBoost = 0.25;
 
   switch (grade) {
     case "raw_dmg":
-      level = 10;
+      level = 5;
       conditionBoost = 0.00; // 0%
       break;
     case "raw_hp":
-      level = 25;
-      conditionBoost = 0.05; // +5%
+      level = 10;
+      conditionBoost = 0.10; // +10%
       break;
     case "raw_mp":
-      level = 40;
-      conditionBoost = 0.12; // +12%
+      level = 15;
+      conditionBoost = 0.15; // +15%
       break;
     case "raw_lp":
-      level = 55;
-      conditionBoost = 0.22; // +22%
+      level = 20;
+      conditionBoost = 0.20; // +20%
       break;
     case "raw":
     case "raw_nm":
-      level = 70;
-      conditionBoost = 0.35; // +35%
+      level = 25;
+      conditionBoost = 0.25; // +25%
       break;
     case "raw_mint":
-      level = 85;
-      conditionBoost = 0.50; // +50% max raw boost
+      level = 30;
+      conditionBoost = 0.30; // +30%
       break;
     
-    // Graded Slabs: receive Natural +20% Slab Synergy Boost
+    // Graded Slabs
     case "psa7":
-      level = 75;
-      conditionBoost = 0.15; // 15% grade + 20% slab = 35%
+      level = 28;
+      conditionBoost = 0.08; // 8% + 20% slab = 28%
       break;
     case "psa8":
-      level = 80;
-      conditionBoost = 0.20; // 20% grade + 20% slab = 40%
+      level = 32;
+      conditionBoost = 0.12; // 12% + 20% slab = 32%
       break;
     case "psa9":
     case "cgc9":
     case "cgc95":
     case "bgs95":
-      level = 90;
-      conditionBoost = 0.25; // 25% grade + 20% slab = 45%
+      level = 35;
+      conditionBoost = 0.15; // 15% + 20% slab = 35%
       break;
     case "sgc10":
-    case "cgc10_pristine":
     case "psa10":
-      level = 100;
-      conditionBoost = 0.30; // 30% grade + 20% slab = 50% (capped)
+      // Standard 10: Level 40 (+40% stat boost)
+      level = 40;
+      conditionBoost = 0.20; // 20% grade + 20% slab = 40%
       break;
+    case "cgc10_pristine":
     case "bgs10_black":
-      level = 100;
-      conditionBoost = 0.30; // +50% max capped boost
+      // Pristine / Black Label 10: Level 50 (+50% stat boost)
+      level = 50;
+      conditionBoost = 0.30; // 30% grade + 20% slab = 50%
       break;
     default:
-      level = 70;
-      conditionBoost = 0.30;
+      level = 25;
+      conditionBoost = 0.25;
       break;
   }
 
@@ -128,23 +131,23 @@ export function getCardLevelAndStats(card: TCGCard, grade: CardGrade = "raw"): P
   let tierColor = "#94a3b8";
   let auraEffect: PokemonStats["auraEffect"] = "none";
 
-  if (level === 100 && grade === "bgs10_black") {
-    tierBadge = "BLACK LABEL GOD TIER";
+  if (level === 50 && (grade === "bgs10_black" || grade === "cgc10_pristine")) {
+    tierBadge = "PRISTINE GOD TIER";
     tierColor = "#f59e0b";
     auraEffect = "cosmic_black";
-  } else if (level === 100) {
-    tierBadge = "GEM MINT CHAMPION";
+  } else if (level === 40) {
+    tierBadge = "GEM MINT 10 CHAMPION";
     tierColor = "#38bdf8";
     auraEffect = "golden_legendary";
-  } else if (level >= 90) {
-    tierBadge = "QUANTUM MINT ELITE";
+  } else if (level >= 35) {
+    tierBadge = "MINT 9 VANGUARD";
     tierColor = "#c084fc";
     auraEffect = "purple_quantum";
-  } else if (level >= 80) {
-    tierBadge = "NEAR MINT VANGUARD";
+  } else if (level >= 25) {
+    tierBadge = "NEAR MINT FIGHTER";
     tierColor = "#60a5fa";
     auraEffect = "blue_radiance";
-  } else if (level >= 50) {
+  } else {
     tierBadge = "BATTLE READY";
     tierColor = "#4ade80";
     auraEffect = "green_sparkle";
