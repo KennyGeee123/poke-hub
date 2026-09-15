@@ -288,8 +288,10 @@ function pushTcgRow(
   label: "low" | "direct",
 ) {
   const pretty = prettyPrintName(variant);
-  const url = card.tcgplayer?.url;
-  if (!url) return;
+  const qStr = `${card.name} ${card.number ?? ""}`.trim();
+  const url =
+    card.tcgplayer?.url ||
+    `https://www.tcgplayer.com/search/pokemon/product?q=${encodeURIComponent(qStr)}`;
   out.push({
     source: "TCGplayer",
     title: `${card.name} · ${pretty} ${label === "direct" ? "Direct" : "low"}`,
@@ -309,7 +311,9 @@ function pushTcgRow(
 export function seedListingsFromCard(card: SeedCard): Listing[] {
   const out: Listing[] = [];
   const tp = card.tcgplayer;
-  if (tp?.url && tp.prices) {
+  const qStr = `${card.name} ${card.number ?? ""}`.trim();
+
+  if (tp?.prices) {
     for (const [name, p] of Object.entries(tp.prices)) {
       const low = typeof p?.low === "number" && p.low > 0 ? p.low : null;
       const direct = typeof p?.directLow === "number" && p.directLow > 0 ? p.directLow : null;
@@ -321,21 +325,57 @@ export function seedListingsFromCard(card: SeedCard): Listing[] {
   }
   const cm = card.cardmarket;
   const eur = cm?.prices?.lowPrice ?? cm?.prices?.trendPrice;
-  if (cm?.url && typeof eur === "number" && eur > 0) {
+  if (typeof eur === "number" && eur > 0) {
     const usd = Math.round(eur * FX_EUR_USD * 100) / 100;
+    const cmUrl =
+      cm?.url ||
+      `https://www.cardmarket.com/en/Pokemon/Products/Search?searchString=${encodeURIComponent(card.name)}`;
     out.push({
       source: "Cardmarket",
       title: `${card.name} · EU low`,
       price: usd,
       priceRaw: `€${eur.toFixed(2)}`,
       currency: "EUR",
-      url: cm.url,
+      url: cmUrl,
       image: card.images?.small ?? null,
       variant: "low",
       kind: "listing",
       isSlab: false,
     });
   }
+
+  if (out.length === 0) {
+    const ebayUrl = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(
+      `Pokemon ${qStr}`,
+    )}&LH_BIN=1&_sop=15`;
+    const tcgUrl =
+      tp?.url || `https://www.tcgplayer.com/search/pokemon/product?q=${encodeURIComponent(qStr)}`;
+    out.push({
+      source: "eBay",
+      title: `${card.name} · Live Market Search`,
+      price: 0.99,
+      priceRaw: "Live Bids / BIN",
+      currency: "USD",
+      url: ebayUrl,
+      image: card.images?.small ?? null,
+      variant: "raw",
+      kind: "listing",
+      isSlab: false,
+    });
+    out.push({
+      source: "TCGplayer",
+      title: `${card.name} · Live Marketplace`,
+      price: 0.99,
+      priceRaw: "Check Listings",
+      currency: "USD",
+      url: tcgUrl,
+      image: card.images?.small ?? null,
+      variant: "raw",
+      kind: "listing",
+      isSlab: false,
+    });
+  }
+
   return rankQueue(
     { query: "", cheapest: out[0] ?? null, queue: out, sources: [], generatedAt: "" },
     [],
