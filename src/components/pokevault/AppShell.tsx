@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { getVaultStorageInfo, type VaultStorageInfo } from "@/lib/vault";
+import { getCatalogCacheInfo } from "@/lib/catalog-cache";
 import {
   Compass,
   Search,
@@ -201,6 +202,7 @@ function formatBytes(n: number): string {
 /** Compact vault storage health for footer/header — IDB vs LS, migrate, size. */
 export function StorageHealthChip() {
   const [info, setInfo] = useState<VaultStorageInfo | null>(null);
+  const [catalogSets, setCatalogSets] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -208,6 +210,9 @@ export function StorageHealthChip() {
       getVaultStorageInfo()
         .then((v) => { if (!cancelled) setInfo(v); })
         .catch(() => { if (!cancelled) setInfo(null); });
+      getCatalogCacheInfo()
+        .then((c) => { if (!cancelled) setCatalogSets(c.backend === "idb" ? c.setCount : 0); })
+        .catch(() => { if (!cancelled) setCatalogSets(null); });
     };
     load();
     const onChange = () => load();
@@ -234,7 +239,7 @@ export function StorageHealthChip() {
   return (
     <span
       className="pv-storage-chip"
-      title={`Vault backend: ${backend}. Migrated from pokevault.v1: ${migrated}. Approx size: ${formatBytes(info.approxBytes)}.`}
+      title={`Vault backend: ${backend}. Migrated from pokevault.v1: ${migrated}. Approx size: ${formatBytes(info.approxBytes)}. Catalog IDB keys: ${catalogSets ?? "…"}.`}
     >
       <span className={`pv-storage-dot ${info.backend === "idb" ? "ok" : "warn"}`} aria-hidden />
       <span className="pv-storage-k">store</span>
@@ -262,6 +267,25 @@ type ShellProps = {
   contentKey: string;
 };
 
+
+function FoilPointerTracker() {
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => {
+      const t = (e.target as Element | null)?.closest?.(".pv-card-wrap");
+      if (!t) return;
+      const r = t.getBoundingClientRect();
+      const x = ((e.clientX - r.left) / Math.max(r.width, 1)) * 100;
+      const y = ((e.clientY - r.top) / Math.max(r.height, 1)) * 100;
+      const wrap = t.querySelector(".pv-card-img-wrap") as HTMLElement | null;
+      wrap?.style.setProperty("--mx", `${x}%`);
+      wrap?.style.setProperty("--my", `${y}%`);
+    };
+    document.addEventListener("pointermove", onMove, { passive: true });
+    return () => document.removeEventListener("pointermove", onMove);
+  }, []);
+  return null;
+}
+
 export function AppShell({
   header,
   children,
@@ -276,6 +300,7 @@ export function AppShell({
 }: ShellProps) {
   return (
     <div className="pv-app pv-app-shell">
+      <FoilPointerTracker />
       <div className="pv-lab">
         {header}
         <div className="pv-energy-strip" aria-hidden />

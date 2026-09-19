@@ -100,15 +100,26 @@ function Index() {
           </button>
         </div>
         <div className="pv-hdr-val">{formatPrice(totalValue)}</div>
-        {isPro && (
-          <div title={tier === "elite" ? "Elite Champion" : "Pro Trainer"} className="pv-gb-badge">
-            ★ {isOwner ? "owner" : tier}
-          </div>
-        )}
-        {!isPro && (
-          <div title="Free trial submissions remaining" className="pv-gb-badge">
+        {isPro ? (
+          <button
+            type="button"
+            className={`pv-pro-chip ${tier === "elite" ? "elite" : "pro"}`}
+            title={tier === "elite" ? "Elite Champion" : "Pro Trainer"}
+            onClick={() => goTab("pricing")}
+          >
+            <span className="pv-pro-star" aria-hidden>★</span>
+            {isOwner ? "Owner" : tier === "elite" ? "Elite" : "Pro"}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="pv-pro-chip free"
+            title="Upgrade for unlimited scans & Pro tabs"
+            onClick={() => goTab("pricing")}
+          >
+            <span className="pv-pro-star" aria-hidden>☆</span>
             {scansLeft}/{FREE_SCAN_LIMIT} scans
-          </div>
+          </button>
         )}
         <div className="pv-gb-badge pv-vb-on" title="Site shields on. Not desktop antivirus.">Virus Buster</div>
         <button

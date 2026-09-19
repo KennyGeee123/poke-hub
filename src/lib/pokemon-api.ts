@@ -10,6 +10,7 @@ import {
 } from "@/lib/tcgdex";
 import { FALLBACK_CARDS, FALLBACK_SETS, fallbackSearch, stubCardFromId } from "@/lib/tcg-fallback";
 import { parseSearchQuery } from "@/lib/card-search";
+import { getCachedSets, setCachedSets, getCachedSetCards, setCachedSetCards } from "./catalog-cache";
 
 const BASE = "https://api.pokemontcg.io/v2";
 
@@ -401,6 +402,12 @@ export async function getCard(id: string, lang?: string): Promise<TCGCard> {
 }
 
 export async function getSets(lang = "en"): Promise<TCGSet[]> {
+  const cacheKeyLang = lang || "en";
+  // IndexedDB read-through (24h TTL). Keep a stale copy for offline/API failure.
+  const cached = await getCachedSets<TCGSet[]>();
+  const stale = cacheKeyLang === "en" ? await getCachedSets<TCGSet[]>(Number.MAX_SAFE_INTEGER) : null;
+  if (cached?.length && cacheKeyLang === "en") return cached;
+
   if (lang !== "en") {
     const dx = await tcgdexGetSets(lang);
     if (dx.length) return dx;
@@ -438,6 +445,10 @@ export async function getSets(lang = "en"): Promise<TCGSet[]> {
       // ignore secondary failure
     }
   }
+
+  // Stale fallback: if network produced nothing useful, serve expired/last-good cache
+  if (all.length < 10 && stale?.length) return stale;
+  if (cacheKeyLang === "en" && all.length) void setCachedSets(all);
   return all;
 }
 
@@ -464,6 +475,18 @@ export async function getAllCardsBySet(
   setName?: string,
   lang = "en",
 ): Promise<{ data: TCGCard[]; totalCount: number }> {
+  // Fresh IDB hit (7d). Keep an unlimited stale copy for API blackouts.
+  let staleCards: TCGCard[] | null = null;
+  if (lang === "en") {
+    const cached = await getCachedSetCards<TCGCard[]>(setId);
+    staleCards = await getCachedSetCards<TCGCard[]>(setId, Number.MAX_SAFE_INTEGER);
+    if (cached?.length) {
+      cached.forEach(rememberCard);
+      onPage?.(cached, cached.length);
+      return { data: cached, totalCount: cached.length };
+    }
+  }
+
   if (lang !== "en") {
     const extra = await tcgdexGetSetCards(setId, lang);
     extra.forEach(rememberCard);
@@ -520,7 +543,16 @@ export async function getAllCardsBySet(
     }
   } catch {}
 
-  return { data: all, totalCount: Math.max(total, all.length) };
+  // Last-good IDB when both APIs came back empty (me2pt5 / Ascended Heroes class failures)
+  if (all.length === 0 && staleCards?.length) {
+    staleCards.forEach(rememberCard);
+    onPage?.(staleCards, staleCards.length);
+    return { data: staleCards, totalCount: staleCards.length };
+  }
+
+  const result = { data: all, totalCount: Math.max(total, all.length) };
+  if (result.data.length) void setCachedSetCards(setId, result.data);
+  return result;
 }
 
 export async function getDiscoverFast(lang = "en"): Promise<TCGCard[]> {

@@ -42,43 +42,44 @@
 }
 
 :root {
-  /* Premium Pokédex / TCG lab */
-  --navy: #0b1220;
-  --navy-2: #121a2b;
-  --paper: #f4efe4;
-  --ink: #1a1a1a;
-  --muted: #6b7280;
+  /* Uniform cyber-holo vault palette (Q Engine lock) */
+  --navy: #0b0c10;
+  --navy-2: #121826;
+  --paper: #121826;
+  --ink: #f4efe4;
+  --muted: #8b90a0;
   --poke-red: #cc2b2b;
   --poke-red-dk: #9b1e1e;
   --gold: #e2b53a;
+  --cyan: #38bdf8;
+  --silver: #c5c6c7;
 
-  --bg: var(--paper);
-  --s1: #fffdf8;
-  --s2: #efe8d8;
-  --s3: #e4dcc8;
-  --brd: rgba(11, 18, 32, 0.12);
-  --brd2: var(--navy);
+  --bg: #0b0c10;
+  --s1: #121826;
+  --s2: #182032;
+  --s3: #1e2a40;
+  --brd: rgba(56, 189, 248, 0.22);
+  --brd2: rgba(197, 198, 199, 0.28);
   --gold-bg: rgba(226, 181, 58, 0.16);
   --gold-brd: var(--gold);
-  --poke-blue: var(--navy);
-  --poke-blue-lt: #2a3a5c;
+  --poke-blue: var(--cyan);
+  --poke-blue-lt: #7dd3fc;
   --poke-yellow: var(--gold);
   --poke-gold: var(--gold);
-  --t1: var(--ink);
-  --t2: #3d4a63;
-  --t3: var(--muted);
+  --t1: #f4efe4;
+  --t2: #c5c6c7;
+  --t3: #8b90a0;
 
-  /* Aliases so leftover neon refs pick up the lab look */
-  --neon-cyan: var(--navy);
+  --neon-cyan: var(--cyan);
   --neon-pink: var(--poke-red);
   --neon-yellow: var(--gold);
-  --neon-purple: var(--navy-2);
-  --glow-cyan: none;
+  --neon-purple: #7c3aed;
+  --glow-cyan: 0 0 24px rgba(56, 189, 248, 0.28);
   --glow-pink: 0 8px 20px rgba(204, 43, 43, 0.18);
   --glow-yellow: 0 8px 20px rgba(226, 181, 58, 0.22);
 
   --gb-darkest: var(--navy);
-  --gb-lcd: var(--paper);
+  --gb-lcd: #182032;
   --gb-lcd-2: var(--navy-2);
 }
 
@@ -94,7 +95,7 @@
     min-height: 100vh;
   }
   body { overflow-x: hidden; }
-  h1,h2,h3,h4 { font-family: 'Bebas Neue', 'Impact', sans-serif; letter-spacing: 2px; color: var(--navy); text-shadow: none; }
+  h1,h2,h3,h4 { font-family: 'Bebas Neue', 'Impact', sans-serif; letter-spacing: 2px; color: var(--t1); text-shadow: none; }
 }
 
 
@@ -3172,6 +3173,288 @@ header, nav, main, footer, .pv-settings { position: relative; z-index: 1; }
 .pv-login-submit:active { transform: translateY(2px); box-shadow: 0 3px 0 #8a6a12, 0 4px 10px rgba(226, 181, 58, 0.3); }
 .pv-login-submit:disabled { opacity: 0.55; }
 
+/* ===== Q ENGINE VISUAL UPGRADE 2026-09-18 (DesignForge + Lumina) ===== */
+:root {
+  --pv-obsidian: #0b0c10;
+  --pv-obsidian-2: #121826;
+  --pv-cyan: #38bdf8;
+  --pv-cyan-glow: rgba(56, 189, 248, 0.35);
+  --pv-silver: #c5c6c7;
+  --pv-border-glow: rgba(56, 189, 248, 0.22);
+  --pv-glass: rgba(18, 24, 38, 0.72);
+  --pv-ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --pv-glow-cyan: 0 0 28px rgba(56, 189, 248, 0.28);
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Ambient stage */
+html, body, .pv-app {
+  background:
+    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(56, 189, 248, 0.12), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 100% 100%, rgba(226, 181, 58, 0.08), transparent 50%),
+    radial-gradient(ellipse at top, #121a2b 0%, #0b0c10 55%, #07080c 100%) !important;
+}
+
+/* Museum vault panel → frosted obsidian glass */
+.pv-app-shell .pv-lab {
+  background:
+    linear-gradient(165deg, rgba(18, 24, 38, 0.92) 0%, rgba(11, 12, 16, 0.96) 100%) !important;
+  border: 1px solid var(--pv-border-glow) !important;
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(197, 198, 199, 0.08) inset,
+    0 0 48px rgba(56, 189, 248, 0.1),
+    var(--pv-glow-gold) !important;
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+}
+
+/* Readable light type on dark glass panel */
+.pv-app-shell .pv-lab-body,
+.pv-app-shell .pv-lab-body p,
+.pv-app-shell .pv-greet-sub,
+.pv-app-shell .pv-stat-lbl,
+.pv-app-shell .pv-stat-sub,
+.pv-app-shell .pv-rail-sub {
+  color: rgba(244, 239, 228, 0.72) !important;
+}
+.pv-app-shell .pv-rail-title,
+.pv-app-shell .pv-greet-hi,
+.pv-app-shell .pv-lab-body h1,
+.pv-app-shell .pv-lab-body h2,
+.pv-app-shell .pv-lab-body h3,
+.pv-app-shell .pv-lab-body h4,
+.pv-app-shell .pv-empty-title,
+.pv-app-shell .pv-hub-tt {
+  color: #f4efe4 !important;
+  text-shadow: 0 1px 0 rgba(0,0,0,.45);
+}
+.pv-app-shell .pv-stat-card,
+.pv-app-shell .pv-panel,
+.pv-app-shell .pv-latest,
+.pv-app-shell .pv-search-box,
+.pv-app-shell .pv-empty {
+  background: var(--pv-glass) !important;
+  border: 1px solid var(--pv-border-glow) !important;
+  box-shadow: 0 12px 32px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.04) inset;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #f4efe4;
+}
+
+/* Header + energy: cyan rim */
+.pv-hdr.pv-hdr-glass {
+  background: linear-gradient(180deg, rgba(11, 12, 16, 0.94), rgba(18, 24, 38, 0.88)) !important;
+  border-bottom: 1px solid var(--pv-border-glow) !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,.35), 0 0 24px rgba(56, 189, 248, 0.08) !important;
+}
+.pv-app-shell .pv-energy-strip {
+  background: linear-gradient(90deg, #cc2b2b, #e2b53a 35%, #38bdf8 70%, #cc2b2b) !important;
+}
+
+/* Card tiles: cyber-holo lift */
+.pv-card-wrap {
+  perspective: 1000px;
+}
+.pv-card-img-wrap {
+  border-radius: 12px !important;
+  border: 1px solid rgba(197, 198, 199, 0.22) !important;
+  box-shadow: 0 14px 28px rgba(0,0,0,.45) !important;
+  transition: transform 0.35s var(--pv-ease-spring), box-shadow 0.35s var(--pv-ease-spring), border-color 0.25s ease !important;
+  will-change: transform;
+  overflow: hidden;
+}
+.pv-card-wrap:hover .pv-card-img-wrap,
+.pv-card-wrap:focus-within .pv-card-img-wrap {
+  transform: translateY(-8px) scale(1.035) !important;
+  border-color: rgba(56, 189, 248, 0.55) !important;
+  box-shadow:
+    0 22px 44px rgba(0,0,0,.55),
+    0 0 0 1px rgba(226, 181, 58, 0.35),
+    0 0 36px rgba(56, 189, 248, 0.28) !important;
+}
+.pv-card-img-wrap::after {
+  background:
+    radial-gradient(circle at var(--mx, 50%) var(--my, 30%), rgba(255,255,255,.45), transparent 42%),
+    linear-gradient(115deg,
+      transparent 28%, rgba(255,255,255,.3) 44%,
+      rgba(56, 189, 248, .28) 50%,
+      rgba(226, 181, 58, .22) 56%,
+      transparent 72%) !important;
+  mix-blend-mode: overlay !important;
+}
+.pv-card-skel {
+  background: linear-gradient(110deg, #121826 20%, #1c2740 40%, #121826 60%) !important;
+  background-size: 200% 100% !important;
+  animation: pv-shimmer 1.4s ease-in-out infinite !important;
+}
+@keyframes pv-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* Mono prices */
+.pv-c-price,
+.pv-hdr-val,
+.pv-hero-price,
+.pv-stat-val,
+.pv-latest-price-v,
+.pv-detail-price {
+  font-family: var(--font-mono) !important;
+  letter-spacing: 0.02em !important;
+}
+
+/* Tab bar: cyan glass */
+.pv-tabbar-inner {
+  background: linear-gradient(180deg, rgba(18, 24, 38, 0.92), rgba(8, 10, 16, 0.96)) !important;
+  border: 1px solid var(--pv-border-glow) !important;
+  box-shadow:
+    0 -8px 36px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 0 28px rgba(56, 189, 248, 0.12) !important;
+}
+.pv-tabbar-item.on {
+  color: #e2b53a !important;
+  background: rgba(56, 189, 248, 0.1) !important;
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25) inset;
+}
+.pv-tabbar-glow {
+  background: radial-gradient(circle, rgba(56,189,248,.55), transparent 70%) !important;
+}
+
+/* Focus + scrollbar */
+.pv-app-shell :focus-visible {
+  outline: 2px solid #e2b53a !important;
+  outline-offset: 2px !important;
+}
+.pv-app-shell ::-webkit-scrollbar { width: 6px; height: 6px; }
+.pv-app-shell ::-webkit-scrollbar-track { background: transparent; }
+.pv-app-shell ::-webkit-scrollbar-thumb {
+  background: rgba(197, 198, 199, 0.35);
+  border-radius: 999px;
+  border: 1px solid rgba(56, 189, 248, 0.15);
+}
+.pv-app-shell ::-webkit-scrollbar-thumb:hover { background: rgba(56, 189, 248, 0.45); }
+
+/* Buttons on dark glass */
+.pv-app-shell .pv-btn {
+  border-color: rgba(56, 189, 248, 0.35) !important;
+  color: #f4efe4 !important;
+  background: rgba(18, 24, 38, 0.65) !important;
+}
+.pv-app-shell .pv-btn-fill,
+.pv-app-shell .pv-btn.yes {
+  background: linear-gradient(180deg, #e2b53a, #c8961f) !important;
+  color: #0b0c10 !important;
+  border-color: #e2b53a !important;
+}
+
+/* 8px rhythm helpers */
+.pv-card-grid { gap: 16px !important; }
+.pv-app-shell .pv-lab-body { padding: 16px !important; }
+
+
+/* ===== UNIFORM COLOR LOCK 2026-09-18 ===== */
+/* Remap leftover hard-coded creams/whites/gold variants to the single palette */
+.pv-app-shell,
+.pv-app-shell * {
+  --paper: #121826;
+  --ink: #f4efe4;
+}
+
+/* Cream / paper surfaces → obsidian surfaces */
+.pv-app-shell .pv-lab,
+.pv-app-shell .pv-panel,
+.pv-app-shell .pv-stat-card,
+.pv-app-shell .pv-latest,
+.pv-app-shell .pv-search-box,
+.pv-app-shell .pv-empty,
+.pv-app-shell .pv-modal,
+.pv-app-shell .pv-sheet,
+.pv-app-shell .pv-more-sheet,
+.pv-app-shell .pv-login-card {
+  background: linear-gradient(165deg, #182032 0%, #121826 100%) !important;
+  color: #f4efe4 !important;
+  border-color: rgba(56, 189, 248, 0.22) !important;
+}
+
+/* Kill leftover pure whites / cream fills inside shell */
+.pv-app-shell input,
+.pv-app-shell textarea,
+.pv-app-shell select,
+.pv-app-shell .pv-key-in,
+.pv-app-shell .pv-login-input,
+.pv-app-shell .pv-login-google {
+  background: #182032 !important;
+  color: #f4efe4 !important;
+  border-color: rgba(56, 189, 248, 0.22) !important;
+}
+.pv-app-shell input::placeholder,
+.pv-app-shell textarea::placeholder { color: #8b90a0 !important; }
+
+/* One gold only */
+.pv-app-shell .pv-logo-text,
+.pv-app-shell .pv-c-price,
+.pv-app-shell .pv-hdr-val,
+.pv-app-shell .pv-hero-price,
+.pv-app-shell .pv-stat-val.gold,
+.pv-app-shell .pv-tabbar-item.on {
+  color: #e2b53a !important;
+  -webkit-text-fill-color: #e2b53a !important;
+}
+
+/* One cyan accent for borders / glows */
+.pv-app-shell .pv-tabbar-inner,
+.pv-app-shell .pv-hdr.pv-hdr-glass,
+.pv-app-shell .pv-lab {
+  border-color: rgba(56, 189, 248, 0.22) !important;
+}
+
+/* Text hierarchy: t1 / t2 / t3 only */
+.pv-app-shell .pv-lab-body,
+.pv-app-shell .pv-lab-body p,
+.pv-app-shell .pv-greet-sub,
+.pv-app-shell .pv-stat-lbl,
+.pv-app-shell .pv-stat-sub,
+.pv-app-shell .pv-rail-sub,
+.pv-app-shell .pv-c-set,
+.pv-app-shell .pv-muted {
+  color: #c5c6c7 !important;
+}
+.pv-app-shell .pv-rail-title,
+.pv-app-shell .pv-greet-hi,
+.pv-app-shell .pv-empty-title,
+.pv-app-shell .pv-hub-tt,
+.pv-app-shell .pv-c-name,
+.pv-app-shell h1,
+.pv-app-shell h2,
+.pv-app-shell h3,
+.pv-app-shell h4 {
+  color: #f4efe4 !important;
+}
+
+/* Secondary buttons / chips */
+.pv-app-shell .pv-chip,
+.pv-app-shell .pv-pill,
+.pv-app-shell .pv-tag {
+  background: #1e2a40 !important;
+  color: #c5c6c7 !important;
+  border: 1px solid rgba(56, 189, 248, 0.22) !important;
+}
+
+/* Danger stays poke-red; success stays gold — no random greens/yellows */
+.pv-app-shell .text-green-500,
+.pv-app-shell .text-emerald-400,
+.pv-app-shell .text-yellow-300,
+.pv-app-shell .text-yellow-400 {
+  color: #e2b53a !important;
+}
+.pv-app-shell .bg-white,
+.pv-app-shell .bg-amber-50,
+.pv-app-shell .bg-stone-50 {
+  background-color: #182032 !important;
+
+/* Week-1 storage / set-progress / catalog soft (from feat branch) */
 
 /* ===== WEEK1 STORAGE / SET PROGRESS / CATALOG SOFT ===== */
 /* Palette: obsidian #0b0c10, cyan #38bdf8, gold #e2b53a, text #f4efe4 — additive only */
@@ -3314,3 +3597,29 @@ header, nav, main, footer, .pv-settings { position: relative; z-index: 1; }
   color: #e2b53a;
   margin-bottom: 4px;
 }
+
+
+/* ─── V2 Pro chip + virtual grid ─── */
+.pv-pro-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid rgba(226, 181, 58, 0.45);
+  background: linear-gradient(135deg, rgba(226,181,58,0.18), rgba(11,12,16,0.9));
+  color: #f4efe4;
+  cursor: pointer;
+  font-family: inherit;
+}
+.pv-pro-chip.pro { border-color: rgba(56,189,248,0.5); background: linear-gradient(135deg, rgba(56,189,248,0.2), rgba(11,12,16,0.92)); }
+.pv-pro-chip.elite { border-color: rgba(226,181,58,0.75); box-shadow: 0 0 16px rgba(226,181,58,0.25); }
+.pv-pro-chip.free { border-color: rgba(139,144,160,0.45); background: rgba(18,24,38,0.85); color: #c5c6c7; }
+.pv-pro-star { color: #e2b53a; }
+.pv-pro-chip.pro .pv-pro-star { color: #38bdf8; }
+.pv-virt-cell { content-visibility: auto; contain-intrinsic-size: auto 210px; }
+.pv-virt-spacer { pointer-events: none; }

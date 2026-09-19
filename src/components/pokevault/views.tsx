@@ -4,6 +4,7 @@ import type { TCGCard, TCGSet } from "@/lib/pokemon-api";
 import { getMarketPrice, getSets, getTopMarket, getTrending, getDiscoverFast, searchCards, getCardsBySet, getAllCardsBySet, rememberCard } from "@/lib/pokemon-api";
 import { formatPrice, useVault } from "@/lib/vault";
 import { CardTile, CardSkeleton } from "./CardTile";
+import { VirtualCardGrid } from "./VirtualCardGrid";
 import { CollectionInsightsCard } from "./CollectionInsights";
 import { CheapestPill } from "./CheapestPill";
 import { PriceComparePanel } from "./PriceCompare";
@@ -463,10 +464,18 @@ export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () 
           <div>You own every loaded card in this set.</div>
         </div>
       )}
-      <div className="pv-card-grid">
-        {!cards && !err && !softNote && Array.from({ length: 12 }).map((_, i) => <CardSkeleton key={i} />)}
-        {visible?.map(c => <CardTile key={c.id} card={c} onClick={() => onOpen(c.id)} />)}
-      </div>
+      {!cards && !err && !softNote && (
+        <div className="pv-card-grid">
+          {Array.from({ length: 12 }).map((_, i) => <CardSkeleton key={i} />)}
+        </div>
+      )}
+      {visible && (
+        <VirtualCardGrid
+          items={visible}
+          getKey={(c) => c.id}
+          renderItem={(c) => <CardTile card={c} onClick={() => onOpen(c.id)} />}
+        />
+      )}
     </div>
   );
 }
@@ -546,9 +555,11 @@ export function SearchView({ onOpen }: { onOpen: OnOpen }) {
       {cards && cards.length > 0 && (
         <>
           <div style={{ color: "var(--t3)", fontSize: 11, marginBottom: 10 }}>{total.toLocaleString("en-US")} results for "{active}"</div>
-          <div className="pv-card-grid">
-            {cards.map(c => <CardTile key={c.id} card={c} onClick={() => onOpen(c.id)} />)}
-          </div>
+          <VirtualCardGrid
+            items={cards}
+            getKey={(c) => c.id}
+            renderItem={(c) => <CardTile card={c} onClick={() => onOpen(c.id)} />}
+          />
           {cards.length < total && (
             <button
               className="pv-load-more"
@@ -674,17 +685,19 @@ export function VaultView({ onOpen }: { onOpen: OnOpen }) {
           </div>
 
           <div className="pv-section-title" style={{ marginTop: 22 }}>TOP HOLDINGS</div>
-          <div className="pv-card-grid">
-            {topByValue.map(e => (
+          <VirtualCardGrid
+            items={topByValue}
+            getKey={(e) => e.card.id}
+            windowAbove={36}
+            renderItem={(e) => (
               <CardTile
-                key={e.card.id}
                 card={e.card}
                 qty={e.qty}
                 onClick={() => onOpen(e.card.id)}
                 onRemove={() => removeFromVault(e.card.id)}
               />
-            ))}
-          </div>
+            )}
+          />
         </div>
       )}
     </div>
@@ -719,11 +732,13 @@ export function WishlistView({ onOpen }: { onOpen: OnOpen }) {
   return (
     <div className="pad">
       <div className="pv-section-title">{cards.length} WISHED</div>
-      <div className="pv-card-grid">
-        {cards.map(c => (
-          <CardTile key={c.id} card={c} onClick={() => onOpen(c.id)} onRemove={() => toggleWish(c)} />
-        ))}
-      </div>
+      <VirtualCardGrid
+        items={cards}
+        getKey={(c) => c.id}
+        renderItem={(c) => (
+          <CardTile card={c} onClick={() => onOpen(c.id)} onRemove={() => toggleWish(c)} />
+        )}
+      />
     </div>
   );
 }
