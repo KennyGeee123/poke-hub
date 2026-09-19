@@ -10,7 +10,7 @@ import {
 } from "@/lib/tcgdex";
 import { FALLBACK_CARDS, FALLBACK_SETS, fallbackSearch, stubCardFromId } from "@/lib/tcg-fallback";
 import { parseSearchQuery } from "@/lib/card-search";
-import { getCachedSets, setCachedSets, getCachedSetCards, setCachedSetCards } from "./catalog-cache";
+import { getCachedSets, setCachedSets, getCachedSetCards, setCachedSetCards, getHttpCache, setHttpCache } from "./catalog-cache";
 
 const BASE = "https://api.pokemontcg.io/v2";
 
@@ -93,36 +93,21 @@ const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
 const memCache = new Map<string, unknown>();
 const inflight = new Map<string, Promise<unknown>>();
 
-function cacheGet<T>(key: string, opts?: { allowStale?: boolean }): T | null {
+function cacheGet<T>(key: string, _opts?: { allowStale?: boolean }): T | null {
+  // Sync path: memory only. Durable hits come from await getHttpCache in tcgFetch.
   if (memCache.has(key)) return memCache.get(key) as T;
-  if (typeof localStorage === "undefined") return null;
-  try {
-    const raw = localStorage.getItem(CACHE_PREFIX + key);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as { t: number; v: T };
-    const stale = Date.now() - parsed.t > CACHE_TTL_MS;
-    if (stale && !opts?.allowStale) {
-      localStorage.removeItem(CACHE_PREFIX + key);
-      return null;
-    }
-    memCache.set(key, parsed.v);
-    return parsed.v;
-  } catch {
-    return null;
-  }
+  return null;
 }
 
 function cacheSet<T>(key: string, value: T) {
   memCache.set(key, value);
-  if (typeof localStorage === "undefined") return;
-  try {
-    localStorage.setItem(CACHE_PREFIX + key, JSON.stringify({ t: Date.now(), v: value }));
-  } catch {
+  // Discuss consensus: stop writing catalog/API payloads into 5MB localStorage.
+  void setHttpCache(key, value);
+  if (typeof localStorage !== "undefined") {
     try {
       for (const k of Object.keys(localStorage)) {
         if (k.startsWith(CACHE_PREFIX)) localStorage.removeItem(k);
       }
-      localStorage.setItem(CACHE_PREFIX + key, JSON.stringify({ t: Date.now(), v: value }));
     } catch {}
   }
 }
@@ -155,6 +140,11 @@ function fetchUrls(path: string): string[] {
 async function tcgFetch<T>(path: string): Promise<T> {
   const cached = cacheGet<T>(path);
   if (cached) return cached;
+  const idbHit = await getHttpCache<T>(path, CACHE_TTL_MS);
+  if (idbHit) {
+    memCache.set(path, idbHit);
+    return idbHit;
+  }
   if (inflight.has(path)) return inflight.get(path) as Promise<T>;
 
   const p = (async () => {
@@ -170,8 +160,12 @@ async function tcgFetch<T>(path: string): Promise<T> {
         const res = await fetch(url, { headers, signal: AbortSignal.timeout(4500) });
         if (res.status === 429 || res.status >= 500) {
           lastErr = new Error(`Card API ${res.status}`);
-          const stale = cacheGet<T>(path, { allowStale: true });
-          if (stale) return stale;
+          const stale = cacheGet<T>(path, { allowStale: true })
+            || (await getHttpCache<T>(path, CACHE_TTL_MS, { allowStale: true }));
+          if (stale) {
+            memCache.set(path, stale);
+            return stale;
+          }
           await new Promise((r) => setTimeout(r, 250 * 2 ** attempt));
           continue;
         }

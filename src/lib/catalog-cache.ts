@@ -89,3 +89,41 @@ export async function getCatalogCacheInfo(): Promise<CatalogCacheInfo> {
     return { backend: "none", setCount: 0 };
   }
 }
+
+
+/** Generic HTTP response cache (replaces pokeapi: localStorage entries). */
+const HTTP_PREFIX = "http:";
+
+export async function getHttpCache<T>(key: string, maxAgeMs: number, opts?: { allowStale?: boolean }): Promise<T | null> {
+  const env = await idbGet<Envelope<T>>(HTTP_PREFIX + key);
+  if (!env?.data) return null;
+  const stale = Date.now() - env.at > maxAgeMs;
+  if (stale && !opts?.allowStale) return null;
+  return env.data;
+}
+
+export async function setHttpCache<T>(key: string, data: T): Promise<void> {
+  await idbPut(HTTP_PREFIX + key, { at: Date.now(), data } satisfies Envelope<T>);
+}
+
+export async function clearHttpCache(): Promise<void> {
+  try {
+    const db = await openDb();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE, "readwrite");
+      const store = tx.objectStore(STORE);
+      const req = store.openCursor();
+      req.onsuccess = () => {
+        const cursor = req.result;
+        if (!cursor) return;
+        if (String(cursor.key).startsWith(HTTP_PREFIX)) cursor.delete();
+        cursor.continue();
+      };
+      req.onerror = () => reject(req.error);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch {
+    /* ignore */
+  }
+}
