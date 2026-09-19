@@ -138,17 +138,21 @@ function idbSet(key: string, value: unknown): Promise<void> {
   );
 }
 
-async function idbHasVaultData(): Promise<boolean> {
+async function idbGetVaultSnapshot(): Promise<{
+  vault?: Record<string, VaultEntry>;
+  wish?: Record<string, TCGCard>;
+  present: boolean;
+  nonEmpty: boolean;
+}> {
   try {
     const v = await idbGet<Record<string, VaultEntry>>(VAULT_KEY);
     const w = await idbGet<Record<string, TCGCard>>(WISH_KEY);
+    const present = v !== undefined || w !== undefined;
     const vaultKeys = v && typeof v === "object" ? Object.keys(v).length : 0;
     const wishKeys = w && typeof w === "object" ? Object.keys(w).length : 0;
-    // Treat explicit empty objects written after migrate as "present".
-    if (v !== undefined || w !== undefined) return true;
-    return vaultKeys > 0 || wishKeys > 0;
+    return { vault: v, wish: w, present, nonEmpty: vaultKeys > 0 || wishKeys > 0 };
   } catch {
-    return false;
+    return { present: false, nonEmpty: false };
   }
 }
 
@@ -175,19 +179,13 @@ async function migrateFromLocalStorageIfNeeded(): Promise<void> {
     return;
   }
 
-  let hasIdb = false;
-  try {
-    hasIdb = await idbHasVaultData();
-  } catch {
-    hasIdb = false;
-  }
-
+  const idbSnap = await idbGetVaultSnapshot();
   const lsVaultRaw = lsReadRaw(VAULT_KEY);
   const lsWishRaw = lsReadRaw(WISH_KEY);
   const lsHasData = !!(lsVaultRaw || lsWishRaw);
 
-  if (hasIdb) {
-    // IDB already populated (possibly empty after prior migrate) — stamp meta, clear fat LS keys.
+  // Prefer non-empty IDB; only clear LS once we know data is safe in IDB (or LS empty).
+  if (idbSnap.nonEmpty) {
     writeMeta({
       migrated: true,
       vaultBytes: lsVaultRaw?.length,
@@ -198,34 +196,37 @@ async function migrateFromLocalStorageIfNeeded(): Promise<void> {
     return;
   }
 
-  if (!lsHasData) {
-    // Fresh install: seed empty IDB + meta so we don't keep checking.
+  if (lsHasData) {
+    // Migrate once: LS → IDB, then leave meta stub and clear large LS payloads.
+    const vault = lsReadJson<Record<string, VaultEntry>>(VAULT_KEY, {});
+    const wish = lsReadJson<Record<string, TCGCard>>(WISH_KEY, {});
     try {
-      await idbSet(VAULT_KEY, {});
-      await idbSet(WISH_KEY, {});
-      writeMeta({ migrated: true, vaultBytes: 0, wishBytes: 0 });
-    } catch {
+      await idbSet(VAULT_KEY, vault);
+      await idbSet(WISH_KEY, wish);
+      writeMeta({
+        migrated: true,
+        vaultBytes: lsVaultRaw?.length ?? 0,
+        wishBytes: lsWishRaw?.length ?? 0,
+      });
+      lsRemove(VAULT_KEY);
+      lsRemove(WISH_KEY);
+      storageBackend = "idb";
+    } catch (e) {
+      console.warn("pokevault: IDB migrate failed, falling back to localStorage", e);
       storageBackend = "localStorage";
     }
     return;
   }
 
-  // Migrate once: LS → IDB, then leave meta stub and clear large LS payloads.
-  const vault = lsReadJson<Record<string, VaultEntry>>(VAULT_KEY, {});
-  const wish = lsReadJson<Record<string, TCGCard>>(WISH_KEY, {});
+  // Fresh install (or IDB empty stub only): seed empty IDB + meta.
   try {
-    await idbSet(VAULT_KEY, vault);
-    await idbSet(WISH_KEY, wish);
-    writeMeta({
-      migrated: true,
-      vaultBytes: lsVaultRaw?.length ?? 0,
-      wishBytes: lsWishRaw?.length ?? 0,
-    });
-    lsRemove(VAULT_KEY);
-    lsRemove(WISH_KEY);
+    if (!idbSnap.present) {
+      await idbSet(VAULT_KEY, {});
+      await idbSet(WISH_KEY, {});
+    }
+    writeMeta({ migrated: true, vaultBytes: 0, wishBytes: 0 });
     storageBackend = "idb";
-  } catch (e) {
-    console.warn("pokevault: IDB migrate failed, falling back to localStorage", e);
+  } catch {
     storageBackend = "localStorage";
   }
 }
