@@ -36,7 +36,12 @@ export type TCGdexCard = {
 
 async function j<T>(url: string): Promise<T | null> {
   try {
-    const r = await fetch(url, { signal: AbortSignal.timeout(12000) });
+    let r = await fetch(url, { signal: AbortSignal.timeout(12000) });
+    // Soften transient catalog/proxy failures: retry set (and other) fetches once on HTTP 500.
+    if (r.status === 500) {
+      await new Promise((res) => setTimeout(res, 250));
+      r = await fetch(url, { signal: AbortSignal.timeout(12000) });
+    }
     if (!r.ok) return null;
     return r.json();
   } catch { return null; }

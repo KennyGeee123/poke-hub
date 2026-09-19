@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { getVaultStorageInfo, type VaultStorageInfo } from "@/lib/vault";
 import {
   Compass,
   Search,
@@ -186,6 +187,65 @@ export function MoreSheet({ open, activeTab, isPro, onClose, onPick }: MoreSheet
         <MoreGrid items={MORE_ITEMS.filter((i) => i.cluster === "trade")} activeTab={activeTab} isPro={isPro} onPick={onPick} />
       </div>
     </div>
+  );
+}
+
+
+function formatBytes(n: number): string {
+  if (!Number.isFinite(n) || n < 0) return "—";
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+/** Compact vault storage health for footer/header — IDB vs LS, migrate, size. */
+export function StorageHealthChip() {
+  const [info, setInfo] = useState<VaultStorageInfo | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = () => {
+      getVaultStorageInfo()
+        .then((v) => { if (!cancelled) setInfo(v); })
+        .catch(() => { if (!cancelled) setInfo(null); });
+    };
+    load();
+    const onChange = () => load();
+    window.addEventListener("pv-store-change", onChange);
+    window.addEventListener("storage", onChange);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("pv-store-change", onChange);
+      window.removeEventListener("storage", onChange);
+    };
+  }, []);
+
+  if (!info) {
+    return (
+      <span className="pv-storage-chip" title="Checking vault storage…">
+        <span className="pv-storage-dot" aria-hidden />
+        storage…
+      </span>
+    );
+  }
+
+  const backend = info.backend === "idb" ? "idb" : "localStorage";
+  const migrated = info.migrated ? "yes" : "no";
+  return (
+    <span
+      className="pv-storage-chip"
+      title={`Vault backend: ${backend}. Migrated from pokevault.v1: ${migrated}. Approx size: ${formatBytes(info.approxBytes)}.`}
+    >
+      <span className={`pv-storage-dot ${info.backend === "idb" ? "ok" : "warn"}`} aria-hidden />
+      <span className="pv-storage-k">store</span>
+      <span className="pv-storage-v cyan">{backend}</span>
+      <span className="pv-storage-sep" aria-hidden>·</span>
+      <span className="pv-storage-k">migrated</span>
+      <span className={`pv-storage-v ${info.migrated ? "gold" : "warn"}`}>{migrated}</span>
+      <span className="pv-storage-sep" aria-hidden>·</span>
+      <span className="pv-storage-k">size</span>
+      <span className="pv-storage-v">{formatBytes(info.approxBytes)}</span>
+    </span>
   );
 }
 

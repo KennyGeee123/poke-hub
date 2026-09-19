@@ -299,6 +299,11 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
       {sets && (
         <div style={{ fontSize: 11, color: "var(--t3)", marginBottom: 10 }}>
           {filtered.length} of {sets.length} sets
+          {sets.some((s) => /me2pt5/i.test(s.id) || /ascended heroes/i.test(s.name || "")) ? (
+            <span style={{ marginLeft: 8, color: "#e2b53a" }}>
+              · Ascended Heroes (me2pt5) may soft-fail — open set for retry note
+            </span>
+          ) : null}
         </div>
       )}
       {sets && filtered.length === 0 && (
@@ -328,26 +333,65 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
 }
 
 /* ─── Set Detail ─── */
+function isFlakyCatalogSet(set: TCGSet): boolean {
+  const id = (set.id || "").toLowerCase();
+  const name = (set.name || "").toLowerCase();
+  return id === "me2pt5" || id.includes("me2pt5") || name.includes("ascended heroes");
+}
+
 export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () => void; onOpen: OnOpen }) {
   const [cards, setCards] = useState<TCGCard[] | null>(null);
   const [showBox, setShowBox] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [softNote, setSoftNote] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
+  const [missingOnly, setMissingOnly] = useState(false);
+  const { inVault } = useVault();
+
   const load = () => {
     setErr(null);
+    setSoftNote(null);
     setCards(null);
     setTotal(0);
     getAllCardsBySet(set.id, (page, tot) => {
       setCards(page);
       setTotal(tot);
     }, set.name, set.lang || "en")
-      .then(r => { setCards(r.data); setTotal(r.totalCount); })
+      .then(r => {
+        setCards(r.data);
+        setTotal(r.totalCount);
+        if (!r.data?.length) {
+          const flaky = isFlakyCatalogSet(set);
+          setSoftNote(
+            flaky
+              ? `Catalog returned no cards for ${set.name} (${set.id}). Ascended Heroes / me2pt5 often 500s — we retried once. Tap Retry or browse other sets.`
+              : `Catalog returned no cards for ${set.name}. Sources may be busy — Retry in a moment.`,
+          );
+        }
+      })
       .catch((e: any) => {
         setCards([]);
-        setErr(e?.message || "Could not load this set. Try again.");
+        const flaky = isFlakyCatalogSet(set);
+        const msg = e?.message || "Could not load this set. Try again.";
+        // Non-blocking soft note for known flaky sets; hard empty for others still shows err panel.
+        if (flaky) {
+          setSoftNote(
+            `${set.name} (${set.id}) failed to load after retry: ${msg}. Other sets still work — Retry when the catalog recovers.`,
+          );
+          setErr(null);
+        } else {
+          setErr(msg);
+        }
       });
   };
-  useEffect(() => { load(); }, [set.id]);
+  useEffect(() => { load(); setMissingOnly(false); }, [set.id]);
+
+  const ownedCount = cards ? cards.filter((c) => inVault(c.id)).length : 0;
+  const catalogTotal = Math.max(total, cards?.length ?? 0, set.total || 0);
+  const missingCount = cards ? Math.max(0, cards.length - ownedCount) : 0;
+  const visible = missingOnly && cards ? cards.filter((c) => !inVault(c.id)) : cards;
+  const pct = catalogTotal > 0 ? Math.min(100, Math.round((ownedCount / catalogTotal) * 100)) : 0;
+
   return (
     <div className="pad">
       <button className="pv-back" onClick={onBack}>← All sets</button>
@@ -365,9 +409,42 @@ export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () 
           {showBox ? "✕ Hide Box" : "🎁 Find Sealed Booster Box"}
         </button>
       </div>
+
+      {cards && cards.length > 0 && (
+        <div className="pv-set-progress" role="status" aria-label="Set completion">
+          <div className="pv-set-progress-meta">
+            <span className="pv-set-progress-label">Set progress</span>
+            <span className="pv-set-progress-count">
+              <span className="cyan">{ownedCount}</span>
+              <span className="dim"> / {catalogTotal}</span>
+              <span className="gold"> · {pct}%</span>
+            </span>
+            <button
+              type="button"
+              className={`pv-set-progress-filter ${missingOnly ? "on" : ""}`}
+              onClick={() => setMissingOnly((v) => !v)}
+              disabled={missingCount === 0 && !missingOnly}
+              title="Show only cards not yet in your vault"
+            >
+              {missingOnly ? "Show all" : `Missing (${missingCount})`}
+            </button>
+          </div>
+          <div className="pv-set-progress-track" aria-hidden>
+            <div className="pv-set-progress-fill" style={{ width: `${pct}%` }} />
+          </div>
+        </div>
+      )}
+
       {showBox && (
         <div style={{ marginBottom: 16 }}>
           <PriceComparePanel query={`${set.name} booster box sealed pokemon`} />
+        </div>
+      )}
+      {softNote && (
+        <div className="pv-catalog-soft" role="status">
+          <div className="pv-catalog-soft-title">Catalog note</div>
+          <div>{softNote}</div>
+          <button className="pv-btn pv-btn-fill" style={{ marginTop: 10 }} onClick={load}>Retry</button>
         </div>
       )}
       {err && (
@@ -377,12 +454,18 @@ export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () 
           <button className="pv-btn pv-btn-fill" style={{ marginTop: 12 }} onClick={load}>Retry</button>
         </div>
       )}
-      {!err && cards && cards.length === 0 && (
+      {!err && !softNote && cards && cards.length === 0 && (
         <div className="pv-empty">No cards in this set yet.</div>
       )}
+      {missingOnly && visible && visible.length === 0 && cards && cards.length > 0 && (
+        <div className="pv-empty" style={{ marginBottom: 12 }}>
+          <div className="pv-empty-title">SET COMPLETE</div>
+          <div>You own every loaded card in this set.</div>
+        </div>
+      )}
       <div className="pv-card-grid">
-        {!cards && !err && Array.from({ length: 12 }).map((_, i) => <CardSkeleton key={i} />)}
-        {cards?.map(c => <CardTile key={c.id} card={c} onClick={() => onOpen(c.id)} />)}
+        {!cards && !err && !softNote && Array.from({ length: 12 }).map((_, i) => <CardSkeleton key={i} />)}
+        {visible?.map(c => <CardTile key={c.id} card={c} onClick={() => onOpen(c.id)} />)}
       </div>
     </div>
   );

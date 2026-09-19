@@ -20,6 +20,7 @@ import { PokedexHub } from "@/components/pokevault/PokedexHub";
 import {
   AppShell,
   MORE_ITEMS,
+  StorageHealthChip,
   type AppTab,
   type PrimaryTabId,
 } from "@/components/pokevault/AppShell";
@@ -165,8 +166,11 @@ function Index() {
         }}
         contentKey={contentKey}
         footer={
-          <footer className="pv-gb-footer">
-            Card data &amp; prices from <a href="https://pokemontcg.io" target="_blank" rel="noreferrer">pokemontcg.io</a>
+          <footer className="pv-gb-footer pv-gb-footer-row">
+            <span>
+              Card data &amp; prices from <a href="https://pokemontcg.io" target="_blank" rel="noreferrer">pokemontcg.io</a>
+            </span>
+            <StorageHealthChip />
           </footer>
         }
       >

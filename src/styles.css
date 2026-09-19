@@ -3171,3 +3171,146 @@ header, nav, main, footer, .pv-settings { position: relative; z-index: 1; }
 .pv-login-submit:hover { filter: brightness(1.03); }
 .pv-login-submit:active { transform: translateY(2px); box-shadow: 0 3px 0 #8a6a12, 0 4px 10px rgba(226, 181, 58, 0.3); }
 .pv-login-submit:disabled { opacity: 0.55; }
+
+
+/* ===== WEEK1 STORAGE / SET PROGRESS / CATALOG SOFT ===== */
+/* Palette: obsidian #0b0c10, cyan #38bdf8, gold #e2b53a, text #f4efe4 — additive only */
+
+.pv-gb-footer-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+}
+
+.pv-storage-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  max-width: 100%;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #0b0c10;
+  color: #f4efe4;
+  border: 1px solid rgba(56, 189, 248, 0.38);
+  box-shadow: 0 0 0 1px rgba(226, 181, 58, 0.12), 0 8px 22px rgba(0, 0, 0, 0.35);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.pv-storage-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(244, 239, 228, 0.35);
+  flex-shrink: 0;
+}
+.pv-storage-dot.ok {
+  background: #38bdf8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.65);
+}
+.pv-storage-dot.warn {
+  background: #e2b53a;
+  box-shadow: 0 0 8px rgba(226, 181, 58, 0.55);
+}
+
+.pv-storage-k {
+  color: rgba(244, 239, 228, 0.55);
+  text-transform: uppercase;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+.pv-storage-v { color: #f4efe4; }
+.pv-storage-v.cyan { color: #38bdf8; }
+.pv-storage-v.gold { color: #e2b53a; }
+.pv-storage-v.warn { color: #e2b53a; }
+.pv-storage-sep { color: rgba(244, 239, 228, 0.28); }
+
+.pv-set-progress {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #0b0c10;
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(226, 181, 58, 0.08);
+  color: #f4efe4;
+}
+.pv-set-progress-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+}
+.pv-set-progress-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(244, 239, 228, 0.65);
+}
+.pv-set-progress-count {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+.pv-set-progress-count .cyan { color: #38bdf8; }
+.pv-set-progress-count .gold { color: #e2b53a; }
+.pv-set-progress-count .dim { color: rgba(244, 239, 228, 0.45); }
+.pv-set-progress-filter {
+  margin-left: auto;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  background: rgba(56, 189, 248, 0.1);
+  color: #38bdf8;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 32px;
+}
+.pv-set-progress-filter:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.pv-set-progress-filter.on {
+  background: rgba(226, 181, 58, 0.16);
+  border-color: rgba(226, 181, 58, 0.55);
+  color: #e2b53a;
+}
+.pv-set-progress-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(244, 239, 228, 0.1);
+  overflow: hidden;
+}
+.pv-set-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #38bdf8, #e2b53a);
+  transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pv-catalog-soft {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(11, 12, 16, 0.92);
+  border: 1px solid rgba(226, 181, 58, 0.4);
+  color: #f4efe4;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.pv-catalog-soft-title {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #e2b53a;
+  margin-bottom: 4px;
+}
