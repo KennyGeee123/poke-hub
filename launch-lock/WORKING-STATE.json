@@ -1,8 +1,8 @@
 {
   "id": "pokedex-hub-launch-ready-2026-09-20-realtime-walk",
   "liveUrl": "https://pokedex-hub-lime.vercel.app/",
-  "frozenAt": "2026-09-20T15:08:23Z",
-  "rootSha256": "be2565dc9c0b1fab407eab9308da9b628ca922ce853d9637d5092a2588c4291a",
+  "frozenAt": "2026-09-20T15:11:49Z",
+  "rootSha256": "4bb201d4c5009fce1c12939c5e80188a227e3253efbff60082f2b2ae10550170",
   "fileCount": 211,
   "launchChecks": {
     "homeSsrPvApp": true,
@@ -725,8 +725,8 @@
     },
     {
       "path": "src/styles.css",
-      "sha256": "be8559c48c6b819044abd0d762813e9420de675a5bd66faabf6a9205287edbd0",
-      "bytes": 149561
+      "sha256": "a5da0e0ea27d0d2247a3d78e250f3e58d11fefe2f0cd1cbb8f52c58ff76f91b1",
+      "bytes": 149563
     },
     {
       "path": "supabase/config.toml",
@@ -1094,5 +1094,5 @@
       "bytes": 7071
     }
   ],
-  "thawNote": "Realtime free-roam sprite walk + catch-on-approach + spawn-ahead"
+  "thawNote": "Realtime free-roam sprite walk + catch-on-approach + spawn-ahead + styles.css brace fix for Vercel build"
 }
