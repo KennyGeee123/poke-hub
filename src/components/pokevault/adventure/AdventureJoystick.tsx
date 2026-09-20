@@ -19,10 +19,10 @@ const SPEED_CONFIG: Record<
   MoveSpeed,
   { label: string; kmh: number; stepPct: number; icon: React.ComponentType<{ className?: string }> }
 > = {
-  walk: { label: "Walk", kmh: 9.5, stepPct: 0.8, icon: Footprints },
-  jog: { label: "Jog", kmh: 18.0, stepPct: 1.5, icon: Zap },
-  bike: { label: "Bike", kmh: 32.0, stepPct: 2.8, icon: Bike },
-  drive: { label: "Drive", kmh: 60.0, stepPct: 5.0, icon: Car },
+  walk: { label: "Walk", kmh: 12.0, stepPct: 1.35, icon: Footprints },
+  jog: { label: "Jog", kmh: 22.0, stepPct: 2.2, icon: Zap },
+  bike: { label: "Bike", kmh: 40.0, stepPct: 3.6, icon: Bike },
+  drive: { label: "Drive", kmh: 75.0, stepPct: 6.0, icon: Car },
 };
 
 export const POPULAR_HOTSPOTS = [
@@ -32,6 +32,11 @@ export const POPULAR_HOTSPOTS = [
   { name: "Tokyo Akihabara", xPct: 72, yPct: 28, desc: "Legendary Raid District" },
   { name: "Santa Monica Pier", xPct: 22, yPct: 68, desc: "Water & Rare Spawns" },
   { name: "Sydney Circular Quay", xPct: 84, yPct: 78, desc: "Oceanic Event Hub" },
+  { name: "Kanto · Indigo Gate", xPct: 30, yPct: 22, desc: "God's Eye · Gen 1 hub" },
+  { name: "Johto · Violet", xPct: 36, yPct: 40, desc: "God's Eye · Gen 2 hub" },
+  { name: "Hoenn · Littleroot seas", xPct: 48, yPct: 62, desc: "God's Eye · Gen 3 hub" },
+  { name: "Sinnoh · Snowpoint", xPct: 55, yPct: 32, desc: "God's Eye · Gen 4 hub" },
+  { name: "Paldea · Mesagoza", xPct: 70, yPct: 58, desc: "God's Eye · Gen 9 open world" },
 ];
 
 export function AdventureJoystick({

@@ -1,9 +1,9 @@
 {
-  "id": "pokedex-hub-launch-ready-2026-09-10-faint-next",
+  "id": "pokedex-hub-launch-ready-2026-09-20-realtime-walk",
   "liveUrl": "https://pokedex-hub-lime.vercel.app/",
-  "frozenAt": "2026-09-10T19:40:00.000Z",
-  "rootSha256": "5af0a3fc0c716105f82dba71d1bc3f589c1bd4bbc47650953d00ce8472a2d29d",
-  "fileCount": 209,
+  "frozenAt": "2026-09-20T15:08:23Z",
+  "rootSha256": "be2565dc9c0b1fab407eab9308da9b628ca922ce853d9637d5092a2588c4291a",
+  "fileCount": 211,
   "launchChecks": {
     "homeSsrPvApp": true,
     "pokedexHub": true,
@@ -150,8 +150,8 @@
     },
     {
       "path": "src/components/pokevault/Adventure.tsx",
-      "sha256": "2dafc753668a1ab8837bfaad775190f6b8b2218de734268810d663585c27b210",
-      "bytes": 11393
+      "sha256": "ac71b4acd5331307237a2bf3628b80212a4ded104a096c744a882451154a2a7a",
+      "bytes": 20726
     },
     {
       "path": "src/components/pokevault/Battle.tsx",
@@ -160,13 +160,13 @@
     },
     {
       "path": "src/components/pokevault/CardDetail.tsx",
-      "sha256": "ae91d9eb0367a5577fbb9222b44700febed6df4a43460b8dd24ea7abff0bfe97",
-      "bytes": 17799
+      "sha256": "02878ddd100958babf029106ceba8de0b372cf3766496efa48d9541b4c5ef3e5",
+      "bytes": 43406
     },
     {
       "path": "src/components/pokevault/CardTile.tsx",
-      "sha256": "dde2f891e2c7c06157b0cdbb2b60aec72cb4af80cd7a71f5cd6e6c4c7c7079a1",
-      "bytes": 6191
+      "sha256": "6bdd5550f08d90d61fe3d17063ccf920fd8f90d1089c5bd98ea78edc99234cef",
+      "bytes": 12751
     },
     {
       "path": "src/components/pokevault/CatchFx.tsx",
@@ -175,8 +175,8 @@
     },
     {
       "path": "src/components/pokevault/CheapestPill.tsx",
-      "sha256": "e92ef9d1760bc794849d230621c4da54dfb5422b87baa9345fddf24558c2c8c0",
-      "bytes": 2952
+      "sha256": "862212395f50ad0c9da887a52e8f4a540a2d5ce4a585eb7ecc5344e8bca2b6c5",
+      "bytes": 2651
     },
     {
       "path": "src/components/pokevault/CollectionInsights.tsx",
@@ -220,8 +220,8 @@
     },
     {
       "path": "src/components/pokevault/PriceCompare.tsx",
-      "sha256": "98b5fb5423054884a5e88a8cf4ebe8b3ab3b793452c76b5e4bce63a321b58c8d",
-      "bytes": 8690
+      "sha256": "56e1bca1361063fad5578087e9fb51b6a24bcce5ca465452cdeba8e1cbe91fc1",
+      "bytes": 10607
     },
     {
       "path": "src/components/pokevault/PrintLangBar.tsx",
@@ -230,8 +230,8 @@
     },
     {
       "path": "src/components/pokevault/QuickStrike.tsx",
-      "sha256": "05efa0627dea8910df8fbfb595d17cb9ec0912f63a6a3759a9e86773b8880994",
-      "bytes": 9644
+      "sha256": "01933b114beea0314b0f43b0d45c69c1b429efa4f0698fdef83cb95658a86ac9",
+      "bytes": 15403
     },
     {
       "path": "src/components/pokevault/Scanner.tsx",
@@ -245,8 +245,8 @@
     },
     {
       "path": "src/components/pokevault/views.tsx",
-      "sha256": "25882a65ad10df279e3a20078a45022bdd4de1eb6806dcd5cee38202b1a6a743",
-      "bytes": 26751
+      "sha256": "702057ca67eab0d3275ae2fddbdb563fa4d5bc8f419a35075f0811f643030a67",
+      "bytes": 30752
     },
     {
       "path": "src/components/ui/accordion.tsx",
@@ -530,13 +530,13 @@
     },
     {
       "path": "src/lib/card-images.ts",
-      "sha256": "afac30b021fa0e646757c7c4234eb091b31770e71baad605ef5a83565c5a41cc",
-      "bytes": 3944
+      "sha256": "a70f32e1281d2ee5fbc348dcd79cd415592d76910bc249b03baa24ad632273e3",
+      "bytes": 5130
     },
     {
       "path": "src/lib/card-prices.ts",
-      "sha256": "7b1dfc81d75bd5fdec4ea6bf600f634c0b3d2ac7038ce318654a01f4527258a7",
-      "bytes": 10080
+      "sha256": "69edbd9b76d3be5535e7f88214ed3ba226d9cda38554a7ecdb328c9bb3045cb5",
+      "bytes": 14967
     },
     {
       "path": "src/lib/card-search.ts",
@@ -610,8 +610,8 @@
     },
     {
       "path": "src/lib/pokemon-api.ts",
-      "sha256": "7ea0bf1e21d779bf167d22a2f57eea2c9238d95124e851c86b567f34d11ec709",
-      "bytes": 18847
+      "sha256": "0f75778783feabfecce1c91b7fd1f9c3b8cca7f0da18c036812fec67416c0c2a",
+      "bytes": 20181
     },
     {
       "path": "src/lib/premium.ts",
@@ -635,8 +635,8 @@
     },
     {
       "path": "src/lib/sprites.ts",
-      "sha256": "3f10e3f015340baf72d2477de3a9cabad0ddd21a366f3a00b8fe8b2873747df3",
-      "bytes": 2773
+      "sha256": "bae4571990fd54326792251eb8cc49c80d5b47cedc32beaa7c797dd014a6d550",
+      "bytes": 2593
     },
     {
       "path": "src/lib/tcg-fallback.ts",
@@ -645,8 +645,8 @@
     },
     {
       "path": "src/lib/tcgdex.ts",
-      "sha256": "c15b129116ada7f3e69f5efdb21799d4c3a8178003640ea07b49e01e3ecb83d6",
-      "bytes": 11123
+      "sha256": "929bf01914ebddf0e762233a1ff92535032a3b5d33f23e832175076268f706b9",
+      "bytes": 11375
     },
     {
       "path": "src/lib/utils.ts",
@@ -655,8 +655,8 @@
     },
     {
       "path": "src/lib/vault.ts",
-      "sha256": "852891a3920a72600a5a7b9f871b9dcc15cd84e03c61af933a53b9b2cd87f26a",
-      "bytes": 6209
+      "sha256": "37ccb724723ed97cb90b18c71ec27bb796444b894cca7cfb04b3fd3cfbfffd10",
+      "bytes": 14533
     },
     {
       "path": "src/routeTree.gen.ts",
@@ -670,13 +670,13 @@
     },
     {
       "path": "src/routes/__root.tsx",
-      "sha256": "061c6e3fcb5bdca81b945ba2717bb724a6ff859becd886ecefd1e01c4b02a074",
-      "bytes": 4891
+      "sha256": "bda1b151baa976f8d9fc37730173106e4c28dad8c366e876b24f46515287a8eb",
+      "bytes": 4934
     },
     {
       "path": "src/routes/api/public/card-prices.ts",
-      "sha256": "605f882e7ae2ccebf955937590ceb6e2d0907c3499292b58202b5205256e9636",
-      "bytes": 37330
+      "sha256": "4573646c7e798982ad6c49b7ba0f6b611cd32eec00271cf52154632f416c3912",
+      "bytes": 39990
     },
     {
       "path": "src/routes/api/public/ebay-sold.ts",
@@ -705,8 +705,8 @@
     },
     {
       "path": "src/routes/index.tsx",
-      "sha256": "6fcf9f11c5b9545c397dabffa86e0bc5ac25d7c3cbf3fbe6ab077d6eda6ae256",
-      "bytes": 7766
+      "sha256": "b27a2b258b712ce69f15fb58a246356f885c3936e2fd0bfa1115d9177b643d1a",
+      "bytes": 8291
     },
     {
       "path": "src/routes/login.tsx",
@@ -725,8 +725,8 @@
     },
     {
       "path": "src/styles.css",
-      "sha256": "02a3c2a3c58dceb7acd662ec2b97f7a90be6576d52e32b66bb8891bd65c9bba0",
-      "bytes": 136298
+      "sha256": "be8559c48c6b819044abd0d762813e9420de675a5bd66faabf6a9205287edbd0",
+      "bytes": 149561
     },
     {
       "path": "supabase/config.toml",
@@ -1082,6 +1082,17 @@
       "path": "src/components/pokevault/GBBattleSession.tsx",
       "sha256": "21fa5353fdc78288d349f3b2fe5cb9faf2f43fbe33df6b2858066f151d728711",
       "bytes": 26484
+    },
+    {
+      "path": "src/lib/gods-eye-world.ts",
+      "sha256": "45d0274cce0907cd47f901d8837eb121182623c61dbbe1450d74f072a817885f",
+      "bytes": 4978
+    },
+    {
+      "path": "src/components/pokevault/adventure/GodsEyeMap.tsx",
+      "sha256": "64072cae3f9ad910628f900a3df22b3b9279e20a239c92e5b5884c3ed42acf35",
+      "bytes": 7071
     }
-  ]
+  ],
+  "thawNote": "Realtime free-roam sprite walk + catch-on-approach + spawn-ahead"
 }

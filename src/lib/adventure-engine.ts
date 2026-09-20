@@ -1822,6 +1822,23 @@ export function updatePlayerLocation(
     };
   });
 
+  // Free-roam: if every wild is far away, seed a fresh cluster around the player
+  const nearest = updated.wildCreatures.reduce(
+    (min, c) => Math.min(min, c.distanceMeters ?? 9999),
+    9999
+  );
+  if (updated.wildCreatures.length === 0 || nearest > 220) {
+    const eraId = updated.world.activeEraId;
+    const fresh = generateEraSpawns(eraId, 10, Date.now(), {
+      lat: playerLat,
+      lng: playerLng,
+    });
+    const keep = updated.wildCreatures
+      .filter((c) => (c.distanceMeters ?? 9999) <= 180)
+      .slice(0, 3);
+    updated.wildCreatures = [...keep, ...fresh].slice(0, 14);
+  }
+
   // Discovery points
   updated.discoveryPoints = updated.discoveryPoints.map((p) => {
     const dx = p.xPct - newCoords.xPct;

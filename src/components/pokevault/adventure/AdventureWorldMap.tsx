@@ -32,6 +32,9 @@ import {
 } from "@/lib/adventure-engine";
 import { animatedSpriteUrl } from "@/lib/sprites";
 import { AdventureJoystick, type MoveSpeed } from "./AdventureJoystick";
+import { GodsEyeMap } from "./GodsEyeMap";
+import { type GodsEyeNode } from "@/lib/gods-eye-world";
+import { forceSwitchEra, generateEraSpawns, saveAdventureState, cloneAdventureState } from "@/lib/adventure-engine";
 
 /**
  * Slippy Tile coordinate calculation for Web Mercator map tiles
@@ -57,6 +60,7 @@ export function AdventureWorldMap({
   onSelectBattleArena,
   onSelectCardCache,
   onUpdateCoords,
+  onStateUpdate,
 }: {
   adventureState: AdventureState;
   onSelectCreature: (creature: WildCreature, mode: "catch" | "battle") => void;
@@ -68,6 +72,7 @@ export function AdventureWorldMap({
     distMeters: number,
     newGeo?: { lat: number; lng: number; accuracy?: number; heading?: number }
   ) => void;
+  onStateUpdate?: (state: AdventureState) => void;
 }) {
   const [playerCoords, setPlayerCoords] = useState(adventureState.world.playerCoords);
   const [playerGeo, setPlayerGeo] = useState(
@@ -86,6 +91,7 @@ export function AdventureWorldMap({
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(adventureState.world.timeOfDay);
   const [weather, setWeather] = useState<WeatherType>(adventureState.world.weather);
   const [recentlyPoppedId, setRecentlyPoppedId] = useState<string | null>(null);
+  const [godsEyeOpen, setGodsEyeOpen] = useState(false);
 
   const walkTimerRef = useRef<NodeJS.Timeout | null>(null);
   const watchIdRef = useRef<number | null>(null);
@@ -155,42 +161,67 @@ export function AdventureWorldMap({
     };
   }, [useLiveGps, playerGeo.lat, playerGeo.lng, onUpdateCoords]);
 
-  // Handle Joystick Move
+  // Handle Joystick Move — free-roam wrap (whole world plane, no soft walls)
   const handleJoystickMove = (dx: number, dy: number, distMeters: number) => {
     setIsWalking(true);
     if (walkTimerRef.current) clearTimeout(walkTimerRef.current);
-    walkTimerRef.current = setTimeout(() => setIsWalking(false), 300);
+    walkTimerRef.current = setTimeout(() => setIsWalking(false), 180);
 
     const deg = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
     setFacingAngle(deg);
 
-    // Compute real geographic delta in meters
-    const metersX = dx * 8;
-    const metersY = -dy * 8; // Invert Y for latitude (North is positive)
+    // Real geographic delta scales with stick input (realtime feel)
+    const metersX = dx * 14;
+    const metersY = -dy * 14;
     const nextGeo = geoOffsetFromMeters(playerGeo.lat, playerGeo.lng, metersX, metersY);
-    setPlayerGeo((prev) => ({ ...prev, lat: nextGeo.lat, lng: nextGeo.lng }));
+    setPlayerGeo((prev) => ({ ...prev, lat: nextGeo.lat, lng: nextGeo.lng, heading: deg }));
 
-    // Update 2.5D coordinates
+    // Toroidal world plane: walk off one edge → appear on the opposite
+    const wrap = (v: number) => {
+      const n = v % 100;
+      return n < 0 ? n + 100 : n;
+    };
+
     setPlayerCoords((prev) => {
-      const nextX = Math.max(5, Math.min(95, prev.xPct + dx * 0.4));
-      const nextY = Math.max(5, Math.min(95, prev.yPct + dy * 0.4));
-      const nextCoords = { xPct: nextX, yPct: nextY };
-      onUpdateCoords(nextCoords, distMeters, { ...playerGeo, lat: nextGeo.lat, lng: nextGeo.lng });
+      const nextCoords = {
+        xPct: wrap(prev.xPct + dx * 1.25),
+        yPct: wrap(prev.yPct + dy * 1.25),
+      };
+      onUpdateCoords(nextCoords, Math.max(1, distMeters), {
+        ...playerGeo,
+        lat: nextGeo.lat,
+        lng: nextGeo.lng,
+        heading: deg,
+      });
       return nextCoords;
     });
   };
 
   // Teleport Hotspot Handler
-  const handleTeleport = (xPct: number, yPct: number, name: string) => {
+  const handleTeleport = (xPct: number, yPct: number, name: string, geo?: { lat: number; lng: number }) => {
     const nextCoords = { xPct, yPct };
     setPlayerCoords(nextCoords);
 
-    let nextGeo = { lat: DRESDEN_PARK_GEO.lat, lng: DRESDEN_PARK_GEO.lng };
-    if (name.includes("Dresden")) {
+    let nextGeo = geo || { lat: DRESDEN_PARK_GEO.lat, lng: DRESDEN_PARK_GEO.lng };
+    if (!geo && name.includes("Dresden")) {
       nextGeo = { lat: DRESDEN_PARK_GEO.lat, lng: DRESDEN_PARK_GEO.lng };
     }
     setPlayerGeo((prev) => ({ ...prev, ...nextGeo }));
     onUpdateCoords(nextCoords, 250, { ...playerGeo, ...nextGeo });
+  };
+
+  const handleGodsEyeTeleport = (node: GodsEyeNode) => {
+    handleTeleport(node.xPct, node.yPct, node.name, { lat: node.lat, lng: node.lng });
+    if (onStateUpdate) {
+      let next = forceSwitchEra(adventureState, node.eraId).state;
+      next = cloneAdventureState(next);
+      next.world.playerCoords = { xPct: node.xPct, yPct: node.yPct };
+      next.world.playerGeo = { lat: node.lat, lng: node.lng, accuracy: 12, heading: 0 };
+      next.world.biome = node.name;
+      next.wildCreatures = generateEraSpawns(node.eraId, 14, Date.now(), { lat: node.lat, lng: node.lng });
+      saveAdventureState(next);
+      onStateUpdate(next);
+    }
   };
 
   // Map Tap to Walk
@@ -600,41 +631,58 @@ export function AdventureWorldMap({
             style={{
               left: `${playerCoords.xPct}%`,
               top: `${playerCoords.yPct}%`,
-              transform: "translate(-50%, -50%)",
+              transform: isWalking
+                ? "translate(-50%, calc(-50% - 3px))"
+                : "translate(-50%, -50%)",
             }}
-            className="absolute z-30 flex items-center justify-center pointer-events-none transition-all duration-300"
+            className="absolute z-30 flex items-center justify-center pointer-events-none"
           >
             {/* 45-Meter Glowing GO Interaction Radar Ring */}
-            <div className="w-40 h-40 rounded-full border-2 border-cyan-400/50 bg-cyan-400/10 animate-ping absolute" />
+            <div
+              className={`w-40 h-40 rounded-full border-2 border-cyan-400/50 bg-cyan-400/10 absolute ${
+                isWalking ? "animate-ping" : ""
+              }`}
+            />
             <div className="w-56 h-56 rounded-full border border-dashed border-cyan-400/30 absolute" />
 
             {/* Walking Direction Pointer Cone */}
             <div
-              style={{
-                transform: `rotate(${facingAngle}deg)`,
-              }}
-              className="absolute w-20 h-20 -top-6 flex items-center justify-center pointer-events-none transition-transform duration-150"
+              style={{ transform: `rotate(${facingAngle}deg)` }}
+              className="absolute w-20 h-20 -top-6 flex items-center justify-center pointer-events-none transition-transform duration-75"
             >
               <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[16px] border-b-cyan-400/80 filter drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
             </div>
 
-            {/* Trainer 3D Avatar */}
-            <div className="relative w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-400 p-0.5 shadow-[0_0_20px_rgba(6,182,212,0.8)] flex items-center justify-center">
+            {/* Trainer sprite — bob while walking in realtime */}
+            <div
+              className={`relative w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-400 p-0.5 shadow-[0_0_20px_rgba(6,182,212,0.8)] flex items-center justify-center ${
+                isWalking ? "animate-bounce" : ""
+              }`}
+            >
               <div className="w-full h-full rounded-full bg-neutral-950 flex items-center justify-center overflow-hidden">
                 <img
                   src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/1.png"
                   alt="Trainer"
-                  className="w-10 h-10 object-contain"
+                  className="w-11 h-11 object-contain"
+                  style={{
+                    imageRendering: "pixelated",
+                    transform: isWalking ? `scaleX(${facingAngle > 90 && facingAngle < 270 ? -1 : 1})` : undefined,
+                  }}
                 />
               </div>
             </div>
 
-            {/* Buddy Pokémon Companion Following on the Side */}
-            <div className="absolute -right-10 -bottom-2 flex items-center justify-center animate-bounce">
+            {/* Buddy follows beside you while you roam */}
+            <div
+              className={`absolute -right-11 -bottom-1 flex items-center justify-center ${
+                isWalking ? "animate-bounce" : ""
+              }`}
+            >
               <img
                 src={animatedSpriteUrl(adventureState.buddy.species)}
                 alt={adventureState.buddy.species}
-                className="w-9 h-9 object-contain filter drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)]"
+                className="w-10 h-10 object-contain filter drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)]"
+                style={{ imageRendering: "pixelated" }}
               />
             </div>
           </div>
@@ -653,7 +701,11 @@ export function AdventureWorldMap({
           />
           <div className="flex flex-col">
             <span className="font-bold text-white text-[11px] leading-tight">
-              {useLiveGps ? "🛰️ LIVE GPS TRACKING" : "📍 DRESDEN PARK DISTRICT"}
+              {useLiveGps
+                ? "🛰️ LIVE GPS TRACKING"
+                : isWalking
+                  ? "🚶 FREE ROAM · CATCH RANGE ON"
+                  : "🌍 FREE ROAM WORLD"}
             </span>
             <span className="text-[9px] text-neutral-400">
               {playerGeo.lat.toFixed(4)}, {playerGeo.lng.toFixed(4)} · Chamblee, GA
@@ -757,6 +809,17 @@ export function AdventureWorldMap({
           ))}
         </div>
 
+        {/* God's Eye — huge world atlas */}
+        <button
+          type="button"
+          onClick={() => setGodsEyeOpen(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition shadow-xl bg-gradient-to-r from-amber-500 to-orange-600 text-neutral-950 border-amber-300 shadow-[0_0_18px_rgba(245,158,11,0.45)]"
+          title="God's Eye world atlas — teleport across regions"
+        >
+          <Eye className="w-3.5 h-3.5" />
+          <span>GOD&apos;S EYE</span>
+        </button>
+
         {/* Recenter on GPS */}
         <button
           type="button"
@@ -767,6 +830,14 @@ export function AdventureWorldMap({
           <LocateFixed className="w-4 h-4" />
         </button>
       </div>
+
+      <GodsEyeMap
+        open={godsEyeOpen}
+        onClose={() => setGodsEyeOpen(false)}
+        playerCoords={playerCoords}
+        wildCreatures={adventureState.wildCreatures}
+        onTeleport={handleGodsEyeTeleport}
+      />
 
       {/* ───────────────────────────────────────────────────────────── */}
       {/* VIRTUAL JOYSTICK (JAILBREAK PGSHARP STYLE) */}

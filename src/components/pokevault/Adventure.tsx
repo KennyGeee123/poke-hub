@@ -38,10 +38,63 @@ import { AdventureNearbyDrawer } from "./adventure/AdventureNearbyDrawer";
 import { AdventurePokedexModal } from "./adventure/AdventurePokedexModal";
 import { toast } from "sonner";
 import { HDBattleArena, type BattlePokemon } from "./adventure/HDBattleArena";
+import { GBBattleSession, type GBBattleFoe } from "./GBBattleSession";
 
 export function AdventureView() {
   const [adventureState, setAdventureState] = useState<AdventureState>(loadAdventureState);
   const [viewMode, setViewMode] = useState<"living_world" | "retro_gb">("living_world");
+
+
+  const retroIframeRef = useRef<HTMLIFrameElement | null>(null);
+  const [gbBattleFoe, setGbBattleFoe] = useState<GBBattleFoe | null>(null);
+
+  // Retro GB iframe → in-tab GBBattleSession overlay (never pv-goto gb).
+  useEffect(() => {
+    const postIframe = (msg: Record<string, unknown>) => {
+      try {
+        retroIframeRef.current?.contentWindow?.postMessage(msg, "*");
+      } catch {}
+    };
+    const onMsg = (e: MessageEvent) => {
+      const d = e.data;
+      if (!d || typeof d !== "object") return;
+      if (d.type !== "pv-adventure-encounter" || typeof d.name !== "string") return;
+      const kind = (d.kind as GBBattleFoe["kind"]) || "wild";
+      setGbBattleFoe({
+        name: d.name,
+        level: typeof d.level === "number" ? d.level : 5,
+        kind,
+        catchable: d.catchable !== false && kind === "wild",
+        badge: typeof d.badge === "string" ? d.badge : undefined,
+        e4Index: typeof d.e4Index === "number" ? d.e4Index : undefined,
+        leader: typeof d.leader === "string" ? d.leader : undefined,
+        trainerId: typeof d.trainerId === "string" ? d.trainerId : undefined,
+      });
+      postIframe({ type: "pv-adventure-pause" });
+    };
+    const onGym = (e: Event) => {
+      const badge = (e as CustomEvent).detail?.badge;
+      if (badge) postIframe({ type: "pv-adventure-badge", badge });
+    };
+    const onElite = (e: Event) => {
+      const index = (e as CustomEvent).detail?.index ?? 0;
+      postIframe({ type: "pv-adventure-e4-won", index });
+    };
+    const onCaught = (e: Event) => {
+      const name = (e as CustomEvent).detail?.name;
+      if (name) postIframe({ type: "pv-adventure-caught", name });
+    };
+    window.addEventListener("message", onMsg);
+    window.addEventListener("pv-adv-gym-won", onGym as EventListener);
+    window.addEventListener("pv-adv-elite-won", onElite as EventListener);
+    window.addEventListener("pv-adventure-caught", onCaught as EventListener);
+    return () => {
+      window.removeEventListener("message", onMsg);
+      window.removeEventListener("pv-adv-gym-won", onGym as EventListener);
+      window.removeEventListener("pv-adv-elite-won", onElite as EventListener);
+      window.removeEventListener("pv-adventure-caught", onCaught as EventListener);
+    };
+  }, []);
 
   // Active Modals
   const [activeCreature, setActiveCreature] = useState<{ creature: WildCreature; mode: "catch" | "battle" } | null>(null);
@@ -109,13 +162,19 @@ export function AdventureView() {
       const result = updatePlayerLocation(prev, newCoords, distMeters, newGeo);
       if (result.newlyDiscovered && result.newlyDiscovered.length > 0) {
         const first = result.newlyDiscovered[0];
-        toast.success(`✨ Wild ${first.species} emerged from the tall grass! CP ${first.cp}`, {
+        toast.success(`✨ Wild ${first.species} nearby! Walk up & catch · CP ${first.cp}`, {
           icon: "⚡",
         });
         if (typeof window !== "undefined" && navigator.vibrate) {
           try {
             navigator.vibrate([40, 40, 80]);
           } catch {}
+        }
+        // Auto-open catch sheet when you walk into radar range (GO-style)
+        if (!hdBattleOpen) {
+          setTimeout(() => {
+            setActiveCreature({ creature: first, mode: "catch" });
+          }, 0);
         }
       }
       return result.state;
@@ -230,6 +289,7 @@ export function AdventureView() {
                   );
                 }}
                 onSelectCardCache={(cache) => setActiveCardCache(cache)}
+                onStateUpdate={handleStateUpdate}
                 onUpdateCoords={handleUpdateCoords}
               />
 
@@ -380,11 +440,41 @@ export function AdventureView() {
         /* ───────────────────────────────────────────────────────────── */
         <div className="relative w-full h-[640px] rounded-3xl overflow-hidden border border-neutral-800 bg-neutral-950 flex flex-col items-center justify-center">
           <iframe
+            ref={retroIframeRef}
             src="/adventure.html"
             title="Classic Pokémon Adventure"
             className="w-full h-full border-0"
+            style={{ pointerEvents: gbBattleFoe ? "none" : "auto" }}
             allow="autoplay"
           />
+
+          {gbBattleFoe && (
+            <div
+              className="pv-adv-battle-overlay absolute inset-0 z-50 flex items-center justify-center bg-black/75 p-3"
+              role="dialog"
+              aria-modal="true"
+              aria-label={`Battle ${gbBattleFoe.name}`}
+            >
+              <div className="w-full max-w-md max-h-[96%] overflow-auto rounded-2xl shadow-2xl">
+                <GBBattleSession
+                  foe={gbBattleFoe}
+                  chrome
+                  onDone={() => {
+                    setGbBattleFoe(null);
+                    setTimeout(() => {
+                      try {
+                        retroIframeRef.current?.contentWindow?.postMessage(
+                          { type: "pv-adventure-resume" },
+                          "*",
+                        );
+                      } catch {}
+                    }, 120);
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
         </div>
       )}
     </div>
