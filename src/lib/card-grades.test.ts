@@ -8,6 +8,9 @@ import {
   getEraMultiplierAdjustment,
   getSlabSearchUrls,
   predetermineCardGrade,
+  printVariantPriceRows,
+  rawConditionLadder,
+  gradedSlabLadder,
 } from "./card-grades";
 import type { TCGCard } from "./pokemon-api";
 
@@ -59,6 +62,21 @@ describe("Ungraded & Graded Condition Engine", () => {
     const psa10Val = calculateGradedValue(mockCharizard, "psa10");
     expect(psa10Val.estimatedGradedPrice).toBeGreaterThan(1000.0);
     expect(psa10Val.isSlab).toBe(true);
+  });
+
+  it("exposes print-variant + raw + graded ladders for the card page", () => {
+    const prints = printVariantPriceRows(mockCharizard);
+    expect(prints.length).toBeGreaterThan(0);
+    expect(prints.some((r) => /holofoil/i.test(r.label))).toBe(true);
+    expect(prints[0].market).toBe(350);
+
+    const raw = rawConditionLadder(mockCharizard);
+    expect(raw).toHaveLength(UNGRADED_QUALITIES.length);
+    expect(raw[0].estimatedGradedPrice).toBeGreaterThan(raw[raw.length - 1].estimatedGradedPrice);
+
+    const slabs = gradedSlabLadder(mockCharizard);
+    expect(slabs).toHaveLength(GRADED_SLABS.length);
+    expect(slabs.find((s) => s.grade === "psa10")?.estimatedGradedPrice).toBeGreaterThan(350);
   });
 });
 

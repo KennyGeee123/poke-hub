@@ -333,7 +333,12 @@ export const Route = createFileRoute("/api/public/tcgdex")({
         }
 
         const catalog = await loadCatalog(request);
-        if (catalog) {
+        const pathname = path.split("?")[0];
+        // Full English box-set list lives on api.tcgdex.net (~220). The bundled
+        // asia-catalog only has SV/intl extras — never prefer it for /sets.
+        const preferUpstream = pathname === "/sets" || pathname === "/sets/";
+
+        if (catalog && !preferUpstream) {
           const hit = await fromCatalog(lang, path, catalog);
           if (hit) return hit;
         }
@@ -341,7 +346,7 @@ export const Route = createFileRoute("/api/public/tcgdex")({
         try {
           const r = await fetch(`${UPSTREAM}/${lang}${path}`, {
             headers: { Accept: "application/json" },
-            signal: AbortSignal.timeout(1200),
+            signal: AbortSignal.timeout(preferUpstream ? 8000 : 1200),
           });
           if (r.ok) {
             const body = await r.text();

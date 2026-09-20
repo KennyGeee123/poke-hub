@@ -60,6 +60,8 @@ function set(id: string, name: string, series: string, total: number, releaseDat
 }
 
 export const FALLBACK_SETS: TCGSet[] = [
+  set("base1sl", "Base Set (Shadowless)", "Base", 102, "1999/01/09"),
+  set("error", "Error / Misprint Cards", "Special", 80, "1999/01/09"),
   set("sv8", "Surging Sparks", "Scarlet & Violet", 252, "2024/11/08"),
   set("sv7", "Stellar Crown", "Scarlet & Violet", 175, "2024/09/13"),
   set("sv6pt5", "Shrouded Fable", "Scarlet & Violet", 99, "2024/08/02"),
@@ -81,7 +83,7 @@ export function fallbackSearch(q: string): TCGCard[] {
   const name = n.replace(/shadowless|shadeless|shaddowless|1st edition|first edition|1sted/g, " ").trim();
   return FALLBACK_CARDS.filter((c) => {
     const hay = `${c.name} ${c.set.name} ${c.id} ${c.rarity}`.toLowerCase();
-    if (sl && !hay.includes("shadowless") && c.set.id !== "base1") return false;
+    if (sl && !hay.includes("shadowless") && c.set.id !== "base1" && c.set.id !== "base1sl") return false;
     if (!name) return sl;
     return hay.includes(name) || c.name.toLowerCase().startsWith(name.slice(0, Math.max(3, name.length - 1)));
   });

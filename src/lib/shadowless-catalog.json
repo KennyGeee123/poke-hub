@@ -1,0 +1,1026 @@
+{
+  "setId": "base1sl",
+  "name": "Base Set (Shadowless)",
+  "cards": [
+    {
+      "productId": 106996,
+      "name": "Alakazam",
+      "number": "1",
+      "rarity": "Holo Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/106996_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/106996_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/106996/pokemon-base-set-shadowless-alakazam",
+      "market": 303.65
+    },
+    {
+      "productId": 106997,
+      "name": "Blastoise",
+      "number": "2",
+      "rarity": "Holo Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/106997_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/106997_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/106997/pokemon-base-set-shadowless-blastoise",
+      "market": 896.06
+    },
+    {
+      "productId": 106998,
+      "name": "Chansey",
+      "number": "3",
+      "rarity": "Holo Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/106998_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/106998_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/106998/pokemon-base-set-shadowless-chansey",
+      "market": 96.25
+    },
+    {
+      "productId": 106999,
+      "name": "Charizard",
+      "number": "4",
+      "rarity": "Holo Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/106999_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/106999_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/106999/pokemon-base-set-shadowless-charizard",
+      "market": 2257.87
+    },
+    {
+      "productId": 107001,
+      "name": "Clefairy",
+      "number": "5",
+      "rarity": "Holo Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107001_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107001_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107001/pokemon-base-set-shadowless-clefairy",
+      "market": 189.5
+    },
+    {
+      "productId": 107000,
+      "name": "Gyarados",
+      "number": "6",
+      "rarity": "Holo Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107000_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107000_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107000/pokemon-base-set-shadowless-gyarados",
+      "market": 123.52
+    },
+    {
+      "productId": 107002,
+      "name": "Hitmonchan",
+      "number": "7",
+      "rarity": "Holo Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107002_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107002_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107002/pokemon-base-set-shadowless-hitmonchan",
+      "market": 97.09
+    },
+    {
+      "productId": 107003,
+      "name": "Magneton",
+      "number": "9",
+      "rarity": "Holo Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107003_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107003_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107003/pokemon-base-set-shadowless-magneton",
+      "market": 73.99
+    },
+    {
+      "productId": 107005,
+      "name": "Mewtwo",
+      "number": "10",
+      "rarity": "Holo Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107005_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107005_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107005/pokemon-base-set-shadowless-mewtwo",
+      "market": 280.1
+    },
+    {
+      "productId": 107006,
+      "name": "Nidoking",
+      "number": "11",
+      "rarity": "Holo Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107006_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107006_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107006/pokemon-base-set-shadowless-nidoking",
+      "market": 166.19
+    },
+    {
+      "productId": 107008,
+      "name": "Ninetales",
+      "number": "12",
+      "rarity": "Holo Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107008_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107008_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107008/pokemon-base-set-shadowless-ninetales",
+      "market": 135.67
+    },
+    {
+      "productId": 107007,
+      "name": "Poliwrath",
+      "number": "13",
+      "rarity": "Holo Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107007_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107007_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107007/pokemon-base-set-shadowless-poliwrath",
+      "market": 158.64
+    },
+    {
+      "productId": 107009,
+      "name": "Raichu",
+      "number": "14",
+      "rarity": "Holo Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107009_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107009_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107009/pokemon-base-set-shadowless-raichu",
+      "market": 253.5
+    },
+    {
+      "productId": 107010,
+      "name": "Venusaur",
+      "number": "15",
+      "rarity": "Holo Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107010_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107010_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107010/pokemon-base-set-shadowless-venusaur",
+      "market": 501.29
+    },
+    {
+      "productId": 107011,
+      "name": "Zapdos",
+      "number": "16",
+      "rarity": "Holo Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107011_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107011_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107011/pokemon-base-set-shadowless-zapdos",
+      "market": 136.74
+    },
+    {
+      "productId": 107012,
+      "name": "Beedrill",
+      "number": "17",
+      "rarity": "Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107012_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107012_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107012/pokemon-base-set-shadowless-beedrill",
+      "market": 24.36
+    },
+    {
+      "productId": 107013,
+      "name": "Dragonair",
+      "number": "18",
+      "rarity": "Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107013_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107013_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107013/pokemon-base-set-shadowless-dragonair",
+      "market": 55.32
+    },
+    {
+      "productId": 107014,
+      "name": "Dugtrio",
+      "number": "19",
+      "rarity": "Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107014_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107014_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107014/pokemon-base-set-shadowless-dugtrio",
+      "market": 32.83
+    },
+    {
+      "productId": 107015,
+      "name": "Electabuzz",
+      "number": "20",
+      "rarity": "Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107015_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107015_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107015/pokemon-base-set-shadowless-electabuzz",
+      "market": 27.83
+    },
+    {
+      "productId": 107016,
+      "name": "Electrode",
+      "number": "21",
+      "rarity": "Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107016_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107016_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107016/pokemon-base-set-shadowless-electrode",
+      "market": 26.3
+    },
+    {
+      "productId": 107017,
+      "name": "Pidgeotto",
+      "number": "22",
+      "rarity": "Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107017_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107017_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107017/pokemon-base-set-shadowless-pidgeotto",
+      "market": 27.53
+    },
+    {
+      "productId": 107018,
+      "name": "Arcanine",
+      "number": "23",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107018_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107018_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107018/pokemon-base-set-shadowless-arcanine",
+      "market": 45.46
+    },
+    {
+      "productId": 107021,
+      "name": "Charmeleon",
+      "number": "24",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107021_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107021_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107021/pokemon-base-set-shadowless-charmeleon",
+      "market": 21.12
+    },
+    {
+      "productId": 107022,
+      "name": "Dewgong",
+      "number": "25",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107022_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107022_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107022/pokemon-base-set-shadowless-dewgong",
+      "market": 7.84
+    },
+    {
+      "productId": 107023,
+      "name": "Dratini",
+      "number": "26",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107023_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107023_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107023/pokemon-base-set-shadowless-dratini",
+      "market": 13.68
+    },
+    {
+      "productId": 107024,
+      "name": "Farfetch'd",
+      "number": "27",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107024_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107024_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107024/pokemon-base-set-shadowless-farfetchd",
+      "market": 5.88
+    },
+    {
+      "productId": 107025,
+      "name": "Growlithe",
+      "number": "28",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107025_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107025_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107025/pokemon-base-set-shadowless-growlithe",
+      "market": 12.6
+    },
+    {
+      "productId": 107026,
+      "name": "Haunter",
+      "number": "29",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107026_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107026_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107026/pokemon-base-set-shadowless-haunter",
+      "market": 22.05
+    },
+    {
+      "productId": 107027,
+      "name": "Ivysaur",
+      "number": "30",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107027_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107027_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107027/pokemon-base-set-shadowless-ivysaur",
+      "market": 18.51
+    },
+    {
+      "productId": 107028,
+      "name": "Jynx",
+      "number": "31",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107028_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107028_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107028/pokemon-base-set-shadowless-jynx",
+      "market": 11.81
+    },
+    {
+      "productId": 107029,
+      "name": "Kadabra",
+      "number": "32",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107029_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107029_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107029/pokemon-base-set-shadowless-kadabra",
+      "market": 12.58
+    },
+    {
+      "productId": 107030,
+      "name": "Kakuna",
+      "number": "33",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107030_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107030_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107030/pokemon-base-set-shadowless-kakuna",
+      "market": 3.02
+    },
+    {
+      "productId": 107031,
+      "name": "Machoke",
+      "number": "34",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107031_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107031_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107031/pokemon-base-set-shadowless-machoke",
+      "market": 4.48
+    },
+    {
+      "productId": 107032,
+      "name": "Magikarp",
+      "number": "35",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107032_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107032_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107032/pokemon-base-set-shadowless-magikarp",
+      "market": 25.75
+    },
+    {
+      "productId": 107033,
+      "name": "Magmar",
+      "number": "36",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107033_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107033_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107033/pokemon-base-set-shadowless-magmar",
+      "market": 6.66
+    },
+    {
+      "productId": 107034,
+      "name": "Nidorino",
+      "number": "37",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107034_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107034_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107034/pokemon-base-set-shadowless-nidorino",
+      "market": 8.26
+    },
+    {
+      "productId": 107035,
+      "name": "Poliwhirl",
+      "number": "38",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107035_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107035_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107035/pokemon-base-set-shadowless-poliwhirl",
+      "market": 8.85
+    },
+    {
+      "productId": 107036,
+      "name": "Porygon",
+      "number": "39",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107036_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107036_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107036/pokemon-base-set-shadowless-porygon",
+      "market": 8.18
+    },
+    {
+      "productId": 107037,
+      "name": "Raticate",
+      "number": "40",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107037_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107037_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107037/pokemon-base-set-shadowless-raticate",
+      "market": 7.39
+    },
+    {
+      "productId": 107038,
+      "name": "Seel",
+      "number": "41",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107038_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107038_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107038/pokemon-base-set-shadowless-seel",
+      "market": 4.41
+    },
+    {
+      "productId": 107039,
+      "name": "Wartortle",
+      "number": "42",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107039_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107039_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107039/pokemon-base-set-shadowless-wartortle",
+      "market": 37.76
+    },
+    {
+      "productId": 107040,
+      "name": "Abra",
+      "number": "43",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107040_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107040_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107040/pokemon-base-set-shadowless-abra",
+      "market": 10.65
+    },
+    {
+      "productId": 107041,
+      "name": "Bulbasaur",
+      "number": "44",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107041_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107041_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107041/pokemon-base-set-shadowless-bulbasaur",
+      "market": 19.77
+    },
+    {
+      "productId": 107042,
+      "name": "Caterpie",
+      "number": "45",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107042_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107042_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107042/pokemon-base-set-shadowless-caterpie",
+      "market": 4.36
+    },
+    {
+      "productId": 107043,
+      "name": "Charmander",
+      "number": "46",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107043_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107043_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107043/pokemon-base-set-shadowless-charmander",
+      "market": 11.06
+    },
+    {
+      "productId": 107044,
+      "name": "Diglett",
+      "number": "47",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107044_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107044_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107044/pokemon-base-set-shadowless-diglett",
+      "market": 1.63
+    },
+    {
+      "productId": 107045,
+      "name": "Doduo",
+      "number": "48",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107045_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107045_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107045/pokemon-base-set-shadowless-doduo",
+      "market": 2.28
+    },
+    {
+      "productId": 107046,
+      "name": "Drowzee",
+      "number": "49",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107046_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107046_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107046/pokemon-base-set-shadowless-drowzee",
+      "market": 3.38
+    },
+    {
+      "productId": 107047,
+      "name": "Gastly",
+      "number": "50",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107047_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107047_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107047/pokemon-base-set-shadowless-gastly",
+      "market": 7.36
+    },
+    {
+      "productId": 107048,
+      "name": "Koffing",
+      "number": "51",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107048_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107048_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107048/pokemon-base-set-shadowless-koffing",
+      "market": 7.88
+    },
+    {
+      "productId": 107049,
+      "name": "Machop",
+      "number": "52",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107049_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107049_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107049/pokemon-base-set-shadowless-machop",
+      "market": 1.87
+    },
+    {
+      "productId": 107050,
+      "name": "Magnemite",
+      "number": "53",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107050_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107050_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107050/pokemon-base-set-shadowless-magnemite",
+      "market": 3.12
+    },
+    {
+      "productId": 107051,
+      "name": "Metapod",
+      "number": "54",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107051_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107051_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107051/pokemon-base-set-shadowless-metapod",
+      "market": 4.89
+    },
+    {
+      "productId": 107052,
+      "name": "Nidoran M",
+      "number": "55",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107052_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107052_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107052/pokemon-base-set-shadowless-nidoran-m",
+      "market": 2.92
+    },
+    {
+      "productId": 107053,
+      "name": "Onix",
+      "number": "56",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107053_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107053_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107053/pokemon-base-set-shadowless-onix",
+      "market": 4.46
+    },
+    {
+      "productId": 107054,
+      "name": "Pidgey",
+      "number": "57",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107054_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107054_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107054/pokemon-base-set-shadowless-pidgey",
+      "market": 5.12
+    },
+    {
+      "productId": 107055,
+      "name": "Pikachu",
+      "number": "58",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107055_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107055_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107055/pokemon-base-set-shadowless-pikachu",
+      "market": 48.58
+    },
+    {
+      "productId": 147229,
+      "name": "Pikachu (Red Cheeks)",
+      "number": "58",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/147229_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/147229_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/147229/pokemon-base-set-shadowless-pikachu-red-cheeks",
+      "market": 104.21
+    },
+    {
+      "productId": 107056,
+      "name": "Poliwag",
+      "number": "59",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107056_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107056_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107056/pokemon-base-set-shadowless-poliwag",
+      "market": 3.69
+    },
+    {
+      "productId": 107057,
+      "name": "Ponyta",
+      "number": "60",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107057_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107057_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107057/pokemon-base-set-shadowless-ponyta",
+      "market": 2.24
+    },
+    {
+      "productId": 107058,
+      "name": "Rattata",
+      "number": "61",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107058_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107058_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107058/pokemon-base-set-shadowless-rattata",
+      "market": 3.51
+    },
+    {
+      "productId": 107059,
+      "name": "Sandshrew",
+      "number": "62",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107059_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107059_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107059/pokemon-base-set-shadowless-sandshrew",
+      "market": 3.41
+    },
+    {
+      "productId": 107060,
+      "name": "Squirtle",
+      "number": "63",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107060_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107060_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107060/pokemon-base-set-shadowless-squirtle",
+      "market": 33.5
+    },
+    {
+      "productId": 107061,
+      "name": "Starmie",
+      "number": "64",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107061_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107061_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107061/pokemon-base-set-shadowless-starmie",
+      "market": 4.92
+    },
+    {
+      "productId": 107062,
+      "name": "Staryu",
+      "number": "65",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107062_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107062_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107062/pokemon-base-set-shadowless-staryu",
+      "market": 1.61
+    },
+    {
+      "productId": 107063,
+      "name": "Tangela",
+      "number": "66",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107063_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107063_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107063/pokemon-base-set-shadowless-tangela",
+      "market": 3.61
+    },
+    {
+      "productId": 107064,
+      "name": "Voltorb",
+      "number": "67",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107064_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107064_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107064/pokemon-base-set-shadowless-voltorb",
+      "market": 11.77
+    },
+    {
+      "productId": 107065,
+      "name": "Vulpix",
+      "number": "68",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107065_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107065_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107065/pokemon-base-set-shadowless-vulpix",
+      "market": 6.02
+    },
+    {
+      "productId": 107066,
+      "name": "Weedle",
+      "number": "69",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107066_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107066_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107066/pokemon-base-set-shadowless-weedle",
+      "market": 3.26
+    },
+    {
+      "productId": 107067,
+      "name": "Clefairy Doll",
+      "number": "70",
+      "rarity": "Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107067_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107067_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107067/pokemon-base-set-shadowless-clefairy-doll",
+      "market": 12.24
+    },
+    {
+      "productId": 107068,
+      "name": "Computer Search",
+      "number": "71",
+      "rarity": "Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107068_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107068_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107068/pokemon-base-set-shadowless-computer-search",
+      "market": 9.68
+    },
+    {
+      "productId": 107069,
+      "name": "Devolution Spray",
+      "number": "72",
+      "rarity": "Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107069_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107069_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107069/pokemon-base-set-shadowless-devolution-spray",
+      "market": 14.88
+    },
+    {
+      "productId": 107070,
+      "name": "Impostor Professor Oak",
+      "number": "73",
+      "rarity": "Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107070_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107070_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107070/pokemon-base-set-shadowless-impostor-professor-oak",
+      "market": 24.48
+    },
+    {
+      "productId": 107072,
+      "name": "Item Finder",
+      "number": "74",
+      "rarity": "Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107072_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107072_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107072/pokemon-base-set-shadowless-item-finder",
+      "market": 14.61
+    },
+    {
+      "productId": 107071,
+      "name": "Lass",
+      "number": "75",
+      "rarity": "Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107071_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107071_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107071/pokemon-base-set-shadowless-lass",
+      "market": 8.94
+    },
+    {
+      "productId": 107074,
+      "name": "Pokemon Breeder",
+      "number": "76",
+      "rarity": "Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107074_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107074_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107074/pokemon-base-set-shadowless-pokemon-breeder",
+      "market": 16.91
+    },
+    {
+      "productId": 107073,
+      "name": "Pokemon Trader",
+      "number": "77",
+      "rarity": "Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107073_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107073_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107073/pokemon-base-set-shadowless-pokemon-trader",
+      "market": 17.59
+    },
+    {
+      "productId": 107075,
+      "name": "Scoop Up",
+      "number": "78",
+      "rarity": "Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107075_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107075_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107075/pokemon-base-set-shadowless-scoop-up",
+      "market": 17.34
+    },
+    {
+      "productId": 107076,
+      "name": "Super Energy Removal",
+      "number": "79",
+      "rarity": "Rare",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107076_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107076_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107076/pokemon-base-set-shadowless-super-energy-removal",
+      "market": 8.65
+    },
+    {
+      "productId": 107077,
+      "name": "Defender",
+      "number": "80",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107077_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107077_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107077/pokemon-base-set-shadowless-defender",
+      "market": 2.96
+    },
+    {
+      "productId": 107078,
+      "name": "Energy Retrieval",
+      "number": "81",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107078_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107078_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107078/pokemon-base-set-shadowless-energy-retrieval",
+      "market": 1.03
+    },
+    {
+      "productId": 107079,
+      "name": "Full Heal",
+      "number": "82",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107079_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107079_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107079/pokemon-base-set-shadowless-full-heal",
+      "market": 1.91
+    },
+    {
+      "productId": 107080,
+      "name": "Maintenance",
+      "number": "83",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107080_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107080_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107080/pokemon-base-set-shadowless-maintenance",
+      "market": 2.2
+    },
+    {
+      "productId": 107081,
+      "name": "PlusPower",
+      "number": "84",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107081_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107081_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107081/pokemon-base-set-shadowless-pluspower",
+      "market": 2.13
+    },
+    {
+      "productId": 107082,
+      "name": "Pokemon Center",
+      "number": "85",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107082_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107082_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107082/pokemon-base-set-shadowless-pokemon-center",
+      "market": 3.26
+    },
+    {
+      "productId": 107083,
+      "name": "Pokemon Flute",
+      "number": "86",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107083_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107083_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107083/pokemon-base-set-shadowless-pokemon-flute",
+      "market": 6.15
+    },
+    {
+      "productId": 107084,
+      "name": "Pokedex",
+      "number": "87",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107084_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107084_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107084/pokemon-base-set-shadowless-pokedex",
+      "market": 2.07
+    },
+    {
+      "productId": 107085,
+      "name": "Professor Oak",
+      "number": "88",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107085_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107085_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107085/pokemon-base-set-shadowless-professor-oak",
+      "market": 4.51
+    },
+    {
+      "productId": 107086,
+      "name": "Revive",
+      "number": "89",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107086_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107086_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107086/pokemon-base-set-shadowless-revive",
+      "market": 7.67
+    },
+    {
+      "productId": 107087,
+      "name": "Super Potion",
+      "number": "90",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107087_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107087_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107087/pokemon-base-set-shadowless-super-potion",
+      "market": 1.53
+    },
+    {
+      "productId": 107088,
+      "name": "Bill",
+      "number": "91",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107088_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107088_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107088/pokemon-base-set-shadowless-bill",
+      "market": 1.36
+    },
+    {
+      "productId": 107089,
+      "name": "Energy Removal",
+      "number": "92",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107089_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107089_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107089/pokemon-base-set-shadowless-energy-removal",
+      "market": 0.96
+    },
+    {
+      "productId": 107090,
+      "name": "Gust of Wind",
+      "number": "93",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107090_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107090_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107090/pokemon-base-set-shadowless-gust-of-wind",
+      "market": 0.79
+    },
+    {
+      "productId": 107091,
+      "name": "Potion",
+      "number": "94",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107091_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107091_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107091/pokemon-base-set-shadowless-potion",
+      "market": 0.73
+    },
+    {
+      "productId": 107092,
+      "name": "Switch",
+      "number": "95",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107092_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107092_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107092/pokemon-base-set-shadowless-switch",
+      "market": 1.54
+    },
+    {
+      "productId": 107099,
+      "name": "Double Colorless Energy",
+      "number": "96",
+      "rarity": "Uncommon",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107099_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107099_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107099/pokemon-base-set-shadowless-double-colorless-energy",
+      "market": 17.56
+    },
+    {
+      "productId": 107093,
+      "name": "Fighting Energy",
+      "number": "97",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107093_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107093_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107093/pokemon-base-set-shadowless-fighting-energy",
+      "market": 0.59
+    },
+    {
+      "productId": 107094,
+      "name": "Fire Energy",
+      "number": "98",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107094_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107094_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107094/pokemon-base-set-shadowless-fire-energy",
+      "market": 0.63
+    },
+    {
+      "productId": 107095,
+      "name": "Grass Energy",
+      "number": "99",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107095_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107095_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107095/pokemon-base-set-shadowless-grass-energy",
+      "market": 0.95
+    },
+    {
+      "productId": 107097,
+      "name": "Lightning Energy",
+      "number": "100",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107097_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107097_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107097/pokemon-base-set-shadowless-lightning-energy",
+      "market": 0.87
+    },
+    {
+      "productId": 107096,
+      "name": "Psychic Energy",
+      "number": "101",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107096_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107096_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107096/pokemon-base-set-shadowless-psychic-energy",
+      "market": 1.17
+    },
+    {
+      "productId": 107098,
+      "name": "Water Energy",
+      "number": "102",
+      "rarity": "Common",
+      "imageSmall": "https://tcgplayer-cdn.tcgplayer.com/product/107098_200w.jpg",
+      "imageLarge": "https://tcgplayer-cdn.tcgplayer.com/product/107098_400w.jpg",
+      "url": "https://www.tcgplayer.com/product/107098/pokemon-base-set-shadowless-water-energy",
+      "market": 1.52
+    }
+  ]
+}

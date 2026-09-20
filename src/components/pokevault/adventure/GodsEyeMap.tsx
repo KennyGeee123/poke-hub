@@ -1,33 +1,62 @@
 import React, { useMemo, useState } from "react";
 import { Eye, MapPin, Navigation, X, Crosshair, Sparkles, Swords } from "lucide-react";
-import { GODS_EYE_NODES, type GodsEyeNode, nearestGodsEyeNode } from "@/lib/gods-eye-world";
+import {
+  GODS_EYE_NODES,
+  type GodsEyeNode,
+  latLngToAtlasPct,
+  nearestGodsEyeNode,
+  nearestGodsEyeNodeByGeo,
+} from "@/lib/gods-eye-world";
 import type { WildCreature } from "@/lib/adventure-engine";
 
 export function GodsEyeMap({
   open,
   onClose,
   playerCoords,
+  playerGeo,
   wildCreatures,
   onTeleport,
 }: {
   open: boolean;
   onClose: () => void;
   playerCoords: { xPct: number; yPct: number };
+  playerGeo?: { lat: number; lng: number };
   wildCreatures: WildCreature[];
   onTeleport: (node: GodsEyeNode) => void;
 }) {
   const [selected, setSelected] = useState<GodsEyeNode | null>(null);
   const [filter, setFilter] = useState<"all" | "region" | "nest" | "city" | "landmark">("all");
 
-  const here = useMemo(
-    () => nearestGodsEyeNode(playerCoords.xPct, playerCoords.yPct),
-    [playerCoords.xPct, playerCoords.yPct],
-  );
+  const here = useMemo(() => {
+    if (playerGeo) return nearestGodsEyeNodeByGeo(playerGeo.lat, playerGeo.lng);
+    return nearestGodsEyeNode(playerCoords.xPct, playerCoords.yPct);
+  }, [playerCoords.xPct, playerCoords.yPct, playerGeo]);
+
+  const you = useMemo(() => {
+    if (playerGeo) return latLngToAtlasPct(playerGeo.lat, playerGeo.lng);
+    return { x: Math.min(95, Math.max(5, playerCoords.xPct)), y: Math.min(95, Math.max(5, playerCoords.yPct)) };
+  }, [playerCoords.xPct, playerCoords.yPct, playerGeo]);
 
   const nodes = useMemo(
     () => (filter === "all" ? GODS_EYE_NODES : GODS_EYE_NODES.filter((n) => n.kind === filter)),
     [filter],
   );
+
+  const wildMarks = useMemo(
+    () =>
+      wildCreatures
+        .filter((c) => typeof c.lat === "number" && typeof c.lng === "number")
+        .map((c) => ({
+          id: c.id,
+          ...latLngToAtlasPct(c.lat as number, c.lng as number),
+          nest: !!c.isParkNest,
+        })),
+    [wildCreatures],
+  );
+
+  const viewBox = selected
+    ? `${(selected.atlasX - 16).toFixed(2)} ${(selected.atlasY - 12).toFixed(2)} 32 24`
+    : "0 0 100 100";
 
   if (!open) return null;
 
@@ -46,7 +75,7 @@ export function GodsEyeMap({
           <div>
             <h2 className="text-sm font-extrabold tracking-wide text-white uppercase">God&apos;s Eye</h2>
             <p className="text-[10px] text-neutral-400">
-              Huge world atlas · teleport · then walk &amp; catch (GO + GBA)
+              Planet atlas · teleport onto GO map or GBA overworld · walk & catch
             </p>
           </div>
         </div>
@@ -73,14 +102,22 @@ export function GodsEyeMap({
             {f}
           </button>
         ))}
+        {selected && (
+          <button
+            type="button"
+            onClick={() => setSelected(null)}
+            className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase bg-neutral-800 text-cyan-300"
+          >
+            World view
+          </button>
+        )}
         <span className="ml-auto text-[10px] text-neutral-500 self-center">
-          Near: <b className="text-amber-300">{here.name}</b> · {wildCreatures.length} wilds on plane
+          Near: <b className="text-amber-300">{here.name}</b> · {wildMarks.length} wilds plotted
         </span>
       </div>
 
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_280px]">
         <div className="relative m-3 rounded-2xl border border-neutral-800 bg-[radial-gradient(ellipse_at_center,#0f172a_0%,#020617_70%)] overflow-hidden">
-          {/* Starfield / grid */}
           <div
             className="absolute inset-0 opacity-30"
             style={{
@@ -89,24 +126,34 @@ export function GodsEyeMap({
               backgroundSize: "40px 40px",
             }}
           />
-          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <svg className="absolute inset-0 w-full h-full" viewBox={viewBox} preserveAspectRatio="xMidYMid meet">
+            {wildMarks.map((m) => (
+              <circle
+                key={m.id}
+                cx={m.x}
+                cy={m.y}
+                r={m.nest ? 0.9 : 0.55}
+                fill={m.nest ? "#FFDE00" : "#fbbf24"}
+                opacity={0.7}
+              />
+            ))}
             {nodes.map((n) => (
               <g key={n.id}>
                 <circle
                   cx={n.atlasX}
                   cy={n.atlasY}
-                  r={n.kind === "region" ? 3.2 : 2.2}
+                  r={n.kind === "region" ? 2.4 : 1.6}
                   fill={n.accent}
-                  opacity={0.85}
+                  opacity={0.9}
                   className="cursor-pointer"
                   onClick={() => setSelected(n)}
                 />
                 <text
                   x={n.atlasX}
-                  y={n.atlasY - 3.5}
+                  y={n.atlasY - 2.6}
                   textAnchor="middle"
                   fill="#e5e7eb"
-                  fontSize="2.4"
+                  fontSize="2.1"
                   fontWeight="700"
                   className="pointer-events-none"
                 >
@@ -114,18 +161,12 @@ export function GodsEyeMap({
                 </text>
               </g>
             ))}
-            {/* Player */}
-            <circle
-              cx={Math.min(95, Math.max(5, playerCoords.xPct * 0.9 + 5))}
-              cy={Math.min(95, Math.max(5, playerCoords.yPct * 0.9 + 5))}
-              r={1.6}
-              fill="#22d3ee"
-              stroke="#fff"
-              strokeWidth={0.4}
-            />
+            <circle cx={you.x} cy={you.y} r={1.5} fill="#22d3ee" stroke="#fff" strokeWidth={0.4} />
           </svg>
           <div className="absolute bottom-3 left-3 text-[10px] text-neutral-400 bg-black/50 px-2 py-1 rounded-lg">
-            Tap a region · cyan = you · then Teleport &amp; Walk
+            {selected
+              ? `Zoomed · ${selected.name} · ${selected.lat.toFixed(2)}, ${selected.lng.toFixed(2)} · cyan = you`
+              : "Equirectangular world · amber = wilds · cyan = you · tap a region to zoom"}
           </div>
         </div>
 
@@ -147,6 +188,9 @@ export function GodsEyeMap({
                 <span className="text-[9px] uppercase text-neutral-500 ml-auto">{n.kind}</span>
               </div>
               <p className="text-[10px] text-neutral-400 mt-0.5">{n.subtitle}</p>
+              <p className="text-[10px] text-neutral-500 mt-0.5">
+                {n.lat.toFixed(2)}°, {n.lng.toFixed(2)}° · era {n.eraId}
+              </p>
               <p className="text-[10px] text-amber-200/80 mt-1 flex items-center gap-1">
                 <Sparkles className="w-3 h-3" /> {n.spawnHint}
               </p>
@@ -167,8 +211,9 @@ export function GodsEyeMap({
                 Teleport to {selected.name}
               </button>
               <p className="text-[10px] text-neutral-500 text-center flex items-center justify-center gap-1">
-                <Crosshair className="w-3 h-3" /> Then joystick-walk · tap wilds to catch ·
-                <Swords className="w-3 h-3" /> battle like GBA
+                <Crosshair className="w-3 h-3" /> Loads {selected.eraId}
+                {selected.kind === "region" ? " GBA map" : " GO map"} · walk the world ·
+                <Swords className="w-3 h-3" /> catch in 45m
               </p>
             </div>
           )}

@@ -243,6 +243,44 @@ describe("Adventure Living World Engine & Economy", () => {
     expect(switched.activeEra.id).toBe("modern_paldea");
     expect(switched.state.wildCreatures.some((c) => c.eraId === "modern_paldea")).toBe(true);
   });
+
+  it("does not dump Dresden Park nests onto a foreign region walk plane", () => {
+    const kanto = generateEraSpawns("vintage_kanto", 14, 1000, { lat: 35.68, lng: 139.76 }, {
+      includeParkNest: false,
+      localOrigin: { xPct: 50, yPct: 50 },
+    });
+    expect(kanto.some((s) => s.isParkNest)).toBe(false);
+    expect(kanto.every((s) => s.eraId === "vintage_kanto")).toBe(true);
+  });
+
+  it("keeps unique gen pools for Unova/Kalos/Alola/Galar instead of Paldea", async () => {
+    const { getPokemonByGen } = await import("./all-pokemon-data");
+    const unova = generateEraSpawns("black_unova", 8, 2000, { lat: 40.71, lng: -74 }, { includeParkNest: false });
+    const kalos = generateEraSpawns("mega_kalos", 8, 2000, { lat: 48.86, lng: 2.35 }, { includeParkNest: false });
+    const alola = generateEraSpawns("sun_alola", 8, 2000, { lat: 21.3, lng: -157.85 }, { includeParkNest: false });
+    const galar = generateEraSpawns("sword_galar", 8, 2000, { lat: 51.5, lng: -0.12 }, { includeParkNest: false });
+    const paldea = generateEraSpawns("modern_paldea", 8, 2000, { lat: 40.4, lng: -3.7 }, { includeParkNest: false });
+
+    const ids = (spawns: typeof unova) => new Set(spawns.map((s) => s.nationalDexId).filter(Boolean) as number[]);
+    const genOf = (id: number) => {
+      if (id <= 151) return 1;
+      if (id <= 251) return 2;
+      if (id <= 386) return 3;
+      if (id <= 493) return 4;
+      if (id <= 649) return 5;
+      if (id <= 721) return 6;
+      if (id <= 809) return 7;
+      if (id <= 905) return 8;
+      return 9;
+    };
+
+    expect(getPokemonByGen(5).length).toBe(156);
+    expect([...ids(unova)].every((id) => genOf(id) === 5)).toBe(true);
+    expect([...ids(kalos)].every((id) => genOf(id) === 6)).toBe(true);
+    expect([...ids(alola)].every((id) => genOf(id) === 7)).toBe(true);
+    expect([...ids(galar)].every((id) => genOf(id) === 8)).toBe(true);
+    expect([...ids(paldea)].every((id) => genOf(id) === 9)).toBe(true);
+  });
 });
 
 
@@ -377,3 +415,62 @@ describe("National Pokédex Registry (All 1,025 Pokémon) & 45m Discovery Engine
     expect(result.newlyDiscovered.some((c) => c.id === "test-close")).toBe(true);
   });
 });
+
+describe("GO walk camera — geo projection + POI pins", () => {
+  it("projects a north target above the player in screen pixels", async () => {
+    const { geoScreenOffset, pinWorldPoisToGeo, getDefaultAdventureState, DRESDEN_PARK_GEO } =
+      await import("./adventure-engine");
+    const north = { lat: DRESDEN_PARK_GEO.lat + 0.001, lng: DRESDEN_PARK_GEO.lng };
+    const off = geoScreenOffset(DRESDEN_PARK_GEO, north, 17);
+    expect(off.dy).toBeLessThan(0);
+    expect(Math.abs(off.dx)).toBeLessThan(Math.abs(off.dy) + 2);
+
+    const pinned = pinWorldPoisToGeo(getDefaultAdventureState(), DRESDEN_PARK_GEO);
+    expect(pinned.battleArenas[0].lat).toBeDefined();
+    expect(pinned.discoveryPoints[0].lng).toBeDefined();
+    expect(pinned.cardCaches[0].lat).toBeDefined();
+    expect(pinned.battleArenas[0].distanceMeters).toBeGreaterThan(0);
+  });
+});
+
+describe("God's Eye planet atlas", () => {
+  it("projects player/nodes from lat/lng and gives Unova/Kalos/Alola/Galar unique eras", async () => {
+    const { GODS_EYE_NODES, latLngToAtlasPct } = await import("./gods-eye-world");
+    const tokyo = latLngToAtlasPct(35.68, 139.76);
+    const nyc = latLngToAtlasPct(40.71, -74.0);
+    expect(tokyo.x).toBeGreaterThan(nyc.x);
+    expect(tokyo.y).toBeGreaterThan(4);
+
+    const byId = Object.fromEntries(GODS_EYE_NODES.map((n) => [n.id, n]));
+    expect(byId.unova.eraId).toBe("black_unova");
+    expect(byId.kalos.eraId).toBe("mega_kalos");
+    expect(byId.alola.eraId).toBe("sun_alola");
+    expect(byId.galar.eraId).toBe("sword_galar");
+    expect(byId.paldea.eraId).toBe("modern_paldea");
+    expect(byId.dresden.kind).toBe("nest");
+    expect(byId.dresden.lat).toBeCloseTo(33.8824, 3);
+  });
+
+  it("uses GBA walk skin for franchise regions and GO skin for real hubs", async () => {
+    const { GODS_EYE_NODES, walkSkinForNode, gbaCellKind } = await import("./gods-eye-world");
+    const byId = Object.fromEntries(GODS_EYE_NODES.map((n) => [n.id, n]));
+    expect(walkSkinForNode(byId.kanto)).toBe("gba");
+    expect(walkSkinForNode(byId.galar)).toBe("gba");
+    expect(walkSkinForNode(byId.dresden)).toBe("go");
+    expect(walkSkinForNode(byId["central-park"])).toBe("go");
+    expect(gbaCellKind(0, 0)).toMatch(/grass|path|water|tree|dirt/);
+  });
+});
+
+describe("Adventure visuals — on-disk trainer + local sprites first", () => {
+  it("picks 4-dir trainer assets and prefers vendored gen5 sprites", async () => {
+    const { trainerFacingUrl, fallbackSpriteUrls } = await import("./sprites");
+    expect(trainerFacingUrl(0)).toBe("/adventure-assets/trainer-up.png");
+    expect(trainerFacingUrl(90)).toBe("/adventure-assets/trainer-right.png");
+    expect(trainerFacingUrl(180)).toBe("/adventure-assets/trainer-down.png");
+    expect(trainerFacingUrl(270)).toBe("/adventure-assets/trainer-left.png");
+    expect(fallbackSpriteUrls("Pikachu")[0]).toBe("/sprites/gen5/pikachu.png");
+    expect(fallbackSpriteUrls("Pecharunt")[0]).toContain("pokemondb.net");
+  });
+});
+

@@ -39,17 +39,25 @@ export function localGen5BackUrl(name: string): string | null {
 export function fallbackSpriteUrls(name: string): string[] {
   const s = spriteSlug(name);
   const local = localGen5Url(name);
-  
-  // Prioritize high-res Official Home 3D Render, Showdown Animated Model & Official Artwork
+
+  // Local gen5 first (already vendored). Remote Home/Showdown are fallbacks, not the live look.
   return [
+    ...(local ? [local] : []),
     `https://img.pokemondb.net/sprites/home/normal/${s}.png`,
     `https://play.pokemonshowdown.com/sprites/ani/${s}.gif`,
     `https://play.pokemonshowdown.com/sprites/gen5/${s}.png`,
     `https://play.pokemonshowdown.com/sprites/dex/${s}.png`,
     `https://img.pokemondb.net/artwork/large/${s}.jpg`,
     `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${s}.png`,
-    ...(local ? [local] : []),
   ];
+}
+
+/** Original 4-dir trainer already in public/adventure-assets (not PokeAPI trainers/1.png). */
+export function trainerFacingUrl(facingAngleDeg: number): string {
+  const a = ((facingAngleDeg % 360) + 360) % 360;
+  const dir =
+    a >= 315 || a < 45 ? "up" : a >= 45 && a < 135 ? "right" : a >= 135 && a < 225 ? "down" : "left";
+  return `/adventure-assets/trainer-${dir}.png`;
 }
 
 export function animatedSpriteUrl(name: string): string {

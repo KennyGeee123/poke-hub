@@ -25,6 +25,9 @@ import {
   getGradeMeta,
   getSlabSearchUrls,
   predetermineCardGrade,
+  printVariantPriceRows,
+  rawConditionLadder,
+  gradedSlabLadder,
 } from "@/lib/card-grades";
 
 export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack: () => void; onToast: (m: string) => void }) {
@@ -509,6 +512,12 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
             </button>
           </div>
 
+          <CardVariantPriceMatrix
+            card={card}
+            selectedGrade={selectedGrade}
+            onPickGrade={setSelectedGrade}
+          />
+
           {activeTab === "ai_inspector" ? (
             /* AI Pre-Grade Inspector HUD */
             <div
@@ -755,25 +764,7 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
             </div>
           )}
 
-          {Object.keys(tcgPrices).length > 0 && (
-            <>
-              <div className="pv-section-title">TCGPLAYER PRICES (USD)</div>
-              <table className="pv-price-tbl">
-                <thead><tr><th>Variant</th><th>Low</th><th>Mid</th><th>Market</th><th>High</th></tr></thead>
-                <tbody>
-                  {Object.entries(tcgPrices).map(([k, p]) => (
-                    <tr key={k}>
-                      <td>{k.replace(/([A-Z])/g, " $1")}</td>
-                      <td>{p.low ? formatPrice(p.low) : "—"}</td>
-                      <td>{p.mid ? formatPrice(p.mid) : "—"}</td>
-                      <td style={{ color: "var(--gold)", fontWeight: 700 }}>{p.market ? formatPrice(p.market) : "—"}</td>
-                      <td>{p.high ? formatPrice(p.high) : "—"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </>
-          )}
+
 
           {cmPrices && (
             <>
@@ -835,6 +826,105 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
           rarity={card.rarity}
         />
       )}
+    </div>
+  );
+}
+
+function CardVariantPriceMatrix({
+  card,
+  selectedGrade,
+  onPickGrade,
+}: {
+  card: TCGCard;
+  selectedGrade: CardGrade;
+  onPickGrade: (g: CardGrade) => void;
+}) {
+  const prints = printVariantPriceRows(card);
+  const raw = rawConditionLadder(card);
+  const slabs = gradedSlabLadder(card);
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div className="pv-section-title">PRINT VARIANTS (RAW)</div>
+      <table className="pv-price-tbl">
+        <thead>
+          <tr>
+            <th>Variant</th>
+            <th>Low</th>
+            <th>Mid</th>
+            <th>Market</th>
+            <th>High</th>
+          </tr>
+        </thead>
+        <tbody>
+          {prints.length ? prints.map((r) => (
+            <tr key={r.key}>
+              <td>{r.label}</td>
+              <td>{r.low ? formatPrice(r.low) : "—"}</td>
+              <td>{r.mid ? formatPrice(r.mid) : "—"}</td>
+              <td style={{ color: "var(--gold)", fontWeight: 700 }}>{r.market ? formatPrice(r.market) : "—"}</td>
+              <td>{r.high ? formatPrice(r.high) : "—"}</td>
+            </tr>
+          )) : (
+            <tr>
+              <td colSpan={5} style={{ color: "var(--t3)" }}>No print-variant quotes yet — RAW / slab ladders still apply.</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+
+      <div className="pv-section-title" style={{ marginTop: 12 }}>RAW CONDITIONS</div>
+      <table className="pv-price-tbl">
+        <thead>
+          <tr>
+            <th>Condition</th>
+            <th>Est. value</th>
+            <th>×</th>
+          </tr>
+        </thead>
+        <tbody>
+          {raw.map((row) => (
+            <tr
+              key={row.grade}
+              onClick={() => onPickGrade(row.grade)}
+              style={{
+                cursor: "pointer",
+                background: selectedGrade === row.grade ? "rgba(251,191,36,0.12)" : undefined,
+              }}
+            >
+              <td>{row.meta.shortLabel}</td>
+              <td style={{ color: "var(--gold)", fontWeight: 700 }}>{formatPrice(row.estimatedGradedPrice)}</td>
+              <td>{row.multiplier.toFixed(2)}×</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div className="pv-section-title" style={{ marginTop: 12 }}>GRADED SLABS</div>
+      <table className="pv-price-tbl">
+        <thead>
+          <tr>
+            <th>Slab</th>
+            <th>Est. value</th>
+            <th>×</th>
+          </tr>
+        </thead>
+        <tbody>
+          {slabs.map((row) => (
+            <tr
+              key={row.grade}
+              onClick={() => onPickGrade(row.grade)}
+              style={{
+                cursor: "pointer",
+                background: selectedGrade === row.grade ? "rgba(251,191,36,0.12)" : undefined,
+              }}
+            >
+              <td>{row.meta.shortLabel}</td>
+              <td style={{ color: "#fbbf24", fontWeight: 700 }}>{formatPrice(row.estimatedGradedPrice)}</td>
+              <td>{row.multiplier.toFixed(2)}×</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

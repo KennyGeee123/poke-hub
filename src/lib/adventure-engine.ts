@@ -382,6 +382,10 @@ export type PokemonEraId =
   | "neo_johto"
   | "advanced_hoenn"
   | "diamond_sinnoh"
+  | "black_unova"
+  | "mega_kalos"
+  | "sun_alola"
+  | "sword_galar"
   | "modern_paldea";
 
 export interface PokemonEraSpecies {
@@ -547,6 +551,110 @@ export const POKEMON_ERAS: Record<PokemonEraId, PokemonEra> = {
       { species: "Gholdengo", types: ["Steel", "Ghost"], rarity: "rare", baseCatchRate: 0.35, baseCp: 1690 },
     ],
   },
+  black_unova: {
+    id: "black_unova",
+    name: "Black Unova (Gen 5)",
+    shortName: "Unova",
+    gen: 5,
+    years: "2010 - 2013",
+    badge: "⬛ BW ERA",
+    themeColor: "#6366f1",
+    bgGradient: "from-indigo-600 to-slate-800",
+    description: "Black & White urban routes. Castelia, desert, and the original dragon.",
+    legendaries: ["Reshiram", "Zekrom", "Kyurem", "Victini", "Hydreigon"],
+    speciesPool: [
+      { species: "Reshiram", types: ["Dragon", "Fire"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2960 },
+      { species: "Zekrom", types: ["Dragon", "Electric"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2960 },
+      { species: "Hydreigon", types: ["Dark", "Dragon"], rarity: "legendary", baseCatchRate: 0.18, baseCp: 2480 },
+      { species: "Volcarona", types: ["Bug", "Fire"], rarity: "epic", baseCatchRate: 0.28, baseCp: 1880 },
+      { species: "Haxorus", types: ["Dragon"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1760 },
+      { species: "Chandelure", types: ["Ghost", "Fire"], rarity: "rare", baseCatchRate: 0.4, baseCp: 1540 },
+      { species: "Excadrill", types: ["Ground", "Steel"], rarity: "rare", baseCatchRate: 0.42, baseCp: 1490 },
+      { species: "Zoroark", types: ["Dark"], rarity: "rare", baseCatchRate: 0.38, baseCp: 1520 },
+      { species: "Serperior", types: ["Grass"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1680 },
+      { species: "Emboar", types: ["Fire", "Fighting"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1720 },
+      { species: "Samurott", types: ["Water"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1700 },
+      { species: "Victini", types: ["Psychic", "Fire"], rarity: "legendary", baseCatchRate: 0.15, baseCp: 2380 },
+    ],
+  },
+  mega_kalos: {
+    id: "mega_kalos",
+    name: "Mega Kalos (Gen 6)",
+    shortName: "Kalos",
+    gen: 6,
+    years: "2013 - 2016",
+    badge: "💗 XY MEGA",
+    themeColor: "#ec4899",
+    bgGradient: "from-pink-500 to-rose-700",
+    description: "X & Y megas and fairy-type debut. Lumiose, prism, and the life/destruction duo.",
+    legendaries: ["Xerneas", "Yveltal", "Zygarde", "Diancie", "Greninja"],
+    speciesPool: [
+      { species: "Xerneas", types: ["Fairy"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2940 },
+      { species: "Yveltal", types: ["Dark", "Flying"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2940 },
+      { species: "Greninja", types: ["Water", "Dark"], rarity: "epic", baseCatchRate: 0.28, baseCp: 1840 },
+      { species: "Aegislash", types: ["Steel", "Ghost"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1720 },
+      { species: "Goodra", types: ["Dragon"], rarity: "rare", baseCatchRate: 0.38, baseCp: 1680 },
+      { species: "Talonflame", types: ["Fire", "Flying"], rarity: "uncommon", baseCatchRate: 0.5, baseCp: 1280 },
+      { species: "Sylveon", types: ["Fairy"], rarity: "rare", baseCatchRate: 0.42, baseCp: 1460 },
+      { species: "Pangoro", types: ["Fighting", "Dark"], rarity: "uncommon", baseCatchRate: 0.48, baseCp: 1320 },
+      { species: "Hawlucha", types: ["Fighting", "Flying"], rarity: "rare", baseCatchRate: 0.45, baseCp: 1380 },
+      { species: "Noivern", types: ["Flying", "Dragon"], rarity: "rare", baseCatchRate: 0.4, baseCp: 1510 },
+      { species: "Chesnaught", types: ["Grass", "Fighting"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1700 },
+      { species: "Delphox", types: ["Fire", "Psychic"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1710 },
+    ],
+  },
+  sun_alola: {
+    id: "sun_alola",
+    name: "Sun Alola (Gen 7)",
+    shortName: "Alola",
+    gen: 7,
+    years: "2016 - 2019",
+    badge: "🌞 TRIALS",
+    themeColor: "#f59e0b",
+    bgGradient: "from-amber-400 to-orange-700",
+    description: "Sun & Moon island trials. Totems, Z-moves, and Ultra Beasts.",
+    legendaries: ["Solgaleo", "Lunala", "Necrozma", "Tapu Koko", "Nihilego"],
+    speciesPool: [
+      { species: "Solgaleo", types: ["Psychic", "Steel"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2980 },
+      { species: "Lunala", types: ["Psychic", "Ghost"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2980 },
+      { species: "Tapu Koko", types: ["Electric", "Fairy"], rarity: "legendary", baseCatchRate: 0.18, baseCp: 2320 },
+      { species: "Lycanroc", types: ["Rock"], rarity: "rare", baseCatchRate: 0.42, baseCp: 1480 },
+      { species: "Incineroar", types: ["Fire", "Dark"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1760 },
+      { species: "Primarina", types: ["Water", "Fairy"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1740 },
+      { species: "Decidueye", types: ["Grass", "Ghost"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1720 },
+      { species: "Mimikyu", types: ["Ghost", "Fairy"], rarity: "rare", baseCatchRate: 0.4, baseCp: 1390 },
+      { species: "Toxapex", types: ["Poison", "Water"], rarity: "uncommon", baseCatchRate: 0.5, baseCp: 1240 },
+      { species: "Kommo-o", types: ["Dragon", "Fighting"], rarity: "legendary", baseCatchRate: 0.2, baseCp: 2460 },
+      { species: "Tsareena", types: ["Grass"], rarity: "rare", baseCatchRate: 0.45, baseCp: 1410 },
+      { species: "Nihilego", types: ["Rock", "Poison"], rarity: "legendary", baseCatchRate: 0.18, baseCp: 2280 },
+    ],
+  },
+  sword_galar: {
+    id: "sword_galar",
+    name: "Sword Galar (Gen 8)",
+    shortName: "Galar",
+    gen: 8,
+    years: "2019 - 2022",
+    badge: "⚔️ DYNAMAX",
+    themeColor: "#fb7185",
+    bgGradient: "from-rose-500 to-red-800",
+    description: "Sword & Shield dynamax dens. Wild Area weather and the Darkest Day.",
+    legendaries: ["Zacian", "Zamazenta", "Eternatus", "Dragapult", "Calyrex"],
+    speciesPool: [
+      { species: "Zacian", types: ["Fairy", "Steel"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 3040 },
+      { species: "Zamazenta", types: ["Fighting", "Steel"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 3020 },
+      { species: "Dragapult", types: ["Dragon", "Ghost"], rarity: "epic", baseCatchRate: 0.25, baseCp: 2150 },
+      { species: "Corviknight", types: ["Flying", "Steel"], rarity: "rare", baseCatchRate: 0.4, baseCp: 1560 },
+      { species: "Toxtricity", types: ["Electric", "Poison"], rarity: "rare", baseCatchRate: 0.42, baseCp: 1490 },
+      { species: "Cinderace", types: ["Fire"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1760 },
+      { species: "Inteleon", types: ["Water"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1720 },
+      { species: "Rillaboom", types: ["Grass"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1740 },
+      { species: "Grimmsnarl", types: ["Dark", "Fairy"], rarity: "rare", baseCatchRate: 0.38, baseCp: 1580 },
+      { species: "Sirfetch'd", types: ["Fighting"], rarity: "uncommon", baseCatchRate: 0.48, baseCp: 1340 },
+      { species: "Eternatus", types: ["Poison", "Dragon"], rarity: "legendary", baseCatchRate: 0.1, baseCp: 3120 },
+      { species: "Duraludon", types: ["Steel", "Dragon"], rarity: "rare", baseCatchRate: 0.4, baseCp: 1610 },
+    ],
+  },
 };
 
 export interface ParkBiomeDef {
@@ -610,6 +718,65 @@ export function geoOffsetFromMeters(
   };
 }
 
+/** Slippy-map zoom used by the living-world walk camera. */
+export const MAP_ZOOM_DEFAULT = 17;
+const TILE_PX = 256;
+
+/** Web Mercator world pixels at a given zoom (OSM/Carto tile space). */
+export function latLngToWorldPixels(
+  lat: number,
+  lng: number,
+  zoom = MAP_ZOOM_DEFAULT
+): { x: number; y: number } {
+  const n = 2 ** zoom;
+  const x = ((lng + 180) / 360) * n * TILE_PX;
+  const sinLat = Math.min(0.9999, Math.max(-0.9999, Math.sin((lat * Math.PI) / 180)));
+  const y =
+    (0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) * n * TILE_PX;
+  return { x, y };
+}
+
+/** Pixel offset of a geo target relative to the player (player sits at screen center). */
+export function geoScreenOffset(
+  player: { lat: number; lng: number },
+  target: { lat: number; lng: number },
+  zoom = MAP_ZOOM_DEFAULT
+): { dx: number; dy: number } {
+  const p = latLngToWorldPixels(player.lat, player.lng, zoom);
+  const t = latLngToWorldPixels(target.lat, target.lng, zoom);
+  return { dx: t.x - p.x, dy: t.y - p.y };
+}
+
+export function metersPerPixel(lat: number, zoom = MAP_ZOOM_DEFAULT): number {
+  return (156543.03392 * Math.cos((lat * Math.PI) / 180)) / 2 ** zoom;
+}
+
+type GeoPin = { xPct: number; yPct: number; distanceMeters: number; lat?: number; lng?: number };
+
+/** Pin percent-plane POIs onto real lat/lng around a walk origin (God's Eye teleport / GPS). */
+export function pinWorldPoisToGeo<T extends { discoveryPoints: GeoPin[]; battleArenas: GeoPin[]; cardCaches: GeoPin[] }>(
+  state: T,
+  center: { lat: number; lng: number }
+): T {
+  const pin = <P extends GeoPin>(item: P): P => {
+    const dxM = (item.xPct - 50) * 8;
+    const dyM = (50 - item.yPct) * 8;
+    const geo = geoOffsetFromMeters(center.lat, center.lng, dxM, dyM);
+    return {
+      ...item,
+      lat: geo.lat,
+      lng: geo.lng,
+      distanceMeters: haversineMeters(center.lat, center.lng, geo.lat, geo.lng),
+    };
+  };
+  return {
+    ...state,
+    discoveryPoints: state.discoveryPoints.map(pin),
+    battleArenas: state.battleArenas.map(pin),
+    cardCaches: state.cardCaches.map(pin),
+  };
+}
+
 export const DRESDEN_PARK_ZONE: ParkBiomeDef = {
   id: "dresden_park",
   name: "Dresden Park Nature Reserve",
@@ -668,37 +835,48 @@ export function getEraRotationStatus(timestamp = Date.now()) {
   };
 }
 
+export const ERA_POKEDEX_GEN: Record<PokemonEraId, number> = {
+  vintage_kanto: 1,
+  neo_johto: 2,
+  advanced_hoenn: 3,
+  diamond_sinnoh: 4,
+  black_unova: 5,
+  mega_kalos: 6,
+  sun_alola: 7,
+  sword_galar: 8,
+  modern_paldea: 9,
+};
+
+export type EraSpawnOptions = {
+  /** Dresden Park nest is a real-world hub — only seed it when standing there. */
+  includeParkNest?: boolean;
+  localOrigin?: { xPct: number; yPct: number };
+};
+
 export function generateEraSpawns(
   eraId?: PokemonEraId,
   count = 7,
   timestamp = Date.now(),
-  centerGeo: { lat: number; lng: number } = DRESDEN_PARK_GEO
+  centerGeo: { lat: number; lng: number } = DRESDEN_PARK_GEO,
+  opts: EraSpawnOptions = {}
 ): WildCreature[] {
   const eraKey = eraId || getEraRotationStatus(timestamp).activeEraId;
   const spawns: WildCreature[] = [];
-
-  // Determine Generation Species Pool from all 1025 Pokemon
-  let pool: NationalDexPokemon[];
-  if (eraKey === "vintage_kanto") {
-    pool = getPokemonByGen(1); // All 151 Gen 1
-  } else if (eraKey === "neo_johto") {
-    pool = getPokemonByGen(2); // All 100 Gen 2
-  } else if (eraKey === "advanced_hoenn") {
-    pool = getPokemonByGen(3); // All 135 Gen 3
-  } else if (eraKey === "diamond_sinnoh") {
-    pool = getPokemonByGen(4); // All 107 Gen 4
-  } else {
-    // Modern Paldea / Expanded includes Gen 5 through 9
-    pool = ALL_POKEMON.filter((p) => p.gen >= 5);
-  }
+  const gen = ERA_POKEDEX_GEN[eraKey] || 9;
+  let pool: NationalDexPokemon[] = getPokemonByGen(gen);
 
   if (!pool || pool.length === 0) {
     pool = ALL_POKEMON;
   }
 
-  // 1. Guarantee 3 spawns inside Dresden Park Nest (High Rarity Across All 1,025 Pokemon)
-  const parkCount = 3;
-  const generalCount = Math.max(3, count - parkCount);
+  const nearDresden =
+    haversineMeters(centerGeo.lat, centerGeo.lng, DRESDEN_PARK_GEO.lat, DRESDEN_PARK_GEO.lng) <= 800;
+  const includePark = opts.includeParkNest ?? nearDresden;
+  const origin = opts.localOrigin || (includePark ? { xPct: 31, yPct: 48 } : { xPct: 50, yPct: 50 });
+
+  // 1. Dresden Park nest — real-world hub only, never mixed into other region planes
+  const parkCount = includePark ? 3 : 0;
+  const generalCount = includePark ? Math.max(3, count - parkCount) : Math.max(3, count);
 
   // Dresden Park nest pool: draws rare/epic/legendary from full franchise
   const highTierFranchisePool = ALL_POKEMON.filter(
@@ -715,10 +893,10 @@ export function generateEraSpawns(
     const level = Math.round(32 + Math.random() * 16);
     const cp = Math.round(chosen.baseCp * (1 + (level - 20) * 0.04) * 1.25);
 
-    // Geographic offset around Dresden Park
+    // Nest geo is always Dresden Park, not the active region's center
     const dxM = (parkX - 31) * 8; // meters
     const dyM = (parkY - 48) * 8;
-    const geo = geoOffsetFromMeters(centerGeo.lat, centerGeo.lng, dxM, dyM);
+    const geo = geoOffsetFromMeters(DRESDEN_PARK_GEO.lat, DRESDEN_PARK_GEO.lng, dxM, dyM);
     const distMeters = haversineMeters(centerGeo.lat, centerGeo.lng, geo.lat, geo.lng);
 
     spawns.push({
@@ -749,17 +927,19 @@ export function generateEraSpawns(
   // 2. Generate remaining general spawns from the active era pool
   for (let i = 0; i < generalCount; i++) {
     const chosen = pool[Math.floor(Math.random() * pool.length)];
-    let x = Math.round(10 + Math.random() * 80);
-    let y = Math.round(10 + Math.random() * 80);
-    if (isInsidePark(x, y)) {
+    let x = Math.round(origin.xPct - 28 + Math.random() * 56);
+    let y = Math.round(origin.yPct - 28 + Math.random() * 56);
+    x = Math.min(90, Math.max(10, x));
+    y = Math.min(90, Math.max(10, y));
+    if (includePark && isInsidePark(x, y)) {
       x = x < 31 ? 12 : 72;
     }
 
     const level = Math.round(16 + Math.random() * 20);
     const cp = Math.round(chosen.baseCp * (1 + (level - 20) * 0.04));
 
-    const dxM = (x - 50) * 12;
-    const dyM = (y - 50) * 12;
+    const dxM = (x - origin.xPct) * 12;
+    const dyM = (y - origin.yPct) * 12;
     const geo = geoOffsetFromMeters(centerGeo.lat, centerGeo.lng, dxM, dyM);
     const distMeters = haversineMeters(centerGeo.lat, centerGeo.lng, geo.lat, geo.lng);
 
@@ -821,6 +1001,8 @@ export interface DiscoveryPoint {
   subtitle: string;
   xPct: number;
   yPct: number;
+  lat?: number;
+  lng?: number;
   distanceMeters: number;
   lastSpunTimestamp: number;
   cooldownMs: number;
@@ -832,6 +1014,8 @@ export interface BattleArena {
   name: string;
   xPct: number;
   yPct: number;
+  lat?: number;
+  lng?: number;
   distanceMeters: number;
   championSpecies: string;
   championLevel: number;
@@ -846,6 +1030,8 @@ export interface CardCacheDrop {
   rarityTier: "Holo Rare" | "Ultra Rare" | "Secret Rare" | "Vintage Classic";
   xPct: number;
   yPct: number;
+  lat?: number;
+  lng?: number;
   distanceMeters: number;
   claimed: boolean;
   cardPayload: {
@@ -896,6 +1082,10 @@ export interface WorldState {
   activeEraId?: PokemonEraId;
   lastEraRotationTimestamp?: number;
   isInsidePark?: boolean;
+  /** God's Eye region currently loaded as the walk plane (not the global % field). */
+  activeRegionId?: string;
+  /** `gba` = original pixel overworld on the map; `go` = OSM/Carto streets (real hubs). */
+  walkSkin?: "go" | "gba";
 }
 
 export interface AdventureState {
@@ -924,7 +1114,7 @@ export function calculateXpToNextLevel(level: number): number {
 }
 
 export function getDefaultAdventureState(): AdventureState {
-  return {
+  const state: AdventureState = {
     player: {
       id: "trainer-kenny-01",
       displayName: "Ace Trainer Kenny",
@@ -1006,9 +1196,11 @@ export function getDefaultAdventureState(): AdventureState {
       eventName: "⚡ Kanto Electric Surge — 2x Catch Candies Active!",
       eventMultiplier: 2.0,
       playerCoords: { xPct: 50, yPct: 50 },
+      playerGeo: { lat: DRESDEN_PARK_GEO.lat, lng: DRESDEN_PARK_GEO.lng, accuracy: 10, heading: 0 },
       activeEraId: "vintage_kanto",
       lastEraRotationTimestamp: Date.now(),
       isInsidePark: false,
+      walkSkin: "go",
     },
     wildCreatures: [
       {
@@ -1243,6 +1435,25 @@ export function getDefaultAdventureState(): AdventureState {
       },
     ],
   };
+  return pinWorldPoisToGeo(state, DRESDEN_PARK_GEO);
+}
+
+function hydrateAdventureGeo(state: AdventureState): AdventureState {
+  const geo = state.world.playerGeo || {
+    lat: DRESDEN_PARK_GEO.lat,
+    lng: DRESDEN_PARK_GEO.lng,
+    accuracy: 10,
+    heading: 0,
+  };
+  let next = state;
+  if (!state.world.playerGeo) {
+    next = cloneAdventureState(state);
+    next.world.playerGeo = geo;
+  }
+  const needsPin = [...next.discoveryPoints, ...next.battleArenas, ...next.cardCaches].some(
+    (p) => typeof p.lat !== "number" || typeof p.lng !== "number"
+  );
+  return needsPin ? pinWorldPoisToGeo(next, { lat: geo.lat, lng: geo.lng }) : next;
 }
 
 export function loadAdventureState(): AdventureState {
@@ -1250,12 +1461,12 @@ export function loadAdventureState(): AdventureState {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        return JSON.parse(raw);
+        return hydrateAdventureGeo(JSON.parse(raw));
       }
     } catch {}
   }
   const mem = memoryFallback.get(STORAGE_KEY);
-  if (mem) return mem;
+  if (mem) return hydrateAdventureGeo(mem);
 
   const def = getDefaultAdventureState();
   saveAdventureState(def);
@@ -1839,29 +2050,29 @@ export function updatePlayerLocation(
     updated.wildCreatures = [...keep, ...fresh].slice(0, 14);
   }
 
-  // Discovery points
-  updated.discoveryPoints = updated.discoveryPoints.map((p) => {
+  const poiDist = (p: { xPct: number; yPct: number; lat?: number; lng?: number }) => {
+    if (typeof p.lat === "number" && typeof p.lng === "number") {
+      return haversineMeters(playerLat, playerLng, p.lat, p.lng);
+    }
     const dx = p.xPct - newCoords.xPct;
     const dy = p.yPct - newCoords.yPct;
-    const dist = Math.round(Math.hypot(dx, dy) * 10);
-    return { ...p, distanceMeters: dist };
-  });
+    return Math.round(Math.hypot(dx, dy) * 10);
+  };
 
-  // Card caches
-  updated.cardCaches = updated.cardCaches.map((cc) => {
-    const dx = cc.xPct - newCoords.xPct;
-    const dy = cc.yPct - newCoords.yPct;
-    const dist = Math.round(Math.hypot(dx, dy) * 10);
-    return { ...cc, distanceMeters: dist };
-  });
+  updated.discoveryPoints = updated.discoveryPoints.map((p) => ({
+    ...p,
+    distanceMeters: poiDist(p),
+  }));
 
-  // Battle arenas
-  updated.battleArenas = updated.battleArenas.map((a) => {
-    const dx = a.xPct - newCoords.xPct;
-    const dy = a.yPct - newCoords.yPct;
-    const dist = Math.round(Math.hypot(dx, dy) * 10);
-    return { ...a, distanceMeters: dist };
-  });
+  updated.cardCaches = updated.cardCaches.map((cc) => ({
+    ...cc,
+    distanceMeters: poiDist(cc),
+  }));
+
+  updated.battleArenas = updated.battleArenas.map((a) => ({
+    ...a,
+    distanceMeters: poiDist(a),
+  }));
 
   // Update Walk 1km Quest progress
   updated.quests.forEach((q) => {

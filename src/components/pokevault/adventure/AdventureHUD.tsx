@@ -23,6 +23,8 @@ import {
   getEraRotationStatus,
   POKEMON_ERAS,
   ERA_ROTATION_ORDER,
+  DRESDEN_PARK_GEO,
+  haversineMeters,
   isInsidePark,
 } from "@/lib/adventure-engine";
 
@@ -60,7 +62,11 @@ export function AdventureHUD({
     return () => clearInterval(timer);
   }, []);
 
-  const inDresdenPark = isInsidePark(adventureState.world.playerCoords.xPct, adventureState.world.playerCoords.yPct);
+  const geo = adventureState.world.playerGeo;
+  const inDresdenPark = geo
+    ? haversineMeters(geo.lat, geo.lng, DRESDEN_PARK_GEO.lat, DRESDEN_PARK_GEO.lng) <= 450
+    : adventureState.world.activeRegionId === "dresden" ||
+      isInsidePark(adventureState.world.playerCoords.xPct, adventureState.world.playerCoords.yPct);
 
 
   const p = adventureState.player;

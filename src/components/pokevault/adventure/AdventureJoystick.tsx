@@ -27,16 +27,16 @@ const SPEED_CONFIG: Record<
 
 export const POPULAR_HOTSPOTS = [
   { name: "Local GPS", xPct: 50, yPct: 50, desc: "Current Device Location" },
-  { name: "🌳 Dresden Park (Rare Nest)", xPct: 31, yPct: 48, desc: "Down the Street · 5x Rare Nest Spawns" },
-  { name: "Central Park, NY", xPct: 35, yPct: 42, desc: "Dense PokéStops & Lures" },
-  { name: "Tokyo Akihabara", xPct: 72, yPct: 28, desc: "Legendary Raid District" },
-  { name: "Santa Monica Pier", xPct: 22, yPct: 68, desc: "Water & Rare Spawns" },
-  { name: "Sydney Circular Quay", xPct: 84, yPct: 78, desc: "Oceanic Event Hub" },
-  { name: "Kanto · Indigo Gate", xPct: 30, yPct: 22, desc: "God's Eye · Gen 1 hub" },
-  { name: "Johto · Violet", xPct: 36, yPct: 40, desc: "God's Eye · Gen 2 hub" },
-  { name: "Hoenn · Littleroot seas", xPct: 48, yPct: 62, desc: "God's Eye · Gen 3 hub" },
-  { name: "Sinnoh · Snowpoint", xPct: 55, yPct: 32, desc: "God's Eye · Gen 4 hub" },
-  { name: "Paldea · Mesagoza", xPct: 70, yPct: 58, desc: "God's Eye · Gen 9 open world" },
+  { name: "🌳 Dresden Park (Rare Nest)", xPct: 50, yPct: 50, lat: 33.8824, lng: -84.2811, desc: "Down the Street · 5x Rare Nest Spawns" },
+  { name: "Central Park, NY", xPct: 50, yPct: 50, lat: 40.7829, lng: -73.9654, desc: "Dense PokéStops & Lures" },
+  { name: "Tokyo Akihabara", xPct: 50, yPct: 50, lat: 35.6984, lng: 139.7731, desc: "Legendary Raid District" },
+  { name: "Santa Monica Pier", xPct: 50, yPct: 50, lat: 34.01, lng: -118.5, desc: "Water & Rare Spawns" },
+  { name: "Sydney Circular Quay", xPct: 50, yPct: 50, lat: -33.86, lng: 151.21, desc: "Oceanic Event Hub" },
+  { name: "Kanto · Indigo Gate", xPct: 50, yPct: 50, lat: 35.68, lng: 139.76, desc: "God's Eye · Gen 1 GBA map" },
+  { name: "Johto · Violet", xPct: 50, yPct: 50, lat: 35.01, lng: 135.77, desc: "God's Eye · Gen 2 GBA map" },
+  { name: "Hoenn · Littleroot seas", xPct: 50, yPct: 50, lat: 26.21, lng: 127.68, desc: "God's Eye · Gen 3 GBA map" },
+  { name: "Sinnoh · Snowpoint", xPct: 50, yPct: 50, lat: 43.06, lng: 141.35, desc: "God's Eye · Gen 4 GBA map" },
+  { name: "Paldea · Mesagoza", xPct: 50, yPct: 50, lat: 40.4, lng: -3.7, desc: "God's Eye · Gen 9 GBA map" },
 ];
 
 export function AdventureJoystick({
@@ -46,7 +46,7 @@ export function AdventureJoystick({
   currentCoords,
 }: {
   onMove: (deltaX: number, deltaY: number, distanceMeters: number) => void;
-  onTeleport: (xPct: number, yPct: number, hotspotName: string) => void;
+  onTeleport: (xPct: number, yPct: number, hotspotName: string, geo?: { lat: number; lng: number }) => void;
   onSpeedChange?: (speed: MoveSpeed) => void;
   currentCoords: { xPct: number; yPct: number };
 }) {
@@ -327,7 +327,14 @@ export function AdventureJoystick({
                   key={h.name}
                   type="button"
                   onClick={() => {
-                    onTeleport(h.xPct, h.yPct, h.name);
+                    onTeleport(
+                      h.xPct,
+                      h.yPct,
+                      h.name,
+                      typeof h.lat === "number" && typeof h.lng === "number"
+                        ? { lat: h.lat, lng: h.lng }
+                        : undefined
+                    );
                     setHotspotMenuOpen(false);
                   }}
                   className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-cyan-500/20 hover:text-cyan-300 transition flex flex-col"

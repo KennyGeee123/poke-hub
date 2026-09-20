@@ -298,6 +298,79 @@ export function getGradeMeta(grade: CardGrade): GradeMeta {
   return GRADE_DEFINITIONS[grade] ?? GRADE_DEFINITIONS.raw;
 }
 
+export type PrintVariantRow = {
+  key: string;
+  label: string;
+  low?: number;
+  mid?: number;
+  market?: number;
+  high?: number;
+};
+
+const PRINT_VARIANT_LABELS: Record<string, string> = {
+  normal: "Normal / Unlimited (RAW)",
+  holofoil: "Holofoil (RAW)",
+  reverseHolofoil: "Reverse Holofoil (RAW)",
+  reverseholofoil: "Reverse Holofoil (RAW)",
+  "1stEdition": "1st Edition (RAW)",
+  "1stEditionHolofoil": "1st Edition Holofoil (RAW)",
+  "1stEditionNormal": "1st Edition Normal (RAW)",
+  unlimited: "Unlimited (RAW)",
+  unlimitedHolofoil: "Unlimited Holofoil (RAW)",
+  shadowless: "Shadowless (RAW)",
+};
+
+function prettyPrintKey(key: string): string {
+  return PRINT_VARIANT_LABELS[key] || `${key.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase()).trim()} (RAW)`;
+}
+
+/** TCGPlayer print variants (holo / reverse / 1st / unlimited / shadowless), with a RAW NM fallback. */
+export function printVariantPriceRows(card: TCGCard): PrintVariantRow[] {
+  const tp = card.tcgplayer?.prices || {};
+  const rows: PrintVariantRow[] = [];
+  for (const [key, p] of Object.entries(tp)) {
+    if (!p || typeof p !== "object") continue;
+    const market = Number(p.market) || 0;
+    const low = Number(p.low) || 0;
+    const mid = Number(p.mid) || 0;
+    const high = Number(p.high) || 0;
+    if (market <= 0 && low <= 0 && mid <= 0) continue;
+    rows.push({
+      key,
+      label: prettyPrintKey(key),
+      low: low > 0 ? low : undefined,
+      mid: mid > 0 ? mid : undefined,
+      market: market > 0 ? market : undefined,
+      high: high > 0 ? high : undefined,
+    });
+  }
+  if (!rows.length) {
+    const market = getMarketPrice(card);
+    if (market > 0) {
+      const blob = `${card.set?.name || ""} ${card.rarity || ""} ${card.name || ""}`.toLowerCase();
+      const label = /shadowless/.test(blob)
+        ? "Shadowless (RAW NM)"
+        : /\b1st|first edition/.test(blob)
+          ? "1st Edition (RAW NM)"
+          : /reverse/.test(blob)
+            ? "Reverse Holofoil (RAW NM)"
+            : /holo/.test(blob)
+              ? "Holofoil (RAW NM)"
+              : "NM (RAW)";
+      rows.push({ key: "market", label, market });
+    }
+  }
+  return rows;
+}
+
+export function rawConditionLadder(card: TCGCard): GradedValuation[] {
+  return UNGRADED_QUALITIES.map((g) => calculateGradedValue(card, g));
+}
+
+export function gradedSlabLadder(card: TCGCard): GradedValuation[] {
+  return GRADED_SLABS.map((g) => calculateGradedValue(card, g));
+}
+
 export function getEraMultiplierAdjustment(card: { set?: { releaseDate?: string; name?: string }; rarity?: string }): number {
   const releaseYear = parseInt(card.set?.releaseDate?.slice(0, 4) || "2020", 10);
   const rarity = (card.rarity || "").toLowerCase();

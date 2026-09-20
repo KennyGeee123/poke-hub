@@ -27,14 +27,84 @@ import {
   type WeatherType,
   RADAR_DISCOVERY_RADIUS_METERS,
   DRESDEN_PARK_GEO,
+  MAP_ZOOM_DEFAULT,
   haversineMeters,
   geoOffsetFromMeters,
+  geoScreenOffset,
+  metersPerPixel,
+  pinWorldPoisToGeo,
+  latLngToWorldPixels,
 } from "@/lib/adventure-engine";
-import { animatedSpriteUrl } from "@/lib/sprites";
-import { AdventureJoystick, type MoveSpeed } from "./AdventureJoystick";
+import { animatedSpriteUrl, trainerFacingUrl } from "@/lib/sprites";
+import { AdventureJoystick } from "./AdventureJoystick";
 import { GodsEyeMap } from "./GodsEyeMap";
-import { type GodsEyeNode } from "@/lib/gods-eye-world";
+import {
+  isDresdenHub,
+  isNearDresdenGeo,
+  regionWalkOrigin,
+  walkSkinForNode,
+  gbaCellKind,
+  GBA_CELL_COLORS,
+  GBA_CELL_TEXTURE,
+  type GodsEyeNode,
+} from "@/lib/gods-eye-world";
 import { forceSwitchEra, generateEraSpawns, saveAdventureState, cloneAdventureState } from "@/lib/adventure-engine";
+
+const GBA_CELL_PX = 32;
+
+function GbaWalkLayer({
+  playerGeo,
+  zoom,
+}: {
+  playerGeo: { lat: number; lng: number };
+  zoom: number;
+}) {
+  const world = latLngToWorldPixels(playerGeo.lat, playerGeo.lng, zoom);
+  const originCol = Math.floor(world.x / GBA_CELL_PX);
+  const originRow = Math.floor(world.y / GBA_CELL_PX);
+  const fracX = world.x % GBA_CELL_PX;
+  const fracY = world.y % GBA_CELL_PX;
+  const cols = 28;
+  const rows = 24;
+  const cells: { key: string; left: number; top: number; a: string; b: string; tex: string }[] = [];
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const kind = gbaCellKind(originCol + col - Math.floor(cols / 2), originRow + row - Math.floor(rows / 2));
+      const [a, b] = GBA_CELL_COLORS[kind];
+      cells.push({
+        key: `${originCol + col}-${originRow + row}`,
+        left: (col - cols / 2) * GBA_CELL_PX - fracX,
+        top: (row - rows / 2) * GBA_CELL_PX - fracY,
+        a,
+        b,
+        tex: GBA_CELL_TEXTURE[kind],
+      });
+    }
+  }
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
+      <div className="absolute left-1/2 top-1/2">
+        {cells.map((c) => (
+          <div
+            key={c.key}
+            className="absolute"
+            style={{
+              width: GBA_CELL_PX,
+              height: GBA_CELL_PX,
+              left: c.left,
+              top: c.top,
+              backgroundColor: c.a,
+              backgroundImage: `url(${c.tex})`,
+              backgroundSize: "cover",
+              imageRendering: "pixelated",
+              boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.18)",
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 /**
  * Slippy Tile coordinate calculation for Web Mercator map tiles
@@ -92,9 +162,12 @@ export function AdventureWorldMap({
   const [weather, setWeather] = useState<WeatherType>(adventureState.world.weather);
   const [recentlyPoppedId, setRecentlyPoppedId] = useState<string | null>(null);
   const [godsEyeOpen, setGodsEyeOpen] = useState(false);
+  const [walkSkin, setWalkSkin] = useState<"go" | "gba">(adventureState.world.walkSkin || "go");
 
   const walkTimerRef = useRef<NodeJS.Timeout | null>(null);
   const watchIdRef = useRef<number | null>(null);
+  const playerGeoRef = useRef(playerGeo);
+  playerGeoRef.current = playerGeo;
 
   // Sync external state changes
   useEffect(() => {
@@ -102,7 +175,8 @@ export function AdventureWorldMap({
     if (adventureState.world.playerGeo) {
       setPlayerGeo(adventureState.world.playerGeo);
     }
-  }, [adventureState.world.playerCoords, adventureState.world.playerGeo]);
+    if (adventureState.world.walkSkin) setWalkSkin(adventureState.world.walkSkin);
+  }, [adventureState.world.playerCoords, adventureState.world.playerGeo, adventureState.world.walkSkin]);
 
   // Live GPS Tracking with navigator.geolocation
   useEffect(() => {
@@ -125,7 +199,8 @@ export function AdventureWorldMap({
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
         const { latitude, longitude, accuracy, heading } = pos.coords;
-        const dist = haversineMeters(playerGeo.lat, playerGeo.lng, latitude, longitude);
+        const prev = playerGeoRef.current;
+        const dist = haversineMeters(prev.lat, prev.lng, latitude, longitude);
 
         const newGeo = {
           lat: latitude,
@@ -137,7 +212,6 @@ export function AdventureWorldMap({
         setPlayerGeo(newGeo);
         if (heading) setFacingAngle(heading);
 
-        // Keep player in center of screen
         const nextCoords = { xPct: 50, yPct: 50 };
         setPlayerCoords(nextCoords);
         onUpdateCoords(nextCoords, Math.max(1, dist), newGeo);
@@ -159,9 +233,9 @@ export function AdventureWorldMap({
         navigator.geolocation.clearWatch(watchIdRef.current);
       }
     };
-  }, [useLiveGps, playerGeo.lat, playerGeo.lng, onUpdateCoords]);
+  }, [useLiveGps, onUpdateCoords]);
 
-  // Handle Joystick Move — free-roam wrap (whole world plane, no soft walls)
+  // Joystick walks the planet in meters. Camera stays GO-style: player at screen center.
   const handleJoystickMove = (dx: number, dy: number, distMeters: number) => {
     setIsWalking(true);
     if (walkTimerRef.current) clearTimeout(walkTimerRef.current);
@@ -170,36 +244,23 @@ export function AdventureWorldMap({
     const deg = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
     setFacingAngle(deg);
 
-    // Real geographic delta scales with stick input (realtime feel)
     const metersX = dx * 14;
     const metersY = -dy * 14;
     const nextGeo = geoOffsetFromMeters(playerGeo.lat, playerGeo.lng, metersX, metersY);
+    const nextCoords = { xPct: 50, yPct: 50 };
     setPlayerGeo((prev) => ({ ...prev, lat: nextGeo.lat, lng: nextGeo.lng, heading: deg }));
-
-    // Toroidal world plane: walk off one edge → appear on the opposite
-    const wrap = (v: number) => {
-      const n = v % 100;
-      return n < 0 ? n + 100 : n;
-    };
-
-    setPlayerCoords((prev) => {
-      const nextCoords = {
-        xPct: wrap(prev.xPct + dx * 1.25),
-        yPct: wrap(prev.yPct + dy * 1.25),
-      };
-      onUpdateCoords(nextCoords, Math.max(1, distMeters), {
-        ...playerGeo,
-        lat: nextGeo.lat,
-        lng: nextGeo.lng,
-        heading: deg,
-      });
-      return nextCoords;
+    setPlayerCoords(nextCoords);
+    onUpdateCoords(nextCoords, Math.max(1, distMeters), {
+      ...playerGeo,
+      lat: nextGeo.lat,
+      lng: nextGeo.lng,
+      heading: deg,
     });
   };
 
-  // Teleport Hotspot Handler
+  // Teleport Hotspot Handler — geo is the source of truth; trainer stays centered.
   const handleTeleport = (xPct: number, yPct: number, name: string, geo?: { lat: number; lng: number }) => {
-    const nextCoords = { xPct, yPct };
+    const nextCoords = { xPct: 50, yPct: 50 };
     setPlayerCoords(nextCoords);
 
     let nextGeo = geo || { lat: DRESDEN_PARK_GEO.lat, lng: DRESDEN_PARK_GEO.lng };
@@ -210,39 +271,76 @@ export function AdventureWorldMap({
     onUpdateCoords(nextCoords, 250, { ...playerGeo, ...nextGeo });
   };
 
+  const handleHotspotTeleport = (
+    xPct: number,
+    yPct: number,
+    name: string,
+    geo?: { lat: number; lng: number }
+  ) => {
+    if (name === "Local GPS") {
+      handleRecenterGps();
+      return;
+    }
+    handleTeleport(xPct, yPct, name, geo);
+    if (!onStateUpdate || !geo) return;
+    let next = cloneAdventureState(adventureState);
+    next.world.playerCoords = { xPct: 50, yPct: 50 };
+    next.world.playerGeo = { lat: geo.lat, lng: geo.lng, accuracy: 12, heading: 0 };
+    next.world.biome = name;
+    next.world.isInsidePark = name.includes("Dresden");
+    next.wildCreatures = generateEraSpawns(next.world.activeEraId, 10, Date.now(), geo, {
+      includeParkNest: name.includes("Dresden"),
+    });
+    next = pinWorldPoisToGeo(next, geo);
+    saveAdventureState(next);
+    onStateUpdate(next);
+  };
+
   const handleGodsEyeTeleport = (node: GodsEyeNode) => {
-    handleTeleport(node.xPct, node.yPct, node.name, { lat: node.lat, lng: node.lng });
+    const origin = { xPct: 50, yPct: 50 };
+    const skin = walkSkinForNode(node);
+    handleTeleport(origin.xPct, origin.yPct, node.name, { lat: node.lat, lng: node.lng });
+    setWalkSkin(skin);
     if (onStateUpdate) {
       let next = forceSwitchEra(adventureState, node.eraId).state;
       next = cloneAdventureState(next);
-      next.world.playerCoords = { xPct: node.xPct, yPct: node.yPct };
+      next.world.playerCoords = origin;
       next.world.playerGeo = { lat: node.lat, lng: node.lng, accuracy: 12, heading: 0 };
       next.world.biome = node.name;
-      next.wildCreatures = generateEraSpawns(node.eraId, 14, Date.now(), { lat: node.lat, lng: node.lng });
+      next.world.activeRegionId = node.id;
+      next.world.walkSkin = skin;
+      next.world.isInsidePark = isDresdenHub(node);
+      next.wildCreatures = generateEraSpawns(node.eraId, 14, Date.now(), { lat: node.lat, lng: node.lng }, {
+        includeParkNest: isDresdenHub(node),
+        localOrigin: regionWalkOrigin(node),
+      });
+      next = pinWorldPoisToGeo(next, { lat: node.lat, lng: node.lng });
       saveAdventureState(next);
       onStateUpdate(next);
     }
   };
 
-  // Map Tap to Walk
+  const showDresdenOverlay =
+    adventureState.world.activeRegionId === "dresden" || isNearDresdenGeo(playerGeo.lat, playerGeo.lng);
+
+  // Map tap walks toward that geo (player stays centered; tiles pan).
   const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const clickX = ((e.clientX - rect.left) / rect.width) * 100;
-    const clickY = ((e.clientY - rect.top) / rect.height) * 100;
+    const dxPx = e.clientX - rect.left - rect.width / 2;
+    const dyPx = e.clientY - rect.top - rect.height / 2;
+    const mpp = metersPerPixel(playerGeo.lat, MAP_ZOOM_DEFAULT);
+    const metersX = dxPx * mpp;
+    const metersY = -dyPx * mpp;
+    const dist = Math.round(Math.hypot(metersX, metersY));
 
-    const dx = clickX - playerCoords.xPct;
-    const dy = clickY - playerCoords.yPct;
-    const dist = Math.round(Math.sqrt(dx * dx + dy * dy) * 10);
-
-    const deg = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
+    const deg = (Math.atan2(dyPx, dxPx) * 180) / Math.PI + 90;
     setFacingAngle(deg);
 
-    const nextGeo = geoOffsetFromMeters(playerGeo.lat, playerGeo.lng, dx * 6, -dy * 6);
+    const nextGeo = geoOffsetFromMeters(playerGeo.lat, playerGeo.lng, metersX, metersY);
+    const nextCoords = { xPct: 50, yPct: 50 };
     setPlayerGeo((prev) => ({ ...prev, lat: nextGeo.lat, lng: nextGeo.lng }));
-
-    const nextCoords = { xPct: clickX, yPct: clickY };
     setPlayerCoords(nextCoords);
-    onUpdateCoords(nextCoords, dist, { ...playerGeo, lat: nextGeo.lat, lng: nextGeo.lng });
+    onUpdateCoords(nextCoords, Math.max(1, dist), { ...playerGeo, lat: nextGeo.lat, lng: nextGeo.lng });
   };
 
   // Recenter GPS button
@@ -269,8 +367,8 @@ export function AdventureWorldMap({
             accuracy: 10,
             heading: 0,
           });
-          setPlayerCoords({ xPct: 31, yPct: 48 });
-          onUpdateCoords({ xPct: 31, yPct: 48 }, 5, {
+          setPlayerCoords({ xPct: 50, yPct: 50 });
+          onUpdateCoords({ xPct: 50, yPct: 50 }, 5, {
             lat: DRESDEN_PARK_GEO.lat,
             lng: DRESDEN_PARK_GEO.lng,
           });
@@ -280,14 +378,46 @@ export function AdventureWorldMap({
   };
 
   // Slippy Map Tiles (CartoDB Dark Matter / OpenStreetMap)
-  const zoom = 17;
+  const zoom = MAP_ZOOM_DEFAULT;
   const tileInfo = useMemo(() => {
     return latLngToTile(playerGeo.lat, playerGeo.lng, zoom);
   }, [playerGeo.lat, playerGeo.lng]);
 
+  const screenPos = (entity: { lat?: number; lng?: number; xPct: number; yPct: number }) => {
+    if (typeof entity.lat === "number" && typeof entity.lng === "number") {
+      const off = geoScreenOffset(playerGeo, { lat: entity.lat, lng: entity.lng }, zoom);
+      return { left: `calc(50% + ${off.dx}px)`, top: `calc(50% + ${off.dy}px)` };
+    }
+    return { left: `${entity.xPct}%`, top: `${entity.yPct}%` };
+  };
+
+  const walkTowardGeo = (target: { lat: number; lng: number }) => {
+    const dist = Math.max(1, haversineMeters(playerGeo.lat, playerGeo.lng, target.lat, target.lng));
+    const step = Math.min(28, Math.max(8, dist * 0.35));
+    const frac = step / dist;
+    const next = {
+      lat: playerGeo.lat + (target.lat - playerGeo.lat) * frac,
+      lng: playerGeo.lng + (target.lng - playerGeo.lng) * frac,
+    };
+    const nextCoords = { xPct: 50, yPct: 50 };
+    setPlayerGeo((prev) => ({ ...prev, lat: next.lat, lng: next.lng }));
+    setPlayerCoords(nextCoords);
+    onUpdateCoords(nextCoords, step, { ...playerGeo, lat: next.lat, lng: next.lng });
+  };
+
+  const trySelectCreature = (creature: WildCreature, mode: "catch" | "battle") => {
+    if (creature.distanceMeters > RADAR_DISCOVERY_RADIUS_METERS) {
+      if (typeof creature.lat === "number" && typeof creature.lng === "number") {
+        walkTowardGeo({ lat: creature.lat, lng: creature.lng });
+      }
+      return;
+    }
+    onSelectCreature(creature, mode);
+  };
+
   const tileGrid = useMemo(() => {
     const tiles: { key: string; url: string; xOffset: number; yOffset: number }[] = [];
-    const radius = 1; // 3x3 grid (-1, 0, 1)
+    const radius = 2; // 5x5 so walking the planet does not flash empty tiles
 
     for (let dy = -radius; dy <= radius; dy++) {
       for (let dx = -radius; dx <= radius; dx++) {
@@ -323,10 +453,12 @@ export function AdventureWorldMap({
       >
         {/* Real-World Street Map Tile Layer (CartoDB Dark Matter) */}
         <div
-          className="absolute inset-0 pointer-events-none opacity-85 transition-opacity duration-500 overflow-hidden flex items-center justify-center"
+          className="absolute inset-0 pointer-events-none transition-opacity duration-500 overflow-hidden flex items-center justify-center"
           style={{
-            transform: "rotateX(20deg) scale(1.15)",
+            opacity: walkSkin === "gba" ? 0.28 : 0.88,
+            transform: walkSkin === "gba" ? "none" : "rotateX(12deg) scale(1.08)",
             transformOrigin: "center center",
+            imageRendering: walkSkin === "gba" ? "pixelated" : undefined,
           }}
         >
           <div className="relative w-[768px] h-[768px]">
@@ -348,11 +480,20 @@ export function AdventureWorldMap({
           </div>
         </div>
 
+        {walkSkin === "gba" && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ transform: "none", imageRendering: "pixelated" }}
+          >
+            <GbaWalkLayer playerGeo={playerGeo} zoom={zoom} />
+          </div>
+        )}
+
         {/* 2.5D Tilt Perspective Surface Layer */}
         <div
           className="absolute inset-0 transition-transform duration-300"
           style={{
-            transform: "rotateX(20deg) translateZ(0)",
+            transform: walkSkin === "gba" ? "none" : "rotateX(12deg) translateZ(0)",
             transformOrigin: "bottom center",
           }}
         >
@@ -371,14 +512,14 @@ export function AdventureWorldMap({
           )}
 
           {/* ───────────────────────────────────────────────────────────── */}
-          {/* DRESDEN PARK NATURE RESERVE & RARE NEST BIOME */}
+          {/* DRESDEN PARK NATURE RESERVE & RARE NEST BIOME (hub only) */}
           {/* ───────────────────────────────────────────────────────────── */}
-          <div
+          {showDresdenOverlay && <div
             style={{
-              left: "31%",
-              top: "48%",
-              width: "32%",
-              height: "28%",
+              left: `calc(50% + ${geoScreenOffset(playerGeo, DRESDEN_PARK_GEO, zoom).dx}px)`,
+              top: `calc(50% + ${geoScreenOffset(playerGeo, DRESDEN_PARK_GEO, zoom).dy}px)`,
+              width: `${Math.max(80, (900 / Math.max(4, metersPerPixel(playerGeo.lat, zoom))) )}px`,
+              height: `${Math.max(70, (700 / Math.max(4, metersPerPixel(playerGeo.lat, zoom))) )}px`,
               transform: "translate(-50%, -50%)",
             }}
             className="absolute rounded-[36px] border-2 border-emerald-400/60 bg-gradient-to-br from-emerald-600/30 via-teal-800/20 to-green-950/40 shadow-[0_0_40px_rgba(16,185,129,0.4)] pointer-events-none overflow-hidden"
@@ -398,7 +539,7 @@ export function AdventureWorldMap({
                 <span className="text-amber-400 text-[8px] animate-pulse">⚡ 5x RARE NEST</span>
               </div>
             </div>
-          </div>
+          </div>}
 
           {/* ───────────────────────────────────────────────────────────── */}
           {/* ENTITY: BATTLE ARENAS (GYM TOWERS) */}
@@ -411,17 +552,15 @@ export function AdventureWorldMap({
                 onSelectBattleArena(arena);
               }}
               style={{
-                left: `${arena.xPct}%`,
-                top: `${arena.yPct}%`,
+                ...screenPos(arena),
                 transform: "translate(-50%, -50%)",
               }}
               className="absolute z-20 cursor-pointer group flex flex-col items-center hover:scale-110 transition-transform duration-200"
             >
-              <div className="w-1.5 h-20 bg-gradient-to-t from-rose-500 to-transparent rounded-full animate-pulse" />
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-rose-600 via-amber-500 to-yellow-400 p-0.5 shadow-[0_0_25px_rgba(244,63,94,0.6)] flex items-center justify-center animate-bounce">
-                <div className="w-full h-full bg-neutral-950 rounded-[14px] flex flex-col items-center justify-center text-white">
-                  <Swords className="w-6 h-6 text-amber-400" />
-                  <span className="text-[8px] font-bold text-rose-400">GYM</span>
+              <div className="w-16 h-16 rounded-full bg-gradient-to-b from-rose-400 to-amber-500 p-[3px] shadow-[0_0_18px_rgba(244,63,94,0.55)] flex items-center justify-center">
+                <div className="w-full h-full rounded-full bg-neutral-950 flex flex-col items-center justify-center text-white border border-amber-400/40">
+                  <Swords className="w-5 h-5 text-amber-400" />
+                  <span className="text-[8px] font-bold text-rose-300 tracking-wide">GYM</span>
                 </div>
               </div>
               <div className="mt-1 px-2 py-0.5 rounded-md bg-neutral-950/90 border border-rose-500/40 text-[10px] text-white font-bold whitespace-nowrap shadow-lg">
@@ -443,24 +582,26 @@ export function AdventureWorldMap({
                   onSelectDiscoveryPoint(point);
                 }}
                 style={{
-                  left: `${point.xPct}%`,
-                  top: `${point.yPct}%`,
+                  ...screenPos(point),
                   transform: "translate(-50%, -50%)",
                 }}
                 className="absolute z-20 cursor-pointer group flex flex-col items-center hover:scale-110 transition-transform duration-200"
               >
-                <div
-                  className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center transition shadow-lg ${
-                    onCooldown
-                      ? "bg-purple-950/80 border-purple-500/60 shadow-purple-500/30"
-                      : "bg-cyan-950/90 border-cyan-400 shadow-cyan-500/50 animate-pulse"
-                  }`}
-                >
-                  <MapPin
-                    className={`w-5 h-5 ${
-                      onCooldown ? "text-purple-400" : "text-cyan-300 animate-spin-slow"
+                <div className="relative flex items-center justify-center">
+                  {!onCooldown && (
+                    <div className="absolute w-14 h-3 rounded-full border border-white/80 bg-white/15" />
+                  )}
+                  <div
+                    className={`w-9 h-9 rounded-full border-2 flex items-center justify-center transition shadow-lg ${
+                      onCooldown
+                        ? "bg-fuchsia-950/80 border-fuchsia-500/50"
+                        : "bg-cyan-400 border-white shadow-cyan-400/40"
                     }`}
-                  />
+                  >
+                    <MapPin
+                      className={`w-4 h-4 ${onCooldown ? "text-fuchsia-300" : "text-neutral-950"}`}
+                    />
+                  </div>
                 </div>
                 <div className="mt-1 px-1.5 py-0.5 rounded bg-neutral-950/90 border border-neutral-800 text-[9px] text-white font-bold whitespace-nowrap shadow">
                   {point.title}
@@ -482,8 +623,7 @@ export function AdventureWorldMap({
                   onSelectCardCache(cache);
                 }}
                 style={{
-                  left: `${cache.xPct}%`,
-                  top: `${cache.yPct}%`,
+                  ...screenPos(cache),
                   transform: "translate(-50%, -50%)",
                 }}
                 className="absolute z-20 cursor-pointer group flex flex-col items-center hover:scale-110 transition-transform duration-200"
@@ -513,23 +653,24 @@ export function AdventureWorldMap({
                 <div
                   key={creature.id}
                   style={{
-                    left: `${creature.xPct}%`,
-                    top: `${creature.yPct}%`,
+                    ...screenPos(creature),
                     transform: "translate(-50%, -50%)",
                   }}
                   className="absolute z-15 flex flex-col items-center group cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation();
-                    // Walking cue
-                    handleTeleport(creature.xPct, creature.yPct, "Wild Track");
+                    if (typeof creature.lat === "number" && typeof creature.lng === "number") {
+                      walkTowardGeo({ lat: creature.lat, lng: creature.lng });
+                    }
                   }}
                 >
-                  {/* Subtle rustling grass leaves */}
                   <div className="relative flex items-center justify-center">
-                    <div className="w-8 h-8 rounded-full bg-emerald-500/20 filter blur-sm animate-pulse absolute" />
-                    <span className="text-2xl filter drop-shadow-[0_0_10px_rgba(52,211,153,0.8)] animate-bounce select-none">
-                      🌿
-                    </span>
+                    <img
+                      src="/adventure-assets/tex-tallgrass.jpg"
+                      alt=""
+                      className="w-10 h-10 object-cover rounded-sm shadow-[0_4px_8px_rgba(0,0,0,0.45)]"
+                      style={{ imageRendering: "pixelated" }}
+                    />
                   </div>
 
                   {/* Distance Hint on Hover */}
@@ -550,19 +691,15 @@ export function AdventureWorldMap({
                 key={creature.id}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onSelectCreature(creature, "catch");
+                  trySelectCreature(creature, "catch");
                 }}
                 style={{
-                  left: `${creature.xPct}%`,
-                  top: `${creature.yPct}%`,
+                  ...screenPos(creature),
                   transform: "translate(-50%, -50%)",
                 }}
                 className="absolute z-25 cursor-pointer group flex flex-col items-center hover:scale-115 transition-transform duration-200"
               >
-                {/* Pop Discovery Shockwave Ripple */}
-                <div className="w-20 h-20 rounded-full border-2 border-cyan-400/60 bg-cyan-400/15 animate-ping absolute -top-2" />
-
-                {/* Rarity Ring Aura */}
+                {/* Rarity Ring Aura — GO-style ground disc, not infinite ping */}
                 <div
                   className={`w-14 h-6 rounded-full absolute bottom-1 filter blur-[2px] transition ${
                     isLegendary
@@ -603,7 +740,7 @@ export function AdventureWorldMap({
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onSelectCreature(creature, "catch");
+                      trySelectCreature(creature, "catch");
                     }}
                     className="px-2 py-1 rounded-md bg-cyan-500 text-neutral-950 font-bold text-[9px] hover:bg-cyan-400 shadow flex items-center gap-0.5"
                   >
@@ -613,7 +750,7 @@ export function AdventureWorldMap({
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onSelectCreature(creature, "battle");
+                      trySelectCreature(creature, "battle");
                     }}
                     className="px-2 py-1 rounded-md bg-rose-500 text-white font-bold text-[9px] hover:bg-rose-400 shadow flex items-center gap-0.5"
                   >
@@ -629,8 +766,8 @@ export function AdventureWorldMap({
           {/* ───────────────────────────────────────────────────────────── */}
           <div
             style={{
-              left: `${playerCoords.xPct}%`,
-              top: `${playerCoords.yPct}%`,
+              left: "50%",
+              top: "50%",
               transform: isWalking
                 ? "translate(-50%, calc(-50% - 3px))"
                 : "translate(-50%, -50%)",
@@ -645,31 +782,18 @@ export function AdventureWorldMap({
             />
             <div className="w-56 h-56 rounded-full border border-dashed border-cyan-400/30 absolute" />
 
-            {/* Walking Direction Pointer Cone */}
+            {/* Original 4-dir trainer (adventure-assets), not PokeAPI trainers/1.png */}
             <div
-              style={{ transform: `rotate(${facingAngle}deg)` }}
-              className="absolute w-20 h-20 -top-6 flex items-center justify-center pointer-events-none transition-transform duration-75"
+              className="relative flex items-center justify-center"
+              style={{ transform: isWalking ? "translateY(-2px)" : undefined }}
             >
-              <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[16px] border-b-cyan-400/80 filter drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
-            </div>
-
-            {/* Trainer sprite — bob while walking in realtime */}
-            <div
-              className={`relative w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-400 p-0.5 shadow-[0_0_20px_rgba(6,182,212,0.8)] flex items-center justify-center ${
-                isWalking ? "animate-bounce" : ""
-              }`}
-            >
-              <div className="w-full h-full rounded-full bg-neutral-950 flex items-center justify-center overflow-hidden">
-                <img
-                  src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/1.png"
-                  alt="Trainer"
-                  className="w-11 h-11 object-contain"
-                  style={{
-                    imageRendering: "pixelated",
-                    transform: isWalking ? `scaleX(${facingAngle > 90 && facingAngle < 270 ? -1 : 1})` : undefined,
-                  }}
-                />
-              </div>
+              <div className="absolute w-10 h-4 rounded-full bg-black/40 blur-[2px] top-[52px]" />
+              <img
+                src={trainerFacingUrl(facingAngle)}
+                alt="Trainer"
+                className="w-16 h-16 object-contain relative z-10"
+                style={{ imageRendering: "pixelated" }}
+              />
             </div>
 
             {/* Buddy follows beside you while you roam */}
@@ -702,13 +826,17 @@ export function AdventureWorldMap({
           <div className="flex flex-col">
             <span className="font-bold text-white text-[11px] leading-tight">
               {useLiveGps
-                ? "🛰️ LIVE GPS TRACKING"
+                ? "🛰️ LIVE GPS · WALK THE WORLD"
                 : isWalking
-                  ? "🚶 FREE ROAM · CATCH RANGE ON"
-                  : "🌍 FREE ROAM WORLD"}
+                  ? walkSkin === "gba"
+                    ? "🚶 GBA MAP · CATCH RANGE 45m"
+                    : "🚶 GO MAP · CATCH RANGE 45m"
+                  : walkSkin === "gba"
+                    ? "🎮 GBA OVERWORLD ON MAP"
+                    : "🌍 POKÉMON GO MAP"}
             </span>
             <span className="text-[9px] text-neutral-400">
-              {playerGeo.lat.toFixed(4)}, {playerGeo.lng.toFixed(4)} · Chamblee, GA
+              {playerGeo.lat.toFixed(4)}, {playerGeo.lng.toFixed(4)} · {adventureState.world.biome || "Walk plane"}
             </span>
           </div>
         </div>
@@ -756,6 +884,26 @@ export function AdventureWorldMap({
             }`}
           >
             OSM STREETS
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const next = walkSkin === "gba" ? "go" : "gba";
+              setWalkSkin(next);
+              if (onStateUpdate) {
+                const s = cloneAdventureState(adventureState);
+                s.world.walkSkin = next;
+                saveAdventureState(s);
+                onStateUpdate(s);
+              }
+            }}
+            className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
+              walkSkin === "gba"
+                ? "bg-amber-400 text-neutral-950"
+                : "text-neutral-400 hover:text-white"
+            }`}
+          >
+            GBA MAP
           </button>
         </div>
 
@@ -835,6 +983,7 @@ export function AdventureWorldMap({
         open={godsEyeOpen}
         onClose={() => setGodsEyeOpen(false)}
         playerCoords={playerCoords}
+        playerGeo={playerGeo}
         wildCreatures={adventureState.wildCreatures}
         onTeleport={handleGodsEyeTeleport}
       />
@@ -845,7 +994,7 @@ export function AdventureWorldMap({
       <AdventureJoystick
         currentCoords={playerCoords}
         onMove={handleJoystickMove}
-        onTeleport={handleTeleport}
+        onTeleport={handleHotspotTeleport}
       />
     </div>
   );

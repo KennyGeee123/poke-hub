@@ -76,9 +76,19 @@ export function fallbackCardImages(card: ImgCard): string[] {
 
   const setId = card.set?.id || (card.id || "").split("-")[0];
   const num = card.number || (card.id || "").split("-").slice(1).join("-");
+  const parentSet =
+    setId === "base1sl" || setId === "bss"
+      ? "base1"
+      : setId === "error"
+        ? (card.id?.includes("jungle") ? "base2" : card.id?.includes("fossil") ? "base3" : card.id?.includes("rocket") ? "base5" : "base1")
+        : null;
   if (setId && num) {
     add(`https://images.pokemontcg.io/${setId}/${num}_hires.png`);
     add(`https://images.pokemontcg.io/${setId}/${num}.png`);
+  }
+  if (parentSet && num) {
+    add(`https://images.pokemontcg.io/${parentSet}/${num}_hires.png`);
+    add(`https://images.pokemontcg.io/${parentSet}/${num}.png`);
   }
 
   const id = card.id || (setId && num ? `${setId}-${num}` : "");

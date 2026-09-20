@@ -10,6 +10,13 @@ import {
 } from "@/lib/tcgdex";
 import { FALLBACK_CARDS, FALLBACK_SETS, fallbackSearch, stubCardFromId } from "@/lib/tcg-fallback";
 import { parseSearchQuery } from "@/lib/card-search";
+import {
+  getSpecialCard,
+  getSpecialSetCards,
+  injectSpecialSets,
+  mergeSetLists,
+  searchSpecialCards,
+} from "@/lib/special-sets";
 import { getCachedSets, setCachedSets, getCachedSetCards, setCachedSetCards, getHttpCache, setHttpCache } from "./catalog-cache";
 
 const BASE = "https://api.pokemontcg.io/v2";
@@ -298,6 +305,7 @@ export async function searchCards(opts: {
   const text = extracted || opts.q || "";
   const parsed = parseSearchQuery(text);
   const corrected = parsed.name || text;
+  const special = text.trim() ? searchSpecialCards(text) : [];
 
   let catalog: TCGCard[] = [];
   if (text.trim()) {
@@ -307,13 +315,15 @@ export async function searchCards(opts: {
   }
 
   if (lang !== "en") {
-    catalog.forEach(rememberCard);
-    return { data: catalog, totalCount: catalog.length, page, pageSize };
+    const mixed = mergeCards(special, catalog);
+    mixed.forEach(rememberCard);
+    return { data: mixed, totalCount: mixed.length, page, pageSize };
   }
 
-  if (parsed.print) {
-    catalog.forEach(rememberCard);
-    if (catalog.length) return { data: catalog, totalCount: catalog.length, page, pageSize };
+  if (parsed.print === "shadowless" || parsed.print === "error") {
+    const mixed = mergeCards(special, catalog.filter((c) => /shadowless|error|misprint/i.test(`${c.set?.name || ""} ${c.rarity || ""} ${c.name || ""}`)));
+    mixed.forEach(rememberCard);
+    if (mixed.length) return { data: mixed.slice(0, pageSize), totalCount: mixed.length, page, pageSize };
   }
 
   const params = new URLSearchParams();
@@ -336,7 +346,12 @@ export async function searchCards(opts: {
   }
 
   const ptcg = res?.data ?? [];
-  const merged = mergeCards(catalog.filter((c) => /shadowless|error|misprint/i.test(`${c.set?.name || ""} ${c.rarity || ""} ${c.name || ""}`)), ptcg, catalog);
+  const merged = mergeCards(
+    special,
+    catalog.filter((c) => /shadowless|error|misprint/i.test(`${c.set?.name || ""} ${c.rarity || ""} ${c.name || ""}`)),
+    ptcg,
+    catalog,
+  );
   if (merged.length) {
     merged.forEach(rememberCard);
     return { data: merged.slice(0, pageSize), totalCount: Math.max(res?.totalCount ?? 0, merged.length), page, pageSize };
@@ -365,6 +380,11 @@ function firstHit<T>(promises: Promise<T | null>[]): Promise<T | null> {
 }
 
 export async function getCard(id: string, lang?: string): Promise<TCGCard> {
+  const special = getSpecialCard(id);
+  if (special) {
+    rememberCard(special);
+    return special;
+  }
   const memo = (lang && cardMemo.get(`${lang}:${id}`)) || cardMemo.get(id);
   const useLang = lang || memo?.lang || (/^[A-Z]/.test(id) ? "ja" : "en");
   if (memo && (memo.images?.small || memo.tcgplayer || memo.cardmarket)) {
@@ -400,14 +420,22 @@ export async function getSets(lang = "en"): Promise<TCGSet[]> {
   // IndexedDB read-through (24h TTL). Keep a stale copy for offline/API failure.
   const cached = await getCachedSets<TCGSet[]>();
   const stale = cacheKeyLang === "en" ? await getCachedSets<TCGSet[]>(Number.MAX_SAFE_INTEGER) : null;
-  if (cached?.length && cacheKeyLang === "en") return cached;
+  if (
+    cached?.length &&
+    cacheKeyLang === "en" &&
+    cached.length >= 150 &&
+    cached.some((s) => s.id === "base1sl") &&
+    cached.some((s) => s.id === "error")
+  ) {
+    return injectSpecialSets(cached);
+  }
 
   if (lang !== "en") {
     const dx = await tcgdexGetSets(lang);
-    if (dx.length) return dx;
+    if (dx.length) return injectSpecialSets(dx);
   }
+
   const all: TCGSet[] = [];
-  let ptcgFailed = false;
   try {
     let page = 1;
     for (;;) {
@@ -421,32 +449,37 @@ export async function getSets(lang = "en"): Promise<TCGSet[]> {
       if (page > 8) break;
     }
   } catch {
-    ptcgFailed = true;
+    /* TCGdex merge below */
   }
 
   if (all.length === 0) all.push(...FALLBACK_SETS);
 
-  if (ptcgFailed || all.length < 50) {
-    try {
-      const dx = await tcgdexGetSets(lang);
-      const seen = new Set(all.map((s) => s.id));
-      for (const s of dx) {
-        if (!s.id || seen.has(s.id)) continue;
-        all.push(s);
-        seen.add(s.id);
-      }
-    } catch {
-      // ignore secondary failure
-    }
+  try {
+    const dx = await tcgdexGetSets(lang);
+    const merged = mergeSetLists(all, dx);
+    all.length = 0;
+    all.push(...merged);
+  } catch {
+    // ignore secondary failure
   }
 
-  // Stale fallback: if network produced nothing useful, serve expired/last-good cache
-  if (all.length < 10 && stale?.length) return stale;
-  if (cacheKeyLang === "en" && all.length) void setCachedSets(all);
-  return all;
+  if (all.length < 10 && stale?.length) return injectSpecialSets(stale);
+  if (cached?.length && all.length < cached.length) {
+    const merged = injectSpecialSets(mergeSetLists(all, cached));
+    if (cacheKeyLang === "en") void setCachedSets(merged);
+    return merged;
+  }
+  const final = injectSpecialSets(all);
+  if (cacheKeyLang === "en" && final.length) void setCachedSets(final);
+  return final;
 }
 
 export async function getCardsBySet(setId: string, page = 1, lang = "en"): Promise<{ data: TCGCard[]; totalCount: number; page: number; pageSize: number }> {
+  const special = getSpecialSetCards(setId);
+  if (special) {
+    special.forEach(rememberCard);
+    return { data: special, totalCount: special.length, page: 1, pageSize: special.length };
+  }
   if (lang !== "en") {
     const extra = await tcgdexGetSetCards(setId, lang);
     extra.forEach(rememberCard);
@@ -470,6 +503,12 @@ export async function getAllCardsBySet(
   lang = "en",
 ): Promise<{ data: TCGCard[]; totalCount: number }> {
   // Fresh IDB hit (7d). Keep an unlimited stale copy for API blackouts.
+  const special = getSpecialSetCards(setId);
+  if (special) {
+    special.forEach(rememberCard);
+    onPage?.(special, special.length);
+    return { data: special, totalCount: special.length };
+  }
   let staleCards: TCGCard[] | null = null;
   if (lang === "en") {
     const cached = await getCachedSetCards<TCGCard[]>(setId);

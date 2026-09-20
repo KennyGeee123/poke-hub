@@ -263,6 +263,7 @@ export function MarketView({ onOpen }: { onOpen: OnOpen }) {
 export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
   const [sets, setSets] = useState<TCGSet[] | null>(null);
   const [filter, setFilter] = useState("");
+  const [chip, setChip] = useState<"all" | "shadowless" | "error" | "box">("all");
   const [err, setErr] = useState<string | null>(null);
   const [lang] = usePrintLang();
 
@@ -276,19 +277,35 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
   };
   useEffect(() => { load(); }, [lang]);
 
-  const filtered = (sets ?? []).filter(s =>
-    !filter || s.name.toLowerCase().includes(filter.toLowerCase()) || s.series?.toLowerCase().includes(filter.toLowerCase())
-  );
+  const filtered = (sets ?? []).filter(s => {
+    const id = (s.id || "").toLowerCase();
+    const name = (s.name || "").toLowerCase();
+    if (chip === "shadowless") return id === "base1sl" || id === "bss" || name.includes("shadowless");
+    if (chip === "error") return id === "error" || /\b(error|misprint)/.test(name);
+    if (chip === "box" && id === "error") return false;
+    if (filter && !name.includes(filter.toLowerCase()) && !(s.series || "").toLowerCase().includes(filter.toLowerCase())) return false;
+    return true;
+  });
 
   return (
     <div className="pad">
       <PrintLangBar />
       <input
-        className="pv-input mb-4"
+        className="pv-input mb-3"
         placeholder="Filter sets by name or series…"
         value={filter}
         onChange={e => setFilter(e.target.value)}
       />
+      <div className="flex gap-2 flex-wrap mb-4">
+        {([
+          ["all", "All sets"],
+          ["box", "Box sets"],
+          ["shadowless", "Shadowless"],
+          ["error", "Error / Misprint"],
+        ] as const).map(([k, l]) => (
+          <button key={k} className={`pv-pill ${chip === k ? "on" : ""}`} onClick={() => { setChip(k); if (k !== "all") setFilter(""); }}>{l}</button>
+        ))}
+      </div>
       {!sets && !err && <div className="pv-empty">Loading every set…</div>}
       {err && (
         <div className="pv-empty">
@@ -314,7 +331,9 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
         </div>
       )}
       <div className="pv-sets-grid">
-        {filtered.map(s => (
+        {filtered.map(s => {
+          const special = s.id === "base1sl" || s.id === "error";
+          return (
           <div key={s.id} className="pv-set-el" onClick={() => onPickSet(s)} role="button" tabIndex={0}
             onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPickSet(s); } }}>
             {s.images?.logo
@@ -323,11 +342,12 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</div>
               <div style={{ fontSize: 10, color: "var(--t3)" }}>{s.series} • {s.releaseDate}</div>
-              <div style={{ fontSize: 10, color: "var(--t3)" }}>{s.total} cards</div>
+              <div style={{ fontSize: 10, color: special ? "var(--gold)" : "var(--t3)" }}>{s.total} cards{special ? " · special print" : ""}</div>
             </div>
             {s.images?.symbol && <img className="pv-set-sym" src={s.images.symbol} alt="" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />}
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -401,6 +421,12 @@ export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: "Bebas Neue", fontSize: 24, letterSpacing: 2 }}>{set.name.toUpperCase()}</div>
           <div style={{ color: "var(--t3)", fontSize: 11 }}>{set.series} • {cards ? `${cards.length}${total && cards.length < total ? ` / ${total}` : total ? ` / ${total}` : ""}` : set.total} cards • {set.releaseDate}</div>
+          {set.id === "base1sl" && (
+            <div style={{ color: "var(--gold)", fontSize: 11, marginTop: 4 }}>1999 English Base Set shadowless print — all 102 cards plus Red Cheeks Pikachu.</div>
+          )}
+          {set.id === "error" && (
+            <div style={{ color: "var(--gold)", fontSize: 11, marginTop: 4 }}>Named factory errors and misprints (no-symbol Jungle/Fossil, Black Dot Charizard, Prerelease Raichu, and more).</div>
+          )}
         </div>
         <button
           className="pv-btn pv-btn-fill"
