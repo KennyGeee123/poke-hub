@@ -10,6 +10,7 @@ import { CheapestPill } from "./CheapestPill";
 import { PriceComparePanel } from "./PriceCompare";
 import { PrintLangBar } from "./PrintLangBar";
 import { searchChips, searchPlaceholder, usePrintLang } from "@/lib/print-lang";
+import { parseSearchQuery } from "@/lib/card-search";
 
 type OnOpen = (id: string) => void;
 
@@ -523,7 +524,8 @@ export function SearchView({ onOpen }: { onOpen: OnOpen }) {
     setActive(query);
     setErr(null);
     const raw = query.trim();
-    const queries = lang !== "en" || /[:*]/.test(raw)
+    const parsed = parseSearchQuery(raw);
+    const queries = lang !== "en" || /[:*]/.test(raw) || parsed.print
       ? [raw]
       : [raw, `name:"${raw}*"`, `name:${raw}*`];
     try {

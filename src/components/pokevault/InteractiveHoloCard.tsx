@@ -125,7 +125,7 @@ export function InteractiveHoloCard({
               className="absolute inset-0 pointer-events-none transition-opacity duration-200"
               style={{
                 opacity: isHovered ? holoIntensity : holoIntensity * 0.55,
-                background: `linear-gradient(${sheenAngle}deg, 
+                backgroundImage: `linear-gradient(${sheenAngle}deg, 
                   rgba(255, 0, 128, 0) 0%, 
                   rgba(255, 0, 128, 0.4) 20%, 
                   rgba(255, 230, 0, 0.5) 35%, 

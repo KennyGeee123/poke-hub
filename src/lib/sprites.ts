@@ -3,8 +3,7 @@ export const LOCAL_SPRITE_SLUGS = new Set([
   "bulbasaur", "charmander", "squirtle", "pikachu", "caterpie", "pidgey",
   "rattata", "jigglypuff", "meowth", "psyduck", "machop", "geodude",
   "gastly", "eevee", "snorlax", "dratini", "mewtwo", "chikorita",
-  "totodile", "cyndaquil", "jynx", "onix", "charizard", "blastoise",
-  "venusaur", "rayquaza", "gengar", "lucario", "umbreon", "espeon"
+  "totodile", "cyndaquil", "jynx", "onix",
 ]);
 
 export function spriteSlug(name: string): string {

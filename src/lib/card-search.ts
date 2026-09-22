@@ -1,6 +1,6 @@
 /** Shared card search: print-variant keywords + misspelling tolerance. */
 
-export type PrintKind = "shadowless" | "unlimited" | "1st" | "error" | "promo" | null;
+export type PrintKind = "shadowless" | "unlimited" | "1st" | "error" | "promo" | "gold" | null;
 
 export type ParsedQuery = {
   raw: string;
@@ -10,6 +10,7 @@ export type ParsedQuery = {
 
 export type SearchableCard = {
   id: string;
+  name?: string;
   localId?: string;
   setId?: string;
   names?: Record<string, string>;
@@ -123,6 +124,8 @@ export function fuzzyEq(q: string, target: string): boolean {
   return levenshtein(q, target) <= maxDist(Math.min(q.length, target.length));
 }
 
+const GOLD_SPECIES = /\b(golduck|goldeen|seaking|goldango)\b/;
+
 export function detectPrint(q: string): PrintKind {
   const n = normalize(q);
   if (/\b(error|misprint|mis-print|black\s*dot)\b/.test(n)) return "error";
@@ -132,6 +135,14 @@ export function detectPrint(q: string): PrintKind {
   if (/\b(1st\s*ed(ition)?|first\s*ed(ition)?|1ed)\b/.test(n)) return "1st";
   if (/\bunlimi?ted\b/.test(n)) return "unlimited";
   if (/\bpromo(s| card)?\b/.test(n)) return "promo";
+  if (
+    n === "gold" ||
+    n === "★" ||
+    /\b(gold\s*stars?|gold\s*rares?|gold\s*cards?|gold\s*foil|hyper\s*rares?|mega\s*hyper(?:\s*rares?)?|crown\s*rares?)\b/.test(n)
+  ) {
+    return "gold";
+  }
+  if (/\bgold\b/.test(n) && !GOLD_SPECIES.test(n)) return "gold";
   return null;
 }
 
@@ -142,6 +153,8 @@ function stripPrint(q: string): string {
     .replace(/\bunlimi?ted\b/g, " ")
     .replace(/\b(error|misprint|mis-print|black\s*dot)\b/g, " ")
     .replace(/\bpromo(s| card)?\b/g, " ")
+    .replace(/\b(gold\s*stars?|gold\s*rares?|gold\s*cards?|gold\s*foil|hyper\s*rares?|mega\s*hyper(?:\s*rares?)?|crown\s*rares?)\b/g, " ")
+    .replace(/(?<![a-z])gold(?![a-z])/g, " ")
     .replace(/\b(holo|holofoil|base\s*set|wotc|unlimited)\b/g, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -200,6 +213,18 @@ export function isPromoCard(c: SearchableCard, setName?: string): boolean {
   return /\bpromo/.test(blob) || /(-p|svp|smp|wp|basep)$/i.test(c.setId || "");
 }
 
+const GOLD_RARITY_RE =
+  /\b(hyper\s*rare|mega\s*hyper|rare\s*holo\s*star|holo\s*rare\s*star|gold\s*star|secret\s*rare|rare\s*secret|crown\s*rare)\b/;
+
+export function isGoldCard(c: SearchableCard, setName?: string): boolean {
+  const names = `${c.name || ""} ${Object.values(c.names || {}).join(" ")}`;
+  const rarity = `${c.rarity || ""} ${c.variant || ""}`;
+  const blob = `${rarity} ${c.id || ""} ${setName || ""}`.toLowerCase();
+  if (GOLD_RARITY_RE.test(blob) || /gold/.test((c.rarity || "").toLowerCase())) return true;
+  if (/★/.test(`${c.id || ""} ${names}`)) return true;
+  return false;
+}
+
 export function cardMatchesPrint(c: SearchableCard, print: PrintKind, setName?: string): boolean {
   if (!print) return true;
   const sl = isShadowlessCard(c, setName);
@@ -207,6 +232,7 @@ export function cardMatchesPrint(c: SearchableCard, print: PrintKind, setName?: 
   if (print === "unlimited") return !sl && ((c.setId || "").startsWith("base") || (setName || "").toLowerCase().includes("base"));
   if (print === "error") return isErrorCard(c, setName);
   if (print === "promo") return isPromoCard(c, setName);
+  if (print === "gold") return isGoldCard(c, setName);
   return true;
 }
 
@@ -223,6 +249,7 @@ export function cardSearchScore(
 
   const clean = (v: string) => normalize(String(v).replace(/\s*\([^)]*\)\s*/g, " "));
   const own: string[] = [];
+  if (c.name) own.push(clean(c.name));
   for (const v of Object.values(c.names || {})) if (v) own.push(clean(v));
   const extra: string[] = [];
   if (dexAliases) for (const v of Object.values(dexAliases)) if (v) extra.push(clean(v));
@@ -246,7 +273,7 @@ export function cardSearchScore(
 
   const best = Math.min(scoreLabels(own, 0), scoreLabels(extra, 4));
   if (best >= 99) return null;
-  if (parsed.print && (isShadowlessCard(c, setName) || isErrorCard(c, setName) || isPromoCard(c, setName))) {
+  if (parsed.print && (isShadowlessCard(c, setName) || isErrorCard(c, setName) || isPromoCard(c, setName) || isGoldCard(c, setName))) {
     return Math.max(0, best - 1);
   }
   return best;

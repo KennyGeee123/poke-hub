@@ -224,8 +224,18 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
 
   if (pathname === "/cards") {
     const name = (sp.get("name") || "").trim().toLowerCase();
+    const rarityQ = (sp.get("rarity") || "").trim().toLowerCase();
     const sort = sp.get("sort") || "";
-    const limit = Math.min(50, Math.max(1, Number(sp.get("limit") || 40) || 40));
+    const limit = Math.min(250, Math.max(1, Number(sp.get("limit") || 40) || 40));
+
+    if (rarityQ && !name) {
+      const hits = preferRegion(
+        CAT.cards.filter((c) => (c.rarity || "").toLowerCase() === rarityQ || (c.rarity || "").toLowerCase().includes(rarityQ)),
+        lang,
+      ).slice(0, limit);
+      const prices = await hydratePrices(hits, 16);
+      return json(hits.map((c) => toTcgdexCard(c, lang, setName(c.setId), prices.get(c.id), CAT)));
+    }
 
     if (name) {
       const parsed = parseSearchQuery(name, enDict(CAT));
@@ -241,15 +251,16 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
         scored.push({ c, s });
       }
       scored.sort((a, b) => {
-        if (parsed.print && !parsed.name) return (b.c.market || 0) - (a.c.market || 0);
         const ra = (a.c.region || "asia") === want ? 0 : 1;
         const rb = (b.c.region || "asia") === want ? 0 : 1;
+        if (parsed.print && !parsed.name) return ra - rb || (b.c.market || 0) - (a.c.market || 0);
         if (parsed.print) return a.s - b.s || ra - rb;
         if (ra !== rb) return ra - rb;
         return a.s - b.s;
       });
-      const hits = scored.slice(0, 40).map((x) => x.c);
-      const prices = await hydratePrices(hits);
+      const cap = parsed.print === "gold" && !parsed.name ? Math.min(200, limit) : Math.min(40, limit);
+      const hits = scored.slice(0, cap).map((x) => x.c);
+      const prices = await hydratePrices(hits, parsed.print === "gold" ? 16 : 16);
       return json(hits.map((c) => toTcgdexCard(c, lang, setName(c.setId), prices.get(c.id), CAT)));
     }
 

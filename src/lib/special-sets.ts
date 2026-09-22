@@ -172,6 +172,7 @@ function hay(c: TCGCard): string {
 
 export function searchSpecialCards(query: string): TCGCard[] {
   const parsed = parseSearchQuery(query);
+  if (parsed.print === "gold") return [];
   const all =
     parsed.print === "shadowless"
       ? getShadowlessCards()

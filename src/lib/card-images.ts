@@ -82,7 +82,7 @@ export function fallbackCardImages(card: ImgCard): string[] {
       : setId === "error"
         ? (card.id?.includes("jungle") ? "base2" : card.id?.includes("fossil") ? "base3" : card.id?.includes("rocket") ? "base5" : "base1")
         : null;
-  if (setId && num) {
+  if (setId && num && /^[a-z0-9.]+$/.test(setId)) {
     add(`https://images.pokemontcg.io/${setId}/${num}_hires.png`);
     add(`https://images.pokemontcg.io/${setId}/${num}.png`);
   }

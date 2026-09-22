@@ -235,6 +235,40 @@ export async function tcgdexGetCard(id: string, lang = "en"): Promise<TCGCard | 
   return mapTcgdexCard(raw, undefined, lang);
 }
 
+const GOLD_RARITY_QUERIES = [
+  "Hyper rare",
+  "Mega Hyper Rare",
+  "Secret Rare",
+  "Rare Holo Star",
+];
+
+export async function tcgdexSearchGold(name = "", limit = 80, lang = "en"): Promise<TCGCard[]> {
+  const lists = await Promise.all([
+    j<any[]>(tcgdexUrl(lang, `/cards?name=${encodeURIComponent(name.trim() || "gold")}`)),
+    ...GOLD_RARITY_QUERIES.map((r) =>
+      j<any[]>(tcgdexUrl(lang, `/cards?rarity=${encodeURIComponent(r)}`)),
+    ),
+  ]);
+  const seen = new Set<string>();
+  const out: TCGCard[] = [];
+  const nameQ = name.trim().toLowerCase();
+  for (const raw of lists) {
+    if (!Array.isArray(raw)) continue;
+    for (const c of raw) {
+      const card = mapTcgdexCard(c, undefined, lang);
+      if (!card.id || seen.has(card.id)) continue;
+      if (nameQ) {
+        const hay = card.name.toLowerCase();
+        if (!hay.includes(nameQ) && !hay.startsWith(nameQ)) continue;
+      }
+      seen.add(card.id);
+      out.push(card);
+      if (out.length >= limit) return out;
+    }
+  }
+  return out;
+}
+
 export async function tcgdexSearchCards(name: string, limit = 50, lang = "en"): Promise<TCGCard[]> {
   const q = name.trim();
   if (!q) return [];

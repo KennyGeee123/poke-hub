@@ -152,6 +152,9 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
         {/\b(error|misprint)/i.test(`${card.set?.name || ""} ${card.rarity || ""} ${card.name || ""}`) && (
           <div className="pv-err-b" title="Error / misprint">ERR</div>
         )}
+        {/\b(hyper\s*rare|mega\s*hyper|rare\s*holo\s*star|gold\s*star|secret\s*rare|rare\s*secret)\b/i.test(`${card.rarity || ""} ${card.name || ""}`) && (
+          <div className="pv-gold-b" title="Gold / Hyper / Secret Rare">GOLD</div>
+        )}
         
         {/* Quick Action Overlay (Scan + Trade) */}
         <div style={{ position: "absolute", top: 6, right: onRemove ? 30 : 6, zIndex: 36, display: "flex", gap: 3 }}>

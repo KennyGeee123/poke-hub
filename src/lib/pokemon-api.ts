@@ -6,10 +6,11 @@ import {
   tcgdexGetSets,
   tcgdexRecentCards,
   tcgdexSearchCards,
+  tcgdexSearchGold,
   tcgdexSearchName,
 } from "@/lib/tcgdex";
 import { FALLBACK_CARDS, FALLBACK_SETS, fallbackSearch, stubCardFromId } from "@/lib/tcg-fallback";
-import { parseSearchQuery } from "@/lib/card-search";
+import { isGoldCard, parseSearchQuery } from "@/lib/card-search";
 import {
   getSpecialCard,
   getSpecialSetCards,
@@ -264,8 +265,8 @@ export function getListedLow(c: TCGCard): number {
 export function getRarityColor(rarity?: string): string {
   if (!rarity) return "#888";
   const r = rarity.toLowerCase();
-  if (r.includes("secret") || r.includes("rainbow")) return "#ec4899";
-  if (r.includes("hyper") || r.includes("special")) return "#f59e0b";
+  if (r.includes("secret") || r.includes("rainbow") || r.includes("gold star") || r.includes("holo star")) return "#ec4899";
+  if (r.includes("hyper") || r.includes("special") || r.includes("gold")) return "#f59e0b";
   if (r.includes("ultra") || r.includes("v") || r.includes("ex") || r.includes("gx")) return "#a855f7";
   if (r.includes("holo")) return "#60a5fa";
   if (r.includes("rare")) return "#facc15";
@@ -304,26 +305,70 @@ export async function searchCards(opts: {
   const extracted = tcgdexSearchName(opts.q);
   const text = extracted || opts.q || "";
   const parsed = parseSearchQuery(text);
-  const corrected = parsed.name || text;
-  const special = text.trim() ? searchSpecialCards(text) : [];
+  const corrected = parsed.name || (parsed.print ? "" : text);
+  const special = parsed.print === "gold" ? [] : (text.trim() ? searchSpecialCards(text) : []);
 
   let catalog: TCGCard[] = [];
   if (text.trim()) {
     try {
-      catalog = await tcgdexSearchCards(text.trim(), pageSize, lang);
+      catalog = parsed.print === "gold"
+        ? await tcgdexSearchGold(parsed.name, Math.max(pageSize, 80), lang)
+        : await tcgdexSearchCards(text.trim(), pageSize, lang);
     } catch { /* catalog optional */ }
   }
 
   if (lang !== "en") {
-    const mixed = mergeCards(special, catalog);
+    const mixed = parsed.print === "gold"
+      ? mergeCards(catalog.filter((c) => isGoldCard(c, c.set?.name)))
+      : mergeCards(special, catalog);
     mixed.forEach(rememberCard);
-    return { data: mixed, totalCount: mixed.length, page, pageSize };
+    const start = (page - 1) * pageSize;
+    return { data: mixed.slice(start, start + pageSize), totalCount: mixed.length, page, pageSize };
   }
 
   if (parsed.print === "shadowless" || parsed.print === "error") {
     const mixed = mergeCards(special, catalog.filter((c) => /shadowless|error|misprint/i.test(`${c.set?.name || ""} ${c.rarity || ""} ${c.name || ""}`)));
     mixed.forEach(rememberCard);
     if (mixed.length) return { data: mixed.slice(0, pageSize), totalCount: mixed.length, page, pageSize };
+  }
+
+  if (parsed.print === "gold") {
+    let ptcgGold: TCGCard[] = [];
+    // Single-rarity queries are reliable; the big OR lucene 500s on pokemontcg.io.
+    const goldQueries = parsed.name
+      ? [`name:"${parsed.name.replace(/"/g, "")}*" rarity:"Rare Holo Star"`, `name:"${parsed.name.replace(/"/g, "")}*" rarity:"Hyper Rare"`]
+      : [`rarity:"Rare Holo Star"`];
+    const goldHits = await Promise.all(
+      goldQueries.map((q) =>
+        tcgFetch<SearchResult>(
+          `/cards?${new URLSearchParams({
+            q,
+            page: "1",
+            pageSize: "50",
+            orderBy: opts.orderBy || "-set.releaseDate",
+            select: opts.select || CARD_LIST_SELECT,
+          })}`,
+        ).catch(() => null),
+      ),
+    );
+    for (const goldRes of goldHits) {
+      if (goldRes?.data?.length) ptcgGold = ptcgGold.concat(goldRes.data);
+    }
+    const mixed = mergeCards(
+      ptcgGold,
+      catalog.filter((c) => isGoldCard(c, c.set?.name)),
+      catalog,
+    );
+    mixed.forEach(rememberCard);
+    const start = (page - 1) * pageSize;
+    if (mixed.length) {
+      return {
+        data: mixed.slice(start, start + pageSize),
+        totalCount: Math.max(mixed.length, ptcgGold.length),
+        page,
+        pageSize,
+      };
+    }
   }
 
   const params = new URLSearchParams();
@@ -604,19 +649,13 @@ export async function getDiscoverFast(lang = "en"): Promise<TCGCard[]> {
 }
 
 export async function getTrending(pageSize = 16, page = 1, lang = "en"): Promise<TCGCard[]> {
-  if (lang !== "en") return getDiscoverFast(lang);
-  try {
-    const res = await searchCards({
-      q: "(tcgplayer.prices.holofoil.market:[10 TO *] OR tcgplayer.prices.normal.market:[10 TO *] OR tcgplayer.prices.reverseHolofoil.market:[10 TO *])",
-      page,
-      pageSize,
-      orderBy: "-set.releaseDate",
-      select: CARD_LIST_SELECT,
-      lang,
-    });
-    if (res.data?.length) return res.data;
-  } catch {}
-  return getDiscoverFast(lang);
+  // The market-range Lucene query 500s on pokemontcg.io without a key.
+  // Discover + local price sort is the reliable trending feed.
+  void page;
+  const cards = await getDiscoverFast(lang);
+  return [...cards]
+    .sort((a, b) => getMarketPrice(b) - getMarketPrice(a))
+    .slice(0, pageSize);
 }
 
 export async function getTopMarket(lang = "en"): Promise<TCGCard[]> {
