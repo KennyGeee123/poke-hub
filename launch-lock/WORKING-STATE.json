@@ -1,8 +1,8 @@
 {
-  "id": "pokedex-hub-launch-ready-2026-09-22-sold-avg",
+  "id": "pokedex-hub-launch-ready-2026-09-22-30th-prices",
   "liveUrl": "https://pokedex-hub-lime.vercel.app/",
-  "frozenAt": "2026-09-22T06:50:19Z",
-  "rootSha256": "d473fe6cf24cb98927a1dadf9e4b771716a1e9581ef5fd6222a973a1ab06131a",
+  "frozenAt": "2026-09-22T07:08:03Z",
+  "rootSha256": "72c4b5b402bb6d5315333def067e68c83279f0dfda12a8bf6c7648ad3c67b10b",
   "fileCount": 213,
   "launchChecks": {
     "homeSsrPvApp": true,
@@ -165,8 +165,8 @@
     },
     {
       "path": "src/components/pokevault/CardTile.tsx",
-      "sha256": "98723b0ce26c42c945e63e844d90af04df8b9a734beb2b67b4805d255fd00c4e",
-      "bytes": 13231
+      "sha256": "fa4363567b8ec47692aabbb578a96e4b413c826e3f48c1a62dc40039b226bed7",
+      "bytes": 13464
     },
     {
       "path": "src/components/pokevault/CatchFx.tsx",
@@ -245,8 +245,8 @@
     },
     {
       "path": "src/components/pokevault/views.tsx",
-      "sha256": "7d94b590c0b94eaf418392ca2e37f1c96bea5437e74bb077c9300c441ff6452c",
-      "bytes": 33652
+      "sha256": "ebbe5b975b5225e94b69a5f7560a4e63778baa5a8ef1efdab995a9bfe3dbfff8",
+      "bytes": 34149
     },
     {
       "path": "src/components/ui/accordion.tsx",
@@ -705,8 +705,8 @@
     },
     {
       "path": "src/routes/index.tsx",
-      "sha256": "2a63cf09ecec2dd34208e2a75fae7bb8c66fd63d0a873ce0c193a497d1122044",
-      "bytes": 8405
+      "sha256": "2dd0597c0a2bfd84897b14e6a05309dd02b4775b53e4bf53abf51e86b932508b",
+      "bytes": 8853
     },
     {
       "path": "src/routes/login.tsx",
@@ -725,8 +725,8 @@
     },
     {
       "path": "src/styles.css",
-      "sha256": "0dd25bd5356e2499a26ce3a241d3c166c676a2af379208a716b936b1025c7e0d",
-      "bytes": 156186
+      "sha256": "c056dcc62637358c28f4f531e48fa2e7321a4228982ce8163838a442383e4d9f",
+      "bytes": 159475
     },
     {
       "path": "supabase/config.toml",
@@ -1095,14 +1095,14 @@
     },
     {
       "path": "src/lib/live-prices.ts",
-      "sha256": "910410a9ed9c3f5f6ca8366c3cac34de67fb63501efaccd12c62e3b9395330f6",
-      "bytes": 4896
+      "sha256": "9ced6fbf90956eb0841543dfbbc24a0ac616d5f0b59a98fac2aa9c0b743e8464",
+      "bytes": 7181
     },
     {
       "path": "src/routes/api/public/prices.ts",
-      "sha256": "bf0f55498790effc40710bf8439431a4ea09c27e20d200b22a4e7f51231a7ffb",
-      "bytes": 5893
+      "sha256": "e83b382cc3074ce1420d2a8c857298432ec61bda3db1dfe829048ab8b902dcb7",
+      "bytes": 12683
     }
   ],
-  "thawNote": "Prefer sold averages (Cardmarket avg7/avg30/avg/trend, TCGPlayer marketPrice, eBay sold avg on detail) + Esri adventure basemap"
+  "thawNote": "30th/30th-c tcgcsv price fallback + Settings declutter + Export contrast + pending UI"
 }

@@ -15,7 +15,7 @@ import {
   getGradeMeta,
 } from "@/lib/card-grades";
 import { getCardLevelAndStats } from "@/lib/card-stats";
-import { applyLiveQuote, useLivePrice } from "@/lib/live-prices";
+import { applyLiveQuote, useLivePrice, usePricePending } from "@/lib/live-prices";
 
 type Props = {
   card: TCGCard;
@@ -95,6 +95,7 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
   const [showTradeModal, setShowTradeModal] = useState(false);
 
   const live = useLivePrice(card);
+  const pricePending = usePricePending(card);
   const priced = live > 0 ? applyLiveQuote(card, live) : card;
   const gradedVal = calculateGradedValue(priced, grade);
   // Prefer live market for RAW tiles so Discover never sticks on "—" while grades load.
@@ -268,7 +269,11 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
           <div className="flex justify-between items-center mt-1">
             <div className="pv-c-set" style={{ fontSize: 10 }}>{card.set.name}</div>
             <div className="pv-c-price">
-              {displayPrice ? formatPrice(displayPrice) : "—"}
+              {displayPrice
+                ? formatPrice(displayPrice)
+                : pricePending
+                  ? <span className="pv-price-pending" title="Prices pending — new set">Pending</span>
+                  : "—"}
             </div>
           </div>
 

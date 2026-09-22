@@ -199,13 +199,10 @@ function SettingsPanel({ onToast }: { onToast: (m: string) => void }) {
   useEffect(() => { setKey(localStorage.getItem("pokeApiKey") ?? ""); }, []);
   return (
     <div className="pv-settings">
-      <div className="flex gap-2 items-center flex-wrap">
-        <div style={{ fontSize: 11, color: "var(--t2)", fontWeight: 600 }}>POKEMONTCG.IO API KEY</div>
-        <input className="pv-key-in" placeholder="Optional — paste key" value={key} onChange={e => setKey(e.target.value)} />
-        <button className="pv-ksave" onClick={() => { localStorage.setItem("pokeApiKey", key); onToast("Key saved"); }}>Save</button>
-        <button className="pv-kclear" onClick={() => { localStorage.removeItem("pokeApiKey"); setKey(""); onToast("Key cleared"); }}>Clear</button>
+      <div className="pv-settings-row">
         <button
-          className="pv-kclear"
+          type="button"
+          className="pv-settings-action"
           onClick={async () => {
             const { refreshAllImageCaches } = await import("@/lib/card-images");
             const n = refreshAllImageCaches();
@@ -214,11 +211,29 @@ function SettingsPanel({ onToast }: { onToast: (m: string) => void }) {
           }}
           title="Re-pull all card art in HD"
         >
-          ↻ HD Art
+          ↻ Refresh HD Art
         </button>
-      </div>
-      <div style={{ fontSize: 10, color: "var(--t3)", marginTop: 7 }}>
-        Without key: ~100 req/day. With key: 20,000+/day. Free key at dev.pokemontcg.io
+        <details className="pv-settings-advanced">
+          <summary>Advanced · pokemontcg.io API key</summary>
+          <div className="pv-settings-key-row">
+            <input
+              className="pv-key-in"
+              type="password"
+              autoComplete="off"
+              spellCheck={false}
+              placeholder="Optional — paste key"
+              value={key}
+              onChange={(e) => setKey(e.target.value)}
+              aria-label="pokemontcg.io API key"
+            />
+            <button type="button" className="pv-ksave" onClick={() => { localStorage.setItem("pokeApiKey", key); onToast("Key saved"); }}>Save</button>
+            <button type="button" className="pv-kclear" onClick={() => { localStorage.removeItem("pokeApiKey"); setKey(""); onToast("Key cleared"); }}>Clear</button>
+          </div>
+          <p className="pv-settings-hint">
+            Optional. Without key: ~100 req/day. With key: 20,000+/day. Free at{" "}
+            <a href="https://dev.pokemontcg.io" target="_blank" rel="noreferrer">dev.pokemontcg.io</a>.
+          </p>
+        </details>
       </div>
     </div>
   );

@@ -3,11 +3,31 @@ import { createFileRoute } from "@tanstack/react-router";
 const UPSTREAM = "https://api.tcgdex.net/v2";
 const FX: Record<string, number> = { USD: 1, EUR: 1.08, GBP: 1.27, JPY: 0.0064, CAD: 0.73, AUD: 0.66 };
 
+/** Sets known to ship with null TCGdex pricing until market data catches up. */
+const PENDING_NEW_SETS = new Set(["30th", "30th-c", "me55", "me55c"]);
+
+/** TCGdex set id ↔ pokemontcg.io set id. */
+const SET_ID_ALIAS: Record<string, string[]> = {
+  "30th": ["30th", "me55"],
+  me55: ["me55", "30th"],
+  "30th-c": ["30th-c", "me55c"],
+  me55c: ["me55c", "30th-c"],
+};
+
+/** TCGPlayer group ids via tcgcsv.com (public CSV mirror). */
+const TCGCSV_GROUP: Record<string, number> = {
+  "30th": 24722,
+  me55: 24722,
+  "30th-c": 24837,
+  me55c: 24837,
+};
+
 export type PriceQuote = {
   market: number;
   source: string;
   soldAvg?: number;
   listingMarket?: number;
+  pending?: boolean;
 };
 
 function usd(n: number, unit?: string): number {
@@ -85,6 +105,25 @@ function marketFromTcgdex(raw: any): PriceQuote | null {
   return null;
 }
 
+function parseCardId(id: string): { setKey: string; localId: string; rawLocal: string } | null {
+  const m = id.match(/^([a-z0-9-]+?)-(\d+[a-z]?)$/i);
+  if (!m) return null;
+  return { setKey: m[1].toLowerCase(), localId: m[2].replace(/^0+/, "") || "0", rawLocal: m[2] };
+}
+
+function padLocal(n: string): string {
+  const digits = n.replace(/\D/g, "");
+  if (!digits) return n.toLowerCase();
+  return digits.padStart(3, "0");
+}
+
+function normName(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "")
+    .trim();
+}
+
 async function quoteTcgplayerProduct(productId: number): Promise<number | null> {
   try {
     const r = await fetch(`https://infinite-api.tcgplayer.com/price/history/${productId}?range=quarter`, {
@@ -106,7 +145,173 @@ async function quoteTcgplayerProduct(productId: number): Promise<number | null> 
   }
 }
 
+type CsvRow = { productId: number; name: string; number: string; market: number };
+type CsvCache = { at: number; byNum: Map<string, CsvRow>; byName: Map<string, CsvRow>; rows: CsvRow[] };
+const csvCache = new Map<number, CsvCache>();
+const CSV_TTL_MS = 30 * 60 * 1000;
+
+async function loadTcgcsvGroup(groupId: number): Promise<CsvCache | null> {
+  const hit = csvCache.get(groupId);
+  if (hit && Date.now() - hit.at < CSV_TTL_MS) return hit;
+  try {
+    const csvHeaders = {
+      Accept: "application/json",
+      "User-Agent": "PokeVault/1.0 (https://pokedex-hub-lime.vercel.app; prices-fallback)",
+    };
+    const [prodsR, pricesR] = await Promise.all([
+      fetch(`https://tcgcsv.com/tcgplayer/3/${groupId}/products`, {
+        headers: csvHeaders,
+        signal: AbortSignal.timeout(8000),
+      }),
+      fetch(`https://tcgcsv.com/tcgplayer/3/${groupId}/prices`, {
+        headers: csvHeaders,
+        signal: AbortSignal.timeout(8000),
+      }),
+    ]);
+    if (!prodsR.ok || !pricesR.ok) return hit || null;
+    const prods: any = await prodsR.json();
+    const prices: any = await pricesR.json();
+    const priceByPid = new Map<number, number>();
+    for (const p of prices?.results || []) {
+      const pid = Number(p.productId);
+      const m = Number(p.marketPrice) || Number(p.midPrice) || Number(p.lowPrice) || 0;
+      if (pid > 0 && m > 0) {
+        const prev = priceByPid.get(pid) || Infinity;
+        if (m < prev) priceByPid.set(pid, m);
+      }
+    }
+    const byNum = new Map<string, CsvRow>();
+    const byName = new Map<string, CsvRow>();
+    const rows: CsvRow[] = [];
+    for (const r of prods?.results || []) {
+      const pid = Number(r.productId);
+      const market = priceByPid.get(pid) || 0;
+      if (!(market > 0)) continue;
+      let number = "";
+      for (const ed of r.extendedData || []) {
+        if (ed?.name === "Number" && ed.value) {
+          number = String(ed.value).split("/")[0].trim();
+          break;
+        }
+      }
+      const name = String(r.name || "").replace(/\s*-\s*\d+\/\d+\s*$/, "").trim();
+      const row: CsvRow = { productId: pid, name, number, market };
+      rows.push(row);
+      if (number) {
+        const key = padLocal(number);
+        const prev = byNum.get(key);
+        if (!prev || market < prev.market) byNum.set(key, row);
+      }
+      const nk = normName(name);
+      if (nk) {
+        const prev = byName.get(nk);
+        if (!prev || market < prev.market) byName.set(nk, row);
+      }
+    }
+    const entry: CsvCache = { at: Date.now(), byNum, byName, rows };
+    csvCache.set(groupId, entry);
+    return entry;
+  } catch {
+    return hit || null;
+  }
+}
+
+function matchByName(cache: CsvCache, name: string): CsvRow | undefined {
+  const nk = normName(name);
+  if (!nk) return undefined;
+  const exact = cache.byName.get(nk);
+  if (exact) return exact;
+  // Classic reprints often add parenthetical suffixes ("Genesect EX (Team Plasma)")
+  let best: CsvRow | undefined;
+  for (const [k, v] of cache.byName) {
+    if (k === nk || k.startsWith(nk)) {
+      if (!best || k.length < normName(best.name).length) best = v;
+    }
+  }
+  return best;
+}
+
+async function quoteTcgcsv(setKey: string, localId: string, name?: string): Promise<PriceQuote | null> {
+  const groupId = TCGCSV_GROUP[setKey];
+  if (!groupId) return null;
+  const cache = await loadTcgcsvGroup(groupId);
+  if (!cache) return null;
+
+  // Classic Collection localIds are sequential in-set (001..030) but TCGPlayer
+  // numbers are the original print numbers — never match Classic by number.
+  const classic = setKey === "30th-c" || setKey === "me55c";
+  let row: CsvRow | undefined;
+  if (classic) {
+    if (name) row = matchByName(cache, name);
+  } else {
+    const padded = padLocal(localId);
+    row = cache.byNum.get(padded) || cache.byNum.get(localId);
+    if (!row && name) row = matchByName(cache, name);
+  }
+  if (!row || !(row.market > 0)) return null;
+  return { market: Math.round(row.market * 100) / 100, source: "tcgcsv-market" };
+}
+
+function pokemonAliases(id: string): string[] {
+  const parsed = parseCardId(id);
+  if (!parsed) return [id];
+  const sets = SET_ID_ALIAS[parsed.setKey] || [parsed.setKey];
+  const locals = new Set<string>();
+  const raw = parsed.rawLocal;
+  const unpadded = parsed.localId;
+  const padded = padLocal(raw);
+  locals.add(raw);
+  locals.add(unpadded);
+  locals.add(padded);
+  // pokemontcg often uses unpadded: me55-1
+  const out: string[] = [];
+  for (const s of sets) {
+    for (const loc of locals) {
+      out.push(`${s}-${loc}`);
+    }
+  }
+  return [...new Set(out)];
+}
+
+function quoteFromPokemonPrices(prices: any): PriceQuote | null {
+  if (!prices || typeof prices !== "object") return null;
+  for (const field of ["market", "mid", "low"] as const) {
+    for (const k of ["holofoil", "1stEditionHolofoil", "reverseHolofoil", "normal", "unlimited"]) {
+      const n = Number(prices[k]?.[field]);
+      if (Number.isFinite(n) && n > 0) {
+        const source =
+          field === "market" ? "pokemontcg-market" : field === "mid" ? "pokemontcg-mid" : "pokemontcg-low";
+        return { market: n, source };
+      }
+    }
+  }
+  return null;
+}
+
+async function quotePokemonTcg(id: string): Promise<PriceQuote | null> {
+  for (const alias of pokemonAliases(id).slice(0, 6)) {
+    try {
+      const r = await fetch(`https://api.pokemontcg.io/v2/cards/${encodeURIComponent(alias)}`, {
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(4000),
+      });
+      if (!r.ok) continue;
+      const j: any = await r.json();
+      const q = quoteFromPokemonPrices(j?.data?.tcgplayer?.prices);
+      if (q) return q;
+    } catch {
+      /* try next alias */
+    }
+  }
+  return null;
+}
+
 async function quoteOne(id: string): Promise<PriceQuote | null> {
+  const parsed = parseCardId(id);
+  const setKey = parsed?.setKey || "";
+  let tcgdexName: string | undefined;
+  let tcgdexLocal: string | undefined;
+
   try {
     const r = await fetch(`${UPSTREAM}/en/cards/${encodeURIComponent(id)}`, {
       headers: { Accept: "application/json" },
@@ -114,9 +319,15 @@ async function quoteOne(id: string): Promise<PriceQuote | null> {
     });
     if (r.ok) {
       const raw = await r.json();
+      tcgdexName = raw?.name;
+      tcgdexLocal = raw?.localId ? String(raw.localId) : parsed?.rawLocal;
       const q = marketFromTcgdex(raw);
       if (q && q.market > 0) return q;
-      const pid = Number(raw?.pricing?.tcgplayer?.holofoil?.productId || raw?.pricing?.tcgplayer?.normal?.productId);
+      const pid = Number(
+        raw?.pricing?.tcgplayer?.holofoil?.productId ||
+          raw?.pricing?.tcgplayer?.normal?.productId ||
+          raw?.pricing?.tcgplayer?.reverseHolofoil?.productId,
+      );
       if (pid > 0) {
         const tp = await quoteTcgplayerProduct(pid);
         if (tp && tp > 0) return { market: tp, source: "tcgplayer-market" };
@@ -125,29 +336,19 @@ async function quoteOne(id: string): Promise<PriceQuote | null> {
   } catch {
     /* next */
   }
-  try {
-    const r = await fetch(`https://api.pokemontcg.io/v2/cards/${encodeURIComponent(id)}`, {
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(4000),
-    });
-    if (r.ok) {
-      const j: any = await r.json();
-      const prices = j?.data?.tcgplayer?.prices;
-      if (prices && typeof prices === "object") {
-        for (const field of ["market", "mid", "low"] as const) {
-          for (const k of ["holofoil", "1stEditionHolofoil", "reverseHolofoil", "normal", "unlimited"]) {
-            const n = Number(prices[k]?.[field]);
-            if (Number.isFinite(n) && n > 0) {
-              const source =
-                field === "market" ? "pokemontcg-market" : field === "mid" ? "pokemontcg-mid" : "pokemontcg-low";
-              return { market: n, source };
-            }
-          }
-        }
-      }
-    }
-  } catch {
-    /* next */
+
+  // tcgcsv (TCGPlayer mirror) — works for brand-new sets where TCGdex pricing is null
+  if (setKey && TCGCSV_GROUP[setKey]) {
+    const csv = await quoteTcgcsv(setKey, tcgdexLocal || parsed?.rawLocal || "", tcgdexName);
+    if (csv) return csv;
+  }
+
+  const pkmn = await quotePokemonTcg(id);
+  if (pkmn) return pkmn;
+
+  // Honest pending marker for known new sets with no public quote yet
+  if (PENDING_NEW_SETS.has(setKey)) {
+    return { market: 0, source: "pending-new-set", pending: true };
   }
   return null;
 }

@@ -3870,3 +3870,127 @@ html, body, .pv-app {
     transition: none !important;
   }
 }
+
+
+/* ===== FIXES-PASS 2026-09-22: settings declutter + export contrast + pending prices ===== */
+.pv-app-shell .pv-settings {
+  background: linear-gradient(180deg, #182032 0%, #121826 100%) !important;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.22) !important;
+  padding: 10px 16px !important;
+  color: #f4efe4 !important;
+}
+.pv-settings-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px 16px;
+}
+.pv-settings-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  background: #1e2a40;
+  color: #f4efe4;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.pv-settings-action:hover {
+  border-color: rgba(226, 181, 58, 0.55);
+  color: #e2b53a;
+}
+.pv-settings-advanced {
+  flex: 1;
+  min-width: 220px;
+  color: #c5c6c7;
+  font-size: 12px;
+}
+.pv-settings-advanced > summary {
+  cursor: pointer;
+  list-style: none;
+  color: #8b90a0;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+.pv-settings-advanced > summary::-webkit-details-marker { display: none; }
+.pv-settings-advanced > summary::before {
+  content: "▸ ";
+  color: #38bdf8;
+}
+.pv-settings-advanced[open] > summary::before { content: "▾ "; }
+.pv-settings-advanced[open] > summary { color: #f4efe4; margin-bottom: 8px; }
+.pv-settings-key-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.pv-app-shell .pv-settings .pv-ksave {
+  background: #cc2b2b !important;
+  color: #fff !important;
+}
+.pv-app-shell .pv-settings .pv-kclear {
+  background: transparent !important;
+  color: #f4efe4 !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+}
+.pv-settings-hint {
+  margin: 8px 0 0;
+  font-size: 10px;
+  color: #8b90a0;
+  line-height: 1.4;
+}
+.pv-settings-hint a { color: #38bdf8; text-decoration: underline; }
+
+/* Export JSON + plain tool buttons: cream-on-white was unreadable under color lock */
+.pv-app-shell .pv-tool-btn {
+  background: #1e2a40 !important;
+  color: #f4efe4 !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+.pv-app-shell .pv-tool-btn:hover {
+  background: #24344f !important;
+  border-color: rgba(226, 181, 58, 0.5) !important;
+  color: #fff !important;
+}
+.pv-app-shell .pv-tool-btn.primary {
+  background: linear-gradient(135deg, #ff7a3d, #ff4d00) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+}
+.pv-app-shell .pv-tool-btn.gold {
+  background: linear-gradient(135deg, #e2b53a, #f59e0b) !important;
+  border-color: transparent !important;
+  color: #1a1208 !important;
+}
+
+.pv-c-price .pv-price-pending,
+.pv-price-pending {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8b90a0 !important;
+  -webkit-text-fill-color: #8b90a0 !important;
+  border: 1px solid rgba(139, 144, 160, 0.45);
+  border-radius: 999px;
+  padding: 1px 7px;
+  background: rgba(18, 24, 38, 0.75);
+}
+.pv-price-pending-banner {
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: #e2b53a;
+  background: rgba(226, 181, 58, 0.1);
+  border: 1px solid rgba(226, 181, 58, 0.35);
+}

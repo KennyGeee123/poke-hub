@@ -372,6 +372,12 @@ function isFlakyCatalogSet(set: TCGSet): boolean {
   return id === "me2pt5" || id.includes("me2pt5") || name.includes("ascended heroes");
 }
 
+function isPendingPriceSetView(set: TCGSet): boolean {
+  const id = (set.id || "").toLowerCase();
+  return id === "30th" || id === "30th-c" || id === "me55" || id === "me55c"
+    || id.startsWith("30th") || id.startsWith("me55");
+}
+
 export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () => void; onOpen: OnOpen }) {
   const [cards, setCards] = useState<TCGCard[] | null>(null);
   const [showBox, setShowBox] = useState(false);
@@ -438,6 +444,11 @@ export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () 
           )}
           {set.id === "error" && (
             <div style={{ color: "var(--gold)", fontSize: 11, marginTop: 4 }}>Named factory errors and misprints (no-symbol Jungle/Fossil, Black Dot Charizard, Prerelease Raichu, and more).</div>
+          )}
+          {isPendingPriceSetView(set) && (
+            <div className="pv-price-pending-banner" role="status">
+              Prices pending — new set. Live quotes load from TCGPlayer when available; tiles show Pending until then.
+            </div>
           )}
         </div>
         <button
