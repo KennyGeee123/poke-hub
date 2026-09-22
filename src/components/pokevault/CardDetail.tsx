@@ -384,7 +384,14 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
                 <div style={{ fontSize: 9, color: "var(--t3)", letterSpacing: 1, textTransform: "uppercase" }}>
                   {gradeMeta.label}
                 </div>
-                <div style={{ fontFamily: "Bebas Neue", fontSize: 26, color: gradeMeta.isSlab ? "#fbbf24" : "var(--gold)", letterSpacing: 1 }}>
+                <div
+                  className={gradeMeta.isSlab ? undefined : "pv-c-price"}
+                  style={
+                    gradeMeta.isSlab
+                      ? { fontFamily: "Bebas Neue", fontSize: 26, color: "#fbbf24", letterSpacing: 1 }
+                      : { fontSize: 14, letterSpacing: 0.02 }
+                  }
+                >
                   {formatPrice(gradedVal.estimatedGradedPrice)}
                 </div>
               </div>

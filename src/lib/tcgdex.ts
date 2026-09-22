@@ -274,7 +274,13 @@ export async function tcgdexSearchCards(name: string, limit = 50, lang = "en"): 
   if (!q) return [];
   const raw = await j<any[]>(tcgdexUrl(lang, `/cards?name=${encodeURIComponent(q)}`));
   if (!Array.isArray(raw) || !raw.length) return [];
-  return raw.slice(0, limit).map((c) => mapTcgdexCard(c, undefined, lang));
+  const qn = q.toLowerCase();
+  const mapped = raw.map((c) => mapTcgdexCard(c, undefined, lang));
+  const matched = mapped.filter((c) => {
+    const n = (c.name || "").toLowerCase();
+    return n.includes(qn) || qn.includes(n) || n.startsWith(qn);
+  });
+  return (matched.length ? matched : mapped).slice(0, limit);
 }
 
 export async function tcgdexGetSets(lang = "en"): Promise<TCGSet[]> {

@@ -99,35 +99,37 @@ function Index() {
             PokéVault
           </button>
         </div>
-        <div className="pv-hdr-val">{formatPrice(totalValue)}</div>
-        {isPro ? (
+        <div className="pv-hdr-actions">
+          <div className="pv-hdr-val">{formatPrice(totalValue)}</div>
+          {isPro ? (
+            <button
+              type="button"
+              className={`pv-pro-chip ${tier === "elite" ? "elite" : "pro"}`}
+              title={tier === "elite" ? "Elite Champion" : "Pro Trainer"}
+              onClick={() => goTab("pricing")}
+            >
+              <span className="pv-pro-star" aria-hidden>★</span>
+              {isOwner ? "Owner" : tier === "elite" ? "Elite" : "Pro"}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="pv-pro-chip free"
+              title="Upgrade for unlimited scans & Pro tabs"
+              onClick={() => goTab("pricing")}
+            >
+              <span className="pv-pro-star" aria-hidden>☆</span>
+              {scansLeft}/{FREE_SCAN_LIMIT} scans
+            </button>
+          )}
+          <div className="pv-gb-badge pv-vb-on" title="Site shields on. Not desktop antivirus.">Virus Buster</div>
           <button
-            type="button"
-            className={`pv-pro-chip ${tier === "elite" ? "elite" : "pro"}`}
-            title={tier === "elite" ? "Elite Champion" : "Pro Trainer"}
-            onClick={() => goTab("pricing")}
-          >
-            <span className="pv-pro-star" aria-hidden>★</span>
-            {isOwner ? "Owner" : tier === "elite" ? "Elite" : "Pro"}
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="pv-pro-chip free"
-            title="Upgrade for unlimited scans & Pro tabs"
-            onClick={() => goTab("pricing")}
-          >
-            <span className="pv-pro-star" aria-hidden>☆</span>
-            {scansLeft}/{FREE_SCAN_LIMIT} scans
-          </button>
-        )}
-        <div className="pv-gb-badge pv-vb-on" title="Site shields on. Not desktop antivirus.">Virus Buster</div>
-        <button
-          onClick={async () => { if (user) { await signOut(); } else { nav({ to: "/login" }); } }}
-          className="pv-gb-badge pv-auth-btn"
-          aria-label={user ? "Sign out" : "Sign in"}
-        >{user ? "Sign out" : "Sign in"}</button>
-        <button className="pv-gear" onClick={() => setSettingsOpen(s => !s)} aria-label="Settings">⚙</button>
+            onClick={async () => { if (user) { await signOut(); } else { nav({ to: "/login" }); } }}
+            className="pv-gb-badge pv-auth-btn"
+            aria-label={user ? "Sign out" : "Sign in"}
+          >{user ? "Sign out" : "Sign in"}</button>
+          <button className="pv-gear" onClick={() => setSettingsOpen(s => !s)} aria-label="Settings">⚙</button>
+        </div>
       </header>
       {settingsOpen && <SettingsPanel onToast={show} />}
     </>

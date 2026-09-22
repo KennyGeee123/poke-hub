@@ -267,7 +267,7 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
           <div className="pv-c-name" style={{ fontSize: 12 }}>{card.name}</div>
           <div className="flex justify-between items-center mt-1">
             <div className="pv-c-set" style={{ fontSize: 10 }}>{card.set.name}</div>
-            <div className="pv-c-price" style={{ color: gradeMeta.isSlab ? "#fbbf24" : undefined }}>
+            <div className="pv-c-price">
               {displayPrice ? formatPrice(displayPrice) : "—"}
             </div>
           </div>

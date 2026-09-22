@@ -687,26 +687,39 @@ export async function getTrending(pageSize = 16, page = 1, lang = "en"): Promise
 }
 
 export async function getTopMarket(lang = "en"): Promise<TCGCard[]> {
-  if (lang !== "en") {
-    const recent = await tcgdexRecentCards(40, lang);
+  // Prefer TCGdex catalog rows with embedded quotes (same path as Discover).
+  // pokemontcg.io list quotes often ship empty; TCGPlayer infinite is 403 on Vercel.
+  try {
+    const recent = await tcgdexRecentCards(48, lang);
     recent.forEach(rememberCard);
     const priced = recent.filter((c) => getMarketPrice(c) > 0);
-    return (priced.length ? priced : recent).slice(0, 30);
+    const pool = priced.length ? priced : recent;
+    if (pool.length) {
+      return [...pool]
+        .sort((a, b) => getMarketPrice(b) - getMarketPrice(a))
+        .slice(0, 30);
+    }
+  } catch { /* fall through */ }
+  if (lang === "en") {
+    try {
+      const res = await searchCards({
+        q: "supertype:Pokémon",
+        pageSize: 50,
+        orderBy: "-set.releaseDate",
+        select: CARD_LIST_SELECT,
+      });
+      const priced = (res.data ?? []).filter((c) => getMarketPrice(c) > 0).slice(0, 30);
+      if (priced.length) return priced;
+      if (res.data?.length) return res.data.slice(0, 30);
+    } catch { /* fall through */ }
   }
   try {
-    const res = await searchCards({
-      q: "supertype:Pokémon",
-      pageSize: 50,
-      orderBy: "-set.releaseDate",
-      select: CARD_LIST_SELECT,
-    });
-    const priced = (res.data ?? []).filter(c => getMarketPrice(c) > 0).slice(0, 30);
-    if (priced.length) return priced;
-    if (res.data?.length) return res.data.slice(0, 30);
-  } catch { /* fall through */ }
-  try {
     const fast = await getDiscoverFast(lang);
-    if (fast.length) return fast.slice(0, 30);
+    if (fast.length) {
+      return [...fast]
+        .sort((a, b) => getMarketPrice(b) - getMarketPrice(a))
+        .slice(0, 30);
+    }
   } catch { /* fall through */ }
   return FALLBACK_CARDS;
 }

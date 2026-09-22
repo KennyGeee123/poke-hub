@@ -10,7 +10,7 @@ import { CheapestPill } from "./CheapestPill";
 import { PriceComparePanel } from "./PriceCompare";
 import { PrintLangBar } from "./PrintLangBar";
 import { searchChips, searchPlaceholder, usePrintLang } from "@/lib/print-lang";
-import { parseSearchQuery } from "@/lib/card-search";
+import { cardSearchScore, parseSearchQuery } from "@/lib/card-search";
 import { hydrateLivePrices, useLivePrice } from "@/lib/live-prices";
 
 type OnOpen = (id: string) => void;
@@ -558,9 +558,27 @@ export function SearchView({ onOpen }: { onOpen: OnOpen }) {
         }
       }
       if (!res) throw lastErr ?? new Error("Search failed");
-      const next = p === 1 ? res.data : [...(cards ?? []), ...res.data];
+      let batch = res.data;
+      // Require name match for plain species queries (e.g. Charizard ≠ Gyarados).
+      // Print/lucene queries keep broader catalog hits.
+      if (parsed.name && !parsed.print && !/[:*]/.test(raw)) {
+        const scored = batch
+          .map((c) => ({
+            c,
+            s: cardSearchScore(
+              { id: c.id, name: c.name, setId: c.set?.id, rarity: c.rarity || undefined },
+              parsed,
+              lang,
+              c.set?.name || "",
+            ),
+          }))
+          .filter((x) => x.s !== null)
+          .sort((a, b) => (a.s as number) - (b.s as number));
+        if (scored.length) batch = scored.map((x) => x.c);
+      }
+      const next = p === 1 ? batch : [...(cards ?? []), ...batch];
       setCards(next);
-      setTotal(res.totalCount);
+      setTotal(parsed.name && !parsed.print && !/[:*]/.test(raw) ? next.length : res.totalCount);
       setPage(p);
       hydrateLivePrices(next);
     } catch (e: any) {

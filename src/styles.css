@@ -3671,3 +3671,202 @@ html, body, .pv-app {
 .pv-pro-chip.pro .pv-pro-star { color: #38bdf8; }
 .pv-virt-cell { content-visibility: auto; contain-intrinsic-size: auto 210px; }
 .pv-virt-spacer { pointer-events: none; }
+
+/* === 2026-09-22 VISUAL POLISH === */
+:root {
+  --pv-cyan: #38bdf8;
+}
+
+/* Calm price chip — filled Obsidian, thin gold border, less glow */
+.pv-c-price,
+.pv-app-shell .pv-c-price,
+.pv-lb-price,
+.pv-app-shell .pv-lb-price {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  padding: 2px 7px !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(226, 181, 58, 0.55) !important;
+  background: #0b0c10 !important;
+  color: #e2b53a !important;
+  font-family: "Barlow", ui-sans-serif, system-ui, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-shadow: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* Stronger tile bottom gradient so name stays readable over art */
+.pv-card-ovl,
+.pv-app-shell .pv-card-ovl {
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.35) 28%,
+    rgba(0, 0, 0, 0.85) 100%
+  ) !important;
+  padding: 22px 8px 8px !important;
+}
+
+.pv-card-wrap {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28) !important;
+}
+.pv-card-wrap:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px #0b0c10,
+    0 0 0 4px #e2b53a,
+    0 0 0 6px rgba(56, 189, 248, 0.55) !important;
+}
+
+/* Tab bar: safe-area, above content, readable inactive labels */
+.pv-tabbar {
+  z-index: 100;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+}
+.pv-tabbar-lbl {
+  opacity: 0.72;
+}
+.pv-tabbar-item.on .pv-tabbar-lbl {
+  opacity: 1;
+}
+
+/* Music / Pokéball FAB — clear Battle Mode + bottom tabbar */
+.pv-music-fab {
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+  right: 14px !important;
+  z-index: 95 !important;
+}
+.pv-music-panel {
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px) + 64px) !important;
+  z-index: 96 !important;
+}
+
+/* Language pills — lighter density, wrap, quieter when off */
+.pv-app-shell .pv-pill {
+  padding: 3px 9px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  border-radius: 999px !important;
+  gap: 0;
+}
+.pv-app-shell [role="group"][aria-label="Card print language"],
+.pv-app-shell .pad > .flex.gap-1.flex-wrap.mb-3 {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  margin-bottom: 10px !important;
+}
+.pv-app-shell .pv-pill:not(.on) {
+  background: rgba(11, 12, 16, 0.55) !important;
+  border-color: rgba(244, 239, 228, 0.14) !important;
+  color: rgba(244, 239, 228, 0.62) !important;
+  opacity: 0.85;
+}
+.pv-app-shell .pv-pill.on {
+  opacity: 1;
+}
+
+/* Discover quick-action row */
+.pv-qa-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px !important;
+}
+
+/* Empty states — Obsidian panel, cyan accent, gold title */
+.pv-empty,
+.pv-app-shell .pv-empty {
+  background: linear-gradient(180deg, #0b1220, #0b0c10) !important;
+  border: 1px solid rgba(226, 181, 58, 0.22) !important;
+  border-left: 3px solid var(--pv-cyan, #38bdf8) !important;
+  border-radius: 14px !important;
+  padding: 28px 18px !important;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+}
+.pv-empty-title,
+.pv-app-shell .pv-empty-title {
+  color: #e2b53a !important;
+  letter-spacing: 1.4px !important;
+}
+
+/* Header action cluster */
+.pv-hdr-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 1 auto;
+  min-width: 0;
+  margin-left: auto;
+}
+
+/* Header crowding at ~390px — keep wordmark, drop Virus Buster collision */
+.pv-hdr.pv-hdr-glass {
+  gap: 6px !important;
+  padding: 0 10px !important;
+}
+.pv-hdr-brand {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.pv-app-shell .pv-logo-text {
+  font-size: 18px !important;
+  letter-spacing: 1.5px !important;
+  max-width: 42vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pv-app-shell .pv-hdr-val {
+  flex: 0 0 auto;
+  padding: 4px 8px !important;
+  font-size: 11px !important;
+}
+.pv-app-shell .pv-pro-chip {
+  flex: 0 0 auto;
+  padding: 4px 8px !important;
+  font-size: 10px !important;
+  white-space: nowrap;
+}
+.pv-app-shell .pv-gb-badge.pv-auth-btn {
+  flex: 0 0 auto;
+  padding: 4px 8px !important;
+  font-size: 10px !important;
+}
+
+@media (max-width: 420px) {
+  /* Do NOT force-show Virus Buster — it collides with PokéVault wordmark */
+  .pv-app-shell .pv-gb-badge { display: none !important; }
+  .pv-app-shell .pv-gb-badge.pv-auth-btn { display: inline-flex !important; }
+  .pv-app-shell .pv-gb-badge.pv-vb-on { display: none !important; }
+  .pv-app-shell .pv-logo-text {
+    font-size: 16px !important;
+    letter-spacing: 1px !important;
+    max-width: 36vw;
+  }
+  .pv-app-shell .pv-hdr-val {
+    display: none !important; /* value chip yields space to wordmark + actions */
+  }
+  .pv-pokeball { width: 22px !important; height: 22px !important; }
+  .pv-hdr.pv-hdr-glass { height: 52px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-music-fab,
+  .pv-music-fab.spin,
+  .pv-card-skel,
+  .pv-skel-line,
+  .pv-energy-strip,
+  .pv-tabbar-glow,
+  .pv-page-enter,
+  .pv-stagger .pv-stagger-item {
+    animation: none !important;
+    transition: none !important;
+  }
+}
