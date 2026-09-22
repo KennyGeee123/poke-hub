@@ -156,8 +156,7 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
           <div className="pv-gold-b" title="Gold / Hyper / Secret Rare">GOLD</div>
         )}
         
-        {/* Quick Action Overlay (Scan + Trade) */}
-        <div style={{ position: "absolute", top: 6, right: onRemove ? 30 : 6, zIndex: 36, display: "flex", gap: 3 }}>
+        <div className="pv-card-tools" style={{ position: "absolute", top: 6, right: onRemove ? 30 : 6, zIndex: 36, display: "flex", gap: 3 }}>
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -201,8 +200,8 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
           </button>
         </div>
 
-        {/* Quality / Grade Badge + Level Stat Boost Badge */}
         <div
+          className="pv-card-meta-badges"
           style={{
             position: "absolute",
             top: 6,
@@ -266,8 +265,8 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
             </div>
           </div>
 
-          {/* Graded & Ungraded Condition Dropdown */}
           <div
+            className="pv-card-grade"
             style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}
             onClick={(e) => e.stopPropagation()}
           >

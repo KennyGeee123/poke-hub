@@ -2833,6 +2833,52 @@ header, nav, main, footer, .pv-settings { position: relative; z-index: 1; }
   border-radius: 12px;
 }
 
+/* Art Navis (Inkwell + DesignForge): chrome off until hover so 400 gold tiles stay readable. */
+.pv-card-tools,
+.pv-card-meta-badges,
+.pv-card-grade {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+.pv-card-wrap:hover .pv-card-tools,
+.pv-card-wrap:focus-within .pv-card-tools,
+.pv-card-wrap:hover .pv-card-meta-badges,
+.pv-card-wrap:focus-within .pv-card-meta-badges,
+.pv-card-wrap:hover .pv-card-grade,
+.pv-card-wrap:focus-within .pv-card-grade {
+  opacity: 1;
+  pointer-events: auto;
+}
+.pv-card-img-wrap {
+  box-shadow:
+    0 8px 18px rgba(11, 18, 32, 0.45),
+    0 0 0 1px rgba(226, 181, 58, 0.28),
+    inset 0 0 0 1px rgba(255, 215, 120, 0.12);
+}
+.pv-card-wrap:hover .pv-card-img-wrap {
+  border-color: var(--gold);
+  box-shadow:
+    0 16px 32px rgba(11, 18, 32, 0.5),
+    0 0 0 1px var(--gold),
+    0 0 22px rgba(226, 181, 58, 0.28);
+}
+.pv-gold-b {
+  letter-spacing: 0.8px;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.35);
+}
+.pv-app-shell .pv-pill {
+  background: rgba(18, 24, 38, 0.92);
+  border-color: rgba(226, 181, 58, 0.28);
+  color: var(--t2);
+}
+.pv-app-shell .pv-pill.on,
+.pv-app-shell .pv-pill:hover {
+  background: var(--gold-bg);
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
 /* Market leaderboard */
 .pv-lb-list { display: flex; flex-direction: column; gap: 8px; }
 .pv-app-shell .pv-lb-row {
