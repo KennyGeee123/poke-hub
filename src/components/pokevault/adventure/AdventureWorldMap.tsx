@@ -155,7 +155,7 @@ export function AdventureWorldMap({
   );
   const [useLiveGps, setUseLiveGps] = useState(false);
   const [gpsStatus, setGpsStatus] = useState<"idle" | "tracking" | "denied">("idle");
-  const [mapStyle, setMapStyle] = useState<"carto_dark" | "osm_streets">("carto_dark");
+  const [mapStyle, setMapStyle] = useState<"dark" | "streets">("dark");
   const [facingAngle, setFacingAngle] = useState(0);
   const [isWalking, setIsWalking] = useState(false);
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(adventureState.world.timeOfDay);
@@ -424,10 +424,21 @@ export function AdventureWorldMap({
         const tx = tileInfo.tileX + dx;
         const ty = tileInfo.tileY + dy;
         const key = `${zoom}-${tx}-${ty}`;
-        const url =
-          mapStyle === "carto_dark"
-            ? `https://a.basemaps.cartocdn.com/dark_all/${zoom}/${tx}/${ty}@2x.png`
-            : `https://tile.openstreetmap.org/${zoom}/${tx}/${ty}.png`;
+        // Default: Esri (no API key, no watermark). Optional Carto if VITE_CARTO_API_KEY / VITE_MAP_TILE_KEY set.
+        const cartoKey =
+          (import.meta.env.VITE_CARTO_API_KEY as string | undefined)?.trim() ||
+          (import.meta.env.VITE_MAP_TILE_KEY as string | undefined)?.trim() ||
+          "";
+        let url: string;
+        if (mapStyle === "dark" && cartoKey) {
+          url = `https://a.basemaps.cartocdn.com/dark_all/${zoom}/${tx}/${ty}@2x.png?api_key=${encodeURIComponent(cartoKey)}`;
+        } else if (mapStyle === "dark") {
+          // Esri World Dark Gray Base — tile order is z/y/x (= zoom/ty/tx)
+          url = `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/${zoom}/${ty}/${tx}`;
+        } else {
+          // Esri World Street Map — tile order is z/y/x (= zoom/ty/tx)
+          url = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${zoom}/${ty}/${tx}`;
+        }
 
         tiles.push({
           key,
@@ -451,7 +462,7 @@ export function AdventureWorldMap({
         className="relative w-full h-full cursor-crosshair overflow-hidden bg-[#09111e]"
         style={{ perspective: "1000px" }}
       >
-        {/* Real-World Street Map Tile Layer (CartoDB Dark Matter) */}
+        {/* Real-World Street Map Tile Layer (Esri basemaps; optional Carto with API key) */}
         <div
           className="absolute inset-0 pointer-events-none transition-opacity duration-500 overflow-hidden flex items-center justify-center"
           style={{
@@ -865,9 +876,9 @@ export function AdventureWorldMap({
         <div className="flex items-center p-1 rounded-xl bg-neutral-950/80 backdrop-blur-md border border-neutral-800 text-xs">
           <button
             type="button"
-            onClick={() => setMapStyle("carto_dark")}
+            onClick={() => setMapStyle("dark")}
             className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
-              mapStyle === "carto_dark"
+              mapStyle === "dark"
                 ? "bg-cyan-500 text-neutral-950"
                 : "text-neutral-400 hover:text-white"
             }`}
@@ -876,14 +887,14 @@ export function AdventureWorldMap({
           </button>
           <button
             type="button"
-            onClick={() => setMapStyle("osm_streets")}
+            onClick={() => setMapStyle("streets")}
             className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
-              mapStyle === "osm_streets"
+              mapStyle === "streets"
                 ? "bg-cyan-500 text-neutral-950"
                 : "text-neutral-400 hover:text-white"
             }`}
           >
-            OSM STREETS
+            STREETS
           </button>
           <button
             type="button"
@@ -977,6 +988,11 @@ export function AdventureWorldMap({
         >
           <LocateFixed className="w-4 h-4" />
         </button>
+      </div>
+
+      {/* Basemap attribution (Esri courtesy) */}
+      <div className="absolute bottom-2 left-2 z-30 pointer-events-none px-2 py-0.5 rounded bg-black/55 text-[9px] text-neutral-400 font-sans tracking-wide">
+        Basemap © Esri
       </div>
 
       <GodsEyeMap

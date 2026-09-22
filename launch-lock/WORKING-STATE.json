@@ -1,8 +1,8 @@
 {
-  "id": "pokedex-hub-launch-ready-2026-09-22-visual-polish",
+  "id": "pokedex-hub-launch-ready-2026-09-22-adventure-basemap",
   "liveUrl": "https://pokedex-hub-lime.vercel.app/",
-  "frozenAt": "2026-09-22T06:30:53Z",
-  "rootSha256": "eafd88543f8b001e932f7cb773d156fd9abfbad15b2e848cdbb5159d75eda1ea",
+  "frozenAt": "2026-09-22T06:42:00Z",
+  "rootSha256": "0584a4cb9d9034e4b38e5bc39a46633cf90245e23975ea7fc605cdd8c2abafe4",
   "fileCount": 211,
   "launchChecks": {
     "homeSsrPvApp": true,
@@ -1094,5 +1094,5 @@
       "bytes": 8732
     }
   ],
-  "thawNote": "Visual polish: calm price chips, tile overlays, FAB clears tabbar; Market TCGdex quotes; Charizard name-match search; mobile header uncrowd"
+  "thawNote": "Adventure map basemap: Esri World Dark Gray / Street Map (no Carto watermark). Optional VITE_CARTO_API_KEY / VITE_MAP_TILE_KEY for Carto dark."
 }
