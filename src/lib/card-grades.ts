@@ -411,8 +411,22 @@ export type GradedValuation = {
 };
 
 export function calculateGradedValue(card: TCGCard, grade: CardGrade): GradedValuation {
-  const rawPrice = getMarketPrice(card) || 1.0;
+  const rawPrice = getMarketPrice(card);
   const meta = getGradeMeta(grade);
+
+  if (!(rawPrice > 0)) {
+    return {
+      grade,
+      meta,
+      rawPrice: 0,
+      estimatedGradedPrice: 0,
+      multiplier: meta.baseMultiplier,
+      gradingFee: 0,
+      estimatedProfit: 0,
+      estimatedRoiPct: 0,
+      isSlab: meta.isSlab,
+    };
+  }
 
   if (!meta.isSlab) {
     // Ungraded condition calculation
@@ -495,7 +509,7 @@ export function predetermineCardGrade(
   quality: RawQuality = "raw_mint",
   customOverrides?: { centering?: number; corners?: number; edges?: number; surface?: number }
 ): PreGradeAnalysis {
-  const rawPrice = getMarketPrice(card) || 1.0;
+  const rawPrice = getMarketPrice(card);
   const psa10Value = calculateGradedValue(card, "psa10").estimatedGradedPrice;
   const psa9Value = calculateGradedValue(card, "psa9").estimatedGradedPrice;
   const psa8Value = calculateGradedValue(card, "psa8").estimatedGradedPrice;

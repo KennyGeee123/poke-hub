@@ -203,18 +203,42 @@ async function tcgFetch<T>(path: string): Promise<T> {
 
 const EUR_USD = 1.08;
 
-export function getMarketPrice(c: TCGCard): number {
-  if (!c) return 0;
-  const tp = c.tcgplayer?.prices;
-  if (tp && typeof tp === "object") {
-    const variants = Object.values(tp).filter(Boolean) as Array<Record<string, unknown>>;
+const PRINT_PREF = [
+  "holofoil",
+  "1stEditionHolofoil",
+  "unlimitedHolofoil",
+  "reverseHolofoil",
+  "shadowless",
+  "1stEdition",
+  "unlimited",
+  "normal",
+];
+
+function quotedFromTcgplayer(tp: Record<string, TCGPrice> | undefined): number {
+  if (!tp) return 0;
+  for (const k of PRINT_PREF) {
+    const v = tp[k];
+    if (!v) continue;
     for (const key of ["market", "mid", "low", "directLow"] as const) {
-      for (const v of variants) {
-        const val = Number(v?.[key]);
-        if (Number.isFinite(val) && val > 0) return val;
-      }
+      const val = Number(v[key]);
+      if (Number.isFinite(val) && val > 0) return val;
     }
   }
+  for (const v of Object.values(tp)) {
+    if (!v) continue;
+    for (const key of ["market", "mid", "low", "directLow"] as const) {
+      const val = Number(v[key]);
+      if (Number.isFinite(val) && val > 0) return val;
+    }
+  }
+  return 0;
+}
+
+/** Real TCGPlayer/Cardmarket quote. Does not invent a hash estimate. */
+export function getMarketPrice(c: TCGCard, opts?: { allowEstimate?: boolean }): number {
+  if (!c) return 0;
+  const quoted = quotedFromTcgplayer(c.tcgplayer?.prices);
+  if (quoted > 0) return quoted;
   const cm = c.cardmarket?.prices;
   if (cm) {
     for (const key of ["trendPrice", "averageSellPrice", "lowPrice"] as const) {
@@ -222,7 +246,8 @@ export function getMarketPrice(c: TCGCard): number {
       if (Number.isFinite(val) && val > 0) return Math.round(val * EUR_USD * 100) / 100;
     }
   }
-  return estimatePrice(c);
+  if (opts?.allowEstimate) return estimatePrice(c);
+  return 0;
 }
 
 /** Last-resort display price when TCGPlayer/Cardmarket have no print yet (new sets). */

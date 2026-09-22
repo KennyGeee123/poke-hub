@@ -15,6 +15,7 @@ import {
   getGradeMeta,
 } from "@/lib/card-grades";
 import { getCardLevelAndStats } from "@/lib/card-stats";
+import { applyLiveQuote, useLivePrice } from "@/lib/live-prices";
 
 type Props = {
   card: TCGCard;
@@ -93,7 +94,9 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
   const [showScanModal, setShowScanModal] = useState(false);
   const [showTradeModal, setShowTradeModal] = useState(false);
 
-  const gradedVal = calculateGradedValue(card, grade);
+  const live = useLivePrice(card);
+  const priced = live > 0 ? applyLiveQuote(card, live) : card;
+  const gradedVal = calculateGradedValue(priced, grade);
   const displayPrice = gradedVal.estimatedGradedPrice;
   const gradeMeta = getGradeMeta(grade);
   const stats = getCardLevelAndStats(card, grade);

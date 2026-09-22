@@ -170,9 +170,13 @@ async function tcgplayerPrice(productId: number): Promise<number | null> {
   }
 }
 
-async function hydratePrices(cards: CatCard[], limit = 16): Promise<Map<string, number>> {
+async function hydratePrices(cards: CatCard[], limit = 48): Promise<Map<string, number>> {
   const out = new Map<string, number>();
-  const slice = cards.filter((c) => c.tcgplayer).slice(0, limit);
+  for (const c of cards) {
+    const m = Number(c.market);
+    if (Number.isFinite(m) && m > 0) out.set(c.id, m);
+  }
+  const slice = cards.filter((c) => c.tcgplayer && !out.has(c.id)).slice(0, limit);
   const chunk = 8;
   for (let i = 0; i < slice.length; i += chunk) {
     const part = slice.slice(i, i + chunk);
@@ -236,7 +240,7 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
         CAT.cards.filter((c) => (c.rarity || "").toLowerCase() === rarityQ || (c.rarity || "").toLowerCase().includes(rarityQ)),
         lang,
       ).slice(0, limit);
-      const prices = await hydratePrices(hits, 16);
+      const prices = await hydratePrices(hits, 24);
       return json(hits.map((c) => toTcgdexCard(c, lang, setName(c.setId), prices.get(c.id), CAT)));
     }
 
@@ -263,7 +267,7 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
       });
       const cap = parsed.print && !parsed.name ? Math.min(400, limit) : Math.min(Math.max(limit, 40), 80);
       const hits = scored.slice(0, cap).map((x) => x.c);
-      const prices = await hydratePrices(hits, parsed.print === "gold" ? 16 : 16);
+      const prices = await hydratePrices(hits, parsed.print ? 40 : 24);
       return json(hits.map((c) => toTcgdexCard(c, lang, setName(c.setId), prices.get(c.id), CAT)));
     }
 
@@ -281,7 +285,7 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
         .map((s) => s.id);
       const recent = priced.filter((c) => newestSetIds.includes(c.setId));
       const pool = (recent.length >= 12 ? recent : priced).slice(0, limit);
-      const prices = await hydratePrices(pool, 16);
+      const prices = await hydratePrices(pool, 24);
       return json(pool.map((c) => toTcgdexCard(c, lang, setName(c.setId), prices.get(c.id), CAT)));
     }
   }
@@ -290,9 +294,42 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
   if (cardOne) {
     const id = decodeURIComponent(cardOne[1]);
     const c = CAT.cards.find((x) => x.id === id);
-    if (!c) return json({ error: "Not found" }, 404);
+    let live: number | null = null;
+    try {
+      const up = await fetch(`${UPSTREAM}/${lang}/cards/${encodeURIComponent(id)}`, {
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(5000),
+      });
+      if (up.ok) {
+        const raw: any = await up.json();
+        const unit = String(raw?.pricing?.tcgplayer?.unit || "USD");
+        const tp = raw?.pricing?.tcgplayer;
+        if (tp) {
+          for (const k of ["holofoil", "normal", "reverseHolofoil"]) {
+            const n = Number(tp[k]?.marketPrice ?? tp[k]?.midPrice);
+            if (Number.isFinite(n) && n > 0) {
+              live = n;
+              break;
+            }
+          }
+        }
+        if (live == null) {
+          const cm = raw?.pricing?.cardmarket;
+          const n = Number(cm?.trend ?? cm?.avg ?? 0);
+          if (Number.isFinite(n) && n > 0) live = Math.round(n * 1.08 * 100) / 100;
+        }
+        void unit;
+      }
+    } catch { /* catalog still serves */ }
+    if (!c) {
+      if (live != null) {
+        return json({ id, name: id, pricing: { tcgplayer: { unit: "USD", normal: { marketPrice: live } } } });
+      }
+      return json({ error: "Not found" }, 404);
+    }
     const prices = await hydratePrices([c]);
-    return json(toTcgdexCard(c, lang, setName(c.setId), prices.get(c.id), CAT));
+    const paid = live ?? prices.get(c.id);
+    return json(toTcgdexCard(c, lang, setName(c.setId), paid, CAT));
   }
 
   if (pathname === "/sets") {

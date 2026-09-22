@@ -11,8 +11,14 @@ import { PriceComparePanel } from "./PriceCompare";
 import { PrintLangBar } from "./PrintLangBar";
 import { searchChips, searchPlaceholder, usePrintLang } from "@/lib/print-lang";
 import { parseSearchQuery } from "@/lib/card-search";
+import { hydrateLivePrices, useLivePrice } from "@/lib/live-prices";
 
 type OnOpen = (id: string) => void;
+
+function LiveAskPrice({ card }: { card: TCGCard }) {
+  const n = useLivePrice(card);
+  return <>{formatPrice(n || getMarketPrice(card))}</>;
+}
 
 function LbImg({ card }: { card: TCGCard }) {
   const urls = fallbackCardImages(card);
@@ -63,6 +69,10 @@ export function DiscoverView({ onOpen, onTab }: { onOpen: OnOpen; onTab: (t: str
 
   const hero = trending?.[heroIdx] ?? null;
   const total = trending?.length ?? 0;
+  const heroLive = useLivePrice(hero);
+  useEffect(() => {
+    if (trending?.length) hydrateLivePrices(trending);
+  }, [trending]);
 
   return (
     <div>
@@ -100,7 +110,7 @@ export function DiscoverView({ onOpen, onTab }: { onOpen: OnOpen; onTab: (t: str
             <span className="pv-hero-badge">🔥 TRENDING #{heroIdx + 1}</span>
             <h1 className="pv-hero-name">{hero.name.toUpperCase()}</h1>
             <div className="pv-hero-sub">{hero.set.name} • {hero.rarity ?? "—"}</div>
-            <div className="pv-hero-price">{formatPrice(getMarketPrice(hero))}</div>
+            <div className="pv-hero-price">{formatPrice(heroLive || getMarketPrice(hero))}</div>
             <div className="flex gap-2 flex-wrap">
               <button className="pv-btn pv-btn-out" onClick={() => { rememberCard(hero); onOpen(hero.id); }}>View Card</button>
               <HeroAddBtn card={hero} />
@@ -189,6 +199,7 @@ export function MarketView({ onOpen }: { onOpen: OnOpen }) {
     getTopMarket(lang)
       .then((c) => {
         setCards(c);
+        hydrateLivePrices(c);
         if (!c.length) setErr("The card API is busy. Showing nothing — retry in a moment.");
       })
       .catch((e: any) => {
@@ -245,7 +256,7 @@ export function MarketView({ onOpen }: { onOpen: OnOpen }) {
               <div className="pv-lb-name">{c.name}{c.lang && c.lang !== "en" ? ` · ${c.lang}` : ""}</div>
               <div className="pv-lb-rar">{c.set.name} • {c.rarity ?? "—"}</div>
             </div>
-            <div className="pv-lb-price">{formatPrice(getMarketPrice(c))}</div>
+            <div className="pv-lb-price"><LiveAskPrice card={c} /></div>
             <button
               className={`pv-btn pv-btn-fill ${inVault(c.id) ? "yes" : ""}`}
               style={{ padding: "6px 10px", fontSize: 10 }}
@@ -547,9 +558,11 @@ export function SearchView({ onOpen }: { onOpen: OnOpen }) {
         }
       }
       if (!res) throw lastErr ?? new Error("Search failed");
-      setCards(p === 1 ? res.data : [...(cards ?? []), ...res.data]);
+      const next = p === 1 ? res.data : [...(cards ?? []), ...res.data];
+      setCards(next);
       setTotal(res.totalCount);
       setPage(p);
+      hydrateLivePrices(next);
     } catch (e: any) {
       setCards([]);
       setErr(e?.message || "Search failed. The card API is busy — retry in a moment.");

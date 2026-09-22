@@ -6,6 +6,7 @@ import { InteractiveHoloCard, HoloInspectorModal } from "./InteractiveHoloCard";
 import { useEffect, useRef, useState } from "react";
 import type { TCGCard } from "@/lib/pokemon-api";
 import { getCard, getMarketPrice, getRarityColor, stubCardFromId } from "@/lib/pokemon-api";
+import { applyLiveQuote, useLivePrice } from "@/lib/live-prices";
 import { getPrintLang, printLangMeta } from "@/lib/print-lang";
 import { formatPrice } from "@/lib/vault";
 import { CardActions } from "./CardTile";
@@ -86,12 +87,15 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
     }).catch(() => {});
   }, [card]);
 
-  if (!card) return <div className="pv-empty">Loading…</div>;
+  const live = useLivePrice(card);
+  const priced = card && live > 0 ? applyLiveQuote(card, live) : card;
 
-  const market = getMarketPrice(card);
-  const tcgPrices = card.tcgplayer?.prices ?? {};
-  const cmPrices = card.cardmarket?.prices;
-  const gradedVal = calculateGradedValue(card, selectedGrade);
+  if (!priced) return <div className="pv-empty">Loading…</div>;
+
+  const market = live || getMarketPrice(priced);
+  const tcgPrices = priced.tcgplayer?.prices ?? {};
+  const cmPrices = priced.cardmarket?.prices;
+  const gradedVal = calculateGradedValue(priced, selectedGrade);
   const gradeMeta = getGradeMeta(selectedGrade);
   const slabUrls = getSlabSearchUrls(card, selectedGrade);
 
