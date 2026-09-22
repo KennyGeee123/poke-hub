@@ -242,11 +242,11 @@ const GOLD_RARITY_QUERIES = [
   "Rare Holo Star",
 ];
 
-export async function tcgdexSearchGold(name = "", limit = 80, lang = "en"): Promise<TCGCard[]> {
+export async function tcgdexSearchGold(name = "", limit = 400, lang = "en"): Promise<TCGCard[]> {
   const lists = await Promise.all([
-    j<any[]>(tcgdexUrl(lang, `/cards?name=${encodeURIComponent(name.trim() || "gold")}`)),
+    j<any[]>(tcgdexUrl(lang, `/cards?name=${encodeURIComponent(name.trim() || "gold")}&limit=400`)),
     ...GOLD_RARITY_QUERIES.map((r) =>
-      j<any[]>(tcgdexUrl(lang, `/cards?rarity=${encodeURIComponent(r)}`)),
+      j<any[]>(tcgdexUrl(lang, `/cards?rarity=${encodeURIComponent(r)}&limit=400`)),
     ),
   ]);
   const seen = new Set<string>();

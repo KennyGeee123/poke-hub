@@ -226,7 +226,10 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
     const name = (sp.get("name") || "").trim().toLowerCase();
     const rarityQ = (sp.get("rarity") || "").trim().toLowerCase();
     const sort = sp.get("sort") || "";
-    const limit = Math.min(250, Math.max(1, Number(sp.get("limit") || 40) || 40));
+    const parsedPeek = name ? parseSearchQuery(name, enDict(CAT)) : null;
+    const wantAllPrints = Boolean(rarityQ || (parsedPeek && parsedPeek.print && !parsedPeek.name));
+    const defaultLimit = wantAllPrints ? 400 : 80;
+    const limit = Math.min(400, Math.max(1, Number(sp.get("limit") || defaultLimit) || defaultLimit));
 
     if (rarityQ && !name) {
       const hits = preferRegion(
@@ -258,7 +261,7 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
         if (ra !== rb) return ra - rb;
         return a.s - b.s;
       });
-      const cap = parsed.print === "gold" && !parsed.name ? Math.min(200, limit) : Math.min(40, limit);
+      const cap = parsed.print && !parsed.name ? Math.min(400, limit) : Math.min(Math.max(limit, 40), 80);
       const hits = scored.slice(0, cap).map((x) => x.c);
       const prices = await hydratePrices(hits, parsed.print === "gold" ? 16 : 16);
       return json(hits.map((c) => toTcgdexCard(c, lang, setName(c.setId), prices.get(c.id), CAT)));

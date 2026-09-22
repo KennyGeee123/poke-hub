@@ -117,10 +117,16 @@ export function applySecurityHeaders(res: Response): Response {
 
 export function blockedResponse(): Response {
   return applySecurityHeaders(
-    new Response(JSON.stringify({ error: "Virus Buster blocked this request", code: "VB_BLOCK" }), {
-      status: 403,
-      headers: { "content-type": "application/json; charset=utf-8" },
-    }),
+    new Response(
+      JSON.stringify({
+        error: "DECOHERENCE: Virus Buster blocked this request",
+        code: "DECOHERENCE",
+      }),
+      {
+        status: 403,
+        headers: { "content-type": "application/json; charset=utf-8", "x-decoherence": "block" },
+      },
+    ),
   );
 }
 

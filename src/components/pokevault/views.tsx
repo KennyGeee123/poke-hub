@@ -533,7 +533,13 @@ export function SearchView({ onOpen }: { onOpen: OnOpen }) {
       let res: { data: TCGCard[]; totalCount: number } | null = null;
       for (const tcgQuery of queries) {
         try {
-          const r = await searchCards({ q: tcgQuery, page: p, pageSize: 50, orderBy: "-set.releaseDate", lang });
+          const r = await searchCards({
+            q: tcgQuery,
+            page: p,
+            pageSize: parsed.print ? 400 : 50,
+            orderBy: "-set.releaseDate",
+            lang,
+          });
           res = r;
           if (r.data.length) break;
         } catch (e) {
