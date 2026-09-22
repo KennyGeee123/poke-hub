@@ -328,7 +328,8 @@ export async function searchCards(opts: {
   const pageSize = opts.pageSize ?? 24;
   const lang = opts.lang || "en";
   const extracted = tcgdexSearchName(opts.q);
-  const text = extracted || opts.q || "";
+  const luceneOnly = Boolean(opts.q && /[\w.]+:/.test(opts.q) && !extracted);
+  const text = luceneOnly ? "" : (extracted || opts.q || "");
   const parsed = parseSearchQuery(text);
   const corrected = parsed.name || (parsed.print ? "" : text);
   const special = parsed.print === "gold" ? [] : (text.trim() ? searchSpecialCards(text) : []);
@@ -659,7 +660,9 @@ export async function getAllCardsBySet(
 }
 
 export async function getDiscoverFast(lang = "en"): Promise<TCGCard[]> {
-  if (lang !== "en") return tcgdexRecentCards(32, lang);
+  const recent = await tcgdexRecentCards(40, lang);
+  if (recent.length) return recent;
+  if (lang !== "en") return [];
   try {
     const res = await searchCards({
       q: "supertype:Pokémon",
@@ -670,7 +673,7 @@ export async function getDiscoverFast(lang = "en"): Promise<TCGCard[]> {
     });
     if (res.data?.length) return res.data;
   } catch {}
-  return tcgdexRecentCards(32, lang);
+  return [];
 }
 
 export async function getTrending(pageSize = 16, page = 1, lang = "en"): Promise<TCGCard[]> {

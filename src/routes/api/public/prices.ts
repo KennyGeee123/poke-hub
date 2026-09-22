@@ -31,16 +31,61 @@ function marketFromTcgdex(raw: any): number {
   return 0;
 }
 
+async function quoteTcgplayerProduct(productId: number): Promise<number | null> {
+  try {
+    const r = await fetch(`https://infinite-api.tcgplayer.com/price/history/${productId}?range=quarter`, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(3500),
+    });
+    if (!r.ok) return null;
+    const j: any = await r.json();
+    const variants = j?.result?.[0]?.variants;
+    if (!Array.isArray(variants)) return null;
+    let best = Infinity;
+    for (const v of variants) {
+      const n = Number(v.marketPrice);
+      if (Number.isFinite(n) && n > 0 && n < best) best = n;
+    }
+    return Number.isFinite(best) && best < Infinity ? best : null;
+  } catch {
+    return null;
+  }
+}
+
 async function quoteOne(id: string): Promise<{ market: number; source: string } | null> {
   try {
     const r = await fetch(`${UPSTREAM}/en/cards/${encodeURIComponent(id)}`, {
       headers: { Accept: "application/json" },
       signal: AbortSignal.timeout(4500),
     });
-    if (!r.ok) return null;
-    const raw = await r.json();
-    const market = marketFromTcgdex(raw);
-    if (market > 0) return { market, source: "tcgdex" };
+    if (r.ok) {
+      const raw = await r.json();
+      const market = marketFromTcgdex(raw);
+      if (market > 0) return { market, source: "tcgdex" };
+      const pid = Number(raw?.pricing?.tcgplayer?.holofoil?.productId || raw?.pricing?.tcgplayer?.normal?.productId);
+      if (pid > 0) {
+        const tp = await quoteTcgplayerProduct(pid);
+        if (tp && tp > 0) return { market: tp, source: "tcgplayer" };
+      }
+    }
+  } catch {
+    /* next */
+  }
+  try {
+    const r = await fetch(`https://api.pokemontcg.io/v2/cards/${encodeURIComponent(id)}`, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (r.ok) {
+      const j: any = await r.json();
+      const prices = j?.data?.tcgplayer?.prices;
+      if (prices && typeof prices === "object") {
+        for (const k of ["holofoil", "1stEditionHolofoil", "reverseHolofoil", "normal", "unlimited"]) {
+          const n = Number(prices[k]?.market ?? prices[k]?.mid ?? prices[k]?.low);
+          if (Number.isFinite(n) && n > 0) return { market: n, source: "pokemontcg" };
+        }
+      }
+    }
   } catch {
     /* next */
   }
