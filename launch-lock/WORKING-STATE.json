@@ -1,8 +1,8 @@
 {
-  "id": "pokedex-hub-launch-ready-2026-09-20-realtime-walk",
+  "id": "pokedex-hub-launch-ready-2026-09-22-card-prices",
   "liveUrl": "https://pokedex-hub-lime.vercel.app/",
-  "frozenAt": "2026-09-20T15:11:49Z",
-  "rootSha256": "4bb201d4c5009fce1c12939c5e80188a227e3253efbff60082f2b2ae10550170",
+  "frozenAt": "2026-09-22T06:18:28Z",
+  "rootSha256": "c256c92e8f0d4c51e21c7eb9d91c8d6b9a9c41a730d4c31e07c62d0154bb71c3",
   "fileCount": 211,
   "launchChecks": {
     "homeSsrPvApp": true,
@@ -160,13 +160,13 @@
     },
     {
       "path": "src/components/pokevault/CardDetail.tsx",
-      "sha256": "02878ddd100958babf029106ceba8de0b372cf3766496efa48d9541b4c5ef3e5",
-      "bytes": 43406
+      "sha256": "8de883ace512a420f8ba5d552f10ad230318a5a812b523fe64d83dfb0cb306bd",
+      "bytes": 45976
     },
     {
       "path": "src/components/pokevault/CardTile.tsx",
-      "sha256": "6bdd5550f08d90d61fe3d17063ccf920fd8f90d1089c5bd98ea78edc99234cef",
-      "bytes": 12751
+      "sha256": "122a35768492830deed3ff99e8b741bfdf4d8a8729e0c7eacf57b401c22e513d",
+      "bytes": 13291
     },
     {
       "path": "src/components/pokevault/CatchFx.tsx",
@@ -245,8 +245,8 @@
     },
     {
       "path": "src/components/pokevault/views.tsx",
-      "sha256": "702057ca67eab0d3275ae2fddbdb563fa4d5bc8f419a35075f0811f643030a67",
-      "bytes": 30752
+      "sha256": "9cf34fa51704c733f3c32d0b9a0b5a0507d7499bd14c7e93b2250aaa8888dc96",
+      "bytes": 32878
     },
     {
       "path": "src/components/ui/accordion.tsx",
@@ -530,8 +530,8 @@
     },
     {
       "path": "src/lib/card-images.ts",
-      "sha256": "a70f32e1281d2ee5fbc348dcd79cd415592d76910bc249b03baa24ad632273e3",
-      "bytes": 5130
+      "sha256": "f50332e9d37e944172267d56b7755c5062263547345e09b4f606f0df6690d4b9",
+      "bytes": 5587
     },
     {
       "path": "src/lib/card-prices.ts",
@@ -540,8 +540,8 @@
     },
     {
       "path": "src/lib/card-search.ts",
-      "sha256": "3f0376027c6f7c164f4c1cbbb2e77ea0f7dd32a5f94818f1de6e824f37c75907",
-      "bytes": 9004
+      "sha256": "861e872a3163f9bbccd8c9827865448b37850ba7232c1926f001b2ef3f8bd386",
+      "bytes": 10274
     },
     {
       "path": "src/lib/ebay.ts",
@@ -610,8 +610,8 @@
     },
     {
       "path": "src/lib/pokemon-api.ts",
-      "sha256": "0f75778783feabfecce1c91b7fd1f9c3b8cca7f0da18c036812fec67416c0c2a",
-      "bytes": 20181
+      "sha256": "70538583bebc4cd17cb11cfa1a0cea0fad6ef598f669ec58f0686453e9db4765",
+      "bytes": 23673
     },
     {
       "path": "src/lib/premium.ts",
@@ -620,8 +620,8 @@
     },
     {
       "path": "src/lib/print-lang.ts",
-      "sha256": "a6fbdfd82bfeb39185259d22d3807ce0c15f84da8c94f1e38623563e2dc7151b",
-      "bytes": 3507
+      "sha256": "a7d7272445b2ea7a4a4d5337f6121f3c0d30fe83b130a7d0a38c4519a48a317d",
+      "bytes": 3522
     },
     {
       "path": "src/lib/pvp.ts",
@@ -635,18 +635,18 @@
     },
     {
       "path": "src/lib/sprites.ts",
-      "sha256": "bae4571990fd54326792251eb8cc49c80d5b47cedc32beaa7c797dd014a6d550",
-      "bytes": 2593
+      "sha256": "51f7cdb0d224bcbbcf5b15dc450907d396b8adac22e14c9a000ed8671f7ef9c7",
+      "bytes": 2882
     },
     {
       "path": "src/lib/tcg-fallback.ts",
-      "sha256": "aa05a84fe2b8cc7862756b292cc2ae3b57798f19cfd2e1b2c5b52ce2397b0566",
-      "bytes": 4817
+      "sha256": "bdb7ce8203356715d36885d21a8657beca4fab34e53a07b08ffcec964ad94683",
+      "bytes": 4984
     },
     {
       "path": "src/lib/tcgdex.ts",
-      "sha256": "929bf01914ebddf0e762233a1ff92535032a3b5d33f23e832175076268f706b9",
-      "bytes": 11375
+      "sha256": "2515fc229311b266f33e9eda188b1d7ceb21e62ae27bcddbce952a588f91a7da",
+      "bytes": 12419
     },
     {
       "path": "src/lib/utils.ts",
@@ -660,8 +660,8 @@
     },
     {
       "path": "src/routeTree.gen.ts",
-      "sha256": "64a0d5c2849296a06eb1676740ab819a4ec326e9d66a6c7bff1938a980623eff",
-      "bytes": 8381
+      "sha256": "d996ecc2c4dd16ff52de0450ba4b8bc3b0ea24db0b13f3dccceff669ebbeecf0",
+      "bytes": 9204
     },
     {
       "path": "src/router.tsx",
@@ -700,8 +700,8 @@
     },
     {
       "path": "src/routes/api/public/tcgdex.ts",
-      "sha256": "a63299d2a817f63be49dc81ae470cc86c78add4f1b0d30151f18b62a1f485858",
-      "bytes": 14230
+      "sha256": "2837720d65c4d097728e7820f279839cd95278fad664ceb185e2e587df97720d",
+      "bytes": 19119
     },
     {
       "path": "src/routes/index.tsx",
@@ -725,8 +725,8 @@
     },
     {
       "path": "src/styles.css",
-      "sha256": "a5da0e0ea27d0d2247a3d78e250f3e58d11fefe2f0cd1cbb8f52c58ff76f91b1",
-      "bytes": 149563
+      "sha256": "bb024041e0bb79541309612531492b499fcf4b694c07f504bc7f46dd0989a45a",
+      "bytes": 151041
     },
     {
       "path": "supabase/config.toml",
@@ -770,8 +770,8 @@
     },
     {
       "path": "tsconfig.json",
-      "sha256": "8efc2603531e75a1322d67e9d2f0e61f590d6b1f3d87a136ebbf769b00e4eaef",
-      "bytes": 707
+      "sha256": "309642cd176b03add6f61f7cd353f11a5bd66a72dd17db75f556fd35c170dafe",
+      "bytes": 738
     },
     {
       "path": "vercel.json",
@@ -780,8 +780,8 @@
     },
     {
       "path": "vite.config.ts",
-      "sha256": "2a14bc0bfbcdd06941f13d0676dab1c5f0c3ac3f1893ef07ff280f244c623cc3",
-      "bytes": 856
+      "sha256": "16cb933e8c0834aa499498df5e3868f5076b602ac121436e25ee944ce7c13f91",
+      "bytes": 2031
     },
     {
       "path": "wrangler.jsonc",
@@ -1085,14 +1085,14 @@
     },
     {
       "path": "src/lib/gods-eye-world.ts",
-      "sha256": "45d0274cce0907cd47f901d8837eb121182623c61dbbe1450d74f072a817885f",
-      "bytes": 4978
+      "sha256": "2bac0e7ba5a08df7c02cc6b1c742002b4ee92caaa52b0376feb0d2ebbc8c86c5",
+      "bytes": 7916
     },
     {
       "path": "src/components/pokevault/adventure/GodsEyeMap.tsx",
-      "sha256": "64072cae3f9ad910628f900a3df22b3b9279e20a239c92e5b5884c3ed42acf35",
-      "bytes": 7071
+      "sha256": "8ead9233baca37b67f32dedd5b886b808655191f3dde8841d2a5decb72a5aa8a",
+      "bytes": 8732
     }
   ],
-  "thawNote": "Realtime free-roam sprite walk + catch-on-approach + spawn-ahead + styles.css brace fix for Vercel build"
+  "thawNote": "Embed TCGdex quotes in catalog lists; prefer live tile prices"
 }

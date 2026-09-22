@@ -97,7 +97,11 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
   const live = useLivePrice(card);
   const priced = live > 0 ? applyLiveQuote(card, live) : card;
   const gradedVal = calculateGradedValue(priced, grade);
-  const displayPrice = gradedVal.estimatedGradedPrice;
+  // Prefer live market for RAW tiles so Discover never sticks on "—" while grades load.
+  const displayPrice =
+    grade === "raw" || !grade
+      ? (live > 0 ? live : gradedVal.estimatedGradedPrice)
+      : gradedVal.estimatedGradedPrice;
   const gradeMeta = getGradeMeta(grade);
   const stats = getCardLevelAndStats(card, grade);
 

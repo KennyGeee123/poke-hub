@@ -139,6 +139,56 @@ function toTcgdexCard(c: CatCard, lang: string, setName: string, price?: number 
   };
 }
 
+function marketFromUpstream(raw: any): number {
+  const tp = raw?.pricing?.tcgplayer;
+  if (tp && typeof tp === "object") {
+    for (const k of ["holofoil", "1stEditionHolofoil", "reverseHolofoil", "unlimitedHolofoil", "normal", "unlimited"]) {
+      const n = Number(tp[k]?.marketPrice ?? tp[k]?.midPrice ?? tp[k]?.lowPrice);
+      if (Number.isFinite(n) && n > 0) return n;
+    }
+    for (const [k, v] of Object.entries(tp)) {
+      if (!v || typeof v !== "object" || k === "updated" || k === "unit" || k === "url") continue;
+      const n = Number((v as any).marketPrice ?? (v as any).midPrice ?? (v as any).lowPrice);
+      if (Number.isFinite(n) && n > 0) return n;
+    }
+  }
+  const cm = raw?.pricing?.cardmarket;
+  if (cm && typeof cm === "object") {
+    const n = Number(cm.trend ?? cm.avg ?? cm.low ?? 0);
+    if (Number.isFinite(n) && n > 0) return Math.round(n * 1.08 * 100) / 100;
+  }
+  return 0;
+}
+
+async function tcgdexUpstreamPrice(id: string, lang: string): Promise<number | null> {
+  const cacheKey = -Math.abs(hashStr(`${lang}:${id}`));
+  const hit = priceCache.get(cacheKey);
+  if (hit && Date.now() - hit.t < PRICE_TTL) return hit.p;
+  try {
+    const r = await fetch(`${UPSTREAM}/${lang}/cards/${encodeURIComponent(id)}`, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!r.ok) {
+      priceCache.set(cacheKey, { t: Date.now(), p: null });
+      return null;
+    }
+    const raw: any = await r.json();
+    const n = marketFromUpstream(raw);
+    const p = n > 0 ? n : null;
+    priceCache.set(cacheKey, { t: Date.now(), p });
+    return p;
+  } catch {
+    return null;
+  }
+}
+
+function hashStr(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return h || 1;
+}
+
 async function tcgplayerPrice(productId: number): Promise<number | null> {
   const hit = priceCache.get(productId);
   if (hit && Date.now() - hit.t < PRICE_TTL) return hit.p;
@@ -170,16 +220,27 @@ async function tcgplayerPrice(productId: number): Promise<number | null> {
   }
 }
 
-async function hydratePrices(cards: CatCard[], limit = 48): Promise<Map<string, number>> {
+/** Prefer catalog market + TCGdex upstream (TCGPlayer infinite is often 403 from Vercel). */
+async function hydratePrices(cards: CatCard[], limit = 48, lang = "en"): Promise<Map<string, number>> {
   const out = new Map<string, number>();
   for (const c of cards) {
     const m = Number(c.market);
     if (Number.isFinite(m) && m > 0) out.set(c.id, m);
   }
-  const slice = cards.filter((c) => c.tcgplayer && !out.has(c.id)).slice(0, limit);
-  const chunk = 8;
-  for (let i = 0; i < slice.length; i += chunk) {
-    const part = slice.slice(i, i + chunk);
+  const need = cards.filter((c) => !out.has(c.id)).slice(0, limit);
+  const chunk = 6;
+  for (let i = 0; i < need.length; i += chunk) {
+    const part = need.slice(i, i + chunk);
+    const prices = await Promise.all(part.map((c) => tcgdexUpstreamPrice(c.id, lang)));
+    part.forEach((c, idx) => {
+      const p = prices[idx];
+      if (typeof p === "number" && p > 0) out.set(c.id, p);
+    });
+  }
+  // Last resort: TCGPlayer product history (often blocked on cloud IPs)
+  const still = cards.filter((c) => c.tcgplayer && !out.has(c.id)).slice(0, Math.min(12, limit));
+  for (let i = 0; i < still.length; i += chunk) {
+    const part = still.slice(i, i + chunk);
     const prices = await Promise.all(part.map((c) => tcgplayerPrice(c.tcgplayer!)));
     part.forEach((c, idx) => {
       const p = prices[idx];
@@ -240,7 +301,7 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
         CAT.cards.filter((c) => (c.rarity || "").toLowerCase() === rarityQ || (c.rarity || "").toLowerCase().includes(rarityQ)),
         lang,
       ).slice(0, limit);
-      const prices = await hydratePrices(hits, 24);
+      const prices = await hydratePrices(hits, 24, lang);
       return json(hits.map((c) => toTcgdexCard(c, lang, setName(c.setId), prices.get(c.id), CAT)));
     }
 
@@ -267,7 +328,7 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
       });
       const cap = parsed.print && !parsed.name ? Math.min(400, limit) : Math.min(Math.max(limit, 40), 80);
       const hits = scored.slice(0, cap).map((x) => x.c);
-      const prices = await hydratePrices(hits, parsed.print ? 40 : 24);
+      const prices = await hydratePrices(hits, parsed.print ? 40 : 24, lang);
       return json(hits.map((c) => toTcgdexCard(c, lang, setName(c.setId), prices.get(c.id), CAT)));
     }
 
@@ -285,7 +346,7 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
         .map((s) => s.id);
       const recent = priced.filter((c) => newestSetIds.includes(c.setId));
       const pool = (recent.length >= 12 ? recent : priced).slice(0, limit);
-      const prices = await hydratePrices(pool, 24);
+      const prices = await hydratePrices(pool, 24, lang);
       return json(pool.map((c) => toTcgdexCard(c, lang, setName(c.setId), prices.get(c.id), CAT)));
     }
   }
@@ -327,7 +388,7 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
       }
       return json({ error: "Not found" }, 404);
     }
-    const prices = await hydratePrices([c]);
+    const prices = await hydratePrices([c], 8, lang);
     const paid = live ?? prices.get(c.id);
     return json(toTcgdexCard(c, lang, setName(c.setId), paid, CAT));
   }
@@ -356,7 +417,7 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
     const s = CAT.sets.find((x) => x.id === id);
     const cards = CAT.cards.filter((c) => c.setId === id);
     if (!s && !cards.length) return json({ error: "Not found" }, 404);
-    const prices = await hydratePrices(cards, 20);
+    const prices = await hydratePrices(cards, 20, lang);
     const name = s ? pickName(s.names, lang) : id;
     return json({
       id,
