@@ -2,17 +2,36 @@ import { useEffect, useState } from "react";
 import type { TCGCard } from "@/lib/pokemon-api";
 import { getMarketPrice } from "@/lib/pokemon-api";
 
-type Quote = { market: number; source: string };
+type Quote = { market: number; source: string; soldAvg?: number };
 
 const cache = new Map<string, Quote>();
 const inflight = new Set<string>();
 const waiters = new Map<string, Array<(q: Quote | null) => void>>();
 const EVT = "pv-live-price";
 
+function displayMarket(q: Quote): number {
+  if (q.soldAvg && q.soldAvg > 0) return q.soldAvg;
+  return q.market > 0 ? q.market : 0;
+}
+
+function isStrongQuote(q: Quote): boolean {
+  return (
+    (q.soldAvg || 0) > 0 ||
+    q.source === "sold-avg" ||
+    q.source === "tcgplayer-market" ||
+    q.source === "pokemontcg-market"
+  );
+}
+
 function emit(id: string, q: Quote) {
-  cache.set(id, q);
+  const normalized: Quote = {
+    ...q,
+    market: displayMarket(q),
+    soldAvg: q.soldAvg && q.soldAvg > 0 ? q.soldAvg : undefined,
+  };
+  cache.set(id, normalized);
   if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent(EVT, { detail: { id, ...q } }));
+    window.dispatchEvent(new CustomEvent(EVT, { detail: { id, ...normalized } }));
   }
 }
 
@@ -22,7 +41,9 @@ function quoted(card: TCGCard): number {
 
 export function cachedLivePrice(id: string): number | null {
   const q = cache.get(id);
-  return q && q.market > 0 ? q.market : null;
+  if (!q) return null;
+  const n = displayMarket(q);
+  return n > 0 ? n : null;
 }
 
 export function applyLiveQuote(card: TCGCard, market: number): TCGCard {
@@ -66,9 +87,9 @@ function flush() {
         const wait = waiters.get(id) || [];
         waiters.delete(id);
         inflight.delete(id);
-        if (q && q.market > 0) {
+        if (q && (q.market > 0 || (q.soldAvg || 0) > 0)) {
           emit(id, q);
-          wait.forEach((fn) => fn(q));
+          wait.forEach((fn) => fn(cache.get(id) || q));
         } else {
           wait.forEach((fn) => fn(null));
         }
@@ -95,7 +116,8 @@ function schedule() {
 export function requestLivePrice(id: string): Promise<Quote | null> {
   if (!id) return Promise.resolve(null);
   const hit = cache.get(id);
-  if (hit) return Promise.resolve(hit);
+  if (hit && isStrongQuote(hit)) return Promise.resolve(hit);
+  if (hit) cache.delete(id);
   return new Promise((resolve) => {
     const list = waiters.get(id) || [];
     list.push(resolve);
@@ -108,12 +130,13 @@ export function requestLivePrice(id: string): Promise<Quote | null> {
 export function hydrateLivePrices(cards: TCGCard[]) {
   for (const c of cards) {
     if (!c?.id) continue;
-    if (quoted(c) > 0 || cache.has(c.id)) continue;
+    const hit = cache.get(c.id);
+    if (hit && isStrongQuote(hit)) continue;
     void requestLivePrice(c.id);
   }
 }
 
-/** Live TCGPlayer/TCGdex market; falls back to already-quoted card price. */
+/** Live sold-avg / TCGPlayer market; falls back to already-quoted card price. */
 export function useLivePrice(card: TCGCard | null | undefined): number {
   const id = card?.id || "";
   const seed = card ? quoted(card) : 0;
@@ -122,14 +145,19 @@ export function useLivePrice(card: TCGCard | null | undefined): number {
   useEffect(() => {
     const next = cachedLivePrice(id) ?? seed;
     setN(next);
-    if (!id || next > 0) return;
+    if (!id) return;
     let alive = true;
     void requestLivePrice(id).then((q) => {
-      if (alive && q && q.market > 0) setN(q.market);
+      if (alive && q) {
+        const m = displayMarket(q);
+        if (m > 0) setN(m);
+      }
     });
     const on = (e: Event) => {
-      const d = (e as CustomEvent).detail as { id?: string; market?: number };
-      if (d?.id === id && (d.market || 0) > 0) setN(d.market!);
+      const d = (e as CustomEvent).detail as { id?: string; market?: number; soldAvg?: number };
+      if (d?.id !== id) return;
+      const m = (d.soldAvg && d.soldAvg > 0 ? d.soldAvg : d.market) || 0;
+      if (m > 0) setN(m);
     };
     window.addEventListener(EVT, on);
     return () => {

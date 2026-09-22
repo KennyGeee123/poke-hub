@@ -200,7 +200,7 @@ export function mapTcgdexCard(card: any, setOverride?: any, lang = "en"): TCGCar
     out.cardmarket = {
       updatedAt: cm.updated,
       prices: {
-        averageSellPrice: cm.avg ?? cm.averageSellPrice,
+        averageSellPrice: cm.avg7 ?? cm.avg ?? cm.averageSellPrice,
         lowPrice: cm.low ?? cm.lowPrice,
         trendPrice: cm.trend ?? cm.trendPrice,
         avg1: cm.avg1,
@@ -210,7 +210,8 @@ export function mapTcgdexCard(card: any, setOverride?: any, lang = "en"): TCGCar
       },
     };
     if (!out.tcgplayer) {
-      const usd = toUsd(Number(cm.trend ?? cm.avg ?? cm.low ?? 0), String(cm.unit || "EUR"));
+      // Prefer sold averages (avg7/avg/trend), never stub with listing low.
+      const usd = toUsd(Number(cm.avg7 ?? cm.avg ?? cm.trend ?? 0), String(cm.unit || "EUR"));
       if (usd > 0) out.tcgplayer = { prices: { normal: { market: usd } } };
     }
   }

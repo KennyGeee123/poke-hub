@@ -1,13 +1,15 @@
-FROZEN — launch-ready working state 2026-09-22 (adventure basemap)
+FROZEN — launch-ready working state 2026-09-22 (sold-avg)
 Live: https://pokedex-hub-lime.vercel.app/
 Lock: launch-lock/WORKING-STATE.json
-Tag:  launch-ready-2026-09-22-adventure-basemap
+Id:   pokedex-hub-launch-ready-2026-09-22-sold-avg
 
-Change: AdventureWorldMap defaults to Esri World Dark Gray Base / World
-Street Map tiles (z/y/x) so Carto "API KEY REQUIRED" watermarks are gone
-without secrets. Optional VITE_CARTO_API_KEY or VITE_MAP_TILE_KEY prefers
-Carto dark. Attribution footer: Basemap © Esri.
+Prefer sold averages everywhere (Cardmarket avg7/avg30/avg/trend → TCGPlayer
+marketPrice; eBay sold avg on CardDetail when signed-in). Esri adventure basemap.
 
 Do not apply drive-by / "hack" edits to hashed files.
+Quantum loop (KM Command cron `pokedex-launch-lock`, every 5 min) re-hashes
+this tree, QEC-encodes clean=|0⟩ vs tamper=|1⟩, and stores the result in
+the quantum coherence cache under key `pokedex-hub:launch-lock`.
+
 To thaw for a real change: update the files, rebuild WORKING-STATE.json from a
-verified live launch, then git tag.
+verified live launch, then git tag a new launch-ready.

@@ -214,38 +214,49 @@ const PRINT_PREF = [
   "normal",
 ];
 
-function quotedFromTcgplayer(tp: Record<string, TCGPrice> | undefined): number {
+function pickTpField(tp: Record<string, TCGPrice> | undefined, key: "market" | "mid" | "low" | "directLow"): number {
   if (!tp) return 0;
   for (const k of PRINT_PREF) {
     const v = tp[k];
     if (!v) continue;
-    for (const key of ["market", "mid", "low", "directLow"] as const) {
-      const val = Number(v[key]);
-      if (Number.isFinite(val) && val > 0) return val;
-    }
+    const val = Number(v[key]);
+    if (Number.isFinite(val) && val > 0) return val;
   }
   for (const v of Object.values(tp)) {
     if (!v) continue;
-    for (const key of ["market", "mid", "low", "directLow"] as const) {
-      const val = Number(v[key]);
-      if (Number.isFinite(val) && val > 0) return val;
-    }
+    const val = Number(v[key]);
+    if (Number.isFinite(val) && val > 0) return val;
   }
   return 0;
 }
 
-/** Real TCGPlayer/Cardmarket quote. Does not invent a hash estimate. */
+/** Prefer sold market over listing mid/low. */
+function quotedFromTcgplayer(tp: Record<string, TCGPrice> | undefined): number {
+  return pickTpField(tp, "market") || pickTpField(tp, "mid") || pickTpField(tp, "low") || pickTpField(tp, "directLow");
+}
+
+function cardmarketSoldUsd(cm: NonNullable<TCGCard["cardmarket"]>["prices"] | undefined): number {
+  if (!cm) return 0;
+  for (const key of ["avg7", "avg30", "averageSellPrice", "trendPrice"] as const) {
+    const val = Number(cm[key]);
+    if (Number.isFinite(val) && val > 0) return Math.round(val * EUR_USD * 100) / 100;
+  }
+  return 0;
+}
+
+/** Real sold-average / TCGPlayer market quote. Does not invent a hash estimate. */
 export function getMarketPrice(c: TCGCard, opts?: { allowEstimate?: boolean }): number {
   if (!c) return 0;
+  // Prefer Cardmarket sold averages (avg7/avg30/avg/trend) when present.
+  const sold = cardmarketSoldUsd(c.cardmarket?.prices);
+  if (sold > 0) return sold;
+  // Then TCGPlayer market (recent sales), then mid/low listings.
+  const marketOnly = pickTpField(c.tcgplayer?.prices, "market");
+  if (marketOnly > 0) return marketOnly;
   const quoted = quotedFromTcgplayer(c.tcgplayer?.prices);
   if (quoted > 0) return quoted;
-  const cm = c.cardmarket?.prices;
-  if (cm) {
-    for (const key of ["trendPrice", "averageSellPrice", "lowPrice"] as const) {
-      const val = Number(cm[key]);
-      if (Number.isFinite(val) && val > 0) return Math.round(val * EUR_USD * 100) / 100;
-    }
-  }
+  const low = Number(c.cardmarket?.prices?.lowPrice);
+  if (Number.isFinite(low) && low > 0) return Math.round(low * EUR_USD * 100) / 100;
   if (opts?.allowEstimate) return estimatePrice(c);
   return 0;
 }

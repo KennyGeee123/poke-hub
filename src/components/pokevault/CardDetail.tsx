@@ -50,6 +50,7 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
   const [cornersScore, setCornersScore] = useState(98);
   const [edgesScore, setEdgesScore] = useState(96);
   const [surfaceScore, setSurfaceScore] = useState(97);
+  const [ebaySold, setEbaySold] = useState<EbayResponse | null>(null);
 
   useEffect(() => {
     const stub = stubCardFromId(cardId);
@@ -88,12 +89,35 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
   }, [card]);
 
   const live = useLivePrice(card);
-  const priced = card && live > 0 ? applyLiveQuote(card, live) : card;
+  const ebayQuery = card ? `${card.name} ${card.set.name} ${card.number ?? ""}`.trim() : "";
+
+  useEffect(() => {
+    if (!ebayQuery) {
+      setEbaySold(null);
+      return;
+    }
+    let alive = true;
+    setEbaySold(null);
+    getEbaySold(ebayQuery)
+      .then((d) => {
+        if (alive) setEbaySold(d);
+      })
+      .catch(() => {
+        if (alive) setEbaySold(null);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [ebayQuery]);
+
+  const ebayAvg = ebaySold?.summary?.avg && ebaySold.summary.avg > 0 ? ebaySold.summary.avg : 0;
+  // Prefer real eBay sold average (signed-in) → live sold-avg API → catalog quote.
+  const displayMarket = ebayAvg || live;
+  const priced = card && displayMarket > 0 ? applyLiveQuote(card, displayMarket) : card;
 
   if (!priced) return <div className="pv-empty">Loading…</div>;
 
-  const market = live || getMarketPrice(priced);
-  const tcgPrices = priced.tcgplayer?.prices ?? {};
+  const market = displayMarket || getMarketPrice(priced);
   const cmPrices = priced.cardmarket?.prices;
   const gradedVal = calculateGradedValue(priced, selectedGrade);
   const gradeMeta = getGradeMeta(selectedGrade);
@@ -358,7 +382,7 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
               <optgroup label="📋 UNGRADED CONDITIONS (RAW)">
                 {UNGRADED_QUALITIES.map((g) => {
                   const gm = getGradeMeta(g);
-                  const gv = calculateGradedValue(card, g);
+                  const gv = calculateGradedValue(priced, g);
                   return (
                     <option key={g} value={g}>
                       {gm.label} · {formatPrice(gv.estimatedGradedPrice)}
@@ -369,7 +393,7 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
               <optgroup label="🏆 GRADED SLABS">
                 {GRADED_SLABS.map((g) => {
                   const gm = getGradeMeta(g);
-                  const gv = calculateGradedValue(card, g);
+                  const gv = calculateGradedValue(priced, g);
                   return (
                     <option key={g} value={g}>
                       {gm.label} · {formatPrice(gv.estimatedGradedPrice)}
@@ -389,10 +413,12 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
                   style={
                     gradeMeta.isSlab
                       ? { fontFamily: "Bebas Neue", fontSize: 26, color: "#fbbf24", letterSpacing: 1 }
-                      : { fontSize: 14, letterSpacing: 0.02 }
+                      : market > 0
+                        ? { fontFamily: "Bebas Neue", fontSize: 28, color: "var(--gold)", letterSpacing: 1 }
+                        : { fontSize: 14, letterSpacing: 0.02 }
                   }
                 >
-                  {formatPrice(gradedVal.estimatedGradedPrice)}
+                  {formatPrice(gradeMeta.isSlab ? gradedVal.estimatedGradedPrice : (market || gradedVal.estimatedGradedPrice))}
                 </div>
               </div>
               <div style={{ textAlign: "right" }}>
@@ -524,7 +550,7 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
           </div>
 
           <CardVariantPriceMatrix
-            card={card}
+            card={priced}
             selectedGrade={selectedGrade}
             onPickGrade={setSelectedGrade}
           />
@@ -810,7 +836,7 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
             cardId={card.id}
             initialCondition={selectedGrade}
           />
-          <EbaySoldPanel query={`${card.name} ${card.set.name} ${card.number ?? ""}`.trim()} />
+          <EbaySoldPanel query={ebayQuery} data={ebaySold} />
         </div>
       </div>
       {showVisualModal && (
@@ -1003,10 +1029,19 @@ function AltArtworksPanel({ card }: { card: TCGCard }) {
   );
 }
 
-function EbaySoldPanel({ query }: { query: string }) {
-  const [data, setData] = useState<EbayResponse | null>(null);
+function EbaySoldPanel({ query, data: preloaded }: { query: string; data?: EbayResponse | null }) {
+  const [data, setData] = useState<EbayResponse | null>(preloaded ?? null);
   const [err, setErr] = useState<string | null>(null);
-  useEffect(() => { setData(null); setErr(null); getEbaySold(query).then(setData).catch(e => setErr(String(e))); }, [query]);
+  useEffect(() => {
+    if (preloaded !== undefined) {
+      setData(preloaded);
+      setErr(null);
+      return;
+    }
+    setData(null);
+    setErr(null);
+    getEbaySold(query).then(setData).catch((e) => setErr(String(e)));
+  }, [query, preloaded]);
   return (
     <div className="pv-panel">
       <div className="pv-panel-hdr">

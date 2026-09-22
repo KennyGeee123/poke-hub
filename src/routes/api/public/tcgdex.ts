@@ -140,22 +140,26 @@ function toTcgdexCard(c: CatCard, lang: string, setName: string, price?: number 
 }
 
 function marketFromUpstream(raw: any): number {
-  const tp = raw?.pricing?.tcgplayer;
-  if (tp && typeof tp === "object") {
-    for (const k of ["holofoil", "1stEditionHolofoil", "reverseHolofoil", "unlimitedHolofoil", "normal", "unlimited"]) {
-      const n = Number(tp[k]?.marketPrice ?? tp[k]?.midPrice ?? tp[k]?.lowPrice);
-      if (Number.isFinite(n) && n > 0) return n;
-    }
-    for (const [k, v] of Object.entries(tp)) {
-      if (!v || typeof v !== "object" || k === "updated" || k === "unit" || k === "url") continue;
-      const n = Number((v as any).marketPrice ?? (v as any).midPrice ?? (v as any).lowPrice);
-      if (Number.isFinite(n) && n > 0) return n;
-    }
-  }
   const cm = raw?.pricing?.cardmarket;
   if (cm && typeof cm === "object") {
-    const n = Number(cm.trend ?? cm.avg ?? cm.low ?? 0);
-    if (Number.isFinite(n) && n > 0) return Math.round(n * 1.08 * 100) / 100;
+    for (const key of ["avg7", "avg30", "avg", "trend", "low"] as const) {
+      const n = Number(cm[key]);
+      if (Number.isFinite(n) && n > 0) return Math.round(n * 1.08 * 100) / 100;
+    }
+  }
+  const tp = raw?.pricing?.tcgplayer;
+  if (tp && typeof tp === "object") {
+    for (const field of ["marketPrice", "midPrice", "lowPrice"] as const) {
+      for (const k of ["holofoil", "1stEditionHolofoil", "reverseHolofoil", "unlimitedHolofoil", "normal", "unlimited"]) {
+        const n = Number(tp[k]?.[field]);
+        if (Number.isFinite(n) && n > 0) return n;
+      }
+      for (const [k, v] of Object.entries(tp)) {
+        if (!v || typeof v !== "object" || k === "updated" || k === "unit" || k === "url") continue;
+        const n = Number((v as any)[field]);
+        if (Number.isFinite(n) && n > 0) return n;
+      }
+    }
   }
   return 0;
 }
@@ -363,23 +367,8 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
       });
       if (up.ok) {
         const raw: any = await up.json();
-        const unit = String(raw?.pricing?.tcgplayer?.unit || "USD");
-        const tp = raw?.pricing?.tcgplayer;
-        if (tp) {
-          for (const k of ["holofoil", "normal", "reverseHolofoil"]) {
-            const n = Number(tp[k]?.marketPrice ?? tp[k]?.midPrice);
-            if (Number.isFinite(n) && n > 0) {
-              live = n;
-              break;
-            }
-          }
-        }
-        if (live == null) {
-          const cm = raw?.pricing?.cardmarket;
-          const n = Number(cm?.trend ?? cm?.avg ?? 0);
-          if (Number.isFinite(n) && n > 0) live = Math.round(n * 1.08 * 100) / 100;
-        }
-        void unit;
+        const n = marketFromUpstream(raw);
+        if (n > 0) live = n;
       }
     } catch { /* catalog still serves */ }
     if (!c) {
