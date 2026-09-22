@@ -131,7 +131,7 @@ function Index() {
           <button className="pv-gear" onClick={() => setSettingsOpen(s => !s)} aria-label="Settings">⚙</button>
         </div>
       </header>
-      {settingsOpen && <SettingsPanel onToast={show} />}
+      {settingsOpen && <SettingsPanel onToast={show} isSignedIn={!!user} />}
     </>
   );
 
@@ -194,7 +194,7 @@ function Index() {
   );
 }
 
-function SettingsPanel({ onToast }: { onToast: (m: string) => void }) {
+function SettingsPanel({ onToast, isSignedIn }: { onToast: (m: string) => void; isSignedIn?: boolean }) {
   const [key, setKey] = useState("");
   useEffect(() => { setKey(localStorage.getItem("pokeApiKey") ?? ""); }, []);
   return (
@@ -213,27 +213,33 @@ function SettingsPanel({ onToast }: { onToast: (m: string) => void }) {
         >
           ↻ Refresh HD Art
         </button>
-        <details className="pv-settings-advanced">
-          <summary>Advanced · pokemontcg.io API key</summary>
-          <div className="pv-settings-key-row">
-            <input
-              className="pv-key-in"
-              type="password"
-              autoComplete="off"
-              spellCheck={false}
-              placeholder="Optional — paste key"
-              value={key}
-              onChange={(e) => setKey(e.target.value)}
-              aria-label="pokemontcg.io API key"
-            />
-            <button type="button" className="pv-ksave" onClick={() => { localStorage.setItem("pokeApiKey", key); onToast("Key saved"); }}>Save</button>
-            <button type="button" className="pv-kclear" onClick={() => { localStorage.removeItem("pokeApiKey"); setKey(""); onToast("Key cleared"); }}>Clear</button>
-          </div>
-          <p className="pv-settings-hint">
-            Optional. Without key: ~100 req/day. With key: 20,000+/day. Free at{" "}
-            <a href="https://dev.pokemontcg.io" target="_blank" rel="noreferrer">dev.pokemontcg.io</a>.
+        {isSignedIn ? (
+          <details className="pv-settings-advanced">
+            <summary>Advanced · pokemontcg.io API key</summary>
+            <div className="pv-settings-key-row">
+              <input
+                className="pv-key-in"
+                type="password"
+                autoComplete="off"
+                spellCheck={false}
+                placeholder="Optional — paste key"
+                value={key}
+                onChange={(e) => setKey(e.target.value)}
+                aria-label="pokemontcg.io API key"
+              />
+              <button type="button" className="pv-ksave" onClick={() => { localStorage.setItem("pokeApiKey", key); onToast("Key saved"); }}>Save</button>
+              <button type="button" className="pv-kclear" onClick={() => { localStorage.removeItem("pokeApiKey"); setKey(""); onToast("Key cleared"); }}>Clear</button>
+            </div>
+            <p className="pv-settings-hint">
+              Optional. Without key: ~100 req/day. With key: 20,000+/day. Free at{" "}
+              <a href="https://dev.pokemontcg.io" target="_blank" rel="noreferrer">dev.pokemontcg.io</a>.
+            </p>
+          </details>
+        ) : (
+          <p className="pv-settings-hint" style={{ margin: 0 }}>
+            Sign in to manage Advanced API settings.
           </p>
-        </details>
+        )}
       </div>
     </div>
   );

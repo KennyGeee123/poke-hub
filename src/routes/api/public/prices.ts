@@ -237,12 +237,15 @@ async function quoteTcgcsv(setKey: string, localId: string, name?: string): Prom
   const cache = await loadTcgcsvGroup(groupId);
   if (!cache) return null;
 
-  // Classic Collection localIds are sequential in-set (001..030) but TCGPlayer
-  // numbers are the original print numbers — never match Classic by number.
-  const classic = setKey === "30th-c" || setKey === "me55c";
+  // 30th-c (TCGdex): sequential 001..030 — MUST match by name (001=Charizard, 004=Genesect).
+  // me55c (pokemontcg): original print numbers — match by number (4=Charizard) then name.
   let row: CsvRow | undefined;
-  if (classic) {
+  if (setKey === "30th-c") {
     if (name) row = matchByName(cache, name);
+  } else if (setKey === "me55c") {
+    const padded = padLocal(localId);
+    row = cache.byNum.get(padded) || cache.byNum.get(localId) || cache.byNum.get(localId.replace(/^0+/, "") || localId);
+    if (!row && name) row = matchByName(cache, name);
   } else {
     const padded = padLocal(localId);
     row = cache.byNum.get(padded) || cache.byNum.get(localId);
@@ -250,6 +253,10 @@ async function quoteTcgcsv(setKey: string, localId: string, name?: string): Prom
   }
   if (!row || !(row.market > 0)) return null;
   return { market: Math.round(row.market * 100) / 100, source: "tcgcsv-market" };
+}
+
+function isClassicSet(setKey: string): boolean {
+  return setKey === "30th-c" || setKey === "me55c";
 }
 
 function pokemonAliases(id: string): string[] {
@@ -273,6 +280,31 @@ function pokemonAliases(id: string): string[] {
   return [...new Set(out)];
 }
 
+/**
+ * TCGdex id candidates for a card id.
+ * Classic Collection (me55c / 30th-c): pokemontcg numbers are original print #s
+ * (e.g. me55c-4 = Charizard) while TCGdex uses sequential 001..030
+ * (30th-c-001 = Charizard, 30th-c-004 = Genesect). Never cross-map by number.
+ */
+function tcgdexIdCandidates(id: string): string[] {
+  const parsed = parseCardId(id);
+  if (!parsed) return [id];
+  const locals = [...new Set([parsed.rawLocal, parsed.localId, padLocal(parsed.rawLocal)])];
+  if (isClassicSet(parsed.setKey)) {
+    // Same-set padding only — number is not shared across me55c ↔ 30th-c.
+    return [...new Set(locals.map((loc) => `${parsed.setKey}-${loc}`))];
+  }
+  return pokemonAliases(id);
+}
+
+/** Safe cache aliases: full set aliasing except Classic (same-set pad only). */
+function priceCacheAliases(id: string): string[] {
+  const parsed = parseCardId(id);
+  if (!parsed) return [id];
+  if (isClassicSet(parsed.setKey)) return tcgdexIdCandidates(id);
+  return pokemonAliases(id);
+}
+
 function quoteFromPokemonPrices(prices: any): PriceQuote | null {
   if (!prices || typeof prices !== "object") return null;
   for (const field of ["market", "mid", "low"] as const) {
@@ -288,8 +320,10 @@ function quoteFromPokemonPrices(prices: any): PriceQuote | null {
   return null;
 }
 
-async function quotePokemonTcg(id: string): Promise<PriceQuote | null> {
-  for (const alias of pokemonAliases(id).slice(0, 6)) {
+async function fetchPokemonCardMeta(
+  id: string,
+): Promise<{ name?: string; quote: PriceQuote | null }> {
+  for (const alias of pokemonAliases(id).slice(0, 8)) {
     try {
       const r = await fetch(`https://api.pokemontcg.io/v2/cards/${encodeURIComponent(alias)}`, {
         headers: { Accept: "application/json" },
@@ -297,54 +331,92 @@ async function quotePokemonTcg(id: string): Promise<PriceQuote | null> {
       });
       if (!r.ok) continue;
       const j: any = await r.json();
-      const q = quoteFromPokemonPrices(j?.data?.tcgplayer?.prices);
-      if (q) return q;
+      const data = j?.data;
+      if (!data) continue;
+      const quote = quoteFromPokemonPrices(data?.tcgplayer?.prices);
+      const name = typeof data.name === "string" && data.name.trim() ? String(data.name).trim() : undefined;
+      if (name || quote) return { name, quote };
     } catch {
       /* try next alias */
     }
   }
-  return null;
+  return { quote: null };
+}
+
+async function quotePokemonTcg(id: string): Promise<PriceQuote | null> {
+  const meta = await fetchPokemonCardMeta(id);
+  return meta.quote;
+}
+
+async function tryTcgdexCard(
+  cardId: string,
+): Promise<{ name?: string; localId?: string; quote: PriceQuote | null }> {
+  try {
+    const r = await fetch(`${UPSTREAM}/en/cards/${encodeURIComponent(cardId)}`, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(4500),
+    });
+    if (!r.ok) return { quote: null };
+    const raw = await r.json();
+    const name = typeof raw?.name === "string" ? raw.name : undefined;
+    const localId = raw?.localId ? String(raw.localId) : undefined;
+    const q = marketFromTcgdex(raw);
+    if (q && q.market > 0) return { name, localId, quote: q };
+    const pid = Number(
+      raw?.pricing?.tcgplayer?.holofoil?.productId ||
+        raw?.pricing?.tcgplayer?.normal?.productId ||
+        raw?.pricing?.tcgplayer?.reverseHolofoil?.productId,
+    );
+    if (pid > 0) {
+      const tp = await quoteTcgplayerProduct(pid);
+      if (tp && tp > 0) return { name, localId, quote: { market: tp, source: "tcgplayer-market" } };
+    }
+    return { name, localId, quote: null };
+  } catch {
+    return { quote: null };
+  }
 }
 
 async function quoteOne(id: string): Promise<PriceQuote | null> {
   const parsed = parseCardId(id);
   const setKey = parsed?.setKey || "";
-  let tcgdexName: string | undefined;
-  let tcgdexLocal: string | undefined;
+  let cardName: string | undefined;
+  let cardLocal: string | undefined;
 
-  try {
-    const r = await fetch(`${UPSTREAM}/en/cards/${encodeURIComponent(id)}`, {
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(4500),
-    });
-    if (r.ok) {
-      const raw = await r.json();
-      tcgdexName = raw?.name;
-      tcgdexLocal = raw?.localId ? String(raw.localId) : parsed?.rawLocal;
-      const q = marketFromTcgdex(raw);
-      if (q && q.market > 0) return q;
-      const pid = Number(
-        raw?.pricing?.tcgplayer?.holofoil?.productId ||
-          raw?.pricing?.tcgplayer?.normal?.productId ||
-          raw?.pricing?.tcgplayer?.reverseHolofoil?.productId,
-      );
-      if (pid > 0) {
-        const tp = await quoteTcgplayerProduct(pid);
-        if (tp && tp > 0) return { market: tp, source: "tcgplayer-market" };
-      }
-    }
-  } catch {
-    /* next */
+  // 1) TCGdex — requested id + safe aliases (Celebration: me55↔30th; Classic: same-set pad only)
+  for (const candidate of tcgdexIdCandidates(id).slice(0, 8)) {
+    const got = await tryTcgdexCard(candidate);
+    if (got.name && !cardName) cardName = got.name;
+    if (got.localId && !cardLocal) cardLocal = got.localId;
+    if (got.quote && got.quote.market > 0) return got.quote;
+    if (cardName) break;
   }
 
-  // tcgcsv (TCGPlayer mirror) — works for brand-new sets where TCGdex pricing is null
+  // 2) pokemontcg — name (needed for Classic tcgcsv) + embedded market if present
+  let pkmnQuote: PriceQuote | null = null;
+  if (!cardName || (setKey && TCGCSV_GROUP[setKey])) {
+    const meta = await fetchPokemonCardMeta(id);
+    if (meta.name && !cardName) cardName = meta.name;
+    pkmnQuote = meta.quote;
+  }
+
+  // 3) tcgcsv (TCGPlayer mirror) — Classic matches by name only
   if (setKey && TCGCSV_GROUP[setKey]) {
-    const csv = await quoteTcgcsv(setKey, tcgdexLocal || parsed?.rawLocal || "", tcgdexName);
+    const csv = await quoteTcgcsv(setKey, cardLocal || parsed?.rawLocal || "", cardName);
     if (csv) return csv;
+    // Also try aliased set keys (me55c → 30th-c group is the same id, but be explicit)
+    for (const alt of SET_ID_ALIAS[setKey] || []) {
+      if (alt === setKey) continue;
+      const csvAlt = await quoteTcgcsv(alt, cardLocal || parsed?.rawLocal || "", cardName);
+      if (csvAlt) return csvAlt;
+    }
   }
 
-  const pkmn = await quotePokemonTcg(id);
-  if (pkmn) return pkmn;
+  if (pkmnQuote) return pkmnQuote;
+  if (!pkmnQuote) {
+    const late = await quotePokemonTcg(id);
+    if (late) return late;
+  }
 
   // Honest pending marker for known new sets with no public quote yet
   if (PENDING_NEW_SETS.has(setKey)) {
@@ -352,6 +424,7 @@ async function quoteOne(id: string): Promise<PriceQuote | null> {
   }
   return null;
 }
+
 
 export const Route = createFileRoute("/api/public/prices")({
   server: {
@@ -370,7 +443,12 @@ export const Route = createFileRoute("/api/public/prices")({
           const got = await Promise.all(part.map((id) => quoteOne(id)));
           part.forEach((id, idx) => {
             const q = got[idx];
-            if (q) prices[id] = q;
+            if (!q) return;
+            prices[id] = q;
+            // Stamp safe aliases so me55c-4 / me55c-004 share the quote (not cross-set Classic #s)
+            for (const alias of priceCacheAliases(id)) {
+              if (!prices[alias]) prices[alias] = q;
+            }
           });
         }
         return Response.json(

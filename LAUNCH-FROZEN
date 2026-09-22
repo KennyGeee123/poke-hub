@@ -1,11 +1,11 @@
-FROZEN — launch-ready working state 2026-09-22 (30th-prices)
+FROZEN — launch-ready working state 2026-09-22 (p1-beta-fixes)
 Live: https://pokedex-hub-lime.vercel.app/
 Lock: launch-lock/WORKING-STATE.json
-Id:   pokedex-hub-launch-ready-2026-09-22-30th-prices
+Id:   pokedex-hub-launch-ready-2026-09-22-p1-beta-fixes
 
-30th Celebration / Classic: tcgcsv TCGPlayer market fallback when TCGdex
-pricing is null; pending UI when no source has a quote. Settings API-key
-row collapsed under Advanced. Export JSON tool-btn contrast fixed.
+P1 desktop beta: Classic/Market me55c↔tcgcsv pricing, live-prices id
+aliases, Quick Battle guest starter deck, Adventure carto_dark clear,
+guest Settings hides pokemontcg API key.
 
 Do not apply drive-by / "hack" edits to hashed files.
 Quantum loop (KM Command cron `pokedex-launch-lock`, every 5 min) re-hashes

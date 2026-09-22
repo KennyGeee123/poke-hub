@@ -43,9 +43,12 @@ function emit(id: string, q: Quote) {
     soldAvg: q.soldAvg && q.soldAvg > 0 ? q.soldAvg : undefined,
     pending: !!q.pending,
   };
-  cache.set(id, normalized);
+  const targets = priceIdAliases(id);
+  for (const key of targets) cache.set(key, normalized);
   if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent(EVT, { detail: { id, ...normalized } }));
+    for (const key of targets) {
+      window.dispatchEvent(new CustomEvent(EVT, { detail: { id: key, ...normalized } }));
+    }
   }
 }
 
@@ -78,9 +81,34 @@ export function applyLiveQuote(card: TCGCard, market: number): TCGCard {
   };
 }
 
+/** Encode each id; keep literal commas so servers that split on "," stay correct. */
+function pricesQuery(ids: string[]): string {
+  return ids.map((id) => encodeURIComponent(id)).join(",");
+}
+
+/** Same-set pad aliases + Celebration me55↔30th. Classic never cross-maps by number. */
+export function priceIdAliases(id: string): string[] {
+  const m = id.match(/^([a-z0-9-]+?)-(\d+[a-z]?)$/i);
+  if (!m) return [id];
+  const setKey = m[1].toLowerCase();
+  const raw = m[2];
+  const unpadded = raw.replace(/^0+/, "") || "0";
+  const padded = raw.replace(/\D/g, "").padStart(3, "0") || raw;
+  const locals = [...new Set([raw, unpadded, padded])];
+  const classic = setKey === "30th-c" || setKey === "me55c";
+  const sets = classic
+    ? [setKey]
+    : setKey === "30th" || setKey === "me55"
+      ? ["30th", "me55"]
+      : [setKey];
+  const out: string[] = [];
+  for (const s of sets) for (const loc of locals) out.push(`${s}-${loc}`);
+  return [...new Set(out)];
+}
+
 async function fetchBatch(ids: string[]): Promise<Record<string, Quote>> {
   if (!ids.length) return {};
-  const url = `/api/public/prices?ids=${encodeURIComponent(ids.join(","))}`;
+  const url = `/api/public/prices?ids=${pricesQuery(ids)}`;
   const r = await fetch(url, { signal: AbortSignal.timeout(12000) });
   if (!r.ok) return {};
   const json = (await r.json()) as { prices?: Record<string, Quote> };
@@ -101,7 +129,12 @@ function flush() {
   fetchBatch(ids)
     .then((got) => {
       for (const id of ids) {
-        const q = got[id];
+        let q = got[id];
+        if (!q) {
+          for (const alias of priceIdAliases(id)) {
+            if (got[alias]) { q = got[alias]; break; }
+          }
+        }
         const wait = waiters.get(id) || [];
         waiters.delete(id);
         inflight.delete(id);

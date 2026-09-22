@@ -124,6 +124,76 @@ function BenchRow({ bench, size = 56, onSelect, flip }: { bench: { card: TCGCard
 const BATTLE_TYPES = ["Fire","Water","Grass","Lightning","Psychic","Fighting","Darkness","Metal","Dragon","Fairy","Colorless"];
 const pickN = <T,>(arr: T[], n: number): T[] => shuffle(arr).slice(0, n);
 
+/** Offline/guest starter — always playable (hp + attacks + Pokémon supertype). */
+function guestStarterDeck(): TCGCard[] {
+  const basics: TCGCard[] = [
+    { id: "pv-guest-charizard", name: "Charizard", supertype: "Pokémon", subtypes: ["Stage 2"], hp: "120", types: ["Fire"], number: "4", rarity: "Rare Holo",
+      set: { id: "base1", name: "Base", series: "Base", printedTotal: 102, total: 102, releaseDate: "1999/01/09" },
+      images: { small: "https://images.pokemontcg.io/base1/4.png", large: "https://images.pokemontcg.io/base1/4_hires.png" },
+      attacks: [{ name: "Fire Spin", damage: "100", cost: ["Fire","Fire","Fire","Fire"], text: "" }],
+      tcgplayer: { prices: { holofoil: { market: 399.99 } } } },
+    { id: "pv-guest-blastoise", name: "Blastoise", supertype: "Pokémon", subtypes: ["Stage 2"], hp: "100", types: ["Water"], number: "2", rarity: "Rare Holo",
+      set: { id: "base1", name: "Base", series: "Base", printedTotal: 102, total: 102, releaseDate: "1999/01/09" },
+      images: { small: "https://images.pokemontcg.io/base1/2.png", large: "https://images.pokemontcg.io/base1/2_hires.png" },
+      attacks: [{ name: "Hydro Pump", damage: "60", cost: ["Water","Water","Water"], text: "" }],
+      tcgplayer: { prices: { holofoil: { market: 149.99 } } } },
+    { id: "pv-guest-venusaur", name: "Venusaur", supertype: "Pokémon", subtypes: ["Stage 2"], hp: "100", types: ["Grass"], number: "15", rarity: "Rare Holo",
+      set: { id: "base1", name: "Base", series: "Base", printedTotal: 102, total: 102, releaseDate: "1999/01/09" },
+      images: { small: "https://images.pokemontcg.io/base1/15.png", large: "https://images.pokemontcg.io/base1/15_hires.png" },
+      attacks: [{ name: "Solarbeam", damage: "60", cost: ["Grass","Grass","Grass","Grass"], text: "" }],
+      tcgplayer: { prices: { holofoil: { market: 129.99 } } } },
+    { id: "pv-guest-pikachu", name: "Pikachu", supertype: "Pokémon", subtypes: ["Basic"], hp: "60", types: ["Lightning"], number: "58", rarity: "Common",
+      set: { id: "base1", name: "Base", series: "Base", printedTotal: 102, total: 102, releaseDate: "1999/01/09" },
+      images: { small: "https://images.pokemontcg.io/base1/58.png", large: "https://images.pokemontcg.io/base1/58_hires.png" },
+      attacks: [{ name: "Thunder Shock", damage: "20", cost: ["Lightning"], text: "" }],
+      tcgplayer: { prices: { normal: { market: 8.5 } } } },
+    { id: "pv-guest-mewtwo", name: "Mewtwo", supertype: "Pokémon", subtypes: ["Basic"], hp: "70", types: ["Psychic"], number: "10", rarity: "Rare Holo",
+      set: { id: "base1", name: "Base", series: "Base", printedTotal: 102, total: 102, releaseDate: "1999/01/09" },
+      images: { small: "https://images.pokemontcg.io/base1/10.png", large: "https://images.pokemontcg.io/base1/10_hires.png" },
+      attacks: [{ name: "Psychic", damage: "40", cost: ["Psychic","Psychic"], text: "" }],
+      tcgplayer: { prices: { holofoil: { market: 89.99 } } } },
+    { id: "pv-guest-gengar", name: "Gengar", supertype: "Pokémon", subtypes: ["Stage 2"], hp: "80", types: ["Psychic"], number: "5", rarity: "Rare Holo",
+      set: { id: "base6", name: "Legendary Collection", series: "Base", printedTotal: 110, total: 110, releaseDate: "2002/05/24" },
+      images: { small: "https://images.pokemontcg.io/base6/5.png", large: "https://images.pokemontcg.io/base6/5_hires.png" },
+      attacks: [{ name: "Dark Mind", damage: "30", cost: ["Psychic"], text: "" }],
+      tcgplayer: { prices: { holofoil: { market: 24.99 } } } },
+    { id: "pv-guest-eevee", name: "Eevee", supertype: "Pokémon", subtypes: ["Basic"], hp: "50", types: ["Colorless"], number: "51", rarity: "Common",
+      set: { id: "base1", name: "Base", series: "Base", printedTotal: 102, total: 102, releaseDate: "1999/01/09" },
+      images: { small: "https://images.pokemontcg.io/base1/51.png", large: "https://images.pokemontcg.io/base1/51_hires.png" },
+      attacks: [{ name: "Quick Attack", damage: "10", cost: ["Colorless"], text: "" }],
+      tcgplayer: { prices: { normal: { market: 3.5 } } } },
+    { id: "pv-guest-snorlax", name: "Snorlax", supertype: "Pokémon", subtypes: ["Basic"], hp: "90", types: ["Colorless"], number: "27", rarity: "Rare Holo",
+      set: { id: "base1", name: "Base", series: "Base", printedTotal: 102, total: 102, releaseDate: "1999/01/09" },
+      images: { small: "https://images.pokemontcg.io/base1/27.png", large: "https://images.pokemontcg.io/base1/27_hires.png" },
+      attacks: [{ name: "Body Slam", damage: "30", cost: ["Colorless","Colorless","Colorless"], text: "" }],
+      tcgplayer: { prices: { holofoil: { market: 45 } } } },
+  ];
+  const energy = (type: string, n: number): TCGCard => ({
+    id: `pv-guest-energy-${type.toLowerCase()}-${n}`,
+    name: `${type} Energy`,
+    supertype: "Energy",
+    subtypes: ["Basic"],
+    number: String(n),
+    set: { id: "base1", name: "Base", series: "Base", printedTotal: 102, total: 102, releaseDate: "1999/01/09" },
+    images: { small: "https://images.pokemontcg.io/base1/91.png", large: "https://images.pokemontcg.io/base1/91_hires.png" },
+  });
+  const energies = [
+    ...[1,2,3].map((n) => energy("Fire", n)),
+    ...[1,2,3].map((n) => energy("Water", n)),
+    ...[1,2].map((n) => energy("Lightning", n)),
+    ...[1,2].map((n) => energy("Psychic", n)),
+    ...[1,2].map((n) => energy("Grass", n)),
+    ...[1,2].map((n) => energy("Colorless", n)),
+  ];
+  return shuffle([...basics, ...basics, ...energies]).slice(0, 30);
+}
+
+function ensureDeckWithBasics(cards: TCGCard[]): TCGCard[] {
+  const playable = cards.filter(isPlayablePokemon);
+  if (playable.length >= 6) return cards.length >= 6 ? cards : [...cards, ...guestStarterDeck()].slice(0, 30);
+  return shuffle([...playable, ...guestStarterDeck()]).slice(0, 30);
+}
+
 async function fetchRandomDeck(era: Era | undefined, size = 24): Promise<TCGCard[]> {
   const eraQ = era ? eraSeriesQuery(era) : "";
   const types = pickN(BATTLE_TYPES, 2 + Math.floor(Math.random() * 2));
@@ -205,9 +275,15 @@ export function BattleView({ onExit, customDeck, era }: { onExit: () => void; cu
     setLoadingDeck(true);
     Promise.all([fetchRandomDeck(era, 24), fetchRandomDeck(era, 24)]).then(([playerPool, aiPool]) => {
       if (cancelled) return;
-      const playerDeck = shuffle([...fromVault, ...playerPool]).slice(0, 30);
-      setDeck(playerDeck.length >= 6 ? playerDeck : fromVault);
-      setAiDeckOverride(aiPool.length >= 6 ? aiPool : null);
+      const playerDeck = ensureDeckWithBasics(shuffle([...fromVault, ...playerPool]).slice(0, 30));
+      setDeck(playerDeck);
+      const aiDeck = ensureDeckWithBasics(aiPool.length >= 6 ? aiPool : guestStarterDeck());
+      setAiDeckOverride(aiDeck);
+    }).catch(() => {
+      if (cancelled) return;
+      // Guest / offline: always seed a playable starter so Quick Battle never opens empty.
+      setDeck(ensureDeckWithBasics(fromVault));
+      setAiDeckOverride(guestStarterDeck());
     }).finally(() => { if (!cancelled) setLoadingDeck(false); });
     return () => { cancelled = true; };
   }, [vault, customDeck, era]);
@@ -215,13 +291,24 @@ export function BattleView({ onExit, customDeck, era }: { onExit: () => void; cu
   // Initialize game when deck ready
   useEffect(() => {
     if (!deck || deck.length < 6) return;
-    const aiDeck = aiDeckOverride && aiDeckOverride.length >= 6
-      ? shuffle(aiDeckOverride).slice(0, 20)
-      : shuffle(deck).slice(0, Math.min(deck.length, 20));
+    const aiSrc = aiDeckOverride && aiDeckOverride.length >= 6
+      ? aiDeckOverride
+      : deck;
+    const deal = (src: TCGCard[]) => {
+      let ps = makePlayerState(src);
+      for (let i = 0; i < 10 && !ps.hand.some(isPlayablePokemon); i++) {
+        ps = makePlayerState(src);
+      }
+      if (!ps.hand.some(isPlayablePokemon)) {
+        const basic = src.find(isPlayablePokemon);
+        if (basic) ps = { ...ps, hand: [basic, ...ps.hand.slice(0, 6)] };
+      }
+      return ps;
+    };
     setGs({
       phase: "setup", turn: 0, winner: null,
-      player: makePlayerState(deck),
-      ai: makePlayerState(aiDeck),
+      player: deal(deck),
+      ai: deal(aiSrc.slice(0, Math.min(aiSrc.length, 20))),
       log: ["⚡ Battle ready! Tap a Pokémon in your hand to set Active."],
     });
   }, [deck, aiDeckOverride]);
@@ -305,7 +392,7 @@ export function BattleView({ onExit, customDeck, era }: { onExit: () => void; cu
         <div className="pv-empty">
           <div className="pv-empty-icon">🃏</div>
           <div className="pv-empty-title">NOT ENOUGH POKÉMON</div>
-          <div>Add at least 6 playable Pokémon to your Vault to battle.</div>
+          <div>Couldn’t build a starter deck. Check your connection and try Quick Battle again.</div>
         </div>
       </div>
     );

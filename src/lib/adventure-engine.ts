@@ -1446,14 +1446,29 @@ function hydrateAdventureGeo(state: AdventureState): AdventureState {
     heading: 0,
   };
   let next = state;
+  let dirty = false;
   if (!state.world.playerGeo) {
     next = cloneAdventureState(state);
     next.world.playerGeo = geo;
+    dirty = true;
+  }
+  // Legacy: carto_dark basemap required an API key and showed "API KEY REQUIRED" watermarks.
+  // Force Esri-equivalent dark (app map uses Esri; persisted style just shouldn't stay on carto).
+  if (next.world.mapStyle === "carto_dark") {
+    if (!dirty) next = cloneAdventureState(next);
+    next.world.mapStyle = "osm_streets";
+    dirty = true;
   }
   const needsPin = [...next.discoveryPoints, ...next.battleArenas, ...next.cardCaches].some(
     (p) => typeof p.lat !== "number" || typeof p.lng !== "number"
   );
-  return needsPin ? pinWorldPoisToGeo(next, { lat: geo.lat, lng: geo.lng }) : next;
+  const pinned = needsPin ? pinWorldPoisToGeo(next, { lat: geo.lat, lng: geo.lng }) : next;
+  if (dirty && typeof window !== "undefined") {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(pinned));
+    } catch { /* ignore quota */ }
+  }
+  return pinned;
 }
 
 export function loadAdventureState(): AdventureState {
