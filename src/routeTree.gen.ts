@@ -14,6 +14,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPublicVirusBusterRouteImport } from './routes/api/public/virus-buster'
 import { Route as ApiPublicTcgdexRouteImport } from './routes/api/public/tcgdex'
 import { Route as ApiPublicTcgRouteImport } from './routes/api/public/tcg'
+import { Route as ApiPublicPricesRouteImport } from './routes/api/public/prices'
 import { Route as ApiPublicPokeRadioRouteImport } from './routes/api/public/poke-radio'
 import { Route as ApiPublicMcpRouteImport } from './routes/api/public/mcp'
 import { Route as ApiPublicEbaySoldRouteImport } from './routes/api/public/ebay-sold'
@@ -44,6 +45,11 @@ const ApiPublicTcgRoute = ApiPublicTcgRouteImport.update({
   path: '/api/public/tcg',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPricesRoute = ApiPublicPricesRouteImport.update({
+  id: '/api/public/prices',
+  path: '/api/public/prices',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPokeRadioRoute = ApiPublicPokeRadioRouteImport.update({
   id: '/api/public/poke-radio',
   path: '/api/public/poke-radio',
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/api/public/ebay-sold': typeof ApiPublicEbaySoldRoute
   '/api/public/mcp': typeof ApiPublicMcpRoute
   '/api/public/poke-radio': typeof ApiPublicPokeRadioRoute
+  '/api/public/prices': typeof ApiPublicPricesRoute
   '/api/public/tcg': typeof ApiPublicTcgRoute
   '/api/public/tcgdex': typeof ApiPublicTcgdexRoute
   '/api/public/virus-buster': typeof ApiPublicVirusBusterRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/api/public/ebay-sold': typeof ApiPublicEbaySoldRoute
   '/api/public/mcp': typeof ApiPublicMcpRoute
   '/api/public/poke-radio': typeof ApiPublicPokeRadioRoute
+  '/api/public/prices': typeof ApiPublicPricesRoute
   '/api/public/tcg': typeof ApiPublicTcgRoute
   '/api/public/tcgdex': typeof ApiPublicTcgdexRoute
   '/api/public/virus-buster': typeof ApiPublicVirusBusterRoute
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/api/public/ebay-sold': typeof ApiPublicEbaySoldRoute
   '/api/public/mcp': typeof ApiPublicMcpRoute
   '/api/public/poke-radio': typeof ApiPublicPokeRadioRoute
+  '/api/public/prices': typeof ApiPublicPricesRoute
   '/api/public/tcg': typeof ApiPublicTcgRoute
   '/api/public/tcgdex': typeof ApiPublicTcgdexRoute
   '/api/public/virus-buster': typeof ApiPublicVirusBusterRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/api/public/ebay-sold'
     | '/api/public/mcp'
     | '/api/public/poke-radio'
+    | '/api/public/prices'
     | '/api/public/tcg'
     | '/api/public/tcgdex'
     | '/api/public/virus-buster'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/api/public/ebay-sold'
     | '/api/public/mcp'
     | '/api/public/poke-radio'
+    | '/api/public/prices'
     | '/api/public/tcg'
     | '/api/public/tcgdex'
     | '/api/public/virus-buster'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/api/public/ebay-sold'
     | '/api/public/mcp'
     | '/api/public/poke-radio'
+    | '/api/public/prices'
     | '/api/public/tcg'
     | '/api/public/tcgdex'
     | '/api/public/virus-buster'
@@ -142,6 +154,7 @@ export interface RootRouteChildren {
   ApiPublicEbaySoldRoute: typeof ApiPublicEbaySoldRoute
   ApiPublicMcpRoute: typeof ApiPublicMcpRoute
   ApiPublicPokeRadioRoute: typeof ApiPublicPokeRadioRoute
+  ApiPublicPricesRoute: typeof ApiPublicPricesRoute
   ApiPublicTcgRoute: typeof ApiPublicTcgRoute
   ApiPublicTcgdexRoute: typeof ApiPublicTcgdexRoute
   ApiPublicVirusBusterRoute: typeof ApiPublicVirusBusterRoute
@@ -184,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicTcgRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/prices': {
+      id: '/api/public/prices'
+      path: '/api/public/prices'
+      fullPath: '/api/public/prices'
+      preLoaderRoute: typeof ApiPublicPricesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/poke-radio': {
       id: '/api/public/poke-radio'
       path: '/api/public/poke-radio'
@@ -222,6 +242,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicEbaySoldRoute: ApiPublicEbaySoldRoute,
   ApiPublicMcpRoute: ApiPublicMcpRoute,
   ApiPublicPokeRadioRoute: ApiPublicPokeRadioRoute,
+  ApiPublicPricesRoute: ApiPublicPricesRoute,
   ApiPublicTcgRoute: ApiPublicTcgRoute,
   ApiPublicTcgdexRoute: ApiPublicTcgdexRoute,
   ApiPublicVirusBusterRoute: ApiPublicVirusBusterRoute,

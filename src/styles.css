@@ -227,13 +227,114 @@
 .pv-card-wrap { cursor: pointer; position: relative; width: 140px; flex-shrink: 0; overflow: visible; }
 .pv-card-img-wrap { position: relative; width: 100%; padding-top: 139.5%; background: linear-gradient(135deg, #121a2b, #0b1220); border: 2px solid var(--navy); border-radius: 10px; overflow: hidden; box-shadow: 0 8px 18px rgba(11,18,32,.18); transition: transform .18s, box-shadow .18s; }
 .pv-card-wrap:hover .pv-card-img-wrap { transform: translateY(-4px); box-shadow: 0 14px 28px rgba(11,18,32,.28); border-color: var(--gold); }
-.pv-card-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .3s; }
+.pv-card-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity .3s; }
 .pv-card-img.loaded { opacity: 1; }
 .pv-card-skel { position: absolute; inset: 0; background: linear-gradient(135deg, #121a2b, #1c2740); }
-.pv-card-ovl { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(180deg, transparent, rgba(11,18,32,.92) 40%); padding: 18px 8px 7px; opacity: 1; transition: opacity .15s; }
-.pv-c-name { font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: 1px; color: #f4efe4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 4px #000; }
-.pv-c-set { font-size: 9px; color: var(--gold); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
-.pv-c-price { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 1px; color: var(--gold); background: rgba(11,18,32,.7); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--gold); }
+.pv-card-ovl { display: none !important; }
+.pv-card-caption {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.pv-c-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: var(--t1, #f4efe4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: none;
+  line-height: 1.15;
+}
+.pv-c-set {
+  font-size: 9px;
+  color: var(--t3, #94a3b8);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+.pv-c-price-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.pv-c-price {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: var(--gold);
+  background: rgba(11,18,32,.7);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--gold);
+  flex-shrink: 0;
+}
+.pv-c-price-lbl {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--t3, #94a3b8);
+  white-space: nowrap;
+}
+.pv-gold-chip {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(120, 83, 8, 0.94);
+  color: #fde68a;
+  border: 1px solid rgba(251, 191, 36, 0.7);
+}
+.pv-grade-chip,
+.pv-lvl-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 5px;
+  font-size: 8px;
+  font-weight: 800;
+  font-family: var(--mono, monospace);
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.pv-lvl-chip {
+  background: rgba(88, 28, 135, 0.85);
+  color: #e9d5ff;
+  border-color: rgba(192, 132, 252, 0.4);
+}
+.pv-tile-tool {
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 9px;
+  font-weight: 800;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.35);
+  cursor: pointer;
+  line-height: 1.2;
+}
+.pv-tile-tool-scan { background: rgba(14, 165, 233, 0.92); }
+.pv-tile-tool-trade { background: rgba(16, 185, 129, 0.92); }
+.pv-card-caption .pv-card-tools {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.pv-card-caption .pv-card-meta-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.pv-card-caption .pv-card-grade { margin-top: 2px; }
 .pv-qty-b { position: absolute; top: 6px; right: 6px; background: var(--poke-red); color: #fff; border-radius: 10px; border: 1px solid var(--poke-red); padding: 2px 8px; font-size: 10px; font-weight: 800; z-index: 10; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; }
 .pv-rm-b { position: absolute; top: 6px; left: 6px; background: rgba(11,18,32,.85); border: 1px solid var(--poke-red); color: #f4efe4; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; font-size: 13px; z-index: 10; display: flex; align-items: center; justify-content: center; }
 .pv-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 16px; }
@@ -2833,13 +2934,16 @@ header, nav, main, footer, .pv-settings { position: relative; z-index: 1; }
   border-radius: 12px;
 }
 
-/* Art Navis (Inkwell + DesignForge): chrome off until hover so 400 gold tiles stay readable. */
+/* Art Navis: extra chrome collapsed until hover — caption (name/price) always visible. */
 .pv-card-tools,
 .pv-card-meta-badges,
 .pv-card-grade {
+  max-height: 0;
   opacity: 0;
+  overflow: hidden;
+  margin: 0 !important;
   pointer-events: none;
-  transition: opacity 0.18s ease;
+  transition: opacity 0.18s ease, max-height 0.18s ease;
 }
 .pv-card-wrap:hover .pv-card-tools,
 .pv-card-wrap:focus-within .pv-card-tools,
@@ -2847,6 +2951,7 @@ header, nav, main, footer, .pv-settings { position: relative; z-index: 1; }
 .pv-card-wrap:focus-within .pv-card-meta-badges,
 .pv-card-wrap:hover .pv-card-grade,
 .pv-card-wrap:focus-within .pv-card-grade {
+  max-height: 72px;
   opacity: 1;
   pointer-events: auto;
 }
@@ -3669,7 +3774,7 @@ html, body, .pv-app {
 .pv-pro-chip.free { border-color: rgba(139,144,160,0.45); background: rgba(18,24,38,0.85); color: #c5c6c7; }
 .pv-pro-star { color: #e2b53a; }
 .pv-pro-chip.pro .pv-pro-star { color: #38bdf8; }
-.pv-virt-cell { content-visibility: auto; contain-intrinsic-size: auto 210px; }
+.pv-virt-cell { content-visibility: auto; contain-intrinsic-size: auto 280px; }
 .pv-virt-spacer { pointer-events: none; }
 
 /* === 2026-09-22 VISUAL POLISH === */
@@ -3702,16 +3807,20 @@ html, body, .pv-app {
   filter: none !important;
 }
 
-/* Stronger tile bottom gradient so name stays readable over art */
+/* Full-card tiles: no scrim over art — caption lives below */
 .pv-card-ovl,
 .pv-app-shell .pv-card-ovl {
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    rgba(0, 0, 0, 0.35) 28%,
-    rgba(0, 0, 0, 0.85) 100%
-  ) !important;
-  padding: 22px 8px 8px !important;
+  display: none !important;
+}
+.pv-app-shell .pv-card-caption .pv-c-name {
+  color: #f4efe4 !important;
+  text-shadow: none !important;
+}
+.pv-app-shell .pv-card-caption .pv-c-set {
+  color: #94a3b8 !important;
+}
+.pv-app-shell .pv-c-price-lbl {
+  color: #94a3b8 !important;
 }
 
 .pv-card-wrap {
@@ -3993,4 +4102,36 @@ html, body, .pv-app {
   color: #e2b53a;
   background: rgba(226, 181, 58, 0.1);
   border: 1px solid rgba(226, 181, 58, 0.35);
+}
+
+
+/* === 2026-09-22 CARD FULL VISIBLE === */
+.pv-card-img-wrap {
+  /* Keep aspect box; show full face without edge crop */
+  background: #0b0c10;
+}
+.pv-card-img,
+.pv-app-shell .pv-card-img {
+  object-fit: contain !important;
+}
+/* Kill any leftover absolute overlay chrome on the art */
+.pv-card-img-wrap > .pv-card-ovl,
+.pv-card-img-wrap > .pv-card-tools,
+.pv-card-img-wrap > .pv-card-meta-badges,
+.pv-card-img-wrap > .pv-card-grade,
+.pv-card-img-wrap > .pv-gold-b {
+  display: none !important;
+}
+.pv-card-caption {
+  padding: 0 1px 2px;
+}
+.pv-card-caption .pv-c-price {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pv-price-pending {
+  font-size: 10px !important;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
 }

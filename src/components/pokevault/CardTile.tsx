@@ -115,6 +115,14 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
     setLoaded(false);
   }, [card.id]);
 
+  const isGold = /\b(hyper\s*rare|mega\s*hyper|rare\s*holo\s*star|gold\s*star|secret\s*rare|rare\s*secret)\b/i.test(
+    `${card.rarity || ""} ${card.name || ""}`
+  );
+  const isShadowless = /shadowless/i.test(`${card.set?.name || ""} ${card.rarity || ""}`);
+  const isError = /\b(error|misprint)/i.test(`${card.set?.name || ""} ${card.rarity || ""} ${card.name || ""}`);
+  const setLine = [card.set?.name, card.number ? `#${card.number}` : null].filter(Boolean).join(" · ");
+  const priceLabel = pricePending ? null : live > 0 ? "sold avg" : displayPrice ? "market" : null;
+
   return (
     <div
       className="pv-card-wrap pv-card-press"
@@ -155,105 +163,12 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
         {card.lang && card.lang !== "en" && (
           <div className="pv-lang-b" title={printLangMeta(card.lang).name}>{printLangMeta(card.lang).label}</div>
         )}
-        {/shadowless/i.test(`${card.set?.name || ""} ${card.rarity || ""}`) && (
+        {isShadowless && (
           <div className="pv-var-b" title="Base Set Shadowless" style={card.lang && card.lang !== "en" ? { left: 44 } : undefined}>SL</div>
         )}
-        {/\b(error|misprint)/i.test(`${card.set?.name || ""} ${card.rarity || ""} ${card.name || ""}`) && (
+        {isError && (
           <div className="pv-err-b" title="Error / misprint">ERR</div>
         )}
-        {/\b(hyper\s*rare|mega\s*hyper|rare\s*holo\s*star|gold\s*star|secret\s*rare|rare\s*secret)\b/i.test(`${card.rarity || ""} ${card.name || ""}`) && (
-          <div className="pv-gold-b" title="Gold / Hyper / Secret Rare">GOLD</div>
-        )}
-        
-        <div className="pv-card-tools" style={{ position: "absolute", top: 6, right: onRemove ? 30 : 6, zIndex: 36, display: "flex", gap: 3 }}>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowScanModal(true);
-            }}
-            style={{
-              padding: "2px 6px",
-              borderRadius: 6,
-              fontSize: 9,
-              fontWeight: 800,
-              background: "rgba(14, 165, 233, 0.9)",
-              color: "#ffffff",
-              border: "1px solid rgba(255,255,255,0.4)",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.6)",
-              cursor: "pointer",
-            }}
-            title="Launch Dual-Sided Quantum AI Pre-Grade Scanner"
-          >
-            🔬 Scan
-          </button>
-
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowTradeModal(true);
-            }}
-            style={{
-              padding: "2px 6px",
-              borderRadius: 6,
-              fontSize: 9,
-              fontWeight: 800,
-              background: "rgba(16, 185, 129, 0.9)",
-              color: "#ffffff",
-              border: "1px solid rgba(255,255,255,0.4)",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.6)",
-              cursor: "pointer",
-            }}
-            title="Propose P2P Card / Game Pokémon Trade"
-          >
-            🔄 Trade
-          </button>
-        </div>
-
-        <div
-          className="pv-card-meta-badges"
-          style={{
-            position: "absolute",
-            top: 6,
-            left: 6,
-            zIndex: 35,
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-            pointerEvents: "none",
-          }}
-        >
-          <div
-            style={{
-              padding: "2px 6px",
-              borderRadius: 6,
-              fontSize: 9,
-              fontWeight: 800,
-              fontFamily: "var(--mono, monospace)",
-              background: gradeMeta.badgeBg,
-              color: gradeMeta.badgeText,
-              border: `1px solid ${gradeMeta.badgeText}66`,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.6)",
-            }}
-          >
-            {gradeMeta.shortLabel}
-          </div>
-
-          <div
-            style={{
-              padding: "1px 5px",
-              borderRadius: 4,
-              fontSize: 8,
-              fontWeight: 700,
-              fontFamily: "var(--mono, monospace)",
-              background: "rgba(88, 28, 135, 0.85)",
-              color: "#e9d5ff",
-              border: "1px solid rgba(192, 132, 252, 0.4)",
-            }}
-          >
-            Lv.{stats.level} · +{stats.totalBoostPercent}%
-          </div>
-        </div>
-
         {qty && qty > 1 ? <div className="pv-qty-b">×{qty}</div> : null}
         {onRemove && (
           <button
@@ -264,69 +179,109 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
             ×
           </button>
         )}
+      </div>
 
-        <div className="pv-card-ovl" style={{ padding: "8px" }}>
-          <div className="pv-c-name" style={{ fontSize: 12 }}>{card.name}</div>
-          <div className="flex justify-between items-center mt-1">
-            <div className="pv-c-set" style={{ fontSize: 10 }}>{card.set.name}</div>
-            <div className="pv-c-price">
-              {displayPrice
-                ? formatPrice(displayPrice)
-                : pricePending
-                  ? <span className="pv-price-pending" title="Prices pending — new set">Pending</span>
-                  : "—"}
-            </div>
+      <div className="pv-card-caption">
+        <div className="pv-c-name" title={card.name}>{card.name}</div>
+        <div className="pv-c-set" title={setLine}>{setLine}</div>
+        <div className="pv-c-price-row">
+          <div className="pv-c-price">
+            {displayPrice
+              ? formatPrice(displayPrice)
+              : pricePending
+                ? <span className="pv-price-pending" title="Prices pending — new set">Pending</span>
+                : "—"}
           </div>
+          {priceLabel ? <span className="pv-c-price-lbl">{priceLabel}</span> : null}
+          {isGold ? <span className="pv-gold-chip" title="Gold / Hyper / Secret Rare">GOLD</span> : null}
+        </div>
 
-          <div
-            className="pv-card-grade"
-            style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}
-            onClick={(e) => e.stopPropagation()}
+        <div className="pv-card-meta-badges">
+          <span
+            className="pv-grade-chip"
+            style={{
+              background: gradeMeta.badgeBg,
+              color: gradeMeta.badgeText,
+              borderColor: `${gradeMeta.badgeText}66`,
+            }}
           >
-            <select
-              value={grade}
-              onChange={(e) => {
-                e.stopPropagation();
-                setGrade(e.target.value as CardGrade);
-              }}
-              style={{
-                width: "100%",
-                background: "rgba(10, 15, 29, 0.95)",
-                color: gradeMeta.isSlab ? "#fbbf24" : "var(--t1)",
-                border: gradeMeta.isSlab ? "1px solid rgba(251, 191, 36, 0.5)" : "1px solid var(--brd)",
-                borderRadius: 5,
-                fontSize: 10,
-                fontFamily: "var(--mono, monospace)",
-                padding: "3px 4px",
-                cursor: "pointer",
-                outline: "none",
-              }}
-              title="Select Graded Slab or Ungraded Condition"
-            >
-              <optgroup label="📋 UNGRADED CONDITIONS">
-                {UNGRADED_QUALITIES.map((g) => {
-                  const gm = getGradeMeta(g);
-                  const gVal = calculateGradedValue(card, g);
-                  return (
-                    <option key={g} value={g}>
-                      {gm.shortLabel} · {formatPrice(gVal.estimatedGradedPrice)}
-                    </option>
-                  );
-                })}
-              </optgroup>
-              <optgroup label="🏆 GRADED SLABS">
-                {GRADED_SLABS.map((g) => {
-                  const gm = getGradeMeta(g);
-                  const gVal = calculateGradedValue(card, g);
-                  return (
-                    <option key={g} value={g}>
-                      {gm.shortLabel} · {formatPrice(gVal.estimatedGradedPrice)}
-                    </option>
-                  );
-                })}
-              </optgroup>
-            </select>
-          </div>
+            {gradeMeta.shortLabel}
+          </span>
+          <span className="pv-lvl-chip">Lv.{stats.level} · +{stats.totalBoostPercent}%</span>
+        </div>
+
+        <div className="pv-card-tools">
+          <button
+            type="button"
+            className="pv-tile-tool pv-tile-tool-scan"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowScanModal(true);
+            }}
+            title="Launch Dual-Sided Quantum AI Pre-Grade Scanner"
+          >
+            🔬 Scan
+          </button>
+          <button
+            type="button"
+            className="pv-tile-tool pv-tile-tool-trade"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowTradeModal(true);
+            }}
+            title="Propose P2P Card / Game Pokémon Trade"
+          >
+            🔄 Trade
+          </button>
+        </div>
+
+        <div
+          className="pv-card-grade"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <select
+            value={grade}
+            onChange={(e) => {
+              e.stopPropagation();
+              setGrade(e.target.value as CardGrade);
+            }}
+            style={{
+              width: "100%",
+              background: "rgba(10, 15, 29, 0.95)",
+              color: gradeMeta.isSlab ? "#fbbf24" : "var(--t1)",
+              border: gradeMeta.isSlab ? "1px solid rgba(251, 191, 36, 0.5)" : "1px solid var(--brd)",
+              borderRadius: 5,
+              fontSize: 10,
+              fontFamily: "var(--mono, monospace)",
+              padding: "3px 4px",
+              cursor: "pointer",
+              outline: "none",
+            }}
+            title="Select Graded Slab or Ungraded Condition"
+          >
+            <optgroup label="📋 UNGRADED CONDITIONS">
+              {UNGRADED_QUALITIES.map((g) => {
+                const gm = getGradeMeta(g);
+                const gVal = calculateGradedValue(card, g);
+                return (
+                  <option key={g} value={g}>
+                    {gm.shortLabel} · {formatPrice(gVal.estimatedGradedPrice)}
+                  </option>
+                );
+              })}
+            </optgroup>
+            <optgroup label="🏆 GRADED SLABS">
+              {GRADED_SLABS.map((g) => {
+                const gm = getGradeMeta(g);
+                const gVal = calculateGradedValue(card, g);
+                return (
+                  <option key={g} value={g}>
+                    {gm.shortLabel} · {formatPrice(gVal.estimatedGradedPrice)}
+                  </option>
+                );
+              })}
+            </optgroup>
+          </select>
         </div>
       </div>
       {showScanModal && (
