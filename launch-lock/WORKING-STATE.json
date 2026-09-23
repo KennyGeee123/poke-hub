@@ -1,8 +1,8 @@
 {
-  "id": "pokedex-hub-launch-ready-2026-09-22-card-full-visible",
+  "id": "pokedex-hub-launch-ready-2026-09-22-box-set-speed",
   "liveUrl": "https://pokedex-hub-lime.vercel.app/",
-  "frozenAt": "2026-09-23T01:49:15.014Z",
-  "rootSha256": "84f18ebf12b34333edb1116625202dd0430122a40e62dc1a2eb78e829ca8aaa3",
+  "frozenAt": "2026-09-23T01:53:39Z",
+  "rootSha256": "5848b9d496c2bd1d3d72f7bb937fde4dd4f4084d9f83e27c8c23e7e8f7c60e7d",
   "fileCount": 213,
   "launchChecks": {
     "homeSsrPvApp": true,
@@ -540,8 +540,8 @@
     },
     {
       "path": "src/components/pokevault/views.tsx",
-      "sha256": "68c211830d10ed58eb1c0d6efebd00417389905cbae9fa3de2c75459411c9e01",
-      "bytes": 34198
+      "sha256": "f0d0d43b89d2571fd4a79db61c6da0bbe84079ddbed11ef6f606dc5aaf743dd3",
+      "bytes": 34321
     },
     {
       "path": "src/components/ui/accordion.tsx",
@@ -920,8 +920,8 @@
     },
     {
       "path": "src/lib/pokemon-api.ts",
-      "sha256": "f841993697f881f316ea29638c4eb480ca348a5385f221ce4af191f610720f52",
-      "bytes": 24809
+      "sha256": "fd0565f3325824a9252a51b2ec3bf8603df915c3787e080df435208b13b4f4ca",
+      "bytes": 27401
     },
     {
       "path": "src/lib/premium.ts",
@@ -1104,5 +1104,5 @@
       "bytes": 202
     }
   ],
-  "thawNote": "Full card face visible: remove tile scrim/overlays; name+price caption below art"
+  "thawNote": "Box-set speed: IDB-first sets list; TCGdex-first set cards + stale paint"
 }

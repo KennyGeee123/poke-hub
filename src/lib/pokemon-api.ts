@@ -497,19 +497,78 @@ export async function getCard(id: string, lang?: string): Promise<TCGCard> {
   return FALLBACK_CARDS.find((c) => c.id === id) || stubCardFromId(id);
 }
 
+function setsCacheLooksComplete(list: TCGSet[] | null | undefined): boolean {
+  return !!(
+    list?.length &&
+    list.length >= 150 &&
+    list.some((s) => s.id === "base1sl") &&
+    list.some((s) => s.id === "error")
+  );
+}
+
+/** Network refresh for the set catalog; writes IDB when English. */
+async function fetchSetsFromNetwork(lang = "en"): Promise<TCGSet[]> {
+  if (lang !== "en") {
+    const dx = await tcgdexGetSets(lang);
+    if (dx.length) return injectSpecialSets(dx);
+  }
+
+  // Parallel first page + TCGdex (one-shot list) instead of serial page loop then TCGdex.
+  const page1P = tcgFetch<{ data: TCGSet[]; totalCount: number }>(
+    `/sets?orderBy=-releaseDate&pageSize=250&page=1`,
+  ).catch(() => null);
+  const dxP = tcgdexGetSets(lang).catch(() => [] as TCGSet[]);
+  const [page1, dx] = await Promise.all([page1P, dxP]);
+
+  const all: TCGSet[] = [...(page1?.data ?? [])];
+  const total = page1?.totalCount ?? all.length;
+  if (page1?.data?.length && all.length < total && page1.data.length >= 250) {
+    let page = 2;
+    for (;;) {
+      try {
+        const res = await tcgFetch<{ data: TCGSet[]; totalCount: number }>(
+          `/sets?orderBy=-releaseDate&pageSize=250&page=${page}`,
+        );
+        all.push(...(res.data ?? []));
+        if (!res.data?.length || all.length >= (res.totalCount ?? total) || res.data.length < 250) break;
+        page += 1;
+        if (page > 8) break;
+      } catch {
+        break;
+      }
+    }
+  }
+
+  if (all.length === 0) all.push(...FALLBACK_SETS);
+  if (dx.length) {
+    const merged = mergeSetLists(all, dx);
+    all.length = 0;
+    all.push(...merged);
+  }
+  return injectSpecialSets(all);
+}
+
 export async function getSets(lang = "en"): Promise<TCGSet[]> {
   const cacheKeyLang = lang || "en";
   // IndexedDB read-through (24h TTL). Keep a stale copy for offline/API failure.
   const cached = await getCachedSets<TCGSet[]>();
   const stale = cacheKeyLang === "en" ? await getCachedSets<TCGSet[]>(Number.MAX_SAFE_INTEGER) : null;
-  if (
-    cached?.length &&
-    cacheKeyLang === "en" &&
-    cached.length >= 150 &&
-    cached.some((s) => s.id === "base1sl") &&
-    cached.some((s) => s.id === "error")
-  ) {
-    return injectSpecialSets(cached);
+
+  if (setsCacheLooksComplete(cached) && cacheKeyLang === "en") {
+    return injectSpecialSets(cached!);
+  }
+
+  // Instant paint: any usable IDB list beats waiting on the full network merge.
+  const instant = (setsCacheLooksComplete(stale) ? stale : null)
+    || (cached && cached.length >= 50 ? cached : null)
+    || (stale && stale.length >= 50 ? stale : null);
+  if (instant?.length && cacheKeyLang === "en") {
+    void fetchSetsFromNetwork(lang)
+      .then((fresh) => {
+        if (fresh.length >= 50) void setCachedSets(fresh);
+      })
+      .catch(() => {});
+    return injectSpecialSets(instant);
   }
 
   if (lang !== "en") {
@@ -517,41 +576,13 @@ export async function getSets(lang = "en"): Promise<TCGSet[]> {
     if (dx.length) return injectSpecialSets(dx);
   }
 
-  const all: TCGSet[] = [];
-  try {
-    let page = 1;
-    for (;;) {
-      const res = await tcgFetch<{ data: TCGSet[]; totalCount: number }>(
-        `/sets?orderBy=-releaseDate&pageSize=250&page=${page}`
-      );
-      all.push(...(res.data ?? []));
-      const total = res.totalCount ?? all.length;
-      if (!res.data?.length || all.length >= total || res.data.length < 250) break;
-      page += 1;
-      if (page > 8) break;
-    }
-  } catch {
-    /* TCGdex merge below */
-  }
-
-  if (all.length === 0) all.push(...FALLBACK_SETS);
-
-  try {
-    const dx = await tcgdexGetSets(lang);
-    const merged = mergeSetLists(all, dx);
-    all.length = 0;
-    all.push(...merged);
-  } catch {
-    // ignore secondary failure
-  }
-
-  if (all.length < 10 && stale?.length) return injectSpecialSets(stale);
-  if (cached?.length && all.length < cached.length) {
-    const merged = injectSpecialSets(mergeSetLists(all, cached));
+  const final = await fetchSetsFromNetwork(lang);
+  if (final.length < 10 && stale?.length) return injectSpecialSets(stale);
+  if (cached?.length && final.length < cached.length) {
+    const merged = injectSpecialSets(mergeSetLists(final, cached));
     if (cacheKeyLang === "en") void setCachedSets(merged);
     return merged;
   }
-  const final = injectSpecialSets(all);
   if (cacheKeyLang === "en" && final.length) void setCachedSets(final);
   return final;
 }
@@ -600,6 +631,11 @@ export async function getAllCardsBySet(
       onPage?.(cached, cached.length);
       return { data: cached, totalCount: cached.length };
     }
+    // Paint last-known cards immediately while network refresh runs.
+    if (staleCards?.length) {
+      staleCards.forEach(rememberCard);
+      onPage?.(staleCards, staleCards.length);
+    }
   }
 
   if (lang !== "en") {
@@ -608,21 +644,67 @@ export async function getAllCardsBySet(
     onPage?.(extra, extra.length);
     return { data: extra, totalCount: extra.length };
   }
+
+  // TCGdex set endpoint is one request for the whole set — prefer it over serial pokemontcg pages.
   let all: TCGCard[] = [];
   let total = 0;
   try {
-    let page = 1;
-    for (;;) {
-      const next = await getCardsBySet(setId, page);
-      if (!next.data?.length) break;
-      all = all.concat(next.data);
-      total = Math.max(total, next.totalCount ?? 0, all.length);
+    const dx = await tcgdexGetSetCards(setId, lang);
+    if (dx.length) {
+      all = dx;
+      total = dx.length;
+      dx.forEach(rememberCard);
       onPage?.(all, total);
-      page += 1;
-      if (page > 20) break;
     }
   } catch {
-    // pokemontcg.io failed; TCGdex merge below
+    // fall through to pokemontcg
+  }
+
+  // Only page pokemontcg when TCGdex was empty/thin, or to fill gaps.
+  const needPokemonPages = all.length === 0;
+  if (needPokemonPages) {
+    try {
+      let page = 1;
+      for (;;) {
+        const next = await getCardsBySet(setId, page);
+        if (!next.data?.length) break;
+        all = all.concat(next.data);
+        total = Math.max(total, next.totalCount ?? 0, all.length);
+        onPage?.(all, total);
+        page += 1;
+        if (page > 20) break;
+        if (all.length >= (next.totalCount ?? 0) && next.totalCount) break;
+      }
+    } catch {
+      // pokemontcg.io failed
+    }
+  } else {
+    // Optional enrich: one pokemontcg page for market fields without blocking first paint.
+    void getCardsBySet(setId, 1)
+      .then((next) => {
+        if (!next.data?.length) return;
+        const byId = new Map(all.map((c) => [c.id, c]));
+        let changed = false;
+        for (const c of next.data) {
+          const prev = byId.get(c.id);
+          if (!prev) {
+            all.push(c);
+            byId.set(c.id, c);
+            changed = true;
+            continue;
+          }
+          if (!prev.tcgplayer?.prices && c.tcgplayer?.prices) {
+            Object.assign(prev, { tcgplayer: c.tcgplayer, cardmarket: c.cardmarket ?? prev.cardmarket });
+            changed = true;
+          }
+        }
+        if (changed) {
+          total = Math.max(total, all.length);
+          onPage?.(all.slice(), total);
+          void setCachedSetCards(setId, all);
+        }
+      })
+      .catch(() => {});
   }
 
   if (all.length === 0 && setName) {
@@ -639,24 +721,6 @@ export async function getAllCardsBySet(
       onPage?.(all, total);
     } catch {}
   }
-
-  try {
-    const extra = await tcgdexGetSetCards(setId, lang);
-    if (extra.length) {
-      const seen = new Set(all.map((c) => c.id));
-      let added = false;
-      for (const c of extra) {
-        if (!c.id || seen.has(c.id)) continue;
-        all.push(c);
-        seen.add(c.id);
-        added = true;
-      }
-      if (added) {
-        total = Math.max(total, all.length);
-        onPage?.(all, total);
-      }
-    }
-  } catch {}
 
   // Last-good IDB when both APIs came back empty (me2pt5 / Ascended Heroes class failures)
   if (all.length === 0 && staleCards?.length) {

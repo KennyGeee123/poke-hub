@@ -1,17 +1,4 @@
-FROZEN — launch-ready working state 2026-09-22 (card-full-visible)
+FROZEN — launch-ready working state 2026-09-22 (box-set-speed)
 Live: https://pokedex-hub-lime.vercel.app/
 Lock: launch-lock/WORKING-STATE.json
-Id:   pokedex-hub-launch-ready-2026-09-22-card-full-visible
-
-Full card artwork on tiles: removed bottom gradient scrim / name-price overlay
-from CardTile art. Caption under card: name → set/# → price (sold avg|market)
-+ Pending tidy. Scan/Trade/grade chrome hover-only under art. object-fit:contain.
-Tile-fast images unchanged.
-
-Do not apply drive-by / "hack" edits to hashed files.
-Quantum loop (KM Command cron `pokedex-launch-lock`, every 5 min) re-hashes
-this tree, QEC-encodes clean=|0⟩ vs tamper=|1⟩, and stores the result in
-the quantum coherence cache under key `pokedex-hub:launch-lock`.
-
-To thaw for a real change: update the files, rebuild WORKING-STATE.json from a
-verified live launch, then git tag a new launch-ready.
+Id:   pokedex-hub-launch-ready-2026-09-22-box-set-speed

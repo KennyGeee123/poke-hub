@@ -279,15 +279,15 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
   const [err, setErr] = useState<string | null>(null);
   const [lang] = usePrintLang();
 
-  const load = () => {
+  const load = (blank = false) => {
     setErr(null);
-    setSets(null);
+    if (blank) setSets(null);
     getSets(lang).then(setSets).catch((e: any) => {
-      setSets([]);
+      setSets((prev) => prev ?? []);
       setErr(e?.message || "Could not load sets.");
     });
   };
-  useEffect(() => { load(); }, [lang]);
+  useEffect(() => { load(!sets); }, [lang]);
 
   const filtered = (sets ?? []).filter(s => {
     const id = (s.id || "").toLowerCase();
@@ -323,7 +323,7 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
         <div className="pv-empty">
           <div className="pv-empty-title">SETS DIDN’T LOAD</div>
           <div>{err}</div>
-          <button className="pv-btn pv-btn-fill" style={{ marginTop: 12 }} onClick={load}>Retry</button>
+          <button className="pv-btn pv-btn-fill" style={{ marginTop: 12 }} onClick={() => load(true)}>Retry</button>
         </div>
       )}
       {sets && (
@@ -387,11 +387,13 @@ export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () 
   const [missingOnly, setMissingOnly] = useState(false);
   const { inVault } = useVault();
 
-  const load = () => {
+  const load = (blank = true) => {
     setErr(null);
     setSoftNote(null);
-    setCards(null);
-    setTotal(0);
+    if (blank) {
+      setCards(null);
+      setTotal(0);
+    }
     getAllCardsBySet(set.id, (page, tot) => {
       setCards(page);
       setTotal(tot);
@@ -494,14 +496,14 @@ export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () 
         <div className="pv-catalog-soft" role="status">
           <div className="pv-catalog-soft-title">Catalog note</div>
           <div>{softNote}</div>
-          <button className="pv-btn pv-btn-fill" style={{ marginTop: 10 }} onClick={load}>Retry</button>
+          <button className="pv-btn pv-btn-fill" style={{ marginTop: 10 }} onClick={() => load(false)}>Retry</button>
         </div>
       )}
       {err && (
         <div className="pv-empty">
           <div className="pv-empty-title">SET DIDN’T LOAD</div>
           <div>{err}</div>
-          <button className="pv-btn pv-btn-fill" style={{ marginTop: 12 }} onClick={load}>Retry</button>
+          <button className="pv-btn pv-btn-fill" style={{ marginTop: 12 }} onClick={() => load(true)}>Retry</button>
         </div>
       )}
       {!err && !softNote && cards && cards.length === 0 && (
