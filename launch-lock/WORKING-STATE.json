@@ -1,9 +1,9 @@
 {
-  "id": "pokedex-hub-launch-ready-2026-09-22-box-set-speed",
+  "id": "pokedex-hub-launch-ready-2026-09-22-sets-idb-tile-paint",
   "liveUrl": "https://pokedex-hub-lime.vercel.app/",
-  "frozenAt": "2026-09-23T01:53:39Z",
-  "rootSha256": "5848b9d496c2bd1d3d72f7bb937fde4dd4f4084d9f83e27c8c23e7e8f7c60e7d",
-  "fileCount": 213,
+  "frozenAt": "2026-09-23T01:53:56.000Z",
+  "rootSha256": "2f0681f74c3215cf5d344d4edb701026f8341eba539b78820b1cf0362f0672b9",
+  "fileCount": 214,
   "launchChecks": {
     "homeSsrPvApp": true,
     "pokedexHub": true,
@@ -450,7 +450,7 @@
     },
     {
       "path": "src/components/pokevault/CardTile.tsx",
-      "sha256": "ce29b0e978ab58cd4df994e5aa9cd18cd7cd69e9052c848dff32396f351ee184",
+      "sha256": "add2ba48ba4623fadb641b223aa0d7ffdfd9bc6ec15654813fec1dcb0506b71f",
       "bytes": 12138
     },
     {
@@ -825,7 +825,7 @@
     },
     {
       "path": "src/lib/card-images.ts",
-      "sha256": "b7c2d27c247c112ab15165d8392169413c616b3728fd90389569b744256a6dca",
+      "sha256": "64e54fbaef4465aff3927893823824548a2bd3cb3f9c3a738228396a15a7d1bf",
       "bytes": 8804
     },
     {
@@ -1040,7 +1040,7 @@
     },
     {
       "path": "src/styles.css",
-      "sha256": "e879b92a164800b3da33c9130d42076d531b31f21a5a758c7d1078678897221f",
+      "sha256": "0f43146c8718ba11626cf993ff32e7bd2e0f2b26a9079ae855458095afdf9d13",
       "bytes": 161868
     },
     {
@@ -1102,7 +1102,11 @@
       "path": "wrangler.jsonc",
       "sha256": "44a244a3817413d9641b9d4fde8bfdd7d3293e26db5a39b5cee7aa946e51a163",
       "bytes": 202
+    },
+    {
+      "path": "PERF-LAG.md",
+      "sha256": "11890c83504570cd227c35ee6ca02d9b717956d3d2431cfeef45919cb0779862"
     }
   ],
-  "thawNote": "Box-set speed: IDB-first sets list; TCGdex-first set cards + stale paint"
+  "thawNote": "sets IDB/TCGdex-first (8299341) + tile paint lag (TCGPlayer 400, foil/drift off, sprite hover-mount)"
 }

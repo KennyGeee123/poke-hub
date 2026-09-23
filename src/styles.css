@@ -1194,42 +1194,23 @@ body::before {
     radial-gradient(circle at 70% 22%, rgba(255,222,0,.06) 0 14px, transparent 15px),
     radial-gradient(circle at 22% 82%, rgba(255,255,255,.04) 0 10px, transparent 11px);
   background-size: 520px 520px;
-  animation: pv-drift 36s linear infinite;
-  opacity: .65;
+  /* no continuous animation — was main-thread/compositor tax on Discover & Sets grids */
+  opacity: .35;
 }
 @keyframes pv-drift {
   from { background-position: 0 0, 0 0, 0 0, 0 0; }
   to   { background-position: 520px 260px, -520px -260px, 260px -520px, -260px 520px; }
 }
 
-/* Holographic foil shimmer on card hover */
-.pv-card-img-wrap::after {
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(115deg,
-    transparent 30%, rgba(255,255,255,.35) 45%,
-    rgba(255,222,0,.25) 50%, rgba(59,76,202,.25) 55%,
-    transparent 70%);
-  background-size: 250% 250%; background-position: 200% 0;
-  mix-blend-mode: overlay; opacity: 0;
-  transition: opacity .35s;
-}
-.pv-card-wrap:hover .pv-card-img-wrap::after {
-  opacity: 1; animation: pv-foil 1.4s ease-out;
-}
-@keyframes pv-foil {
-  from { background-position: 200% 0; }
-  to   { background-position: -100% 0; }
-}
+/* Foil shimmer removed — mix-blend + animated gradient janked Discover/Sets grids */
+.pv-card-img-wrap::after { content: none !important; display: none !important; }
 .pv-card-img-wrap {
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 .pv-card-wrap:hover .pv-card-img-wrap {
   border-color: rgba(255,222,0,.55);
-  box-shadow:
-    0 10px 30px rgba(238,21,21,.35),
-    0 0 30px rgba(255,222,0,.25),
-    0 0 0 2px rgba(255,222,0,.4);
+  box-shadow: 0 8px 18px rgba(11,18,32,.28);
 }
 
 /* Logo: bigger, more dramatic */
@@ -1436,14 +1417,14 @@ header, nav, main, footer, .pv-settings { position: relative; z-index: 1; }
 
 
 .pv-card-sprite-pop {
-  animation: pv-card-sprite-float 1.15s ease-in-out infinite;
-  will-change: transform, opacity;
+  /* idle: no animation / will-change — only float while hovered */
 }
 .pv-card-wrap:hover .pv-card-sprite-pop,
 .pv-card-wrap:focus-within .pv-card-sprite-pop {
   opacity: 1 !important;
   visibility: visible !important;
   transform: translateX(-50%) scale(1) !important;
+  animation: pv-card-sprite-float 1.15s ease-in-out infinite;
 }
 .pv-card-sprite {
   display: block;
@@ -1451,7 +1432,7 @@ header, nav, main, footer, .pv-settings { position: relative; z-index: 1; }
   max-height: 55%;
   object-fit: contain;
   image-rendering: auto;
-  filter: drop-shadow(0 8px 18px rgba(0,0,0,.85)) drop-shadow(0 0 16px rgba(255,222,0,.6)) brightness(1.08);
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,.65));
 }
 @keyframes pv-card-sprite-float {
   0%,100% { translate: 0 0; }
@@ -2956,17 +2937,11 @@ header, nav, main, footer, .pv-settings { position: relative; z-index: 1; }
   pointer-events: auto;
 }
 .pv-card-img-wrap {
-  box-shadow:
-    0 8px 18px rgba(11, 18, 32, 0.45),
-    0 0 0 1px rgba(226, 181, 58, 0.28),
-    inset 0 0 0 1px rgba(255, 215, 120, 0.12);
+  box-shadow: 0 4px 12px rgba(11, 18, 32, 0.28);
 }
 .pv-card-wrap:hover .pv-card-img-wrap {
   border-color: var(--gold);
-  box-shadow:
-    0 16px 32px rgba(11, 18, 32, 0.5),
-    0 0 0 1px var(--gold),
-    0 0 22px rgba(226, 181, 58, 0.28);
+  box-shadow: 0 8px 18px rgba(11, 18, 32, 0.35);
 }
 .pv-gold-b {
   letter-spacing: 0.8px;

@@ -43,10 +43,20 @@ export function stripHiresForTile(url: string): string {
   return url.replace(/_hires(\.(png|jpg|webp))$/i, "$1");
 }
 
+/** TCGPlayer product CDN often ships `_in_1000x1000` (~80KB+) — tiles only need ~400px. */
+export function tcgplayerDownsizeForTile(url: string): string {
+  if (!url || !/tcgplayer/i.test(url)) return url;
+  return url.replace(/_in_(\d+)x(\d+)\.(jpg|jpeg|png|webp)/i, (full, w, h, ext) => {
+    const n = Math.max(Number(w) || 0, Number(h) || 0);
+    if (n <= 400) return full;
+    return `_in_400x400.${String(ext)}`;
+  });
+}
+
 /** Prefer a lightweight URL for grid/list tiles. */
 export function tileImageUrl(url?: string | null): string {
   if (!url) return "";
-  return tcgdexHighToLow(stripHiresForTile(url.trim()));
+  return tcgplayerDownsizeForTile(tcgdexHighToLow(stripHiresForTile(url.trim())));
 }
 
 function isTcgdex(url: string): boolean {

@@ -159,7 +159,7 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
             setLoaded(true);
           }}
         />
-        <CardSpriteOverlay card={card} size={112} show={hovered} eager={eager} />
+        {hovered ? <CardSpriteOverlay card={card} size={112} show eager={false} /> : null}
         {card.lang && card.lang !== "en" && (
           <div className="pv-lang-b" title={printLangMeta(card.lang).name}>{printLangMeta(card.lang).label}</div>
         )}

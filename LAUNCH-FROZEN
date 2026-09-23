@@ -1,4 +1,11 @@
-FROZEN — launch-ready working state 2026-09-22 (box-set-speed)
+FROZEN — launch-ready working state 2026-09-22 (sets-idb + tile-paint)
 Live: https://pokedex-hub-lime.vercel.app/
 Lock: launch-lock/WORKING-STATE.json
-Id:   pokedex-hub-launch-ready-2026-09-22-box-set-speed
+Id:   pokedex-hub-launch-ready-2026-09-22-sets-idb-tile-paint
+
+Sets browse: IDB-first catalog + TCGdex-first set cards (8299341).
+Tile paint: TCGPlayer _in_1000x1000→_in_400x400; body drift off; foil mix-blend off;
+sprite overlay mounts on hover only. Full-card captions + tile-fast kept.
+
+Do not apply drive-by / "hack" edits to hashed files.
+To thaw for a real change: update files, rebuild WORKING-STATE.json from a verified live launch, then git tag.
