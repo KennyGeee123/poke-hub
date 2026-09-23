@@ -26,7 +26,7 @@ type Props = {
   defaultGrade?: CardGrade;
 };
 
-export function CardSpriteOverlay({ card, size = 140, show = true }: { card: TCGCard; size?: number; show?: boolean }) {
+export function CardSpriteOverlay({ card, size = 140, show = true, eager = false }: { card: TCGCard; size?: number; show?: boolean; eager?: boolean }) {
   const slug = spriteSlug(card.name);
   const urls = slug ? fallbackSpriteUrls(card.name) : [];
   const [idx, setIdx] = useState(0);
@@ -68,7 +68,7 @@ export function CardSpriteOverlay({ card, size = 140, show = true }: { card: TCG
         src={urls[idx]}
         alt=""
         aria-hidden
-        loading="eager"
+        loading={eager ? "eager" : "lazy"}
         decoding="async"
         onError={() => {
           if (idx + 1 < urls.length) setIdx(idx + 1);
@@ -106,7 +106,7 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
   const gradeMeta = getGradeMeta(grade);
   const stats = getCardLevelAndStats(card, grade);
 
-  const fallbacks = fallbackCardImages(card);
+  const fallbacks = fallbackCardImages(card, { tile: true });
   const hd = hdImg(card, { tile: true });
   const src = fallbacks[srcIdx] || hd.src;
 
@@ -143,6 +143,7 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
           sizes={hd.sizes}
           alt={card.name}
           loading={eager ? "eager" : "lazy"}
+          fetchPriority={eager ? "high" : "auto"}
           decoding="async"
           onLoad={() => setLoaded(true)}
           onError={() => {
@@ -150,7 +151,7 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
             setLoaded(true);
           }}
         />
-        <CardSpriteOverlay card={card} size={112} show={hovered} />
+        <CardSpriteOverlay card={card} size={112} show={hovered} eager={eager} />
         {card.lang && card.lang !== "en" && (
           <div className="pv-lang-b" title={printLangMeta(card.lang).name}>{printLangMeta(card.lang).label}</div>
         )}

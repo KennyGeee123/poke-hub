@@ -1,4 +1,5 @@
 // Card image helpers — promote every TCG card to HD art with TCGdex & SVG fallbacks.
+// Tile grids prefer small/low assets; detail/fullscreen keep high/hires.
 import type { TCGCard } from "@/lib/pokemon-api";
 
 export function generateCardSvgFallback(name: string, number?: string, setName?: string): string {
@@ -30,13 +31,61 @@ export function generateCardSvgFallback(name: string, number?: string, setName?:
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
+/** Rewrite tcgdex .../high.webp → .../low.webp for ~140px tiles. */
+export function tcgdexHighToLow(url: string): string {
+  if (!url || !/assets\.tcgdex\.net/i.test(url)) return url;
+  return url.replace(/\/high\.(webp|png|jpg)$/i, "/low.$1");
+}
+
+/** Strip pokemontcg `_hires` so tiles request the small PNG (~160KB) not ~845KB. */
+export function stripHiresForTile(url: string): string {
+  if (!url) return url;
+  return url.replace(/_hires(\.(png|jpg|webp))$/i, "$1");
+}
+
+/** Prefer a lightweight URL for grid/list tiles. */
+export function tileImageUrl(url?: string | null): string {
+  if (!url) return "";
+  return tcgdexHighToLow(stripHiresForTile(url.trim()));
+}
+
+function isTcgdex(url: string): boolean {
+  return /assets\.tcgdex\.net/i.test(url);
+}
+
+function tcgdexBase(url: string): string | null {
+  if (!isTcgdex(url)) return null;
+  const m = url.replace(/\/(high|low)\.(webp|png|jpg)$/i, "");
+  return m !== url ? m : null;
+}
+
 export function hdImg(card: Pick<TCGCard, "images">, opts?: { tile?: boolean }): { src: string; srcSet?: string; sizes?: string } {
   const small = card.images?.small ?? "";
   const large = card.images?.large ?? small;
   if (opts?.tile) {
+    // Prefer low.webp / small; never lead with hires/high for ~140px tiles.
+    const tileSrc =
+      tileImageUrl(small) ||
+      tileImageUrl(large) ||
+      small ||
+      large;
+    const low =
+      (small && isTcgdex(small) ? tcgdexHighToLow(small) : "") ||
+      (large && isTcgdex(large) ? tcgdexHighToLow(large) : "") ||
+      tileSrc;
+    const high =
+      (large && isTcgdex(large) && /\/high\./i.test(large) ? large : "") ||
+      (small && isTcgdex(small)
+        ? small.replace(/\/low\.(webp|png|jpg)$/i, "/high.$1")
+        : "");
     return {
-      src: small || large,
-      srcSet: small && large ? `${small} 245w, ${large} 600w` : undefined,
+      src: low || tileSrc,
+      srcSet:
+        low && high && low !== high
+          ? `${low} 245w, ${high} 600w`
+          : low
+            ? `${low} 245w`
+            : undefined,
       sizes: "140px",
     };
   }
@@ -52,8 +101,26 @@ export function hdLarge(card: Pick<TCGCard, "images">): string {
 
 type ImgCard = Pick<TCGCard, "id" | "name" | "number" | "set" | "images">;
 
-/** Ordered list of image URLs to try when the primary scan 404s. */
-export function fallbackCardImages(card: ImgCard): string[] {
+function parentSetId(setId: string, cardId?: string): string | null {
+  if (setId === "base1sl" || setId === "bss") return "base1";
+  if (setId === "error") {
+    return cardId?.includes("jungle")
+      ? "base2"
+      : cardId?.includes("fossil")
+        ? "base3"
+        : cardId?.includes("rocket")
+          ? "base5"
+          : "base1";
+  }
+  return null;
+}
+
+/** Ordered list of image URLs to try when the primary scan 404s.
+ *  `{ tile: true }` → small/low first (never hires/high early).
+ *  Default / detail → high/hires preference preserved.
+ */
+export function fallbackCardImages(card: ImgCard, opts?: { tile?: boolean }): string[] {
+  const tile = !!opts?.tile;
   const urls: string[] = [];
   const add = (u?: string | null) => {
     if (!u) return;
@@ -62,26 +129,64 @@ export function fallbackCardImages(card: ImgCard): string[] {
     urls.push(v);
   };
 
-  add(card.images?.large);
-  add(card.images?.small);
-
+  const small = card.images?.small || "";
   const large = card.images?.large || "";
-  if (/assets\.tcgdex\.net/i.test(large)) {
-    const base = large.replace(/\/(high|low)\.(webp|png|jpg)$/i, "");
-    add(`${base}/high.webp`);
-    add(`${base}/low.webp`);
-    add(`${base}/high.png`);
-    add(`${base}/low.png`);
-  }
-
   const setId = card.set?.id || (card.id || "").split("-")[0];
   const num = card.number || (card.id || "").split("-").slice(1).join("-");
-  const parentSet =
-    setId === "base1sl" || setId === "bss"
-      ? "base1"
-      : setId === "error"
-        ? (card.id?.includes("jungle") ? "base2" : card.id?.includes("fossil") ? "base3" : card.id?.includes("rocket") ? "base5" : "base1")
-        : null;
+  const parentSet = setId ? parentSetId(setId, card.id) : null;
+  const id = card.id || (setId && num ? `${setId}-${num}` : "");
+  const serie =
+    setId && /^[a-z0-9.]+$/.test(setId)
+      ? setId.replace(/[0-9].*$/, "").replace(/\.$/, "") || setId
+      : "";
+
+  if (tile) {
+    // 1) Prefer existing small / rewritten low
+    add(tileImageUrl(small) || small);
+    add(tileImageUrl(large));
+
+    // 2) Explicit tcgdex low variants from any known tcgdex URL
+    for (const u of [small, large]) {
+      const base = tcgdexBase(u);
+      if (base) {
+        add(`${base}/low.webp`);
+        add(`${base}/low.png`);
+      }
+    }
+
+    // 3) Constructed tcgdex low (never high first)
+    if (serie && setId && num && /^[a-z0-9.]+$/.test(setId)) {
+      add(`https://assets.tcgdex.net/en/${serie}/${setId}/${num}/low.webp`);
+      add(`https://assets.tcgdex.net/en/${serie}/${setId}/${num}/low.png`);
+    }
+
+    // 4) pokemontcg small PNG only (not _hires)
+    if (setId && num && /^[a-z0-9.]+$/.test(setId)) {
+      add(`https://images.pokemontcg.io/${setId}/${num}.png`);
+    }
+    if (parentSet && num) {
+      add(`https://images.pokemontcg.io/${parentSet}/${num}.png`);
+    }
+
+    // 5) SVG — skip hires/high entirely for tiles (~845KB PNGs for 140px)
+    add(generateCardSvgFallback(card.name || "Pokémon Card", card.number, card.set?.name));
+    return urls;
+  }
+
+  // Detail / fullscreen — keep high/hires preference
+  add(large);
+  add(small);
+
+  if (isTcgdex(large) || isTcgdex(small)) {
+    const base = tcgdexBase(large) || tcgdexBase(small);
+    if (base) {
+      add(`${base}/high.webp`);
+      add(`${base}/low.webp`);
+      add(`${base}/high.png`);
+      add(`${base}/low.png`);
+    }
+  }
+
   if (setId && num && /^[a-z0-9.]+$/.test(setId)) {
     add(`https://images.pokemontcg.io/${setId}/${num}_hires.png`);
     add(`https://images.pokemontcg.io/${setId}/${num}.png`);
@@ -91,14 +196,11 @@ export function fallbackCardImages(card: ImgCard): string[] {
     add(`https://images.pokemontcg.io/${parentSet}/${num}.png`);
   }
 
-  const id = card.id || (setId && num ? `${setId}-${num}` : "");
-  if (id && /^[a-z0-9.]+-[a-z0-9]+$/i.test(id) && setId && num) {
-    const serie = setId.replace(/[0-9].*$/, "").replace(/\.$/, "") || setId;
+  if (id && /^[a-z0-9.]+-[a-z0-9]+$/i.test(id) && setId && num && serie) {
     add(`https://assets.tcgdex.net/en/${serie}/${setId}/${num}/high.webp`);
     add(`https://assets.tcgdex.net/en/${serie}/${setId}/${num}/low.webp`);
   }
 
-  // Universal SVG Guaranteed Rendering Fallback
   add(generateCardSvgFallback(card.name || "Pokémon Card", card.number, card.set?.name));
 
   return urls;

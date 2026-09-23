@@ -1,8 +1,8 @@
 {
-  "id": "pokedex-hub-launch-ready-2026-09-22-p1-beta-fixes",
+  "id": "pokedex-hub-launch-ready-2026-09-22-img-fast",
   "liveUrl": "https://pokedex-hub-lime.vercel.app/",
-  "frozenAt": "2026-09-22T07:55:52Z",
-  "rootSha256": "9d8280be9aedbcd8eedd93ab5adf8feeb3ec000647f176927dd08251cbe8fe09",
+  "frozenAt": "2026-09-23T01:29:48Z",
+  "rootSha256": "eb4de847530c644d23b25fdad846d06711093b8e83461ab521c86ca4227b1bc6",
   "fileCount": 213,
   "launchChecks": {
     "homeSsrPvApp": true,
@@ -450,8 +450,8 @@
     },
     {
       "path": "src/components/pokevault/CardTile.tsx",
-      "sha256": "fa4363567b8ec47692aabbb578a96e4b413c826e3f48c1a62dc40039b226bed7",
-      "bytes": 13464
+      "sha256": "424e5b3e94dd71b258d059d12fc3f1961351e7a8497382550fc67d0cd782b482",
+      "bytes": 13595
     },
     {
       "path": "src/components/pokevault/CatchFx.tsx",
@@ -485,8 +485,8 @@
     },
     {
       "path": "src/components/pokevault/Marketplace.tsx",
-      "sha256": "7c896ec688fb26aa966be33878d0e967b7fcacf2406174fc46cf2ab7c5ab3ed9",
-      "bytes": 13291
+      "sha256": "db5dc6f9e5109ad46c052d58f55f6c1e638d27b40a35c7a9280f487936dad47e",
+      "bytes": 13323
     },
     {
       "path": "src/components/pokevault/MoveFx.tsx",
@@ -540,8 +540,8 @@
     },
     {
       "path": "src/components/pokevault/views.tsx",
-      "sha256": "ebbe5b975b5225e94b69a5f7560a4e63778baa5a8ef1efdab995a9bfe3dbfff8",
-      "bytes": 34149
+      "sha256": "68c211830d10ed58eb1c0d6efebd00417389905cbae9fa3de2c75459411c9e01",
+      "bytes": 34198
     },
     {
       "path": "src/components/ui/accordion.tsx",
@@ -825,8 +825,8 @@
     },
     {
       "path": "src/lib/card-images.ts",
-      "sha256": "f50332e9d37e944172267d56b7755c5062263547345e09b4f606f0df6690d4b9",
-      "bytes": 5587
+      "sha256": "b7c2d27c247c112ab15165d8392169413c616b3728fd90389569b744256a6dca",
+      "bytes": 8804
     },
     {
       "path": "src/lib/card-prices.ts",
@@ -980,8 +980,8 @@
     },
     {
       "path": "src/routes/__root.tsx",
-      "sha256": "bda1b151baa976f8d9fc37730173106e4c28dad8c366e876b24f46515287a8eb",
-      "bytes": 4934
+      "sha256": "6c6161012a046fd996b9da229e65af071b3588c90bf7b36f57552c22259973f6",
+      "bytes": 5139
     },
     {
       "path": "src/routes/api/public/card-prices.ts",
@@ -1104,5 +1104,5 @@
       "bytes": 202
     }
   ],
-  "thawNote": "P1 beta: Classic me55c name/number tcgcsv + live-prices aliases + Quick Battle guest starter + guest API-key hide"
+  "thawNote": "Tile-fast card images: small/low.webp first, preconnect CDNs, lazy sprites"
 }

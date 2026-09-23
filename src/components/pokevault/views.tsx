@@ -21,7 +21,7 @@ function LiveAskPrice({ card }: { card: TCGCard }) {
 }
 
 function LbImg({ card }: { card: TCGCard }) {
-  const urls = fallbackCardImages(card);
+  const urls = fallbackCardImages(card, { tile: true });
   const [i, setI] = useState(0);
   const src = urls[i] || hdImg(card, { tile: true }).src;
   if (!src) return <div className="pv-lb-img" aria-hidden />;
@@ -737,7 +737,7 @@ export function VaultView({ onOpen }: { onOpen: OnOpen }) {
           <div className="pv-latest">
             {sorted.slice(0, 8).map(e => (
               <div key={e.card.id} className="pv-latest-row" onClick={() => onOpen(e.card.id)}>
-                <img className="pv-latest-img" {...hdImg(e.card)} alt={e.card.name} loading="lazy" />
+                <img className="pv-latest-img" {...hdImg(e.card, { tile: true })} alt={e.card.name} loading="lazy" decoding="async" />
                 <div className="pv-latest-meta">
                   <div className="pv-latest-name">{e.card.name}</div>
                   <div className="pv-latest-sub">{e.card.set.name} • #{e.card.number}</div>

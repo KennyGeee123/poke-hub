@@ -159,7 +159,7 @@ export function SellView() {
           return (
             <div key={card.id} className={`pv-mp-row ${open ? "open" : ""}`}>
               <button className="pv-mp-row-hd" onClick={() => setOpenId(open ? null : card.id)}>
-                <img {...hdImg(card)} alt={card.name} loading="lazy" />
+                <img {...hdImg(card, { tile: true })} alt={card.name} loading="lazy" />
                 <div className="pv-mp-row-meta">
                   <div className="pv-mp-row-name">{card.name}</div>
                   <div className="pv-mp-row-sub">{card.set?.name} · #{card.number} · ×{qty}</div>
@@ -277,7 +277,7 @@ export function BuyView({ onOpen }: { onOpen: (id: string) => void }) {
           <div className="pv-mp-grid">
             {results.map(c => (
               <button key={c.id} className="pv-mp-card" onClick={() => setPicked(c)}>
-                <img {...hdImg(c)} alt={c.name} loading="lazy" />
+                <img {...hdImg(c, { tile: true })} alt={c.name} loading="lazy" />
                 <div className="pv-mp-card-name">{c.name}</div>
                 <div className="pv-mp-card-sub">{c.set?.name} · #{c.number}</div>
                 <div className="pv-mp-card-price">{formatPrice(getMarketPrice(c))}</div>
