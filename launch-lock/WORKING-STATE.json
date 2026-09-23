@@ -33,10 +33,10 @@
     "loopAction": "pokedex-launch-lock",
     "intervalMs": 300000
   },
-  "id": "pokedex-hub-launch-ready-2026-09-22-geek-squad-lag",
-  "frozenAt": "2026-09-23T01:58:29.000Z",
-  "rootSha256": "7f49e3ec8e6c882d3d9866dabb010f6eaea5e25546ed66efaaff715c0276617e",
-  "fileCount": 218,
+  "id": "pokedex-hub-launch-ready-2026-09-22-foil-match",
+  "frozenAt": "2026-09-23T02:15:04.869Z",
+  "rootSha256": "69a280a696a738e03b9dcd44d035085f8769f0df199e66982a1401aff4af1a2e",
+  "fileCount": 220,
   "files": [
     {
       "path": ".npmrc",
@@ -450,8 +450,8 @@
     },
     {
       "path": "src/components/pokevault/CardDetail.tsx",
-      "sha256": "acf11127bfd70e0cf3f46e1cae7b41e0f0a7531143f144551f840c070356cc83",
-      "bytes": 47287
+      "sha256": "14c1547382db234ca17fae15dd42b52565b92b94f3f574fa2de7fe0ba954d732",
+      "bytes": 47627
     },
     {
       "path": "src/components/pokevault/CardTile.tsx",
@@ -490,8 +490,8 @@
     },
     {
       "path": "src/components/pokevault/InteractiveHoloCard.tsx",
-      "sha256": "0bcd3e56a6ff314d7e8ffcbb20cabb0f11f64d4ca335c4625e5fa22e980301ba",
-      "bytes": 20003
+      "sha256": "d5041b95d393e7ba4454a291160382c07e6590710ff1c1c6d5b242c39c276811",
+      "bytes": 21389
     },
     {
       "path": "src/components/pokevault/Marketplace.tsx",
@@ -869,6 +869,11 @@
       "bytes": 1371
     },
     {
+      "path": "src/lib/foil-style.ts",
+      "sha256": "7caaf23fb25e7e7ef464ef5d0c1ed88d31b3704e0993036d2b094bcf52bea2f8",
+      "bytes": 6414
+    },
+    {
       "path": "src/lib/friends.ts",
       "sha256": "0820b2aeea975b1297b9b56eafd12dfc2dccff8a5b8c98986413a92d5c3a7215",
       "bytes": 4697
@@ -1104,6 +1109,11 @@
       "bytes": 2946
     },
     {
+      "path": "tmp-beta-audit/FOIL-MATCH.md",
+      "sha256": "c3952378a8216016d9f613ca86bb6b47f2870e1f0ea16065395a676de66d13f1",
+      "bytes": 1958
+    },
+    {
       "path": "tmp-beta-audit/PERF-GEEK-SQUAD.md",
       "sha256": "d7262fc3f869ee0a60850d5acc43f701b3673509d67759c33f88a77c1c9044c0",
       "bytes": 1808
@@ -1128,6 +1138,5 @@
       "sha256": "44a244a3817413d9641b9d4fde8bfdd7d3293e26db5a39b5cee7aa946e51a163",
       "bytes": 202
     }
-  ],
-  "thawNote": "geek-squad: virtualize grids, kill glass blur, lazy tabs (on top of ee26f61 tile paint)"
+  ]
 }

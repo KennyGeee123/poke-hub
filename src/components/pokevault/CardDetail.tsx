@@ -3,6 +3,7 @@ import { P2PTradingHubModal } from "./P2PTradingHubModal";
 import { getCardLevelAndStats } from "@/lib/card-stats";
 import { VisualGradeScannerModal } from "./VisualGradeScannerModal";
 import { InteractiveHoloCard, HoloInspectorModal } from "./InteractiveHoloCard";
+import { cardHasFoilFinish, resolveFoilStyle } from "@/lib/foil-style";
 import { useEffect, useRef, useState } from "react";
 import type { TCGCard } from "@/lib/pokemon-api";
 import { getCard, getMarketPrice, getRarityColor, stubCardFromId } from "@/lib/pokemon-api";
@@ -192,11 +193,15 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
                 frontImage={imgSrc || card.images.large}
                 name={card.name}
                 setName={card.set?.name}
+                setId={card.set?.id}
                 rarity={card.rarity}
-                isHolo={true}
+                subtypes={card.subtypes}
+                card={card}
+                isHolo={cardHasFoilFinish(card)}
                 allowFlip={true}
-                allowStyleChange={true}
+                allowStyleChange={false}
                 showControls={true}
+                defaultStyle={resolveFoilStyle(card)}
                 onExpandModal={() => setShowHoloModal(true)}
               />
             </div>
@@ -860,7 +865,10 @@ export function CardDetail({ cardId, onBack, onToast }: { cardId: string; onBack
           frontImage={imgSrc || card.images.large}
           name={card.name}
           setName={card.set?.name}
+          setId={card.set?.id}
           rarity={card.rarity}
+          subtypes={card.subtypes}
+          card={card}
         />
       )}
     </div>

@@ -1,11 +1,11 @@
-FROZEN — launch-ready working state 2026-09-22 (geek-squad lag)
+FROZEN — launch-ready working state 2026-09-22 (foil-match)
 Live: https://pokedex-hub-lime.vercel.app/
 Lock: launch-lock/WORKING-STATE.json
-Id:   pokedex-hub-launch-ready-2026-09-22-geek-squad-lag
+Id:   pokedex-hub-launch-ready-2026-09-22-foil-match
 
-Geek Squad: VirtualCardGrid windowing + memo CardTile + rail cap 18;
-hdr/tabbar solid (no backdrop-filter); lazy non-Discover tabs; MusicPlayer gate;
-Holo idle rAF off. Keeps ee26f61 tile paint + 8299341 sets IDB + captions/tile-fast.
+Foil tilt overlays match real card finishes (30th Celebration → texture_sheen,
+no cosmos stars/circles). Keeps Geek Squad: VirtualCardGrid, solid chrome,
+lazy tabs, Holo idle rAF off, captions/tile-fast/box-set/sold-avg.
 
 Do not apply drive-by / "hack" edits to hashed files.
 To thaw for a real change: update files, rebuild WORKING-STATE.json from a verified live launch, then git tag.
