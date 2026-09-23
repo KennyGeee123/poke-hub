@@ -43,7 +43,7 @@ export function InteractiveHoloCard({
   const [isFlipped, setIsFlipped] = useState(false);
   const [holoStyle, setHoloStyle] = useState<HoloStyle>(defaultStyle);
   const [isHovered, setIsHovered] = useState(false);
-  const [isAutoFloating, setIsAutoFloating] = useState(true);
+  const [isAutoFloating, setIsAutoFloating] = useState(false); // lag: no rAF until first hover
   const [holoIntensity, setHoloIntensity] = useState(0.85);
 
   // 3D coordinates (-1 to 1)
@@ -75,10 +75,10 @@ export function InteractiveHoloCard({
 
   const handlePointerLeave = useCallback(() => {
     setIsHovered(false);
-    // Smoothly settle back to level position
+    // Smoothly settle back to level — do not restart idle rAF (Geek Squad lag)
     setCoords({ x: 0, y: 0 });
     setGlarePos({ x: 50, y: 50 });
-    setIsAutoFloating(true);
+    setIsAutoFloating(false);
   }, []);
 
   // Ambient gentle floating animation when idle

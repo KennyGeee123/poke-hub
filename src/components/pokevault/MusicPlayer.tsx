@@ -68,8 +68,9 @@ const PLAYLISTS: EraPlaylist[] = [
   },
 ];
 
-export function MusicPlayer() {
-  const [open, setOpen] = useState(false);
+type MusicPlayerProps = { defaultOpen?: boolean };
+export function MusicPlayer({ defaultOpen = false }: MusicPlayerProps) {
+  const [open, setOpen] = useState(defaultOpen);
   const [eraIdx, setEraIdx] = useState(0);
   const [trackIdx, setTrackIdx] = useState(0);
   const [playing, setPlaying] = useState(false);

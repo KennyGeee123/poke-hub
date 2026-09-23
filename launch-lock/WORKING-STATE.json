@@ -1,9 +1,5 @@
 {
-  "id": "pokedex-hub-launch-ready-2026-09-22-sets-idb-tile-paint",
   "liveUrl": "https://pokedex-hub-lime.vercel.app/",
-  "frozenAt": "2026-09-23T01:53:56.000Z",
-  "rootSha256": "2f0681f74c3215cf5d344d4edb701026f8341eba539b78820b1cf0362f0672b9",
-  "fileCount": 214,
   "launchChecks": {
     "homeSsrPvApp": true,
     "pokedexHub": true,
@@ -37,6 +33,10 @@
     "loopAction": "pokedex-launch-lock",
     "intervalMs": 300000
   },
+  "id": "pokedex-hub-launch-ready-2026-09-22-geek-squad-lag",
+  "frozenAt": "2026-09-23T01:58:29.000Z",
+  "rootSha256": "7f49e3ec8e6c882d3d9866dabb010f6eaea5e25546ed66efaaff715c0276617e",
+  "fileCount": 218,
   "files": [
     {
       "path": ".npmrc",
@@ -47,6 +47,11 @@
       "path": ".vercelignore",
       "sha256": "1feaeb5f70a1a5cb603fa90afba94489b5b5b642b3eb2530f0256a93b3b11410",
       "bytes": 88
+    },
+    {
+      "path": "PERF-LAG.md",
+      "sha256": "11890c83504570cd227c35ee6ca02d9b717956d3d2431cfeef45919cb0779862",
+      "bytes": 1580
     },
     {
       "path": "bunfig.toml",
@@ -450,8 +455,8 @@
     },
     {
       "path": "src/components/pokevault/CardTile.tsx",
-      "sha256": "add2ba48ba4623fadb641b223aa0d7ffdfd9bc6ec15654813fec1dcb0506b71f",
-      "bytes": 12138
+      "sha256": "40f6aa7858da02c7daee59b2cc2e02ec806267a552ee9cc52f469ed41a7405d5",
+      "bytes": 12197
     },
     {
       "path": "src/components/pokevault/CatchFx.tsx",
@@ -484,6 +489,11 @@
       "bytes": 30528
     },
     {
+      "path": "src/components/pokevault/InteractiveHoloCard.tsx",
+      "sha256": "0bcd3e56a6ff314d7e8ffcbb20cabb0f11f64d4ca335c4625e5fa22e980301ba",
+      "bytes": 20003
+    },
+    {
       "path": "src/components/pokevault/Marketplace.tsx",
       "sha256": "db5dc6f9e5109ad46c052d58f55f6c1e638d27b40a35c7a9280f487936dad47e",
       "bytes": 13323
@@ -495,8 +505,8 @@
     },
     {
       "path": "src/components/pokevault/MusicPlayer.tsx",
-      "sha256": "00b3ea016fce5e4f518fd6d51cbf918e54bb42875126f5596dceefb7514abb1b",
-      "bytes": 9963
+      "sha256": "966d0f809421a62d9393771dd1a021a2f4dc9afc2a77eadf18e81556f66c6960",
+      "bytes": 10061
     },
     {
       "path": "src/components/pokevault/Paywall.tsx",
@@ -534,14 +544,19 @@
       "bytes": 782
     },
     {
+      "path": "src/components/pokevault/VirtualCardGrid.tsx",
+      "sha256": "779033086da1efabbda7d0731a1e71b195086c606dfbdd6abb59fb3072289ab1",
+      "bytes": 5056
+    },
+    {
       "path": "src/components/pokevault/adventure/GodsEyeMap.tsx",
       "sha256": "8ead9233baca37b67f32dedd5b886b808655191f3dde8841d2a5decb72a5aa8a",
       "bytes": 8732
     },
     {
       "path": "src/components/pokevault/views.tsx",
-      "sha256": "f0d0d43b89d2571fd4a79db61c6da0bbe84079ddbed11ef6f606dc5aaf743dd3",
-      "bytes": 34321
+      "sha256": "0e500e6f22bed8a6f7f7d769dddc6d58024105f7d06e2129c41ce5227587d725",
+      "bytes": 34454
     },
     {
       "path": "src/components/ui/accordion.tsx",
@@ -826,7 +841,7 @@
     {
       "path": "src/lib/card-images.ts",
       "sha256": "64e54fbaef4465aff3927893823824548a2bd3cb3f9c3a738228396a15a7d1bf",
-      "bytes": 8804
+      "bytes": 9261
     },
     {
       "path": "src/lib/card-prices.ts",
@@ -1020,8 +1035,8 @@
     },
     {
       "path": "src/routes/index.tsx",
-      "sha256": "b44093ff4fa013aaa60f3dc041b156e12ace29dcc1be5421404e7be6d4b04259",
-      "bytes": 9131
+      "sha256": "c2a84202c32e82b27a5ad8dbb14dcf7f299313982cc4dc27d83640aef88d3d80",
+      "bytes": 12116
     },
     {
       "path": "src/routes/login.tsx",
@@ -1040,8 +1055,8 @@
     },
     {
       "path": "src/styles.css",
-      "sha256": "0f43146c8718ba11626cf993ff32e7bd2e0f2b26a9079ae855458095afdf9d13",
-      "bytes": 161868
+      "sha256": "74437688ee1a1fa0fe55677a98d9796507db5de7321461809db4f694b2254cab",
+      "bytes": 161456
     },
     {
       "path": "supabase/config.toml",
@@ -1084,6 +1099,16 @@
       "bytes": 678
     },
     {
+      "path": "tmp-beta-audit/BOX-SET-SPEED.md",
+      "sha256": "9cc4f3693beaf3c19404363b6db3fda3349086110134a83f2b24341931cbf21e",
+      "bytes": 2946
+    },
+    {
+      "path": "tmp-beta-audit/PERF-GEEK-SQUAD.md",
+      "sha256": "d7262fc3f869ee0a60850d5acc43f701b3673509d67759c33f88a77c1c9044c0",
+      "bytes": 1808
+    },
+    {
       "path": "tsconfig.json",
       "sha256": "309642cd176b03add6f61f7cd353f11a5bd66a72dd17db75f556fd35c170dafe",
       "bytes": 738
@@ -1102,11 +1127,7 @@
       "path": "wrangler.jsonc",
       "sha256": "44a244a3817413d9641b9d4fde8bfdd7d3293e26db5a39b5cee7aa946e51a163",
       "bytes": 202
-    },
-    {
-      "path": "PERF-LAG.md",
-      "sha256": "11890c83504570cd227c35ee6ca02d9b717956d3d2431cfeef45919cb0779862"
     }
   ],
-  "thawNote": "sets IDB/TCGdex-first (8299341) + tile paint lag (TCGPlayer 400, foil/drift off, sprite hover-mount)"
+  "thawNote": "geek-squad: virtualize grids, kill glass blur, lazy tabs (on top of ee26f61 tile paint)"
 }

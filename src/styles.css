@@ -547,7 +547,7 @@
 .pv-arena-orb {
   position: absolute; left: 50%; transform: translateX(-50%);
   width: 320px; height: 320px; border-radius: 50%;
-  filter: blur(60px); opacity: 0.55; animation: pv-orb-pulse 6s ease-in-out infinite;
+  filter: blur(24px); opacity: 0.4; animation: none;
 }
 .pv-arena-orb-top { top: -160px; background: radial-gradient(circle, #f87171, transparent 65%); }
 .pv-arena-orb-bot { bottom: -160px; background: radial-gradient(circle, #38bdf8, transparent 65%); animation-delay: 3s; }
@@ -2406,9 +2406,10 @@ header, nav, main, footer, .pv-settings { position: relative; z-index: 1; }
   display: flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(180deg, rgba(11, 18, 32, 0.92), rgba(18, 26, 43, 0.88));
-  backdrop-filter: blur(18px) saturate(1.35);
-  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+  background: linear-gradient(180deg, rgba(11, 18, 32, 0.97), rgba(18, 26, 43, 0.96));
+  /* glass look without backdrop-filter (GPU tax) */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border-bottom: 1px solid rgba(226, 181, 58, 0.32);
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
 }
@@ -2434,11 +2435,17 @@ header, nav, main, footer, .pv-settings { position: relative; z-index: 1; }
   height: 3px;
   background: linear-gradient(90deg, #cc2b2b, #e2b53a 40%, #3b82f6 70%, #cc2b2b);
   background-size: 200% 100%;
-  animation: pv-energy-flow 8s linear infinite;
+  /* off by default on main surfaces — no infinite paint */
+  animation: none;
 }
 @keyframes pv-energy-flow {
   from { background-position: 0% 0; }
   to { background-position: 200% 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pv-app-shell.pv-anim-ok .pv-energy-strip {
+    animation: pv-energy-flow 8s linear infinite;
+  }
 }
 
 /* Page transitions */
@@ -2469,9 +2476,9 @@ header, nav, main, footer, .pv-settings { position: relative; z-index: 1; }
   gap: 2px;
   padding: 8px 6px;
   border-radius: 22px;
-  background: linear-gradient(180deg, rgba(18, 26, 43, 0.94), rgba(8, 12, 22, 0.96));
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  background: linear-gradient(180deg, rgba(18, 26, 43, 0.98), rgba(8, 12, 22, 0.99));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border: 1px solid rgba(226, 181, 58, 0.28);
   box-shadow:
     0 -8px 36px rgba(0, 0, 0, 0.45),
@@ -3332,8 +3339,8 @@ html, body, .pv-app {
     0 0 0 1px rgba(197, 198, 199, 0.08) inset,
     0 0 48px rgba(56, 189, 248, 0.1),
     var(--pv-glow-gold) !important;
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 /* Readable light type on dark glass panel */
@@ -3364,8 +3371,8 @@ html, body, .pv-app {
   background: var(--pv-glass) !important;
   border: 1px solid var(--pv-border-glow) !important;
   box-shadow: 0 12px 32px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.04) inset;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   color: #f4efe4;
 }
 
@@ -4109,4 +4116,14 @@ html, body, .pv-app {
   font-size: 10px !important;
   letter-spacing: 0.04em;
   opacity: 0.85;
+}
+
+
+/* geek-squad lag: motion gate */
+@media (prefers-reduced-motion: reduce) {
+  .pv-energy-strip,
+  .pv-arena-orb,
+  .pv-app-shell .pv-energy-strip {
+    animation: none !important;
+  }
 }

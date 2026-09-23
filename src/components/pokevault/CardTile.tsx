@@ -1,6 +1,6 @@
 import { VisualGradeScannerModal } from "./VisualGradeScannerModal";
 import { P2PTradingHubModal } from "./P2PTradingHubModal";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import type { TCGCard } from "@/lib/pokemon-api";
 import { getMarketPrice, rememberCard } from "@/lib/pokemon-api";
 import { printLangMeta } from "@/lib/print-lang";
@@ -86,7 +86,7 @@ export function CardSpriteOverlay({ card, size = 140, show = true, eager = false
   );
 }
 
-export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "raw_nm" }: Props) {
+function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "raw_nm" }: Props) {
   const [loaded, setLoaded] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [srcIdx, setSrcIdx] = useState(0);
@@ -301,6 +301,8 @@ export function CardTile({ card, onClick, qty, onRemove, eager, defaultGrade = "
     </div>
   );
 }
+
+export const CardTile = memo(CardTileInner);
 
 export function CardSkeleton() {
   return (

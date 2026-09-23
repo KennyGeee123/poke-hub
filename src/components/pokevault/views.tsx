@@ -161,16 +161,19 @@ function HeroAddBtn({ card }: { card: TCGCard }) {
   );
 }
 
+const RAIL_CAP = 18;
+
 function Rail({ title, cards, onOpen }: { title: string; cards: TCGCard[] | null; onOpen: OnOpen }) {
+  const shown = cards ? cards.slice(0, RAIL_CAP) : null;
   return (
     <div style={{ borderBottom: "1px solid var(--brd)" }}>
       <div className="pv-rail-hdr">
         <div className="pv-rail-title">{title}</div>
-        {cards && <div className="pv-rail-cnt">{cards.length}</div>}
+        {cards && <div className="pv-rail-cnt">{shown!.length}{cards.length > RAIL_CAP ? ` / ${cards.length}` : ""}</div>}
       </div>
       <div className="pv-rail-scroll hide-scroll pv-stagger">
-        {cards
-          ? cards.map((c, i) => (
+        {shown
+          ? shown.map((c, i) => (
               <div key={c.id} className="pv-stagger-item" style={{ ["--i" as any]: i }}>
                 <CardTile card={c} onClick={() => onOpen(c.id)} />
               </div>

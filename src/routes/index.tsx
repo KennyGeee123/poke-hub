@@ -1,22 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import type { TCGSet } from "@/lib/pokemon-api";
 import { useVault, formatPrice } from "@/lib/vault";
-import { CardDetail } from "@/components/pokevault/CardDetail";
 import {
-  DiscoverView, MarketView, SetsView, SetCardsView,
-  SearchView, VaultView, WishlistView,
+  DiscoverView,
+  SearchView,
 } from "@/components/pokevault/views";
-import { BattleHub } from "@/components/pokevault/Battle";
-import { ScannerView } from "@/components/pokevault/Scanner";
-import { SellView, BuyView } from "@/components/pokevault/Marketplace";
-import { Paywall } from "@/components/pokevault/Paywall";
 import { useToast } from "@/components/pokevault/CardTile";
-import { MusicPlayer } from "@/components/pokevault/MusicPlayer";
-import { GameBoyView } from "@/components/pokevault/GameBoy";
-import { FriendsView } from "@/components/pokevault/Friends";
-import { AdventureView } from "@/components/pokevault/Adventure";
-import { PokedexHub } from "@/components/pokevault/PokedexHub";
 import {
   AppShell,
   MORE_ITEMS,
@@ -26,6 +16,38 @@ import {
 } from "@/components/pokevault/AppShell";
 import { usePremium } from "@/lib/premium";
 import { useAuth } from "@/lib/auth";
+
+/* Eager: Discover + Search. Everything else code-split. */
+const CardDetail = lazy(() => import("@/components/pokevault/CardDetail").then(m => ({ default: m.CardDetail })));
+const MarketView = lazy(() => import("@/components/pokevault/views").then(m => ({ default: m.MarketView })));
+const SetsView = lazy(() => import("@/components/pokevault/views").then(m => ({ default: m.SetsView })));
+const SetCardsView = lazy(() => import("@/components/pokevault/views").then(m => ({ default: m.SetCardsView })));
+const VaultView = lazy(() => import("@/components/pokevault/views").then(m => ({ default: m.VaultView })));
+const WishlistView = lazy(() => import("@/components/pokevault/views").then(m => ({ default: m.WishlistView })));
+const BattleHub = lazy(() => import("@/components/pokevault/Battle").then(m => ({ default: m.BattleHub })));
+const ScannerView = lazy(() => import("@/components/pokevault/Scanner").then(m => ({ default: m.ScannerView })));
+const SellView = lazy(() => import("@/components/pokevault/Marketplace").then(m => ({ default: m.SellView })));
+const BuyView = lazy(() => import("@/components/pokevault/Marketplace").then(m => ({ default: m.BuyView })));
+const Paywall = lazy(() => import("@/components/pokevault/Paywall").then(m => ({ default: m.Paywall })));
+const GameBoyView = lazy(() => import("@/components/pokevault/GameBoy").then(m => ({ default: m.GameBoyView })));
+const FriendsView = lazy(() => import("@/components/pokevault/Friends").then(m => ({ default: m.FriendsView })));
+const AdventureView = lazy(() => import("@/components/pokevault/Adventure").then(m => ({ default: m.AdventureView })));
+const PokedexHub = lazy(() => import("@/components/pokevault/PokedexHub").then(m => ({ default: m.PokedexHub })));
+const MusicPlayer = lazy(() => import("@/components/pokevault/MusicPlayer").then(m => ({ default: m.MusicPlayer })));
+
+function TabFallback() {
+  return (
+    <div className="pv-lab" style={{ padding: 24, minHeight: 240 }} aria-busy="true">
+      <div className="pv-card-skel" style={{ height: 120, borderRadius: 12 }} />
+      <div style={{ height: 12 }} />
+      <div className="pv-card-skel" style={{ height: 48, borderRadius: 8 }} />
+    </div>
+  );
+}
+
+function LazyTab({ children }: { children: ReactNode }) {
+  return <Suspense fallback={<TabFallback />}>{children}</Suspense>;
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -136,26 +158,26 @@ function Index() {
   );
 
   const body = detailId ? (
-    <CardDetail cardId={detailId} onBack={() => setDetailId(null)} onToast={show} />
+    <LazyTab><CardDetail cardId={detailId} onBack={() => setDetailId(null)} onToast={show} /></LazyTab>
   ) : setView ? (
-    <SetCardsView set={setView} onBack={() => setSetView(null)} onOpen={openCard} />
+    <LazyTab><SetCardsView set={setView} onBack={() => setSetView(null)} onOpen={openCard} /></LazyTab>
   ) : (
     <>
       {tab === "discover" && <DiscoverView onOpen={openCard} onTab={(t) => goTab(t as Tab)} />}
-      {tab === "market" && <MarketView onOpen={openCard} />}
-      {tab === "sets" && <SetsView onPickSet={setSetView} />}
-      {tab === "vault" && <VaultView onOpen={openCard} />}
       {tab === "search" && <SearchView onOpen={openCard} />}
-      {tab === "wishlist" && <WishlistView onOpen={openCard} />}
-      {tab === "battle" && <BattleHub onExit={() => goTab("vault")} />}
-      {tab === "gb" && <GameBoyView />}
-      {tab === "friends" && <FriendsView onOpenCard={openCard} />}
-      {tab === "adventure" && <AdventureView />}
-      {tab === "scan" && <ScannerView onOpen={openCard} />}
-      {tab === "pokedex" && <PokedexHub />}
-      {tab === "sell" && <SellView />}
-      {tab === "buy" && <BuyView onOpen={openCard} />}
-      {tab === "pricing" && <Paywall />}
+      {tab === "market" && <LazyTab><MarketView onOpen={openCard} /></LazyTab>}
+      {tab === "sets" && <LazyTab><SetsView onPickSet={setSetView} /></LazyTab>}
+      {tab === "vault" && <LazyTab><VaultView onOpen={openCard} /></LazyTab>}
+      {tab === "wishlist" && <LazyTab><WishlistView onOpen={openCard} /></LazyTab>}
+      {tab === "battle" && <LazyTab><BattleHub onExit={() => goTab("vault")} /></LazyTab>}
+      {tab === "gb" && <LazyTab><GameBoyView /></LazyTab>}
+      {tab === "friends" && <LazyTab><FriendsView onOpenCard={openCard} /></LazyTab>}
+      {tab === "adventure" && <LazyTab><AdventureView /></LazyTab>}
+      {tab === "scan" && <LazyTab><ScannerView onOpen={openCard} /></LazyTab>}
+      {tab === "pokedex" && <LazyTab><PokedexHub /></LazyTab>}
+      {tab === "sell" && <LazyTab><SellView /></LazyTab>}
+      {tab === "buy" && <LazyTab><BuyView onOpen={openCard} /></LazyTab>}
+      {tab === "pricing" && <LazyTab><Paywall /></LazyTab>}
     </>
   );
 
@@ -189,8 +211,47 @@ function Index() {
       >
         {body}
       </AppShell>
-      <MusicPlayer />
+      <MusicPlayerGate />
     </>
+  );
+}
+
+/** Mount full MusicPlayer only after first open — keeps Discover critical path light. */
+function MusicPlayerGate() {
+  const [mounted, setMounted] = useState(false);
+  const [wantOpen, setWantOpen] = useState(false);
+  if (!mounted) {
+    return (
+      <button
+        type="button"
+        className="pv-music-fab"
+        aria-label="Open music player"
+        title="Poké Radio"
+        onClick={() => { setMounted(true); setWantOpen(true); }}
+        style={{
+          position: "fixed",
+          right: 14,
+          bottom: 88,
+          zIndex: 90,
+          width: 44,
+          height: 44,
+          borderRadius: 999,
+          border: "1px solid rgba(226,181,58,.35)",
+          background: "rgba(18,26,43,.96)",
+          color: "#e2b53a",
+          fontSize: 18,
+          boxShadow: "0 8px 24px rgba(0,0,0,.4)",
+          cursor: "pointer",
+        }}
+      >
+        ♪
+      </button>
+    );
+  }
+  return (
+    <Suspense fallback={null}>
+      <MusicPlayer defaultOpen={wantOpen} />
+    </Suspense>
   );
 }
 
