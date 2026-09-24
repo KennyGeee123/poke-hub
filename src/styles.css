@@ -3525,7 +3525,40 @@ html, body, .pv-app {
 @media (max-width: 720px) { .ft-grid { grid-template-columns: 1fr; } }
 .ft-slot { background: var(--s2); border: 1px solid var(--brd); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
 .ft-slot-label { font-family: "Bebas Neue", sans-serif; letter-spacing: 2px; color: var(--cyan); font-size: 16px; }
-.ft-search { display: flex; gap: 8px; }
+.ft-search { display: flex; gap: 8px; align-items: center; }
+.ft-find { display: flex; flex-direction: column; gap: 6px; }
+.ft-find-status { font-size: 11px; color: var(--t3); min-width: 36px; text-align: right; }
+.ft-hit { display: flex; align-items: center; gap: 8px; text-align: left; background: var(--s3); color: var(--t1); border: 1px solid var(--brd); border-radius: 8px; padding: 6px 8px; font-size: 12px; width: 100%; }
+.ft-hit-thumb { width: 32px; height: 44px; object-fit: cover; border-radius: 4px; border: 1px solid var(--gold); flex-shrink: 0; }
+.ft-hit-copy { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.ft-hit-copy strong { font-size: 12px; }
+.ft-hit-copy em { font-style: normal; font-size: 10px; color: var(--t3); }
+.ft-hit-price { font-family: "Bebas Neue", sans-serif; color: var(--gold); font-size: 16px; }
+.ft-iso-stage {
+  position: relative;
+  height: 220px;
+  margin: 0 0 16px;
+  border-radius: 16px;
+  border: 1px solid var(--gold);
+  overflow: hidden;
+  background: #0b0c10 url("/fair-trade/iso-stage.jpg") center / cover no-repeat;
+  perspective: 900px;
+}
+.ft-iso-card {
+  position: absolute;
+  bottom: 16%;
+  width: 92px;
+  transform-style: preserve-3d;
+  filter: drop-shadow(0 18px 16px rgba(0,0,0,.65));
+}
+.ft-iso-card img { width: 100%; height: auto; border-radius: 6px; border: 1px solid rgba(226,181,58,.7); }
+.ft-iso-card.left { left: 16%; transform: rotateX(16deg) rotateZ(-10deg); }
+.ft-iso-card.right { right: 16%; transform: rotateX(16deg) rotateZ(10deg); }
+.ft-iso-card.empty img { opacity: .55; border: none; filter: none; }
+@media (max-width: 720px) {
+  .ft-iso-stage { height: 160px; }
+  .ft-iso-card { width: 64px; }
+}
 .ft-cam { display: flex; flex-direction: column; gap: 8px; }
 .ft-video { width: 100%; border-radius: 12px; background: #000; max-height: 240px; object-fit: cover; }
 .ft-picked { display: flex; gap: 10px; align-items: center; }
@@ -3533,8 +3566,7 @@ html, body, .pv-app {
 .ft-picked-name { font-weight: 800; color: var(--t1); }
 .ft-picked-set { font-size: 11px; color: var(--t3); }
 .ft-picked-price { font-family: "Bebas Neue", sans-serif; color: var(--gold); font-size: 22px; letter-spacing: 1px; }
-.ft-hits { display: flex; flex-direction: column; gap: 4px; max-height: 160px; overflow: auto; }
-.ft-hit { text-align: left; background: var(--s3); color: var(--t1); border: 1px solid var(--brd); border-radius: 8px; padding: 6px 8px; font-size: 12px; }
+.ft-hits { display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow: auto; }
 .ft-mini { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--t3); }
 .ft-verdict { margin-top: 16px; border-radius: 16px; padding: 16px; border: 1px solid var(--brd); background: var(--s2); }
 .ft-verdict-kicker { font-size: 10px; letter-spacing: 2px; color: var(--t3); }

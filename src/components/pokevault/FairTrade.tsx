@@ -7,8 +7,6 @@ import { useLivePrice } from "@/lib/live-prices";
 import { fairTradeSwap } from "@/lib/p2p-trading";
 import { hdImg } from "@/lib/card-images";
 
-type SlotId = "mine" | "theirs";
-
 function SlotCard({ card }: { card: TCGCard }) {
   const live = useLivePrice(card);
   const n = live || 0;
@@ -18,10 +16,29 @@ function SlotCard({ card }: { card: TCGCard }) {
       <img src={img.src} alt={card.name} className="ft-picked-img" />
       <div>
         <div className="ft-picked-name">{card.name}</div>
-        <div className="ft-picked-set">{card.set?.name}</div>
+        <div className="ft-picked-set">
+          {card.set?.name} {card.number ? `· #${card.number}` : ""}
+        </div>
         <div className="ft-picked-price">{n > 0 ? formatPrice(n) : "Getting live quote…"}</div>
       </div>
     </div>
+  );
+}
+
+function HitRow({ card, onPick }: { card: TCGCard; onPick: (c: TCGCard) => void }) {
+  const live = useLivePrice(card);
+  const img = hdImg(card, { tile: true });
+  return (
+    <button type="button" className="ft-hit" onClick={() => onPick(card)}>
+      <img src={img.src} alt="" className="ft-hit-thumb" />
+      <span className="ft-hit-copy">
+        <strong>{card.name}</strong>
+        <em>
+          {card.set?.name} {card.number ? `#${card.number}` : ""}
+        </em>
+      </span>
+      <span className="ft-hit-price">{live > 0 ? formatPrice(live) : "…"}</span>
+    </button>
   );
 }
 
@@ -57,6 +74,31 @@ function ScanSlot({
     [],
   );
 
+  useEffect(() => {
+    const name = q.trim();
+    if (name.length < 2) {
+      setHits([]);
+      return;
+    }
+    setBusy(true);
+    const t = window.setTimeout(async () => {
+      try {
+        const res = await searchCards({
+          q: name,
+          pageSize: 8,
+          orderBy: "-set.releaseDate",
+        });
+        setHits(res.data);
+        setErr(null);
+      } catch {
+        setErr("Search failed.");
+      } finally {
+        setBusy(false);
+      }
+    }, 200);
+    return () => window.clearTimeout(t);
+  }, [q]);
+
   async function startCam() {
     setErr(null);
     try {
@@ -72,7 +114,7 @@ function ScanSlot({
         await videoRef.current.play().catch(() => {});
       }
     } catch {
-      setErr("Camera blocked — type the card name instead.");
+      setErr("Camera blocked — search the Find menu instead.");
     }
   }
 
@@ -91,13 +133,14 @@ function ScanSlot({
       const r: any = await identifyFn({ data: { imageDataUrl: dataUrl } });
       const name = r?.card?.name || (r?.ok && r?.card?.name);
       if (!name) {
-        setErr(r?.error || "Could not read the card. Type the name.");
+        setErr(r?.error || "Could not read the card. Search Find instead.");
         setBusy(false);
         return;
       }
+      setQ(name);
       const res = await searchCards({ q: name, pageSize: 8, orderBy: "-set.releaseDate" });
-      if (res.data[0]) onPick(res.data[0]);
       setHits(res.data);
+      if (res.data[0]) onPick(res.data[0]);
     } catch (e: any) {
       setErr(e?.message || "Scan failed.");
     } finally {
@@ -105,100 +148,106 @@ function ScanSlot({
     }
   }
 
-  async function search() {
-    const name = q.trim();
-    if (!name) return;
-    setBusy(true);
-    setErr(null);
-    try {
-      const res = await searchCards({ q: name, pageSize: 8, orderBy: "-set.releaseDate" });
-      setHits(res.data);
-      if (res.data[0] && res.data.length === 1) onPick(res.data[0]);
-    } catch {
-      setErr("Search failed.");
-    } finally {
-      setBusy(false);
-    }
+  function pick(c: TCGCard) {
+    onPick(c);
+    setHits([]);
+    setQ("");
   }
 
   return (
     <div className="ft-slot">
       <div className="ft-slot-label">{label}</div>
+      {card ? <SlotCard card={card} /> : null}
       {card ? (
-        <>
-          <SlotCard card={card} />
-          <button type="button" className="pv-btn pv-btn-out" onClick={onClear}>
-            Clear
-          </button>
-        </>
+        <button type="button" className="pv-btn pv-btn-out" onClick={onClear}>
+          Clear
+        </button>
+      ) : null}
+
+      {cam ? (
+        <div className="ft-cam">
+          <video ref={videoRef} playsInline muted autoPlay className="ft-video" />
+          <canvas ref={canvasRef} hidden />
+          <div className="flex gap-2">
+            <button type="button" className="pv-btn pv-btn-fill" onClick={snap}>
+              Capture
+            </button>
+            <button
+              type="button"
+              className="pv-btn pv-btn-out"
+              onClick={() => {
+                streamRef.current?.getTracks().forEach((t) => t.stop());
+                setCam(false);
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
       ) : (
-        <>
-          {cam ? (
-            <div className="ft-cam">
-              <video ref={videoRef} playsInline muted autoPlay className="ft-video" />
-              <canvas ref={canvasRef} hidden />
-              <div className="flex gap-2">
-                <button type="button" className="pv-btn pv-btn-fill" onClick={snap}>
-                  Capture
-                </button>
-                <button
-                  type="button"
-                  className="pv-btn pv-btn-out"
-                  onClick={() => {
-                    streamRef.current?.getTracks().forEach((t) => t.stop());
-                    setCam(false);
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button type="button" className="pv-btn pv-btn-fill" onClick={startCam}>
-              📷 Scan card
-            </button>
-          )}
-          <form
-            className="ft-search"
-            onSubmit={(e) => {
-              e.preventDefault();
-              void search();
-            }}
-          >
-            <input
-              className="pv-input"
-              placeholder="Or type a name…"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-            />
-            <button type="submit" className="pv-btn pv-btn-out" disabled={busy}>
-              {busy ? "…" : "Find"}
-            </button>
-          </form>
-          {vaultList.length > 0 && (
-            <div className="ft-vault">
-              <div className="ft-mini">From your vault</div>
-              <div className="flex gap-1 flex-wrap">
-                {vaultList.map((c) => (
-                  <button key={c.id} type="button" className="pv-pill" onClick={() => onPick(c)}>
-                    {c.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          {hits.length > 1 && (
-            <div className="ft-hits">
-              {hits.map((c) => (
-                <button key={c.id} type="button" className="ft-hit" onClick={() => onPick(c)}>
-                  {c.name} · {c.set?.name}
-                </button>
-              ))}
-            </div>
-          )}
-          {err && <div className="pv-scan-err">{err}</div>}
-        </>
+        <button type="button" className="pv-btn pv-btn-fill" onClick={startCam}>
+          📷 Scan card
+        </button>
       )}
+
+      <div className="ft-find">
+        <div className="ft-mini">Find</div>
+        <form
+          className="ft-search"
+          onSubmit={(e) => {
+            e.preventDefault();
+          }}
+        >
+          <input
+            className="pv-input"
+            placeholder="Search name, set, or #…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            autoComplete="off"
+          />
+          <span className="ft-find-status">{busy ? "…" : q.trim().length >= 2 ? `${hits.length}` : "Find"}</span>
+        </form>
+        {hits.length > 0 && (
+          <div className="ft-hits" role="listbox">
+            {hits.map((c) => (
+              <HitRow key={c.id} card={c} onPick={pick} />
+            ))}
+          </div>
+        )}
+        {q.trim().length >= 2 && !busy && hits.length === 0 && (
+          <div className="ft-mini">No cards match “{q.trim()}”.</div>
+        )}
+      </div>
+
+      {vaultList.length > 0 && (
+        <div className="ft-vault">
+          <div className="ft-mini">From your vault</div>
+          <div className="flex gap-1 flex-wrap">
+            {vaultList.map((c) => (
+              <button key={c.id} type="button" className="pv-pill" onClick={() => pick(c)}>
+                {c.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {err && <div className="pv-scan-err">{err}</div>}
+    </div>
+  );
+}
+
+function IsoCard({ card, side }: { card: TCGCard | null; side: "left" | "right" }) {
+  if (!card) {
+    return (
+      <div className={`ft-iso-card ${side} empty`}>
+        <img src="/fair-trade/iso-pedestal.jpg" alt="" />
+      </div>
+    );
+  }
+  const img = hdImg(card, { tile: true });
+  return (
+    <div className={`ft-iso-card ${side}`}>
+      <img src={img.src} alt={card.name} />
     </div>
   );
 }
@@ -235,9 +284,14 @@ export function FairTradeView() {
     <div className="pad ft-page">
       <h1 className="ft-title">FAIR TRADE</h1>
       <p className="ft-sub">
-        Scan your card and their card. Live market quotes decide if the swap is fair, or who adds
-        cash.
+        Search Find or scan both sides. Live quotes decide if the swap is fair, or who adds cash.
       </p>
+
+      <div className="ft-iso-stage" aria-hidden>
+        <IsoCard card={mine} side="left" />
+        <IsoCard card={theirs} side="right" />
+      </div>
+
       <div className="ft-grid">
         <ScanSlot label="Your card" card={mine} onPick={setMine} onClear={() => setMine(null)} />
         <ScanSlot
