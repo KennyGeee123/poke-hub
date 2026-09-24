@@ -1081,12 +1081,14 @@ export const Route = createFileRoute("/api/public/card-prices")({
               /mint|pack\s*fresh|gem\s*raw/i.test(blob) &&
               !/played|damaged|hp|mp|lp/i.test(blob)
             );
-          if (condition === "raw_nm" || condition === "nm")
+          if (condition === "raw_nm" || condition === "nm") {
+            if (!slab && /booster\s*box|booster\s*bundle|booster\s*pack|sealed|display|elite\s*trainer/i.test(blob)) return true;
             return (
               !slab &&
               /near\s*mint|\bnm\b|normal|holofoil|mint/i.test(blob) &&
               !/played|damaged|hp|mp/i.test(blob)
             );
+          }
           if (condition === "raw_lp" || condition === "lp")
             return !slab && /lightly\s*played|\blp\b|excellent/i.test(blob);
           if (condition === "raw_mp" || condition === "mp")
