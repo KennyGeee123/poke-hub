@@ -126,6 +126,76 @@ export function evaluateTradeFairness(sender: TradeParty, receiver: TradeParty):
   };
 }
 
+export type FairTradeVerdict = {
+  mine: number;
+  theirs: number;
+  delta: number;
+  threshold: number;
+  fair: boolean;
+  youAdd: number;
+  theyAdd: number;
+  label: "FAIR" | "YOU ADD" | "THEY ADD" | "NEED PRICES";
+  line: string;
+};
+
+/** Cash to put on the swap so both sides match live market. */
+export function fairTradeSwap(mine: number, theirs: number): FairTradeVerdict {
+  const a = Math.max(0, Number(mine) || 0);
+  const b = Math.max(0, Number(theirs) || 0);
+  if (!(a > 0) || !(b > 0)) {
+    return {
+      mine: a,
+      theirs: b,
+      delta: 0,
+      threshold: 0,
+      fair: false,
+      youAdd: 0,
+      theyAdd: 0,
+      label: "NEED PRICES",
+      line: "Scan both cards and wait for live quotes.",
+    };
+  }
+  const delta = Math.round((a - b) * 100) / 100;
+  const threshold = Math.round(Math.max(5, 0.1 * Math.max(a, b)) * 100) / 100;
+  if (Math.abs(delta) <= threshold) {
+    return {
+      mine: a,
+      theirs: b,
+      delta,
+      threshold,
+      fair: true,
+      youAdd: 0,
+      theyAdd: 0,
+      label: "FAIR",
+      line: `Fair trade. Gap $${Math.abs(delta).toFixed(2)} is within $${threshold.toFixed(2)}.`,
+    };
+  }
+  if (delta > 0) {
+    return {
+      mine: a,
+      theirs: b,
+      delta,
+      threshold,
+      fair: false,
+      youAdd: 0,
+      theyAdd: Math.abs(delta),
+      label: "THEY ADD",
+      line: `They add $${Math.abs(delta).toFixed(2)} on the swap (your card is higher).`,
+    };
+  }
+  return {
+    mine: a,
+    theirs: b,
+    delta,
+    threshold,
+    fair: false,
+    youAdd: Math.abs(delta),
+    theyAdd: 0,
+    label: "YOU ADD",
+    line: `You add $${Math.abs(delta).toFixed(2)} on the swap (their card is higher).`,
+  };
+}
+
 const TRADE_HISTORY_KEY = "pokevault_p2p_trade_ledger_v1";
 
 export function loadTradeLedger(): TradeOffer[] {

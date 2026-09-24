@@ -26,6 +26,7 @@ const VaultView = lazy(() => import("@/components/pokevault/views").then(m => ({
 const WishlistView = lazy(() => import("@/components/pokevault/views").then(m => ({ default: m.WishlistView })));
 const BattleHub = lazy(() => import("@/components/pokevault/Battle").then(m => ({ default: m.BattleHub })));
 const ScannerView = lazy(() => import("@/components/pokevault/Scanner").then(m => ({ default: m.ScannerView })));
+const FairTradeView = lazy(() => import("@/components/pokevault/FairTrade").then(m => ({ default: m.FairTradeView })));
 const SellView = lazy(() => import("@/components/pokevault/Marketplace").then(m => ({ default: m.SellView })));
 const BuyView = lazy(() => import("@/components/pokevault/Marketplace").then(m => ({ default: m.BuyView })));
 const Paywall = lazy(() => import("@/components/pokevault/Paywall").then(m => ({ default: m.Paywall })));
@@ -174,6 +175,7 @@ function Index() {
       {tab === "friends" && <LazyTab><FriendsView onOpenCard={openCard} /></LazyTab>}
       {tab === "adventure" && <LazyTab><AdventureView /></LazyTab>}
       {tab === "scan" && <LazyTab><ScannerView onOpen={openCard} /></LazyTab>}
+      {tab === "fairtrade" && <LazyTab><FairTradeView /></LazyTab>}
       {tab === "pokedex" && <LazyTab><PokedexHub /></LazyTab>}
       {tab === "sell" && <LazyTab><SellView /></LazyTab>}
       {tab === "buy" && <LazyTab><BuyView onOpen={openCard} /></LazyTab>}

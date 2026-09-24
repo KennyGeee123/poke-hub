@@ -3487,6 +3487,36 @@ html, body, .pv-app {
 .pv-card-grid { gap: 16px !important; }
 .pv-app-shell .pv-lab-body { padding: 16px !important; }
 
+.ft-page { max-width: 920px; margin: 0 auto; }
+.ft-title { font-family: "Bebas Neue", Impact, sans-serif; letter-spacing: 3px; font-size: 36px; color: var(--gold); margin: 0 0 6px; }
+.ft-sub { color: var(--t2); font-size: 13px; margin: 0 0 18px; }
+.ft-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 720px) { .ft-grid { grid-template-columns: 1fr; } }
+.ft-slot { background: var(--s2); border: 1px solid var(--brd); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.ft-slot-label { font-family: "Bebas Neue", sans-serif; letter-spacing: 2px; color: var(--cyan); font-size: 16px; }
+.ft-search { display: flex; gap: 8px; }
+.ft-cam { display: flex; flex-direction: column; gap: 8px; }
+.ft-video { width: 100%; border-radius: 12px; background: #000; max-height: 240px; object-fit: cover; }
+.ft-picked { display: flex; gap: 10px; align-items: center; }
+.ft-picked-img { width: 72px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid var(--gold); }
+.ft-picked-name { font-weight: 800; color: var(--t1); }
+.ft-picked-set { font-size: 11px; color: var(--t3); }
+.ft-picked-price { font-family: "Bebas Neue", sans-serif; color: var(--gold); font-size: 22px; letter-spacing: 1px; }
+.ft-hits { display: flex; flex-direction: column; gap: 4px; max-height: 160px; overflow: auto; }
+.ft-hit { text-align: left; background: var(--s3); color: var(--t1); border: 1px solid var(--brd); border-radius: 8px; padding: 6px 8px; font-size: 12px; }
+.ft-mini { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--t3); }
+.ft-verdict { margin-top: 16px; border-radius: 16px; padding: 16px; border: 1px solid var(--brd); background: var(--s2); }
+.ft-verdict-kicker { font-size: 10px; letter-spacing: 2px; color: var(--t3); }
+.ft-verdict-label { font-family: "Bebas Neue", sans-serif; font-size: 32px; letter-spacing: 2px; }
+.ft-fair { border-color: rgba(74, 222, 128, 0.45); }
+.ft-fair .ft-verdict-label { color: #4ade80; }
+.ft-you-add { border-color: rgba(251, 191, 36, 0.5); }
+.ft-you-add .ft-verdict-label { color: #fbbf24; }
+.ft-they-add { border-color: rgba(56, 189, 248, 0.5); }
+.ft-they-add .ft-verdict-label { color: #38bdf8; }
+.ft-need-prices .ft-verdict-label { color: var(--t3); }
+.ft-math { display: flex; gap: 12px; font-size: 13px; color: var(--t2); }
+
 
 /* ===== UNIFORM COLOR LOCK 2026-09-18 ===== */
 /* Remap leftover hard-coded creams/whites/gold variants to the single palette */

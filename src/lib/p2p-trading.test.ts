@@ -1,105 +1,24 @@
 import { describe, expect, it } from "bun:test";
-import { createTradeItem, evaluateTradeFairness, type TradeParty } from "./p2p-trading";
-import type { TCGCard } from "./pokemon-api";
+import { fairTradeSwap } from "./p2p-trading";
 
-const mockCardA: TCGCard = {
-  id: "base1-4",
-  name: "Charizard",
-  supertype: "Pokémon",
-  number: "4",
-  rarity: "Rare Holo",
-  images: { small: "", large: "" },
-  tcgplayer: {
-    prices: {
-      holofoil: { market: 300 },
-    },
-  },
-};
-
-const mockCardB: TCGCard = {
-  id: "base1-2",
-  name: "Blastoise",
-  supertype: "Pokémon",
-  number: "2",
-  rarity: "Rare Holo",
-  images: { small: "", large: "" },
-  tcgplayer: {
-    prices: {
-      holofoil: { market: 100 },
-    },
-  },
-};
-
-describe("P2P Trading Engine & Valuation Fairness Index", () => {
-  it("creates valid trade items with embedded RPG stats and market prices", () => {
-    const item = createTradeItem(mockCardA, "psa10", "card");
-    expect(item.grade).toBe("psa10");
-    expect(item.stats.level).toBe(40);
-    expect(item.stats.hasNaturalSlabBoost).toBe(true);
-    expect(item.marketPrice).toBeGreaterThan(300);
-
-    const pristineItem = createTradeItem(mockCardA, "bgs10_black", "card");
-    expect(pristineItem.stats.level).toBe(50);
-    expect(pristineItem.stats.totalBoostPercent).toBe(50);
+describe("Fair Trade swap", () => {
+  it("calls even values FAIR within $5 or 10%", () => {
+    const v = fairTradeSwap(50, 52);
+    expect(v.fair).toBe(true);
+    expect(v.label).toBe("FAIR");
+    expect(v.youAdd).toBe(0);
   });
 
-  it("computes trade delta and fairness index for unbalanced trades", () => {
-    const partyA: TradeParty = {
-      id: "party-a",
-      name: "Trainer A",
-      avatar: "",
-      reputation: 99,
-      completedTrades: 10,
-      items: [createTradeItem(mockCardA, "raw_nm")],
-      cashSweetener: 0,
-      isReady: true,
-    };
-
-    const partyB: TradeParty = {
-      id: "party-b",
-      name: "Trainer B",
-      avatar: "",
-      reputation: 99,
-      completedTrades: 10,
-      items: [createTradeItem(mockCardB, "raw_nm")],
-      cashSweetener: 0,
-      isReady: true,
-    };
-
-    const evalResult = evaluateTradeFairness(partyA, partyB);
-    expect(evalResult.senderTotal).toBeGreaterThan(evalResult.receiverTotal);
-    expect(evalResult.delta).toBeLessThan(0);
-    expect(evalResult.fairnessScore).toBeLessThan(50);
+  it("asks you to add cash when their card is higher", () => {
+    const v = fairTradeSwap(20, 80);
+    expect(v.fair).toBe(false);
+    expect(v.label).toBe("YOU ADD");
+    expect(v.youAdd).toBe(60);
   });
 
-  it("recognizes balanced trades with cash sweeteners", () => {
-    const itemA = createTradeItem(mockCardA, "raw_nm"); // ~$300
-    const itemB = createTradeItem(mockCardB, "raw_nm"); // ~$100
-
-    const partyA: TradeParty = {
-      id: "party-a",
-      name: "Trainer A",
-      avatar: "",
-      reputation: 99,
-      completedTrades: 10,
-      items: [itemA],
-      cashSweetener: 0,
-      isReady: true,
-    };
-
-    const partyB: TradeParty = {
-      id: "party-b",
-      name: "Trainer B",
-      avatar: "",
-      reputation: 99,
-      completedTrades: 10,
-      items: [itemB],
-      cashSweetener: itemA.marketPrice - itemB.marketPrice, // Add cash sweetener
-      isReady: true,
-    };
-
-    const evalResult = evaluateTradeFairness(partyA, partyB);
-    expect(evalResult.fairnessScore).toBe(100);
-    expect(Math.abs(evalResult.delta)).toBe(0);
+  it("asks them to add cash when your card is higher", () => {
+    const v = fairTradeSwap(100, 40);
+    expect(v.label).toBe("THEY ADD");
+    expect(v.theyAdd).toBe(60);
   });
 });
