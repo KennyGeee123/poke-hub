@@ -87,7 +87,6 @@ export function P2PTradingHubModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-6 overflow-y-auto animate-fade-in">
-      
       {/* Visual P2P Quantum Beam Animation */}
       <P2PTradeBeamTransfer
         isActive={isTransferring}
@@ -97,7 +96,6 @@ export function P2PTradingHubModal({
       />
 
       <div className="relative w-full max-w-4xl rounded-2xl bg-neutral-900 border border-neutral-700/80 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
-        
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-800 bg-neutral-950/70">
           <div className="flex items-center gap-3">
@@ -130,7 +128,6 @@ export function P2PTradingHubModal({
 
         {/* Content */}
         <div className="p-6 overflow-y-auto flex-1 flex flex-col gap-6">
-          
           {tradeSuccess ? (
             <div className="p-8 rounded-2xl bg-emerald-950/30 border border-emerald-500/40 text-center flex flex-col items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-3xl">
@@ -138,7 +135,11 @@ export function P2PTradingHubModal({
               </div>
               <h3 className="text-2xl font-bold text-white">Quantum P2P Trade Completed!</h3>
               <p className="text-sm text-neutral-300 max-w-md font-mono">
-                Ownership of <b>{receiverItem.card.name} (Lv. {receiverItem.stats.level})</b> has been verified and deposited into your active vault ledger.
+                Ownership of{" "}
+                <b>
+                  {receiverItem.card.name} (Lv. {receiverItem.stats.level})
+                </b>{" "}
+                has been verified and deposited into your active vault ledger.
               </p>
               <button
                 type="button"
@@ -173,13 +174,14 @@ export function P2PTradingHubModal({
                 </div>
 
                 <div className="text-xs font-mono text-neutral-400">
-                  Reputation: <span className="text-emerald-400 font-bold">{selectedTrainer.reputation}%</span> ({selectedTrainer.completedTrades} trades)
+                  Reputation:{" "}
+                  <span className="text-emerald-400 font-bold">{selectedTrainer.reputation}%</span>{" "}
+                  ({selectedTrainer.completedTrades} trades)
                 </div>
               </div>
 
               {/* Side-by-Side Trade Pods */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
                 {/* 1. Your Offer Pod */}
                 <div className="p-5 rounded-2xl bg-neutral-950/80 border border-cyan-500/30 flex flex-col gap-4">
                   <div className="flex items-center justify-between border-b border-neutral-800 pb-3">

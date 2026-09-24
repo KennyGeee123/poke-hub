@@ -1,11 +1,5 @@
 import React, { useState } from "react";
-import {
-  MapPin,
-  Sparkles,
-  RotateCw,
-  X,
-  CheckCircle,
-} from "lucide-react";
+import { MapPin, Sparkles, RotateCw, X, CheckCircle } from "lucide-react";
 import {
   type AdventureState,
   type DiscoveryPoint,
@@ -80,11 +74,7 @@ export function AdventureDiscoveryModal({
               isSpinning ? "rotate-[720deg] scale-95" : "hover:rotate-6"
             }`}
           >
-            <img
-              src={point.photoUrl}
-              alt={point.title}
-              className="w-full h-full object-cover"
-            />
+            <img src={point.photoUrl} alt={point.title} className="w-full h-full object-cover" />
           </div>
         </div>
 
@@ -110,7 +100,8 @@ export function AdventureDiscoveryModal({
             </div>
             {spinLoot.stoneAwarded && (
               <div className="p-2 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-300 font-mono text-xs font-bold">
-                ✨ Bonus: {(EVOLUTION_STONES as Record<string, any>)[spinLoot.stoneAwarded]?.name} Dropped!
+                ✨ Bonus: {(EVOLUTION_STONES as Record<string, any>)[spinLoot.stoneAwarded]?.name}{" "}
+                Dropped!
               </div>
             )}
           </div>
@@ -136,7 +127,9 @@ export function AdventureDiscoveryModal({
           }`}
         >
           <RotateCw className={`w-4 h-4 ${isSpinning ? "animate-spin" : ""}`} />
-          <span>{isSpinning ? "SPINNING DISC..." : onCooldown ? "COOLDOWN ACTIVE" : "SPIN PHOTO DISC"}</span>
+          <span>
+            {isSpinning ? "SPINNING DISC..." : onCooldown ? "COOLDOWN ACTIVE" : "SPIN PHOTO DISC"}
+          </span>
         </button>
       </div>
     </div>

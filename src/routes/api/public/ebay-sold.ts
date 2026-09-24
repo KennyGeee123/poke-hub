@@ -13,7 +13,14 @@ export type SoldListing = {
 };
 
 function stripTags(s: string): string {
-  return s.replace(/<[^>]*>/g, "").replace(/&amp;/g, "&").replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim();
+  return s
+    .replace(/<[^>]*>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&#x27;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .trim();
 }
 
 function parseListings(html: string): SoldListing[] {
@@ -25,8 +32,12 @@ function parseListings(html: string): SoldListing[] {
     const block = m[1];
     if (!/s-item__title/.test(block)) continue;
 
-    const titleMatch = block.match(/<div[^>]*class="[^"]*s-item__title[^"]*"[^>]*>(?:<span[^>]*>)?([\s\S]*?)(?:<\/span>)?<\/div>/);
-    const priceMatch = block.match(/<span[^>]*class="[^"]*s-item__price[^"]*"[^>]*>([\s\S]*?)<\/span>/);
+    const titleMatch = block.match(
+      /<div[^>]*class="[^"]*s-item__title[^"]*"[^>]*>(?:<span[^>]*>)?([\s\S]*?)(?:<\/span>)?<\/div>/,
+    );
+    const priceMatch = block.match(
+      /<span[^>]*class="[^"]*s-item__price[^"]*"[^>]*>([\s\S]*?)<\/span>/,
+    );
     const urlMatch = block.match(/<a[^>]+class="[^"]*s-item__link[^"]*"[^>]+href="([^"]+)"/);
     const imgMatch = block.match(/<img[^>]+src="([^"]+)"/);
     const soldMatch = block.match(/Sold\s+([A-Za-z]{3}\s+\d{1,2},?\s+\d{4})/);
@@ -91,30 +102,44 @@ export const Route = createFileRoute("/api/public/ebay-sold")({
             signal: ctl.signal,
             headers: {
               // Mimic a real browser; eBay returns lite HTML otherwise
-              "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0 Safari/537.36",
+              "User-Agent":
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0 Safari/537.36",
               "Accept-Language": "en-US,en;q=0.9",
-              "Accept": "text/html,application/xhtml+xml",
+              Accept: "text/html,application/xhtml+xml",
             },
           });
           if (!upstream.ok) {
             return Response.json(
-              { query: q, summary: null, listings: [], error: `eBay responded ${upstream.status}`, errorKind: "upstream" },
+              {
+                query: q,
+                summary: null,
+                listings: [],
+                error: `eBay responded ${upstream.status}`,
+                errorKind: "upstream",
+              },
               { status: 502 },
             );
           }
           const html = await upstream.text();
           const listings = parseListings(html);
-          const prices = listings.map(l => l.priceValue).filter((n): n is number => typeof n === "number" && n > 0);
-          const summary = prices.length ? {
-            count: prices.length,
-            min: Math.min(...prices),
-            max: Math.max(...prices),
-            avg: prices.reduce((a, b) => a + b, 0) / prices.length,
-            median: prices.slice().sort((a, b) => a - b)[Math.floor(prices.length / 2)],
-          } : null;
-          return Response.json({ query: q, summary, listings }, {
-            headers: { "Cache-Control": "public, max-age=600" },
-          });
+          const prices = listings
+            .map((l) => l.priceValue)
+            .filter((n): n is number => typeof n === "number" && n > 0);
+          const summary = prices.length
+            ? {
+                count: prices.length,
+                min: Math.min(...prices),
+                max: Math.max(...prices),
+                avg: prices.reduce((a, b) => a + b, 0) / prices.length,
+                median: prices.slice().sort((a, b) => a - b)[Math.floor(prices.length / 2)],
+              }
+            : null;
+          return Response.json(
+            { query: q, summary, listings },
+            {
+              headers: { "Cache-Control": "public, max-age=600" },
+            },
+          );
         } catch (err) {
           const aborted = (err as Error)?.name === "AbortError";
           return Response.json(

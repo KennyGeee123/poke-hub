@@ -1,9 +1,27 @@
 // Species sprites from PokeAPI / Pokémon Showdown / Official Pokémon Home 3D Art
 export const LOCAL_SPRITE_SLUGS = new Set([
-  "bulbasaur", "charmander", "squirtle", "pikachu", "caterpie", "pidgey",
-  "rattata", "jigglypuff", "meowth", "psyduck", "machop", "geodude",
-  "gastly", "eevee", "snorlax", "dratini", "mewtwo", "chikorita",
-  "totodile", "cyndaquil", "jynx", "onix",
+  "bulbasaur",
+  "charmander",
+  "squirtle",
+  "pikachu",
+  "caterpie",
+  "pidgey",
+  "rattata",
+  "jigglypuff",
+  "meowth",
+  "psyduck",
+  "machop",
+  "geodude",
+  "gastly",
+  "eevee",
+  "snorlax",
+  "dratini",
+  "mewtwo",
+  "chikorita",
+  "totodile",
+  "cyndaquil",
+  "jynx",
+  "onix",
 ]);
 
 export function spriteSlug(name: string): string {
@@ -13,7 +31,10 @@ export function spriteSlug(name: string): string {
     .replace(/[♀♂δ★:'']/g, "")
     .replace(/\b(v|vmax|vstar|gx|ex|tag team|prime|break|lv\.?x|legend)\b/gi, "")
     .replace(/\s+&\s+\w+/g, "")
-    .replace(/\b(alolan|galarian|hisuian|paldean|mega|radiant|shining|dark|light|origin|primal|tera)\b/g, "")
+    .replace(
+      /\b(alolan|galarian|hisuian|paldean|mega|radiant|shining|dark|light|origin|primal|tera)\b/g,
+      "",
+    )
     .replace(/\./g, "")
     .trim();
 
@@ -55,7 +76,13 @@ export function fallbackSpriteUrls(name: string): string[] {
 export function trainerFacingUrl(facingAngleDeg: number): string {
   const a = ((facingAngleDeg % 360) + 360) % 360;
   const dir =
-    a >= 315 || a < 45 ? "up" : a >= 45 && a < 135 ? "right" : a >= 135 && a < 225 ? "down" : "left";
+    a >= 315 || a < 45
+      ? "up"
+      : a >= 45 && a < 135
+        ? "right"
+        : a >= 135 && a < 225
+          ? "down"
+          : "left";
   return `/adventure-assets/trainer-${dir}.png`;
 }
 
@@ -68,9 +95,15 @@ export function staticSpriteUrl(name: string): string {
 }
 
 export function backSpriteUrl(name: string): string {
-  return localGen5BackUrl(name) ?? `https://play.pokemonshowdown.com/sprites/ani-back/${spriteSlug(name)}.gif`;
+  return (
+    localGen5BackUrl(name) ??
+    `https://play.pokemonshowdown.com/sprites/ani-back/${spriteSlug(name)}.gif`
+  );
 }
 
 export function backSpriteFallback(name: string): string {
-  return localGen5BackUrl(name) ?? `https://play.pokemonshowdown.com/sprites/gen5-back/${spriteSlug(name)}.png`;
+  return (
+    localGen5BackUrl(name) ??
+    `https://play.pokemonshowdown.com/sprites/gen5-back/${spriteSlug(name)}.png`
+  );
 }

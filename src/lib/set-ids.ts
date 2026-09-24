@@ -77,7 +77,10 @@ export function setIdAliases(id: string): string[] {
 
 export function localCardNumber(card: SetCardLike): string {
   const fromNum = String(card.number || "").trim();
-  const fromId = String(card.id || "").split("-").slice(1).join("-");
+  const fromId = String(card.id || "")
+    .split("-")
+    .slice(1)
+    .join("-");
   const raw = fromNum || fromId;
   const stripped = raw.replace(/^0+(?=\d)/, "");
   return (stripped || raw || "0").toLowerCase();
@@ -160,6 +163,8 @@ export function sortSetCards<T extends SetCardLike>(cards: T[]): T[] {
     const na = Number(String(a.number || "").replace(/[^\d]/g, ""));
     const nb = Number(String(b.number || "").replace(/[^\d]/g, ""));
     if (Number.isFinite(na) && Number.isFinite(nb) && na !== nb) return na - nb;
-    return String(a.number || a.id).localeCompare(String(b.number || b.id), undefined, { numeric: true });
+    return String(a.number || a.id).localeCompare(String(b.number || b.id), undefined, {
+      numeric: true,
+    });
   });
 }

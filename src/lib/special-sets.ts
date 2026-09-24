@@ -76,7 +76,9 @@ function shadowlessCards(): TCGCard[] {
     return {
       id: extra ? `${SHADOWLESS_SET_ID}-${r.number}rc` : `${SHADOWLESS_SET_ID}-${r.number}`,
       name: r.name,
-      rarity: r.rarity?.toLowerCase().includes("shadowless") ? r.rarity : `Shadowless ${r.rarity || "Rare"}`.trim(),
+      rarity: r.rarity?.toLowerCase().includes("shadowless")
+        ? r.rarity
+        : `Shadowless ${r.rarity || "Rare"}`.trim(),
       number: r.number,
       set: {
         id: SHADOWLESS_SET_ID,
@@ -91,16 +93,17 @@ function shadowlessCards(): TCGCard[] {
         small: r.imageSmall || parent.small,
         large: r.imageLarge || r.imageSmall || parent.large,
       },
-      tcgplayer: r.market > 0 || r.url
-        ? {
-            url: r.url || undefined,
-            prices: {
-              [r.rarity.toLowerCase().includes("holo") ? "holofoil" : "normal"]: {
-                market: r.market > 0 ? r.market : undefined,
+      tcgplayer:
+        r.market > 0 || r.url
+          ? {
+              url: r.url || undefined,
+              prices: {
+                [r.rarity.toLowerCase().includes("holo") ? "holofoil" : "normal"]: {
+                  market: r.market > 0 ? r.market : undefined,
+                },
               },
-            },
-          }
-        : undefined,
+            }
+          : undefined,
     } satisfies TCGCard;
   });
 }
@@ -141,8 +144,20 @@ export function getErrorCards(): TCGCard[] {
 
 export function specialSets(): TCGSet[] {
   return [
-    setStub(SHADOWLESS_SET_ID, "Base Set (Shadowless)", "Base", getShadowlessCards().length, "1999/01/09"),
-    setStub(ERROR_SET_ID, "Error / Misprint Cards", "Special", getErrorCards().length, "1999/01/09"),
+    setStub(
+      SHADOWLESS_SET_ID,
+      "Base Set (Shadowless)",
+      "Base",
+      getShadowlessCards().length,
+      "1999/01/09",
+    ),
+    setStub(
+      ERROR_SET_ID,
+      "Error / Misprint Cards",
+      "Special",
+      getErrorCards().length,
+      "1999/01/09",
+    ),
   ];
 }
 

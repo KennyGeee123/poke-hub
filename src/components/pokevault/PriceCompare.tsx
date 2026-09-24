@@ -32,15 +32,21 @@ function Price({ l }: { l: Listing }) {
         </span>
       )}
       {l.currency !== "USD" && (
-        <span style={{ fontSize: 10, color: "var(--t3)", marginLeft: 4 }}>
-          · {l.priceRaw}
-        </span>
+        <span style={{ fontSize: 10, color: "var(--t3)", marginLeft: 4 }}>· {l.priceRaw}</span>
       )}
     </span>
   );
 }
 
-export function PriceComparePanel({ query, cardId, initialCondition = "all" }: { query: string; cardId?: string; initialCondition?: string }) {
+export function PriceComparePanel({
+  query,
+  cardId,
+  initialCondition = "all",
+}: {
+  query: string;
+  cardId?: string;
+  initialCondition?: string;
+}) {
   const [data, setData] = useState<AggregateResponse | null>(null);
   const [condition, setCondition] = useState<string>(initialCondition);
   const [err, setErr] = useState<string | null>(null);
@@ -71,13 +77,11 @@ export function PriceComparePanel({ query, cardId, initialCondition = "all" }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, cardId, condition]);
 
-  const sortedSources = data?.sources
-    ?.slice()
-    .sort((a, b) => {
-      const ap = a.lowest ? a.lowest.price + (a.lowest.shipping ?? 0) : Infinity;
-      const bp = b.lowest ? b.lowest.price + (b.lowest.shipping ?? 0) : Infinity;
-      return ap - bp;
-    });
+  const sortedSources = data?.sources?.slice().sort((a, b) => {
+    const ap = a.lowest ? a.lowest.price + (a.lowest.shipping ?? 0) : Infinity;
+    const bp = b.lowest ? b.lowest.price + (b.lowest.shipping ?? 0) : Infinity;
+    return ap - bp;
+  });
 
   return (
     <div className="pv-panel">
@@ -86,7 +90,9 @@ export function PriceComparePanel({ query, cardId, initialCondition = "all" }: {
         <div className="pv-panel-tag">
           {data
             ? `${data.sources.filter((s) => s.lowest).length} priced · ${data.sources.filter((s) => s.kind === "shop").length} live search shops`
-            : loading ? "Scanning 15+ marketplaces…" : "—"}
+            : loading
+              ? "Scanning 15+ marketplaces…"
+              : "—"}
         </div>
       </div>
 
@@ -109,8 +115,10 @@ export function PriceComparePanel({ query, cardId, initialCondition = "all" }: {
               fontSize: 10,
               padding: "4px 8px",
               borderRadius: 6,
-              border: condition === c.id ? "1px solid var(--gold, #fbbf24)" : "1px solid var(--brd)",
-              background: condition === c.id ? "rgba(251, 191, 36, 0.15)" : "rgba(255,255,255,0.04)",
+              border:
+                condition === c.id ? "1px solid var(--gold, #fbbf24)" : "1px solid var(--brd)",
+              background:
+                condition === c.id ? "rgba(251, 191, 36, 0.15)" : "rgba(255,255,255,0.04)",
               color: condition === c.id ? "var(--gold, #fbbf24)" : "var(--t2)",
               cursor: "pointer",
               fontFamily: "var(--mono, monospace)",
@@ -124,14 +132,22 @@ export function PriceComparePanel({ query, cardId, initialCondition = "all" }: {
 
       {loading && !data && (
         <div style={{ fontSize: 11, color: "var(--t3)" }}>
-          Pulling real-time listings across TCGPlayer, Cardmarket, eBay BINs, Target, and 15+ specialized collectible stores…
+          Pulling real-time listings across TCGPlayer, Cardmarket, eBay BINs, Target, and 15+
+          specialized collectible stores…
         </div>
       )}
 
       {err && (
         <div style={{ fontSize: 11, color: "#f87171" }}>
           {err}{" "}
-          <button onClick={run} style={{ color: "var(--neon-cyan, #38bdf8)", textDecoration: "underline", marginLeft: 6 }}>
+          <button
+            onClick={run}
+            style={{
+              color: "var(--neon-cyan, #38bdf8)",
+              textDecoration: "underline",
+              marginLeft: 6,
+            }}
+          >
             Retry
           </button>
         </div>
@@ -149,8 +165,7 @@ export function PriceComparePanel({ query, cardId, initialCondition = "all" }: {
             padding: 12,
             margin: "10px 0 14px",
             borderRadius: 12,
-            background:
-              "linear-gradient(135deg, rgba(254,228,64,.18), rgba(0,245,212,.12))",
+            background: "linear-gradient(135deg, rgba(254,228,64,.18), rgba(0,245,212,.12))",
             border: "1px solid var(--neon-yellow, #fbbf24)",
             boxShadow: "0 0 16px rgba(251, 191, 36, 0.25)",
             textDecoration: "none",
@@ -161,20 +176,51 @@ export function PriceComparePanel({ query, cardId, initialCondition = "all" }: {
             <img
               src={data.cheapest.image}
               alt=""
-              style={{ width: 56, height: 56, borderRadius: 8, objectFit: "contain", background: "#0d001a" }}
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 8,
+                objectFit: "contain",
+                background: "#0d001a",
+              }}
               loading="lazy"
             />
           )}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 10, letterSpacing: 2, color: "var(--gold, #fbbf24)", fontWeight: 800 }}>
+            <div
+              style={{
+                fontSize: 10,
+                letterSpacing: 2,
+                color: "var(--gold, #fbbf24)",
+                fontWeight: 800,
+              }}
+            >
               🏆 CHEAPEST ON THE NET · {data.cheapest.source.toUpperCase()}
             </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: "var(--t1)",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
               {data.cheapest.title}
             </div>
-            <div style={{ marginTop: 4, fontSize: 18, fontFamily: "Bebas Neue, Impact, sans-serif", letterSpacing: 1 }}>
+            <div
+              style={{
+                marginTop: 4,
+                fontSize: 18,
+                fontFamily: "Bebas Neue, Impact, sans-serif",
+                letterSpacing: 1,
+              }}
+            >
               <Price l={data.cheapest} />
-              <span style={{ marginLeft: 8, color: "var(--neon-cyan, #38bdf8)", fontSize: 12 }}>BUY DIRECT ↗</span>
+              <span style={{ marginLeft: 8, color: "var(--neon-cyan, #38bdf8)", fontSize: 12 }}>
+                BUY DIRECT ↗
+              </span>
             </div>
           </div>
         </a>
@@ -195,20 +241,46 @@ export function PriceComparePanel({ query, cardId, initialCondition = "all" }: {
             }}
           >
             <div
-              style={{ display: "flex", alignItems: "center", gap: 10, cursor: s.lowest ? "pointer" : "default" }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                cursor: s.lowest ? "pointer" : "default",
+              }}
               onClick={() => s.lowest && setExpanded((p) => ({ ...p, [s.source]: !isOpen }))}
             >
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: color, boxShadow: `0 0 6px ${color}` }} />
-              <div style={{ fontWeight: 700, fontSize: 13, color: "var(--t1)", minWidth: 110 }}>{s.source}</div>
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: color,
+                  boxShadow: `0 0 6px ${color}`,
+                }}
+              />
+              <div style={{ fontWeight: 700, fontSize: 13, color: "var(--t1)", minWidth: 110 }}>
+                {s.source}
+              </div>
               {s.lowest ? (
                 <>
-                  <div style={{ fontSize: 13, color: "var(--t2)", flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      color: "var(--t2)",
+                      flex: 1,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
                     {s.lowest.title}
                   </div>
                   <div style={{ fontSize: 14, fontWeight: 700 }}>
                     <Price l={s.lowest} />
                   </div>
-                  <span style={{ fontSize: 11, color: "var(--neon-cyan, #38bdf8)" }}>{isOpen ? "▾" : "▸"}</span>
+                  <span style={{ fontSize: 11, color: "var(--neon-cyan, #38bdf8)" }}>
+                    {isOpen ? "▾" : "▸"}
+                  </span>
                 </>
               ) : s.kind === "shop" && s.shopUrl ? (
                 <a
@@ -216,7 +288,12 @@ export function PriceComparePanel({ query, cardId, initialCondition = "all" }: {
                   target="_blank"
                   rel="noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  style={{ fontSize: 12, color: "var(--neon-cyan, #38bdf8)", marginLeft: "auto", textDecoration: "none" }}
+                  style={{
+                    fontSize: 12,
+                    color: "var(--neon-cyan, #38bdf8)",
+                    marginLeft: "auto",
+                    textDecoration: "none",
+                  }}
                 >
                   Search live ↗
                 </a>
@@ -248,11 +325,38 @@ export function PriceComparePanel({ query, cardId, initialCondition = "all" }: {
                     }}
                   >
                     {l.image ? (
-                      <img src={l.image} alt="" loading="lazy" style={{ width: 28, height: 28, borderRadius: 4, objectFit: "contain", background: "#0d001a" }} />
+                      <img
+                        src={l.image}
+                        alt=""
+                        loading="lazy"
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: 4,
+                          objectFit: "contain",
+                          background: "#0d001a",
+                        }}
+                      />
                     ) : (
-                      <div style={{ width: 28, height: 28, borderRadius: 4, background: "rgba(255,255,255,.05)" }} />
+                      <div
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: 4,
+                          background: "rgba(255,255,255,.05)",
+                        }}
+                      />
                     )}
-                    <div style={{ flex: 1, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "var(--t2)" }}>
+                    <div
+                      style={{
+                        flex: 1,
+                        minWidth: 0,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        color: "var(--t2)",
+                      }}
+                    >
                       {l.title}
                     </div>
                     <Price l={l} />
@@ -268,7 +372,10 @@ export function PriceComparePanel({ query, cardId, initialCondition = "all" }: {
       {data && (
         <div style={{ marginTop: 8, fontSize: 10, color: "var(--t3)", textAlign: "right" }}>
           Updated {new Date(data.generatedAt).toLocaleTimeString()} ·{" "}
-          <button onClick={run} style={{ color: "var(--neon-cyan, #38bdf8)", textDecoration: "underline" }}>
+          <button
+            onClick={run}
+            style={{ color: "var(--neon-cyan, #38bdf8)", textDecoration: "underline" }}
+          >
             refresh
           </button>
         </div>

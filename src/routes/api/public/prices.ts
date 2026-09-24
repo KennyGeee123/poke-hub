@@ -1,7 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 const UPSTREAM = "https://api.tcgdex.net/v2";
-const FX: Record<string, number> = { USD: 1, EUR: 1.08, GBP: 1.27, JPY: 0.0064, CAD: 0.73, AUD: 0.66 };
+const FX: Record<string, number> = {
+  USD: 1,
+  EUR: 1.08,
+  GBP: 1.27,
+  JPY: 0.0064,
+  CAD: 0.73,
+  AUD: 0.66,
+};
 
 /** Sets known to ship with null TCGdex pricing until market data catches up. */
 const PENDING_NEW_SETS = new Set(["30th", "30th-c", "me55", "me55c"]);
@@ -37,7 +44,14 @@ function usd(n: number, unit?: string): number {
   return Math.round(n * (FX[(unit || "USD").toUpperCase()] ?? 1) * 100) / 100;
 }
 
-const TP_PRINTS = ["holofoil", "1stEditionHolofoil", "reverseHolofoil", "unlimitedHolofoil", "normal", "unlimited"];
+const TP_PRINTS = [
+  "holofoil",
+  "1stEditionHolofoil",
+  "reverseHolofoil",
+  "unlimitedHolofoil",
+  "normal",
+  "unlimited",
+];
 
 function pickTpField(tp: any, field: "marketPrice" | "midPrice" | "lowPrice"): number {
   if (!tp || typeof tp !== "object") return 0;
@@ -128,10 +142,13 @@ function normName(s: string): string {
 
 async function quoteTcgplayerProduct(productId: number): Promise<number | null> {
   try {
-    const r = await fetch(`https://infinite-api.tcgplayer.com/price/history/${productId}?range=quarter`, {
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(3500),
-    });
+    const r = await fetch(
+      `https://infinite-api.tcgplayer.com/price/history/${productId}?range=quarter`,
+      {
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(3500),
+      },
+    );
     if (!r.ok) return null;
     const j: any = await r.json();
     const variants = j?.result?.[0]?.variants;
@@ -148,7 +165,12 @@ async function quoteTcgplayerProduct(productId: number): Promise<number | null> 
 }
 
 type CsvRow = { productId: number; name: string; number: string; market: number };
-type CsvCache = { at: number; byNum: Map<string, CsvRow>; byName: Map<string, CsvRow>; rows: CsvRow[] };
+type CsvCache = {
+  at: number;
+  byNum: Map<string, CsvRow>;
+  byName: Map<string, CsvRow>;
+  rows: CsvRow[];
+};
 const csvCache = new Map<number, CsvCache>();
 const CSV_TTL_MS = 30 * 60 * 1000;
 
@@ -196,7 +218,9 @@ async function loadTcgcsvGroup(groupId: number): Promise<CsvCache | null> {
           break;
         }
       }
-      const name = String(r.name || "").replace(/\s*-\s*\d+\/\d+\s*$/, "").trim();
+      const name = String(r.name || "")
+        .replace(/\s*-\s*\d+\/\d+\s*$/, "")
+        .trim();
       const row: CsvRow = { productId: pid, name, number, market };
       rows.push(row);
       if (number) {
@@ -233,7 +257,11 @@ function matchByName(cache: CsvCache, name: string): CsvRow | undefined {
   return best;
 }
 
-async function quoteTcgcsv(setKey: string, localId: string, name?: string): Promise<PriceQuote | null> {
+async function quoteTcgcsv(
+  setKey: string,
+  localId: string,
+  name?: string,
+): Promise<PriceQuote | null> {
   const groupId = TCGCSV_GROUP[setKey];
   if (!groupId) return null;
   const cache = await loadTcgcsvGroup(groupId);
@@ -246,7 +274,10 @@ async function quoteTcgcsv(setKey: string, localId: string, name?: string): Prom
     if (name) row = matchByName(cache, name);
   } else if (setKey === "me55c") {
     const padded = padLocal(localId);
-    row = cache.byNum.get(padded) || cache.byNum.get(localId) || cache.byNum.get(localId.replace(/^0+/, "") || localId);
+    row =
+      cache.byNum.get(padded) ||
+      cache.byNum.get(localId) ||
+      cache.byNum.get(localId.replace(/^0+/, "") || localId);
     if (!row && name) row = matchByName(cache, name);
   } else {
     const padded = padLocal(localId);
@@ -314,7 +345,11 @@ function quoteFromPokemonPrices(prices: any): PriceQuote | null {
       const n = Number(prices[k]?.[field]);
       if (Number.isFinite(n) && n > 0) {
         const source =
-          field === "market" ? "pokemontcg-market" : field === "mid" ? "pokemontcg-mid" : "pokemontcg-low";
+          field === "market"
+            ? "pokemontcg-market"
+            : field === "mid"
+              ? "pokemontcg-mid"
+              : "pokemontcg-low";
         return { market: n, source };
       }
     }
@@ -336,7 +371,8 @@ async function fetchPokemonCardMeta(
       const data = j?.data;
       if (!data) continue;
       const quote = quoteFromPokemonPrices(data?.tcgplayer?.prices);
-      const name = typeof data.name === "string" && data.name.trim() ? String(data.name).trim() : undefined;
+      const name =
+        typeof data.name === "string" && data.name.trim() ? String(data.name).trim() : undefined;
       if (name || quote) return { name, quote };
     } catch {
       /* try next alias */
@@ -426,7 +462,6 @@ async function quoteOne(id: string): Promise<PriceQuote | null> {
   }
   return null;
 }
-
 
 export const Route = createFileRoute("/api/public/prices")({
   server: {

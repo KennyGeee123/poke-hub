@@ -9,15 +9,27 @@ const moveCache = new Map<string, GBMove>();
 const inflight = new Map<string, Promise<LearnEntry[]>>();
 
 const TYPE_MAP: Record<string, string> = {
-  normal: "Colorless", fire: "Fire", water: "Water", grass: "Grass",
-  electric: "Lightning", ice: "Water", fighting: "Fighting", poison: "Darkness",
-  ground: "Fighting", flying: "Colorless", psychic: "Psychic", bug: "Grass",
-  rock: "Fighting", ghost: "Psychic", dragon: "Dragon", dark: "Darkness",
-  steel: "Metal", fairy: "Fairy",
+  normal: "Colorless",
+  fire: "Fire",
+  water: "Water",
+  grass: "Grass",
+  electric: "Lightning",
+  ice: "Water",
+  fighting: "Fighting",
+  poison: "Darkness",
+  ground: "Fighting",
+  flying: "Colorless",
+  psychic: "Psychic",
+  bug: "Grass",
+  rock: "Fighting",
+  ghost: "Psychic",
+  dragon: "Dragon",
+  dark: "Darkness",
+  steel: "Metal",
+  fairy: "Fairy",
 };
 
-const titleCase = (s: string) =>
-  s.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+const titleCase = (s: string) => s.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 async function fetchMove(url: string): Promise<GBMove | null> {
   if (moveCache.has(url)) return moveCache.get(url)!;
@@ -77,7 +89,11 @@ export async function fetchLearnset(name: string): Promise<LearnEntry[]> {
 }
 
 /** Replace attacks with the 4 strongest level-up moves the Pokémon knows by `level`. */
-export async function movesAtLevel(name: string, level: number, fallback: GBMove[]): Promise<GBMove[]> {
+export async function movesAtLevel(
+  name: string,
+  level: number,
+  fallback: GBMove[],
+): Promise<GBMove[]> {
   const learn = await fetchLearnset(name);
   const known = learn.filter((e) => e.level <= level).map((e) => e.move);
   if (!known.length) return fallback;
@@ -90,7 +106,11 @@ export async function movesAtLevel(name: string, level: number, fallback: GBMove
 }
 
 /** Moves newly learned when going from oldLevel → newLevel. */
-export async function newlyLearned(name: string, oldLevel: number, newLevel: number): Promise<GBMove[]> {
+export async function newlyLearned(
+  name: string,
+  oldLevel: number,
+  newLevel: number,
+): Promise<GBMove[]> {
   const learn = await fetchLearnset(name);
   return learn.filter((e) => e.level > oldLevel && e.level <= newLevel).map((e) => e.move);
 }

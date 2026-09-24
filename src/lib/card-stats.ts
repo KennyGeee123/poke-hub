@@ -21,12 +21,18 @@ export type PokemonStats = {
   totalBoostPercent: number; // combined boost
   tierBadge: string;
   tierColor: string;
-  auraEffect: "none" | "green_sparkle" | "blue_radiance" | "purple_quantum" | "golden_legendary" | "cosmic_black";
+  auraEffect:
+    | "none"
+    | "green_sparkle"
+    | "blue_radiance"
+    | "purple_quantum"
+    | "golden_legendary"
+    | "cosmic_black";
 };
 
 export function getCardLevelAndStats(card: TCGCard, grade: CardGrade = "raw"): PokemonStats {
   const meta = GRADE_DEFINITIONS[grade] || GRADE_DEFINITIONS.raw;
-  
+
   // 1. Calculate Base HP & Primary Attack Power from card data
   const rawHp = parseInt(card.hp || "70", 10);
   const baseHp = isNaN(rawHp) || rawHp <= 0 ? 70 : rawHp;
@@ -53,11 +59,11 @@ export function getCardLevelAndStats(card: TCGCard, grade: CardGrade = "raw"): P
   switch (grade) {
     case "raw_dmg":
       level = 5;
-      conditionBoost = 0.00; // 0%
+      conditionBoost = 0.0; // 0%
       break;
     case "raw_hp":
       level = 10;
-      conditionBoost = 0.10; // +10%
+      conditionBoost = 0.1; // +10%
       break;
     case "raw_mp":
       level = 15;
@@ -65,7 +71,7 @@ export function getCardLevelAndStats(card: TCGCard, grade: CardGrade = "raw"): P
       break;
     case "raw_lp":
       level = 20;
-      conditionBoost = 0.20; // +20%
+      conditionBoost = 0.2; // +20%
       break;
     case "raw":
     case "raw_nm":
@@ -74,9 +80,9 @@ export function getCardLevelAndStats(card: TCGCard, grade: CardGrade = "raw"): P
       break;
     case "raw_mint":
       level = 30;
-      conditionBoost = 0.30; // +30%
+      conditionBoost = 0.3; // +30%
       break;
-    
+
     // Graded Slabs
     case "psa7":
       level = 28;
@@ -97,13 +103,13 @@ export function getCardLevelAndStats(card: TCGCard, grade: CardGrade = "raw"): P
     case "psa10":
       // Standard 10: Level 40 (+40% stat boost)
       level = 40;
-      conditionBoost = 0.20; // 20% grade + 20% slab = 40%
+      conditionBoost = 0.2; // 20% grade + 20% slab = 40%
       break;
     case "cgc10_pristine":
     case "bgs10_black":
       // Pristine / Black Label 10: Level 50 (+50% stat boost)
       level = 50;
-      conditionBoost = 0.30; // 30% grade + 20% slab = 50%
+      conditionBoost = 0.3; // 30% grade + 20% slab = 50%
       break;
     default:
       level = 25;
@@ -112,8 +118,8 @@ export function getCardLevelAndStats(card: TCGCard, grade: CardGrade = "raw"): P
   }
 
   const isSlab = meta.isSlab;
-  const slabBoost = isSlab ? 0.20 : 0.00; // Natural +20% Graded Slab Synergy
-  const totalBoost = Math.min(0.50, conditionBoost + slabBoost); // Max cap 50%
+  const slabBoost = isSlab ? 0.2 : 0.0; // Natural +20% Graded Slab Synergy
+  const totalBoost = Math.min(0.5, conditionBoost + slabBoost); // Max cap 50%
 
   // 3. Compute boosted battle attributes
   const boostedHp = Math.round(baseHp * (1 + totalBoost));
@@ -123,7 +129,7 @@ export function getCardLevelAndStats(card: TCGCard, grade: CardGrade = "raw"): P
   const boostedCritRate = Math.min(50, Math.round(baseCrit + totalBoost * 40));
 
   const totalCombatPower = Math.round(
-    boostedHp * 1.5 + boostedAtk * 2.2 + boostedDef * 1.2 + boostedSpd * 1.0 + boostedCritRate * 5
+    boostedHp * 1.5 + boostedAtk * 2.2 + boostedDef * 1.2 + boostedSpd * 1.0 + boostedCritRate * 5,
   );
 
   // 4. Aura & Tier Badges

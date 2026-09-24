@@ -7,6 +7,7 @@ export const EVENT_HANDLER =
 export const SQL_UNION = /\bunion\b[\s/+*-]*\bselect\b/i;
 export const SQL_DUMP = /(?:'\s*or\s+'?\d|;\s*drop\s+table|\bdrop\s+table\b|\bxp_cmdshell\b)/i;
 export const PATH_TRAVERSAL = /(?:\.\.[/\\]|\.\.%2f|\.\.%5c)/i;
+// eslint-disable-next-line no-control-regex -- null-byte probe is the shield
 export const NULL_BYTE = /%00|\x00/;
 export const PHP_WEBSHELL = /<\?(?:php|=)/i;
 export const EVAL_BASE64 = /eval\s*\(\s*base64/i;

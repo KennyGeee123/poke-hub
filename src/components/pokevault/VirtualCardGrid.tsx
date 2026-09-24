@@ -57,7 +57,10 @@ export function VirtualCardGrid<T>({
       while (node) {
         const style = getComputedStyle(node);
         const oy = style.overflowY;
-        if ((oy === "auto" || oy === "scroll" || oy === "overlay") && node.scrollHeight > node.clientHeight + 8) {
+        if (
+          (oy === "auto" || oy === "scroll" || oy === "overlay") &&
+          node.scrollHeight > node.clientHeight + 8
+        ) {
           return node;
         }
         node = node.parentElement;
@@ -117,7 +120,11 @@ export function VirtualCardGrid<T>({
     return (
       <div className={className} ref={gridRef}>
         {items.map((item) => (
-          <div key={getKey(item)} className="pv-virt-cell" style={{ contentVisibility: "auto", containIntrinsicSize: `auto ${estimateHeight}px` }}>
+          <div
+            key={getKey(item)}
+            className="pv-virt-cell"
+            style={{ contentVisibility: "auto", containIntrinsicSize: `auto ${estimateHeight}px` }}
+          >
             {renderItem(item)}
           </div>
         ))}
@@ -131,13 +138,29 @@ export function VirtualCardGrid<T>({
 
   return (
     <div className={className} ref={gridRef}>
-      {topPad > 0 && <div className="pv-virt-spacer" style={{ gridColumn: "1 / -1", height: topPad }} aria-hidden />}
+      {topPad > 0 && (
+        <div
+          className="pv-virt-spacer"
+          style={{ gridColumn: "1 / -1", height: topPad }}
+          aria-hidden
+        />
+      )}
       {slice.map((item) => (
-        <div key={getKey(item)} className="pv-virt-cell" style={{ contentVisibility: "auto", containIntrinsicSize: `auto ${estimateHeight}px` }}>
+        <div
+          key={getKey(item)}
+          className="pv-virt-cell"
+          style={{ contentVisibility: "auto", containIntrinsicSize: `auto ${estimateHeight}px` }}
+        >
           {renderItem(item)}
         </div>
       ))}
-      {bottomPad > 0 && <div className="pv-virt-spacer" style={{ gridColumn: "1 / -1", height: bottomPad }} aria-hidden />}
+      {bottomPad > 0 && (
+        <div
+          className="pv-virt-spacer"
+          style={{ gridColumn: "1 / -1", height: bottomPad }}
+          aria-hidden
+        />
+      )}
     </div>
   );
 }

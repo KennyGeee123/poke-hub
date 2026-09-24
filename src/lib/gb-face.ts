@@ -18,12 +18,15 @@ export function pressGbFace(which: "A" | "B") {
   if (!root) return;
   const buttons = actionButtons(root).filter((b) => !b.disabled);
   if (which === "B") {
-    const back = buttons.find((b) => /^(BACK|RUN|LEAVE|CANCEL|OK)\b/i.test(labelOf(b)))
-      || buttons.find((b) => /BACK|RUN|LEAVE|CANCEL/i.test(labelOf(b)));
+    const back =
+      buttons.find((b) => /^(BACK|RUN|LEAVE|CANCEL|OK)\b/i.test(labelOf(b))) ||
+      buttons.find((b) => /BACK|RUN|LEAVE|CANCEL/i.test(labelOf(b)));
     back?.click();
     return;
   }
-  const focused = buttons.find((b) => b.dataset.gbFocus === "1") || buttons.find((b) => b === document.activeElement);
+  const focused =
+    buttons.find((b) => b.dataset.gbFocus === "1") ||
+    buttons.find((b) => b === document.activeElement);
   if (focused && !/BACK|RUN|LEAVE|RELEASE/i.test(labelOf(focused))) {
     focused.click();
     return;

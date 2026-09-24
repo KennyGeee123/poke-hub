@@ -11,7 +11,9 @@ const VIDEO: Record<CatchPhase, string> = {
 
 export function CatchFx({ phase }: { phase: CatchPhase | null }) {
   const [videoOk, setVideoOk] = useState(true);
-  useEffect(() => { setVideoOk(true); }, [phase]);
+  useEffect(() => {
+    setVideoOk(true);
+  }, [phase]);
   if (!phase) return null;
   const src = VIDEO[phase];
   return (

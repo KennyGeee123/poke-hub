@@ -120,7 +120,6 @@ export function BottomTabBar({ activeTab, moreOpen, onPrimary }: TabBarProps) {
   );
 }
 
-
 function MoreGrid({
   items,
   activeTab,
@@ -171,7 +170,12 @@ export function MoreSheet({ open, activeTab, isPro, onClose, onPick }: MoreSheet
   if (!open) return null;
   return (
     <div className="pv-more-root" role="dialog" aria-modal="true" aria-label="More">
-      <button type="button" className="pv-more-backdrop" aria-label="Close menu" onClick={onClose} />
+      <button
+        type="button"
+        className="pv-more-backdrop"
+        aria-label="Close menu"
+        onClick={onClose}
+      />
       <div className="pv-more-sheet">
         <div className="pv-more-handle" aria-hidden />
         <div className="pv-more-head">
@@ -184,16 +188,30 @@ export function MoreSheet({ open, activeTab, isPro, onClose, onPick }: MoreSheet
           </button>
         </div>
 
-        <MoreGrid items={MORE_ITEMS.filter((i) => !i.cluster)} activeTab={activeTab} isPro={isPro} onPick={onPick} />
+        <MoreGrid
+          items={MORE_ITEMS.filter((i) => !i.cluster)}
+          activeTab={activeTab}
+          isPro={isPro}
+          onPick={onPick}
+        />
         <div className="pv-more-sec">Play</div>
-        <MoreGrid items={MORE_ITEMS.filter((i) => i.cluster === "play")} activeTab={activeTab} isPro={isPro} onPick={onPick} />
+        <MoreGrid
+          items={MORE_ITEMS.filter((i) => i.cluster === "play")}
+          activeTab={activeTab}
+          isPro={isPro}
+          onPick={onPick}
+        />
         <div className="pv-more-sec">Trade</div>
-        <MoreGrid items={MORE_ITEMS.filter((i) => i.cluster === "trade")} activeTab={activeTab} isPro={isPro} onPick={onPick} />
+        <MoreGrid
+          items={MORE_ITEMS.filter((i) => i.cluster === "trade")}
+          activeTab={activeTab}
+          isPro={isPro}
+          onPick={onPick}
+        />
       </div>
     </div>
   );
 }
-
 
 function formatBytes(n: number): string {
   if (!Number.isFinite(n) || n < 0) return "—";
@@ -211,11 +229,19 @@ export function StorageHealthChip() {
     let cancelled = false;
     const load = () => {
       getVaultStorageInfo()
-        .then((v) => { if (!cancelled) setInfo(v); })
-        .catch(() => { if (!cancelled) setInfo(null); });
+        .then((v) => {
+          if (!cancelled) setInfo(v);
+        })
+        .catch(() => {
+          if (!cancelled) setInfo(null);
+        });
       getCatalogCacheInfo()
-        .then((c) => { if (!cancelled) setCatalogSets(c.backend === "idb" ? c.setCount : 0); })
-        .catch(() => { if (!cancelled) setCatalogSets(null); });
+        .then((c) => {
+          if (!cancelled) setCatalogSets(c.backend === "idb" ? c.setCount : 0);
+        })
+        .catch(() => {
+          if (!cancelled) setCatalogSets(null);
+        });
     };
     load();
     const onChange = () => load();
@@ -247,10 +273,14 @@ export function StorageHealthChip() {
       <span className={`pv-storage-dot ${info.backend === "idb" ? "ok" : "warn"}`} aria-hidden />
       <span className="pv-storage-k">store</span>
       <span className="pv-storage-v cyan">{backend}</span>
-      <span className="pv-storage-sep" aria-hidden>·</span>
+      <span className="pv-storage-sep" aria-hidden>
+        ·
+      </span>
       <span className="pv-storage-k">migrated</span>
       <span className={`pv-storage-v ${info.migrated ? "gold" : "warn"}`}>{migrated}</span>
-      <span className="pv-storage-sep" aria-hidden>·</span>
+      <span className="pv-storage-sep" aria-hidden>
+        ·
+      </span>
       <span className="pv-storage-k">size</span>
       <span className="pv-storage-v">{formatBytes(info.approxBytes)}</span>
     </span>
@@ -269,7 +299,6 @@ type ShellProps = {
   onMorePick: (id: Exclude<AppTab, "more">) => void;
   contentKey: string;
 };
-
 
 function FoilPointerTracker() {
   useEffect(() => {

@@ -7,8 +7,8 @@ import { createFileRoute } from "@tanstack/react-router";
 export type Listing = {
   source: string;
   title: string;
-  price: number;       // USD (best effort conversion)
-  priceRaw: string;    // Original price text
+  price: number; // USD (best effort conversion)
+  priceRaw: string; // Original price text
   currency: string;
   url: string;
   image: string | null;
@@ -49,7 +49,14 @@ function tcgIoHeaders(): Record<string, string> {
 const enc = encodeURIComponent;
 
 // Conservative FX so EUR/GBP listings can still be compared. Updated infrequently.
-const FX: Record<string, number> = { USD: 1, EUR: 1.08, GBP: 1.27, CAD: 0.73, AUD: 0.66, JPY: 0.0064 };
+const FX: Record<string, number> = {
+  USD: 1,
+  EUR: 1.08,
+  GBP: 1.27,
+  CAD: 0.73,
+  AUD: 0.66,
+  JPY: 0.0064,
+};
 const QUEUE_CAP = 32;
 
 function landed(l: Listing): number {
@@ -147,7 +154,16 @@ function parsePriceUSD(text: string): { value: number | null; currency: string }
 async function withTimeout<T>(p: Promise<T>, ms = 7000): Promise<T> {
   return new Promise((resolve, reject) => {
     const id = setTimeout(() => reject(new Error("timeout")), ms);
-    p.then((v) => { clearTimeout(id); resolve(v); }, (e) => { clearTimeout(id); reject(e); });
+    p.then(
+      (v) => {
+        clearTimeout(id);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(id);
+        reject(e);
+      },
+    );
   });
 }
 
@@ -155,7 +171,7 @@ async function fetchHtml(url: string): Promise<string> {
   const r = await fetch(url, {
     headers: {
       "User-Agent": UA,
-      "Accept": "text/html,application/xhtml+xml",
+      Accept: "text/html,application/xhtml+xml",
       "Accept-Language": "en-US,en;q=0.9",
     },
   });
@@ -184,7 +200,9 @@ async function ebayActive(q: string): Promise<Listing[]> {
     if (!title || !priceM || !urlM) continue;
     const t = stripTags(title[1]);
     if (!t || /shop on ebay/i.test(t)) continue;
-    const priceText = stripTags(priceM[1]).split(/to|–|-/i)[0].trim();
+    const priceText = stripTags(priceM[1])
+      .split(/to|–|-/i)[0]
+      .trim();
     const { value, currency } = parsePriceUSD(priceText);
     if (value === null) continue;
     const shipText = shipM ? stripTags(shipM[1]) : "";
@@ -205,7 +223,12 @@ async function ebayActive(q: string): Promise<Listing[]> {
 
 // ─── TCGplayer (via pokemontcg.io card data) ─────────────────────────────
 
-function parseCardQuery(q: string): { firstToken: string; number: string | null; setTokens: string[]; lucene: string } {
+function parseCardQuery(q: string): {
+  firstToken: string;
+  number: string | null;
+  setTokens: string[];
+  lucene: string;
+} {
   const tokens = q.trim().split(/\s+/).filter(Boolean);
   const firstToken = (tokens[0] || "").replace(/[*"\\]/g, "");
   let number: string | null = null;
@@ -308,8 +331,9 @@ async function trollAndToad(q: string): Promise<Listing[]> {
   let m: RegExpExecArray | null;
   while ((m = re.exec(html)) && out.length < 15) {
     const block = m[1];
-    const titleM = block.match(/class="card-text[^"]*"[^>]*>([\s\S]*?)<\/a>/) ||
-                   block.match(/<a[^>]+href="([^"]+product-detail[^"]+)"[^>]*>([^<]+)<\/a>/);
+    const titleM =
+      block.match(/class="card-text[^"]*"[^>]*>([\s\S]*?)<\/a>/) ||
+      block.match(/<a[^>]+href="([^"]+product-detail[^"]+)"[^>]*>([^<]+)<\/a>/);
     const priceM = block.match(/\$([\d.]+)/);
     const urlM = block.match(/href="(\/[^"]*product-detail[^"]*)"/);
     const imgM = block.match(/<img[^>]+src="([^"]+)"/);
@@ -324,7 +348,11 @@ async function trollAndToad(q: string): Promise<Listing[]> {
       priceRaw: `$${price.toFixed(2)}`,
       currency: "USD",
       url: `https://www.trollandtoad.com${urlM[1]}`,
-      image: imgM ? (imgM[1].startsWith("http") ? imgM[1] : `https://www.trollandtoad.com${imgM[1]}`) : null,
+      image: imgM
+        ? imgM[1].startsWith("http")
+          ? imgM[1]
+          : `https://www.trollandtoad.com${imgM[1]}`
+        : null,
     });
   }
   return out.sort((a, b) => a.price - b.price).slice(0, 8);
@@ -335,13 +363,13 @@ async function cardKingdom(q: string): Promise<Listing[]> {
   const url = `https://www.cardkingdom.com/catalog/search?filter%5Bname%5D=${enc(q)}&filter%5Bcategory%5D=pokemon`;
   const html = await fetchHtml(url);
   const out: Listing[] = [];
-  const re = /<div[^>]*class="[^"]*productItemWrapper[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>\s*<\/div>/g;
+  const re =
+    /<div[^>]*class="[^"]*productItemWrapper[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>\s*<\/div>/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(html)) && out.length < 15) {
     const block = m[1];
     const titleM = block.match(/class="productDetailTitle[^"]*"[^>]*>\s*<a[^>]*>([\s\S]*?)<\/a>/);
-    const priceM = block.match(/class="stylePrice"[^>]*>\$([\d.]+)/) ||
-                   block.match(/\$([\d.]+)/);
+    const priceM = block.match(/class="stylePrice"[^>]*>\$([\d.]+)/) || block.match(/\$([\d.]+)/);
     const urlM = block.match(/<a[^>]+href="(\/[^"]+)"/);
     const imgM = block.match(/<img[^>]+src="([^"]+)"/);
     if (!titleM || !priceM || !urlM) continue;
@@ -355,7 +383,11 @@ async function cardKingdom(q: string): Promise<Listing[]> {
       priceRaw: `$${price.toFixed(2)}`,
       currency: "USD",
       url: `https://www.cardkingdom.com${urlM[1]}`,
-      image: imgM ? (imgM[1].startsWith("http") ? imgM[1] : `https://www.cardkingdom.com${imgM[1]}`) : null,
+      image: imgM
+        ? imgM[1].startsWith("http")
+          ? imgM[1]
+          : `https://www.cardkingdom.com${imgM[1]}`
+        : null,
     });
   }
   return out.sort((a, b) => a.price - b.price).slice(0, 8);
@@ -367,7 +399,8 @@ async function mercari(q: string): Promise<Listing[]> {
   const html = await fetchHtml(url);
   const out: Listing[] = [];
   // Mercari embeds JSON. Try to extract item objects.
-  const re = /"name":"([^"]{8,160})"[^}]*?"price":(\d+)[^}]*?"id":"([a-z0-9]+)"[^}]*?"photos?":\[?{?"url":"([^"]+)"/g;
+  const re =
+    /"name":"([^"]{8,160})"[^}]*?"price":(\d+)[^}]*?"id":"([a-z0-9]+)"[^}]*?"photos?":\[?{?"url":"([^"]+)"/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(html)) && out.length < 12) {
     const title = m[1].replace(/\\u0026/g, "&");
@@ -425,7 +458,9 @@ async function pokemon123(q: string): Promise<Listing[]> {
     const block = m[1];
     const titleM = block.match(/woocommerce-loop-product__title[^>]*>([^<]+)</);
     const urlM = block.match(/<a[^>]+href="([^"]+)"[^>]*class="[^"]*woocommerce-LoopProduct-link/);
-    const priceText = block.match(/<span class="woocommerce-Price-amount[^"]*"[^>]*>([\s\S]*?)<\/span>/);
+    const priceText = block.match(
+      /<span class="woocommerce-Price-amount[^"]*"[^>]*>([\s\S]*?)<\/span>/,
+    );
     const imgM = block.match(/<img[^>]+src="([^"]+)"/);
     if (!titleM || !priceText || !urlM) continue;
     const { value, currency } = parsePriceUSD(stripTags(priceText[1]));
@@ -493,7 +528,11 @@ async function coolStuffInc(q: string): Promise<Listing[]> {
       priceRaw: `$${price.toFixed(2)}`,
       currency: "USD",
       url: `https://www.coolstuffinc.com${titleM[1]}`,
-      image: imgM ? (imgM[1].startsWith("http") ? imgM[1] : `https://www.coolstuffinc.com${imgM[1]}`) : null,
+      image: imgM
+        ? imgM[1].startsWith("http")
+          ? imgM[1]
+          : `https://www.coolstuffinc.com${imgM[1]}`
+        : null,
     });
   }
   return out.sort((a, b) => a.price - b.price).slice(0, 6);
@@ -504,7 +543,8 @@ async function amazon(q: string): Promise<Listing[]> {
   const url = `https://www.amazon.com/s?k=${enc(q + " pokemon card")}&i=toys-and-games&s=price-asc-rank`;
   const html = await fetchHtml(url);
   const out: Listing[] = [];
-  const re = /data-asin="([A-Z0-9]{10})"[\s\S]*?<span class="a-offscreen">\$([\d.]+)<\/span>[\s\S]*?<img[^>]+src="([^"]+)"[\s\S]*?<span[^>]+class="[^"]*a-text-normal[^"]*"[^>]*>([^<]{6,200})</g;
+  const re =
+    /data-asin="([A-Z0-9]{10})"[\s\S]*?<span class="a-offscreen">\$([\d.]+)<\/span>[\s\S]*?<img[^>]+src="([^"]+)"[\s\S]*?<span[^>]+class="[^"]*a-text-normal[^"]*"[^>]*>([^<]{6,200})</g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(html)) && out.length < 8) {
     const price = parseFloat(m[2]);
@@ -527,7 +567,8 @@ async function whatnot(q: string): Promise<Listing[]> {
   const url = `https://www.whatnot.com/search/${enc(q)}?category=trading-card-games`;
   const html = await fetchHtml(url);
   const out: Listing[] = [];
-  const re = /"title":"([^"]{6,160})"[\s\S]{0,400}?"price":\{[^}]*?"amount":(\d+)[^}]*?"currency":"([A-Z]{3})"[\s\S]{0,400}?"slug":"([a-z0-9-]+)"[\s\S]{0,400}?"url":"([^"]+\.(?:jpg|png|webp)[^"]*)"/g;
+  const re =
+    /"title":"([^"]{6,160})"[\s\S]{0,400}?"price":\{[^}]*?"amount":(\d+)[^}]*?"currency":"([A-Z]{3})"[\s\S]{0,400}?"slug":"([a-z0-9-]+)"[\s\S]{0,400}?"url":"([^"]+\.(?:jpg|png|webp)[^"]*)"/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(html)) && out.length < 8) {
     const title = m[1].replace(/\\u0026/g, "&");
@@ -551,7 +592,8 @@ async function whatnot(q: string): Promise<Listing[]> {
 async function shopScrape(name: string, base: string, path: string): Promise<Listing[]> {
   const html = await fetchHtml(base + path);
   const out: Listing[] = [];
-  const re = /<a[^>]+href="(\/products\/[^"#?]+)[^"]*"[^>]*>[\s\S]{0,1400}?<img[^>]+src="([^"]+)"[\s\S]{0,1400}?<\/a>[\s\S]{0,800}?([A-Za-z][^<>{}]{6,160})[\s\S]{0,800}?\$([\d,]+\.?\d*)/g;
+  const re =
+    /<a[^>]+href="(\/products\/[^"#?]+)[^"]*"[^>]*>[\s\S]{0,1400}?<img[^>]+src="([^"]+)"[\s\S]{0,1400}?<\/a>[\s\S]{0,800}?([A-Za-z][^<>{}]{6,160})[\s\S]{0,800}?\$([\d,]+\.?\d*)/g;
   let m: RegExpExecArray | null;
   const seen = new Set<string>();
   while ((m = re.exec(html)) && out.length < 8) {
@@ -577,7 +619,8 @@ async function daveAndAdams(q: string): Promise<Listing[]> {
   const url = `https://www.dacardworld.com/gaming/search?keywords=${enc(q)}`;
   const html = await fetchHtml(url);
   const out: Listing[] = [];
-  const re = /<a[^>]+href="(\/gaming\/[^"]+)"[^>]*>([^<]{6,200})<\/a>[\s\S]{0,600}?\$([\d,]+\.?\d*)/g;
+  const re =
+    /<a[^>]+href="(\/gaming\/[^"]+)"[^>]*>([^<]{6,200})<\/a>[\s\S]{0,600}?\$([\d,]+\.?\d*)/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(html)) && out.length < 10) {
     const price = parseFloat(m[3].replace(/,/g, ""));
@@ -600,7 +643,11 @@ async function steelCity(q: string): Promise<Listing[]> {
 }
 
 async function channelFireball(q: string): Promise<Listing[]> {
-  return shopScrape("ChannelFireball", "https://store.channelfireball.com", `/search?q=${enc(q + " pokemon")}`);
+  return shopScrape(
+    "ChannelFireball",
+    "https://store.channelfireball.com",
+    `/search?q=${enc(q + " pokemon")}`,
+  );
 }
 
 // ─── Miniature Market ─────────────────────────────────────────────────────
@@ -608,7 +655,8 @@ async function miniatureMarket(q: string): Promise<Listing[]> {
   const url = `https://www.miniaturemarket.com/catalogsearch/result/?q=${enc(q)}`;
   const html = await fetchHtml(url);
   const out: Listing[] = [];
-  const re = /<a[^>]+class="product-item-link"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]{0,1500}?data-price-amount="([\d.]+)"/g;
+  const re =
+    /<a[^>]+class="product-item-link"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]{0,1500}?data-price-amount="([\d.]+)"/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(html)) && out.length < 8) {
     const price = parseFloat(m[3]);
@@ -658,7 +706,8 @@ async function walmart(q: string): Promise<Listing[]> {
   const url = `https://www.walmart.com/search?q=${enc(q + " pokemon")}&sort=price_low`;
   const html = await fetchHtml(url);
   const out: Listing[] = [];
-  const re = /"name":"([^"]{6,180})"[\s\S]{0,400}?"price":(\d+\.?\d*)[\s\S]{0,400}?"canonicalUrl":"([^"]+)"[\s\S]{0,400}?"thumbnailUrl":"([^"]+)"/g;
+  const re =
+    /"name":"([^"]{6,180})"[\s\S]{0,400}?"price":(\d+\.?\d*)[\s\S]{0,400}?"canonicalUrl":"([^"]+)"[\s\S]{0,400}?"thumbnailUrl":"([^"]+)"/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(html)) && out.length < 10) {
     const price = parseFloat(m[2]);
@@ -686,7 +735,16 @@ const PRICED: { name: string; fn: (q: string) => Promise<Listing[]>; sealed?: bo
 ];
 
 function shopUrl(name: string, q: string, condition?: string): string {
-  const queryBonus = condition === "psa10" ? " PSA 10" : condition === "psa9" ? " PSA 9" : condition === "slab" || condition === "graded" ? " graded slab" : condition === "raw" ? " raw" : "";
+  const queryBonus =
+    condition === "psa10"
+      ? " PSA 10"
+      : condition === "psa9"
+        ? " PSA 9"
+        : condition === "slab" || condition === "graded"
+          ? " graded slab"
+          : condition === "raw"
+            ? " raw"
+            : "";
   const fullQ = `${q}${queryBonus}`;
   const nkw = enc(fullQ);
   switch (name) {
@@ -726,9 +784,21 @@ function shopUrl(name: string, q: string, condition?: string): string {
 }
 
 const SHOP_NAMES = [
-  "eBay", "TrollAndToad", "CardKingdom", "Mercari", "PriceCharting",
-  "123Pokemon", "Pokemon Center", "CoolStuffInc", "Amazon", "Whatnot",
-  "Dave & Adam's", "Steel City", "Miniature Market", "ChannelFireball", "Walmart",
+  "eBay",
+  "TrollAndToad",
+  "CardKingdom",
+  "Mercari",
+  "PriceCharting",
+  "123Pokemon",
+  "Pokemon Center",
+  "CoolStuffInc",
+  "Amazon",
+  "Whatnot",
+  "Dave & Adam's",
+  "Steel City",
+  "Miniature Market",
+  "ChannelFireball",
+  "Walmart",
 ];
 
 async function tcgIoById(id: string): Promise<Listing[]> {
@@ -762,7 +832,8 @@ async function tcgIoById(id: string): Promise<Listing[]> {
           }
           const cmkt = c.cardmarket;
           if (cmkt?.url && cmkt?.prices) {
-            const eur = cmkt.prices.lowPrice ?? cmkt.prices.trendPrice ?? cmkt.prices.averageSellPrice;
+            const eur =
+              cmkt.prices.lowPrice ?? cmkt.prices.trendPrice ?? cmkt.prices.averageSellPrice;
             if (typeof eur === "number" && eur > 0) {
               listings.push({
                 source: "Cardmarket",
@@ -801,9 +872,15 @@ export const Route = createFileRoute("/api/public/card-prices")({
         const fresh = url.searchParams.get("fresh") === "1";
         const condition = (url.searchParams.get("condition") ?? "").trim().toLowerCase();
         const skipSet = new Set(
-          url.searchParams.getAll("skip").map((s) => s.trim()).filter(Boolean).slice(0, 64),
+          url.searchParams
+            .getAll("skip")
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .slice(0, 64),
         );
-        const sealed = url.searchParams.get("sealed") === "1" || /booster\s*box|elite\s*trainer|booster\s*bundle|booster\s*display/i.test(q);
+        const sealed =
+          url.searchParams.get("sealed") === "1" ||
+          /booster\s*box|elite\s*trainer|booster\s*bundle|booster\s*display/i.test(q);
 
         const sources: SourceResult[] = [];
 
@@ -838,7 +915,8 @@ export const Route = createFileRoute("/api/public/card-prices")({
           }
         } else {
           let priced = sealed ? PRICED.filter((s) => s.sealed) : PRICED;
-          if (cheapOnly) priced = PRICED.filter((s) => s.name === "TCGplayer" || s.name === "Cardmarket");
+          if (cheapOnly)
+            priced = PRICED.filter((s) => s.name === "TCGplayer" || s.name === "Cardmarket");
           const settled = await Promise.allSettled(
             priced.map(async (src) => {
               try {
@@ -851,7 +929,14 @@ export const Route = createFileRoute("/api/public/card-prices")({
           );
           for (const s of settled) {
             if (s.status === "rejected") {
-              sources.push({ source: "?", ok: false, count: 0, lowest: null, listings: [], error: String(s.reason) });
+              sources.push({
+                source: "?",
+                ok: false,
+                count: 0,
+                lowest: null,
+                listings: [],
+                error: String(s.reason),
+              });
               continue;
             }
             const { src, listings, error } = s.value as any;
@@ -885,7 +970,9 @@ export const Route = createFileRoute("/api/public/card-prices")({
         const isSlab = (l: Listing) => {
           if ((l as any).isSlab) return true;
           const blob = `${l.title || ""} ${l.variant || ""} ${l.condition || ""}`.toLowerCase();
-          return /\b(psa|bgs|cgc|sgc|beckett|graded|gem\s*mint\s*10|psa\s*10|psa\s*9|psa\s*8|bgs\s*9\.5|cgc\s*10)\b/i.test(blob);
+          return /\b(psa|bgs|cgc|sgc|beckett|graded|gem\s*mint\s*10|psa\s*10|psa\s*9|psa\s*8|bgs\s*9\.5|cgc\s*10)\b/i.test(
+            blob,
+          );
         };
         const matchesCond = (l: Listing) => {
           if (!condition || condition === "all" || condition === "any") return true;
@@ -897,20 +984,43 @@ export const Route = createFileRoute("/api/public/card-prices")({
           if (condition === "psa9") return slab && /psa\s*9\b|mint\s*9/i.test(blob);
           if (condition === "psa8") return slab && /psa\s*8\b|nm\s*mt\s*8/i.test(blob);
           if (condition === "psa7") return slab && /psa\s*7\b|near\s*mint\s*7/i.test(blob);
-          if (condition === "bgs" || condition === "bgs95" || condition === "bgs10_black") return slab && /bgs|beckett/i.test(blob);
-          if (condition === "cgc" || condition === "cgc10_pristine" || condition === "cgc95" || condition === "cgc9") return slab && /cgc/i.test(blob);
+          if (condition === "bgs" || condition === "bgs95" || condition === "bgs10_black")
+            return slab && /bgs|beckett/i.test(blob);
+          if (
+            condition === "cgc" ||
+            condition === "cgc10_pristine" ||
+            condition === "cgc95" ||
+            condition === "cgc9"
+          )
+            return slab && /cgc/i.test(blob);
           if (condition === "sgc" || condition === "sgc10") return slab && /sgc/i.test(blob);
 
-          if (condition === "raw_mint") return !slab && /mint|pack\s*fresh|gem\s*raw/i.test(blob) && !/played|damaged|hp|mp|lp/i.test(blob);
-          if (condition === "raw_nm" || condition === "nm") return !slab && /near\s*mint|\bnm\b|normal|holofoil|mint/i.test(blob) && !/played|damaged|hp|mp/i.test(blob);
-          if (condition === "raw_lp" || condition === "lp") return !slab && /lightly\s*played|\blp\b|excellent/i.test(blob);
-          if (condition === "raw_mp" || condition === "mp") return !slab && /moderately\s*played|\bmp\b|fine|very\s*good/i.test(blob);
-          if (condition === "raw_hp" || condition === "hp") return !slab && /heavily\s*played|\bhp\b|good/i.test(blob);
-          if (condition === "raw_dmg" || condition === "dmg") return !slab && /damaged|\bdmg\b|poor/i.test(blob);
+          if (condition === "raw_mint")
+            return (
+              !slab &&
+              /mint|pack\s*fresh|gem\s*raw/i.test(blob) &&
+              !/played|damaged|hp|mp|lp/i.test(blob)
+            );
+          if (condition === "raw_nm" || condition === "nm")
+            return (
+              !slab &&
+              /near\s*mint|\bnm\b|normal|holofoil|mint/i.test(blob) &&
+              !/played|damaged|hp|mp/i.test(blob)
+            );
+          if (condition === "raw_lp" || condition === "lp")
+            return !slab && /lightly\s*played|\blp\b|excellent/i.test(blob);
+          if (condition === "raw_mp" || condition === "mp")
+            return !slab && /moderately\s*played|\bmp\b|fine|very\s*good/i.test(blob);
+          if (condition === "raw_hp" || condition === "hp")
+            return !slab && /heavily\s*played|\bhp\b|good/i.test(blob);
+          if (condition === "raw_dmg" || condition === "dmg")
+            return !slab && /damaged|\bdmg\b|poor/i.test(blob);
           return true;
         };
 
-        const all = sources.flatMap((s) => s.listings).filter((l) => !isShopRow(l) && l.price > 0 && matchesCond(l));
+        const all = sources
+          .flatMap((s) => s.listings)
+          .filter((l) => !isShopRow(l) && l.price > 0 && matchesCond(l));
         const considered = sealed ? all.filter((l) => landed(l) >= 40) : all;
         const ranked = considered.slice().sort(sortByLanded);
         const seen = new Set<string>();

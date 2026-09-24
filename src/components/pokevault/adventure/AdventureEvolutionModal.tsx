@@ -37,7 +37,11 @@ export function AdventureEvolutionModal({
   const [rareCandyConvertCount, setRareCandyConvertCount] = useState(1);
 
   const availableSpecies = [
-    { name: "Eevee", icon: "Eevee", stones: ["fire_stone", "water_stone", "thunder_stone", "ice_stone"] },
+    {
+      name: "Eevee",
+      icon: "Eevee",
+      stones: ["fire_stone", "water_stone", "thunder_stone", "ice_stone"],
+    },
     { name: "Pikachu", icon: "Pikachu", stones: ["thunder_stone"] },
     { name: "Vulpix", icon: "Vulpix", stones: ["fire_stone"] },
     { name: "Gloom", icon: "Gloom", stones: ["leaf_stone", "sun_stone"] },
@@ -157,7 +161,11 @@ export function AdventureEvolutionModal({
                         : "bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white"
                     }`}
                   >
-                    <img src={animatedSpriteUrl(s.name)} alt={s.name} className="w-6 h-6 object-contain" />
+                    <img
+                      src={animatedSpriteUrl(s.name)}
+                      alt={s.name}
+                      className="w-6 h-6 object-contain"
+                    />
                     <span className="text-xs font-mono font-bold">{s.name}</span>
                   </button>
                 ))}
@@ -234,8 +242,8 @@ export function AdventureEvolutionModal({
                         selected
                           ? "bg-amber-500/20 border-amber-500 text-white shadow-md shadow-amber-500/20"
                           : count > 0
-                          ? "bg-neutral-900 border-neutral-800 text-neutral-300 hover:border-neutral-700"
-                          : "bg-neutral-900/50 border-neutral-800/60 text-neutral-600 opacity-60"
+                            ? "bg-neutral-900 border-neutral-800 text-neutral-300 hover:border-neutral-700"
+                            : "bg-neutral-900/50 border-neutral-800/60 text-neutral-600 opacity-60"
                       }`}
                     >
                       <span className="text-lg">{st.emoji}</span>

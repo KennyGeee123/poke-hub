@@ -1,13 +1,5 @@
 import React, { useState } from "react";
-import {
-  ShoppingBag,
-  Sparkles,
-  Coins,
-  Check,
-  X,
-  Zap,
-  Package,
-} from "lucide-react";
+import { ShoppingBag, Sparkles, Coins, Check, X, Zap, Package } from "lucide-react";
 import {
   type AdventureState,
   EVOLUTION_STONES,
@@ -25,14 +17,16 @@ export function AdventureShopModal({
   onClose: () => void;
   onStateUpdate: (updated: AdventureState) => void;
 }) {
-  const [activeTab, setActiveTab] = useState<"featured" | "stones" | "capture" | "boosts">("featured");
+  const [activeTab, setActiveTab] = useState<"featured" | "stones" | "capture" | "boosts">(
+    "featured",
+  );
   const [purchaseToast, setPurchaseToast] = useState<string | null>(null);
 
   function handleBuy(
     type: "stone" | "capture" | "boost" | "rare_candy",
     id: string,
     name: string,
-    price: number
+    price: number,
   ) {
     const res = buyShopItem(adventureState, type, id, 1);
     if (res.success) {
@@ -55,7 +49,9 @@ export function AdventureShopModal({
             </span>
             <div>
               <h3 className="text-base font-bold text-white font-mono">TRAINER SUPPLY OUTPOST</h3>
-              <p className="text-xs text-neutral-400">Gear up with Evolution Stones, Rare Candy & Boosts</p>
+              <p className="text-xs text-neutral-400">
+                Gear up with Evolution Stones, Rare Candy & Boosts
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -179,7 +175,9 @@ export function AdventureShopModal({
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-amber-400 font-mono">{st.priceCoins} 🪙</span>
+                    <span className="text-xs font-bold text-amber-400 font-mono">
+                      {st.priceCoins} 🪙
+                    </span>
                     <button
                       type="button"
                       onClick={() => handleBuy("stone", st.id, st.name, st.priceCoins)}
@@ -203,11 +201,15 @@ export function AdventureShopModal({
                   <div>
                     <h5 className="text-xs font-bold text-white font-mono">{item.name}</h5>
                     <span className="text-[10px] text-neutral-400 font-mono">
-                      {item.category === "ball" ? `Catch Rate x${item.multiplier}` : item.description}
+                      {item.category === "ball"
+                        ? `Catch Rate x${item.multiplier}`
+                        : item.description}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-amber-400 font-mono">{item.priceCoins} 🪙</span>
+                    <span className="text-xs font-bold text-amber-400 font-mono">
+                      {item.priceCoins} 🪙
+                    </span>
                     <button
                       type="button"
                       onClick={() => handleBuy("capture", item.id, item.name, item.priceCoins)}
@@ -235,7 +237,9 @@ export function AdventureShopModal({
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-amber-400 font-mono">{boost.priceCoins} 🪙</span>
+                    <span className="text-xs font-bold text-amber-400 font-mono">
+                      {boost.priceCoins} 🪙
+                    </span>
                     <button
                       type="button"
                       onClick={() => handleBuy("boost", boost.id, boost.name, boost.priceCoins)}

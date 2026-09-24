@@ -37,9 +37,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         window.history.replaceState({}, "", window.location.pathname);
       });
     } else if (code) {
-      supabase.auth.exchangeCodeForSession(window.location.href).catch(() => {}).then(() => {
-        window.history.replaceState({}, "", window.location.pathname);
-      });
+      supabase.auth
+        .exchangeCodeForSession(window.location.href)
+        .catch(() => {})
+        .then(() => {
+          window.history.replaceState({}, "", window.location.pathname);
+        });
     }
   }, []);
 
@@ -57,7 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => finish(s));
       unsub = () => sub.subscription.unsubscribe();
-      supabase.auth.getSession()
+      supabase.auth
+        .getSession()
         .then(({ data }) => finish(data.session))
         .catch(() => finish(null));
     } catch {
@@ -73,14 +77,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const emailOwner = isOwnerEmail(user?.email);
 
   useEffect(() => {
-    if (!user) { setIsOwner(false); return; }
+    if (!user) {
+      setIsOwner(false);
+      return;
+    }
     setIsOwner(emailOwner);
     let cancelled = false;
     import("./owner.functions")
       .then(({ getIsOwner }) => getIsOwner())
-      .then((r) => { if (!cancelled) setIsOwner(emailOwner || !!r?.isOwner); })
-      .catch(() => { if (!cancelled) setIsOwner(emailOwner); });
-    return () => { cancelled = true; };
+      .then((r) => {
+        if (!cancelled) setIsOwner(emailOwner || !!r?.isOwner);
+      })
+      .catch(() => {
+        if (!cancelled) setIsOwner(emailOwner);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [user?.id, emailOwner]);
 
   return (

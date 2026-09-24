@@ -22,7 +22,10 @@ import { usePremium } from "@/lib/premium";
 import type { CardGrade } from "@/lib/card-grades";
 
 function prettyVariant(name: string) {
-  return name.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase()).trim();
+  return name
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (s) => s.toUpperCase())
+    .trim();
 }
 
 function queueFromCard(card: TCGCard): Listing[] {
@@ -85,7 +88,7 @@ const SLAB_OPTIONS: { id: ConditionFilter; label: string }[] = [
 export function QuickStrike({ card, selectedGrade }: { card: TCGCard; selectedGrade?: CardGrade }) {
   const { user } = useAuth();
   const { hasCheapLoop } = usePremium();
-  
+
   // BETA MODE: Unlocked for testing without sign-up paywall
   const unlocked = true;
 
@@ -273,7 +276,14 @@ export function QuickStrike({ card, selectedGrade }: { card: TCGCard; selectedGr
         boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 6,
+        }}
+      >
         <div style={{ fontSize: 9, letterSpacing: 2, color: "var(--gold)", fontWeight: 800 }}>
           ⚡ QUICK STRIKE · BUY CHEAPEST CARD
         </div>
@@ -306,7 +316,15 @@ export function QuickStrike({ card, selectedGrade }: { card: TCGCard; selectedGr
 
       {/* Condition & Slab Selector */}
       <div style={{ marginTop: 6, marginBottom: 8 }}>
-        <div style={{ fontSize: 9, color: "var(--t3)", marginBottom: 3, fontWeight: 700, letterSpacing: 1 }}>
+        <div
+          style={{
+            fontSize: 9,
+            color: "var(--t3)",
+            marginBottom: 3,
+            fontWeight: 700,
+            letterSpacing: 1,
+          }}
+        >
           CONDITION / SLAB FILTER:
         </div>
         <select
@@ -351,8 +369,23 @@ export function QuickStrike({ card, selectedGrade }: { card: TCGCard; selectedGr
 
       {current && (
         <>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 4 }}>
-            <div style={{ fontFamily: "Bebas Neue", fontSize: 36, color: "var(--gold)", letterSpacing: 1, lineHeight: 1.1 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "baseline",
+              marginTop: 4,
+            }}
+          >
+            <div
+              style={{
+                fontFamily: "Bebas Neue",
+                fontSize: 36,
+                color: "var(--gold)",
+                letterSpacing: 1,
+                lineHeight: 1.1,
+              }}
+            >
               {money(current)}
             </div>
             {queue.length > 1 && (
@@ -373,12 +406,31 @@ export function QuickStrike({ card, selectedGrade }: { card: TCGCard; selectedGr
             )}
           </div>
 
-          <div style={{ fontSize: 11, color: "var(--t2)", marginBottom: 10, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          <div
+            style={{
+              fontSize: 11,
+              color: "var(--t2)",
+              marginBottom: 10,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
             {liveStatus === "loading" ? "catalog · refreshing… · " : ""}
             <strong style={{ color: "var(--t1)" }}>{current.source}</strong>
-            {current.variant ? ` · ${prettyVariant(current.variant)}` : current.condition ? ` · ${current.condition}` : ""}
-            {current.priceRaw && current.currency === "EUR" ? ` · ${current.priceRaw}≈USD×${FX_EUR_USD}` : ""}
-            {!listingHasShipping(current) ? " · ship TBD" : current.shipping ? ` · ship ${formatPrice(current.shipping)}` : " · ship incl."}
+            {current.variant
+              ? ` · ${prettyVariant(current.variant)}`
+              : current.condition
+                ? ` · ${current.condition}`
+                : ""}
+            {current.priceRaw && current.currency === "EUR"
+              ? ` · ${current.priceRaw}≈USD×${FX_EUR_USD}`
+              : ""}
+            {!listingHasShipping(current)
+              ? " · ship TBD"
+              : current.shipping
+                ? ` · ship ${formatPrice(current.shipping)}`
+                : " · ship incl."}
             {" · "}
             {current.title}
           </div>
@@ -409,9 +461,24 @@ export function QuickStrike({ card, selectedGrade }: { card: TCGCard; selectedGr
           </div>
 
           {/* Next in buffer queue & sold tracking */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginTop: 8,
+            }}
+          >
             {nextUp ? (
-              <div style={{ fontSize: 11, color: "var(--t3)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  color: "var(--t3)",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
                 Next: {money(nextUp)} · {nextUp.source} ({queue.length - 1} buffered)
               </div>
             ) : (
@@ -427,7 +494,9 @@ export function QuickStrike({ card, selectedGrade }: { card: TCGCard; selectedGr
       )}
 
       {!current && liveStatus === "loading" && skipRef.current.length > 0 && (
-        <div style={{ marginTop: 8, fontSize: 12, color: "var(--t3)" }}>Polling next batch from markets…</div>
+        <div style={{ marginTop: 8, fontSize: 12, color: "var(--t3)" }}>
+          Polling next batch from markets…
+        </div>
       )}
 
       {!current && liveStatus !== "loading" && (

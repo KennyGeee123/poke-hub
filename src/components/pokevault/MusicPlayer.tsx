@@ -8,21 +8,27 @@ const radioUrl = (slug: string, format: "mp3" | "ogg" = "mp3") =>
 
 const PLAYLISTS: EraPlaylist[] = [
   {
-    id: "dpp", name: "Sinnoh (D/P/Pt)", emoji: "💎",
+    id: "dpp",
+    name: "Sinnoh (D/P/Pt)",
+    emoji: "💎",
     tracks: [
       { title: "Trainer Battle", slug: "dpp-trainer" },
       { title: "Rival Battle", slug: "dpp-rival" },
     ],
   },
   {
-    id: "hgss", name: "Johto / Kanto (HG/SS)", emoji: "🔔",
+    id: "hgss",
+    name: "Johto / Kanto (HG/SS)",
+    emoji: "🔔",
     tracks: [
       { title: "Johto Trainer", slug: "hgss-johto-trainer" },
       { title: "Kanto Trainer", slug: "hgss-kanto-trainer" },
     ],
   },
   {
-    id: "bw", name: "Unova (B/W)", emoji: "⚫",
+    id: "bw",
+    name: "Unova (B/W)",
+    emoji: "⚫",
     tracks: [
       { title: "Trainer Battle", slug: "bw-trainer" },
       { title: "Rival Battle", slug: "bw-rival" },
@@ -30,7 +36,9 @@ const PLAYLISTS: EraPlaylist[] = [
     ],
   },
   {
-    id: "bw2", name: "Unova (B2/W2)", emoji: "🟣",
+    id: "bw2",
+    name: "Unova (B2/W2)",
+    emoji: "🟣",
     tracks: [
       { title: "Rival Battle", slug: "bw2-rival" },
       { title: "Kanto Gym Leader", slug: "bw2-kanto-gym-leader" },
@@ -38,28 +46,36 @@ const PLAYLISTS: EraPlaylist[] = [
     ],
   },
   {
-    id: "xy", name: "Kalos (X/Y)", emoji: "🔷",
+    id: "xy",
+    name: "Kalos (X/Y)",
+    emoji: "🔷",
     tracks: [
       { title: "Trainer Battle", slug: "xy-trainer" },
       { title: "Rival Battle", slug: "xy-rival" },
     ],
   },
   {
-    id: "oras", name: "Hoenn (OR/AS)", emoji: "🟢",
+    id: "oras",
+    name: "Hoenn (OR/AS)",
+    emoji: "🟢",
     tracks: [
       { title: "Trainer Battle", slug: "oras-trainer" },
       { title: "Rival Battle", slug: "oras-rival" },
     ],
   },
   {
-    id: "sm", name: "Alola (S/M)", emoji: "🌞",
+    id: "sm",
+    name: "Alola (S/M)",
+    emoji: "🌞",
     tracks: [
       { title: "Trainer Battle", slug: "sm-trainer" },
       { title: "Rival Battle (Hau)", slug: "sm-rival" },
     ],
   },
   {
-    id: "spinoff", name: "Spin-offs", emoji: "✨",
+    id: "spinoff",
+    name: "Spin-offs",
+    emoji: "✨",
     tracks: [
       { title: "Colosseum — Miror B.", slug: "colosseum-miror-b" },
       { title: "XD — Miror B.", slug: "xd-miror-b" },
@@ -107,7 +123,11 @@ export function MusicPlayer({ defaultOpen = false }: MusicPlayerProps) {
     a.volume = volume / 100;
     audioRef.current = a;
 
-    const onPlay = () => { setPlaying(true); setLoading(false); setErrored(false); };
+    const onPlay = () => {
+      setPlaying(true);
+      setLoading(false);
+      setErrored(false);
+    };
     const onPause = () => setPlaying(false);
     const onEnd = () => {
       setPlaying(false);
@@ -121,10 +141,16 @@ export function MusicPlayer({ defaultOpen = false }: MusicPlayerProps) {
         sourceRef.current = { slug: current.slug, format: "ogg" };
         audioRef.current.src = radioUrl(current.slug, "ogg");
         audioRef.current.load();
-        audioRef.current.play().catch(() => { setErrored(true); setLoading(false); setPlaying(false); });
+        audioRef.current.play().catch(() => {
+          setErrored(true);
+          setLoading(false);
+          setPlaying(false);
+        });
         return;
       }
-      setErrored(true); setLoading(false); setPlaying(false);
+      setErrored(true);
+      setLoading(false);
+      setPlaying(false);
       sourceRef.current = null;
     };
 
@@ -152,7 +178,9 @@ export function MusicPlayer({ defaultOpen = false }: MusicPlayerProps) {
 
   // Track current era index in a ref so the 'ended' handler always reads fresh value
   const eraIdxRef = useRef(eraIdx);
-  useEffect(() => { eraIdxRef.current = eraIdx; }, [eraIdx]);
+  useEffect(() => {
+    eraIdxRef.current = eraIdx;
+  }, [eraIdx]);
 
   // Volume sync
   useEffect(() => {
@@ -184,21 +212,32 @@ export function MusicPlayer({ defaultOpen = false }: MusicPlayerProps) {
       a.load();
       setLoading(true);
       setErrored(false);
-      a.play().catch(() => { setErrored(true); setLoading(false); });
+      a.play().catch(() => {
+        setErrored(true);
+        setLoading(false);
+      });
     } else {
       a.pause();
     }
   };
   const next = () => setTrackIdx((i) => (i + 1) % era.tracks.length);
   const prev = () => setTrackIdx((i) => (i - 1 + era.tracks.length) % era.tracks.length);
-  const pickEra = (i: number) => { setEraIdx(i); setTrackIdx(0); };
+  const pickEra = (i: number) => {
+    setEraIdx(i);
+    setTrackIdx(0);
+  };
   const pickTrack = (i: number) => {
     setTrackIdx(i);
     // ensure playback starts (user gesture)
     setTimeout(() => {
-      const a = audioRef.current; if (!a) return;
-      setLoading(true); setErrored(false);
-      a.play().catch(() => { setErrored(true); setLoading(false); });
+      const a = audioRef.current;
+      if (!a) return;
+      setLoading(true);
+      setErrored(false);
+      a.play().catch(() => {
+        setErrored(true);
+        setLoading(false);
+      });
     }, 0);
   };
 
@@ -206,7 +245,7 @@ export function MusicPlayer({ defaultOpen = false }: MusicPlayerProps) {
     <>
       <button
         className={`pv-music-fab ${playing ? "spin" : ""}`}
-        onClick={() => setOpen(o => !o)}
+        onClick={() => setOpen((o) => !o)}
         aria-label="Pokémon music player"
         title="Poké Radio"
       />
@@ -218,7 +257,9 @@ export function MusicPlayer({ defaultOpen = false }: MusicPlayerProps) {
               <span className="pv-pokeball" style={{ width: 18, height: 18 }} aria-hidden />
               <span>POKÉ RADIO</span>
             </div>
-            <button className="pv-music-x" onClick={() => setOpen(false)} aria-label="Close">×</button>
+            <button className="pv-music-x" onClick={() => setOpen(false)} aria-label="Close">
+              ×
+            </button>
           </div>
 
           <div className="pv-music-eras hide-scroll">
@@ -236,10 +277,14 @@ export function MusicPlayer({ defaultOpen = false }: MusicPlayerProps) {
           </div>
 
           <div className="pv-music-now">
-            <div className="pv-music-now-era">{era.emoji} {era.name}</div>
+            <div className="pv-music-now-era">
+              {era.emoji} {era.name}
+            </div>
             <div className="pv-music-now-title">
               {track.title}
-              {loading && <span style={{ marginLeft: 8, fontSize: 11, color: "var(--t3)" }}>loading…</span>}
+              {loading && (
+                <span style={{ marginLeft: 8, fontSize: 11, color: "var(--t3)" }}>loading…</span>
+              )}
             </div>
             <div className="pv-music-now-sub">
               Track {trackIdx + 1} / {era.tracks.length}
@@ -248,21 +293,34 @@ export function MusicPlayer({ defaultOpen = false }: MusicPlayerProps) {
           </div>
 
           <div className="pv-music-ctrls">
-            <button onClick={prev} aria-label="Previous">⏮</button>
-            <button className="pv-music-play" onClick={toggle} aria-label={playing ? "Pause" : "Play"}>
+            <button onClick={prev} aria-label="Previous">
+              ⏮
+            </button>
+            <button
+              className="pv-music-play"
+              onClick={toggle}
+              aria-label={playing ? "Pause" : "Play"}
+            >
               {loading ? "…" : playing ? "⏸" : "▶"}
             </button>
-            <button onClick={next} aria-label="Next">⏭</button>
+            <button onClick={next} aria-label="Next">
+              ⏭
+            </button>
           </div>
 
           <div className="pv-music-vol">
             <span>🔈</span>
             <input
-              type="range" min={0} max={100} value={volume}
+              type="range"
+              min={0}
+              max={100}
+              value={volume}
               onChange={(e) => setVolume(parseInt(e.target.value))}
               aria-label="Volume"
             />
-            <span style={{ width: 26, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{volume}</span>
+            <span style={{ width: 26, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+              {volume}
+            </span>
           </div>
 
           <div className="pv-music-list hide-scroll">

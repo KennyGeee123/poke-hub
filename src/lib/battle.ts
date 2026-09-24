@@ -5,7 +5,7 @@ export type BattleCard = {
   hp: number;
   maxHp: number;
   damage: number;
-  energies: string[];     // attached energy types
+  energies: string[]; // attached energy types
   uid: string;
 };
 
@@ -31,13 +31,21 @@ export type GameState = {
 };
 
 export const TYPE_COLOR: Record<string, string> = {
-  Fire: "#ef4444", Water: "#38bdf8", Grass: "#22c55e", Lightning: "#eab308",
-  Psychic: "#a855f7", Fighting: "#f97316", Darkness: "#6366f1", Metal: "#94a3b8",
-  Fairy: "#ec4899", Dragon: "#fb923c", Colorless: "#9ca3af",
+  Fire: "#ef4444",
+  Water: "#38bdf8",
+  Grass: "#22c55e",
+  Lightning: "#eab308",
+  Psychic: "#a855f7",
+  Fighting: "#f97316",
+  Darkness: "#6366f1",
+  Metal: "#94a3b8",
+  Fairy: "#ec4899",
+  Dragon: "#fb923c",
+  Colorless: "#9ca3af",
 };
 export const tc = (t: string) => TYPE_COLOR[t] || "#9ca3af";
 
-export const shuffle = <T,>(a: T[]): T[] => [...a].sort(() => Math.random() - 0.5);
+export const shuffle = <T>(a: T[]): T[] => [...a].sort(() => Math.random() - 0.5);
 
 const parseDmg = (s?: string) => {
   const n = parseInt((s || "").replace(/\D/g, ""));
@@ -46,7 +54,14 @@ const parseDmg = (s?: string) => {
 
 export function makeBattleCard(card: TCGCard): BattleCard {
   const hp = parseInt(card.hp || "") || 80;
-  return { card, hp, maxHp: hp, damage: 0, energies: [], uid: `${card.id}-${Math.random().toString(36).slice(2)}` };
+  return {
+    card,
+    hp,
+    maxHp: hp,
+    damage: 0,
+    energies: [],
+    uid: `${card.id}-${Math.random().toString(36).slice(2)}`,
+  };
 }
 
 export function makePlayerState(deck: TCGCard[]): PlayerState {
@@ -66,26 +81,31 @@ export function calcDamage(attCard: TCGCard, defCard: TCGCard, atkIdx = 0): numb
   const atk = attCard.attacks?.[atkIdx];
   if (!atk) return 0;
   let dmg = parseDmg(atk.damage);
-  const weak = defCard.weaknesses?.find(w => attCard.types?.includes(w.type));
+  const weak = defCard.weaknesses?.find((w) => attCard.types?.includes(w.type));
   if (weak) dmg *= 2;
-  const resist = defCard.resistances?.find(r => attCard.types?.includes(r.type));
+  const resist = defCard.resistances?.find((r) => attCard.types?.includes(r.type));
   if (resist) dmg = Math.max(0, dmg - 30);
   return dmg;
 }
 
 export function bestAttackIdx(att: BattleCard, def: BattleCard): number {
   if (!att?.card?.attacks?.length) return 0;
-  let best = 0, bestDmg = -1;
+  let best = 0,
+    bestDmg = -1;
   att.card.attacks.forEach((_, i) => {
     const d = calcDamage(att.card, def.card, i);
-    if (d > bestDmg) { bestDmg = d; best = i; }
+    if (d > bestDmg) {
+      bestDmg = d;
+      best = i;
+    }
   });
   return best;
 }
 
 export function applyAttack(gs: GameState, side: Side, atkIdx: number): GameState {
   const g: GameState = JSON.parse(JSON.stringify(gs));
-  const att = g[side], def = side === "player" ? g.ai : g.player;
+  const att = g[side],
+    def = side === "player" ? g.ai : g.player;
   if (!att.active || !def.active) return g;
   const dmg = calcDamage(att.active.card, def.active.card, atkIdx);
   const atkName = att.active.card.attacks?.[atkIdx]?.name || "Attack";
@@ -100,17 +120,23 @@ export function applyAttack(gs: GameState, side: Side, atkIdx: number): GameStat
     def.active = null;
     if (att.prizes.length > 0) {
       att.hand.push(att.prizes.pop()!);
-      g.log.unshift(`🏆 ${side === "player" ? "You" : "AI"} takes a prize! (${att.prizes.length} left)`);
+      g.log.unshift(
+        `🏆 ${side === "player" ? "You" : "AI"} takes a prize! (${att.prizes.length} left)`,
+      );
     }
     if (att.prizes.length === 0) {
-      g.phase = "gameOver"; g.winner = side;
+      g.phase = "gameOver";
+      g.winner = side;
       g.log.unshift(`🎉 ${side === "player" ? "YOU WIN!" : "AI WINS!"}`);
     } else if (!def.bench.length) {
-      g.phase = "gameOver"; g.winner = side;
+      g.phase = "gameOver";
+      g.winner = side;
       g.log.unshift(`🎉 ${side === "player" ? "YOU WIN!" : "AI WINS!"} — no Pokémon left!`);
     } else {
       def.active = def.bench.shift()!;
-      g.log.unshift(`${side === "player" ? "AI promotes" : "You promote"} ${def.active.card.name}!`);
+      g.log.unshift(
+        `${side === "player" ? "AI promotes" : "You promote"} ${def.active.card.name}!`,
+      );
     }
   }
   return g;
@@ -130,29 +156,74 @@ export type Era = {
 };
 
 export const ERAS: Era[] = [
-  { id: "all",      name: "All Eras",       years: "1999 – Now", series: [],
-    blurb: "Pull from every era — chaos mode." },
-  { id: "classic",  name: "Classic WOTC",   years: "1999 – 2003", series: ["Base","Gym","Neo","Legendary Collection","E-Card"],
-    blurb: "Base, Jungle, Fossil, Team Rocket, Neo, Gym — the originals." },
-  { id: "ex",       name: "EX Era",         years: "2003 – 2007", series: ["EX"],
-    blurb: "Ruby & Sapphire through Power Keepers. Pokémon-ex dominate." },
-  { id: "dp",       name: "Diamond & Pearl",years: "2007 – 2011", series: ["Diamond & Pearl","Platinum","HeartGold & SoulSilver","Call of Legends"],
-    blurb: "LV.X, SP cards, Legend pieces." },
-  { id: "bw",       name: "Black & White",  years: "2011 – 2013", series: ["Black & White"],
-    blurb: "EX returns, Plasma storyline, ACE SPECs." },
-  { id: "xy",       name: "XY",             years: "2014 – 2016", series: ["XY"],
-    blurb: "Mega Evolution, Fairy type, BREAK cards." },
-  { id: "sm",       name: "Sun & Moon",     years: "2017 – 2019", series: ["Sun & Moon"],
-    blurb: "GX Pokémon, Tag Team, Prism Stars." },
-  { id: "swsh",     name: "Sword & Shield", years: "2020 – 2022", series: ["Sword & Shield"],
-    blurb: "VMAX, VSTAR, Radiant, Galar region." },
-  { id: "sv",       name: "Scarlet & Violet",years: "2023 – Now", series: ["Scarlet & Violet"],
-    blurb: "ex Pokémon return, Tera types, Paldea." },
+  {
+    id: "all",
+    name: "All Eras",
+    years: "1999 – Now",
+    series: [],
+    blurb: "Pull from every era — chaos mode.",
+  },
+  {
+    id: "classic",
+    name: "Classic WOTC",
+    years: "1999 – 2003",
+    series: ["Base", "Gym", "Neo", "Legendary Collection", "E-Card"],
+    blurb: "Base, Jungle, Fossil, Team Rocket, Neo, Gym — the originals.",
+  },
+  {
+    id: "ex",
+    name: "EX Era",
+    years: "2003 – 2007",
+    series: ["EX"],
+    blurb: "Ruby & Sapphire through Power Keepers. Pokémon-ex dominate.",
+  },
+  {
+    id: "dp",
+    name: "Diamond & Pearl",
+    years: "2007 – 2011",
+    series: ["Diamond & Pearl", "Platinum", "HeartGold & SoulSilver", "Call of Legends"],
+    blurb: "LV.X, SP cards, Legend pieces.",
+  },
+  {
+    id: "bw",
+    name: "Black & White",
+    years: "2011 – 2013",
+    series: ["Black & White"],
+    blurb: "EX returns, Plasma storyline, ACE SPECs.",
+  },
+  {
+    id: "xy",
+    name: "XY",
+    years: "2014 – 2016",
+    series: ["XY"],
+    blurb: "Mega Evolution, Fairy type, BREAK cards.",
+  },
+  {
+    id: "sm",
+    name: "Sun & Moon",
+    years: "2017 – 2019",
+    series: ["Sun & Moon"],
+    blurb: "GX Pokémon, Tag Team, Prism Stars.",
+  },
+  {
+    id: "swsh",
+    name: "Sword & Shield",
+    years: "2020 – 2022",
+    series: ["Sword & Shield"],
+    blurb: "VMAX, VSTAR, Radiant, Galar region.",
+  },
+  {
+    id: "sv",
+    name: "Scarlet & Violet",
+    years: "2023 – Now",
+    series: ["Scarlet & Violet"],
+    blurb: "ex Pokémon return, Tera types, Paldea.",
+  },
 ];
 
 export function eraSeriesQuery(era: Era): string {
   if (!era.series.length) return "";
-  return "(" + era.series.map(s => `set.series:"${s}"`).join(" OR ") + ")";
+  return "(" + era.series.map((s) => `set.series:"${s}"`).join(" OR ") + ")";
 }
 
 /* ──────────────── TRAINER & ENERGY ──────────────── */
@@ -180,13 +251,21 @@ export type TrainerEffect =
 export function classifyTrainer(c: TCGCard): TrainerEffect {
   if (c.supertype === "Energy") return { kind: "energy", type: energyTypeOf(c) };
   const name = (c.name || "").toLowerCase();
-  const text = ((c.attacks ?? []).map(a => a.text).join(" ") + " " + (c.abilities ?? []).map(a => a.text).join(" ")).toLowerCase();
+  const text = (
+    (c.attacks ?? []).map((a) => a.text).join(" ") +
+    " " +
+    (c.abilities ?? []).map((a) => a.text).join(" ")
+  ).toLowerCase();
   if (/potion|heal/.test(name) || /remove .* damage/.test(text)) {
     if (/super potion/.test(name)) return { kind: "potion", heal: 60 };
     if (/max potion/.test(name)) return { kind: "potion", heal: 999 };
     return { kind: "potion", heal: 30 };
   }
-  if (/professor|research|draw|hau|cynthia|marnie|iono|sonia|bianca|colress|sycamore|juniper/.test(name)) {
+  if (
+    /professor|research|draw|hau|cynthia|marnie|iono|sonia|bianca|colress|sycamore|juniper/.test(
+      name,
+    )
+  ) {
     return { kind: "draw", count: 3 };
   }
   if (/switch|escape rope/.test(name)) return { kind: "switch" };
@@ -202,7 +281,9 @@ export function applyEnergy(gs: GameState, side: Side, handIdx: number): GameSta
   p.hand.splice(handIdx, 1);
   p.active.energies.push(energyTypeOf(card));
   p.discard.push(card);
-  g.log.unshift(`${side === "player" ? "▶ You" : "🤖 AI"} attached ${card.name} to ${p.active.card.name}.`);
+  g.log.unshift(
+    `${side === "player" ? "▶ You" : "🤖 AI"} attached ${card.name} to ${p.active.card.name}.`,
+  );
   return g;
 }
 
@@ -224,7 +305,8 @@ export function applyTrainer(gs: GameState, side: Side, handIdx: number): GameSt
     let drew = 0;
     for (let i = 0; i < eff.count; i++) {
       if (p.deck.length === 0) break;
-      p.hand.push(p.deck.shift()!); drew++;
+      p.hand.push(p.deck.shift()!);
+      drew++;
     }
     g.log.unshift(`${who} played ${card.name} → drew ${drew}.`);
   } else if (eff.kind === "switch" && p.bench.length && p.active) {

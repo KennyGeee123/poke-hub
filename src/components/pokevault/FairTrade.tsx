@@ -46,11 +46,16 @@ function ScanSlot({
   const [busy, setBusy] = useState(false);
   const identifyFn = useServerFn(identifyCard);
   const { vault } = useVault();
-  const vaultList = Object.values(vault).map((e) => e.card).slice(0, 8);
+  const vaultList = Object.values(vault)
+    .map((e) => e.card)
+    .slice(0, 8);
 
-  useEffect(() => () => {
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-  }, []);
+  useEffect(
+    () => () => {
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+    },
+    [],
+  );
 
   async function startCam() {
     setErr(null);
@@ -84,7 +89,7 @@ function ScanSlot({
     setBusy(true);
     try {
       const r: any = await identifyFn({ data: { imageDataUrl: dataUrl } });
-      const name = r?.card?.name || r?.ok && r?.card?.name;
+      const name = r?.card?.name || (r?.ok && r?.card?.name);
       if (!name) {
         setErr(r?.error || "Could not read the card. Type the name.");
         setBusy(false);
@@ -122,7 +127,9 @@ function ScanSlot({
       {card ? (
         <>
           <SlotCard card={card} />
-          <button type="button" className="pv-btn pv-btn-out" onClick={onClear}>Clear</button>
+          <button type="button" className="pv-btn pv-btn-out" onClick={onClear}>
+            Clear
+          </button>
         </>
       ) : (
         <>
@@ -131,23 +138,51 @@ function ScanSlot({
               <video ref={videoRef} playsInline muted autoPlay className="ft-video" />
               <canvas ref={canvasRef} hidden />
               <div className="flex gap-2">
-                <button type="button" className="pv-btn pv-btn-fill" onClick={snap}>Capture</button>
-                <button type="button" className="pv-btn pv-btn-out" onClick={() => { streamRef.current?.getTracks().forEach((t) => t.stop()); setCam(false); }}>Cancel</button>
+                <button type="button" className="pv-btn pv-btn-fill" onClick={snap}>
+                  Capture
+                </button>
+                <button
+                  type="button"
+                  className="pv-btn pv-btn-out"
+                  onClick={() => {
+                    streamRef.current?.getTracks().forEach((t) => t.stop());
+                    setCam(false);
+                  }}
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           ) : (
-            <button type="button" className="pv-btn pv-btn-fill" onClick={startCam}>📷 Scan card</button>
+            <button type="button" className="pv-btn pv-btn-fill" onClick={startCam}>
+              📷 Scan card
+            </button>
           )}
-          <form className="ft-search" onSubmit={(e) => { e.preventDefault(); void search(); }}>
-            <input className="pv-input" placeholder="Or type a name…" value={q} onChange={(e) => setQ(e.target.value)} />
-            <button type="submit" className="pv-btn pv-btn-out" disabled={busy}>{busy ? "…" : "Find"}</button>
+          <form
+            className="ft-search"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void search();
+            }}
+          >
+            <input
+              className="pv-input"
+              placeholder="Or type a name…"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
+            <button type="submit" className="pv-btn pv-btn-out" disabled={busy}>
+              {busy ? "…" : "Find"}
+            </button>
           </form>
           {vaultList.length > 0 && (
             <div className="ft-vault">
               <div className="ft-mini">From your vault</div>
               <div className="flex gap-1 flex-wrap">
                 {vaultList.map((c) => (
-                  <button key={c.id} type="button" className="pv-pill" onClick={() => onPick(c)}>{c.name}</button>
+                  <button key={c.id} type="button" className="pv-pill" onClick={() => onPick(c)}>
+                    {c.name}
+                  </button>
                 ))}
               </div>
             </div>
@@ -175,7 +210,13 @@ function LivePair({ mine, theirs }: { mine: TCGCard | null; theirs: TCGCard | nu
   return (
     <div className={`ft-verdict ft-${v.label.toLowerCase().replace(/\s+/g, "-")}`}>
       <div className="ft-verdict-kicker">FAIR TRADE</div>
-      <div className="ft-verdict-label">{v.label === "YOU ADD" ? `YOU ADD ${formatPrice(v.youAdd)}` : v.label === "THEY ADD" ? `THEY ADD ${formatPrice(v.theyAdd)}` : v.label}</div>
+      <div className="ft-verdict-label">
+        {v.label === "YOU ADD"
+          ? `YOU ADD ${formatPrice(v.youAdd)}`
+          : v.label === "THEY ADD"
+            ? `THEY ADD ${formatPrice(v.theyAdd)}`
+            : v.label}
+      </div>
       <p>{v.line}</p>
       <div className="ft-math">
         <span>Yours {a > 0 ? formatPrice(a) : "—"}</span>
@@ -193,10 +234,18 @@ export function FairTradeView() {
   return (
     <div className="pad ft-page">
       <h1 className="ft-title">FAIR TRADE</h1>
-      <p className="ft-sub">Scan your card and their card. Live market quotes decide if the swap is fair, or who adds cash.</p>
+      <p className="ft-sub">
+        Scan your card and their card. Live market quotes decide if the swap is fair, or who adds
+        cash.
+      </p>
       <div className="ft-grid">
         <ScanSlot label="Your card" card={mine} onPick={setMine} onClear={() => setMine(null)} />
-        <ScanSlot label="Their card" card={theirs} onPick={setTheirs} onClear={() => setTheirs(null)} />
+        <ScanSlot
+          label="Their card"
+          card={theirs}
+          onPick={setTheirs}
+          onClear={() => setTheirs(null)}
+        />
       </div>
       <LivePair mine={mine} theirs={theirs} />
     </div>

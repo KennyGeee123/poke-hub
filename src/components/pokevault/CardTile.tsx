@@ -26,12 +26,25 @@ type Props = {
   defaultGrade?: CardGrade;
 };
 
-export function CardSpriteOverlay({ card, size = 140, show = true, eager = false }: { card: TCGCard; size?: number; show?: boolean; eager?: boolean }) {
+export function CardSpriteOverlay({
+  card,
+  size = 140,
+  show = true,
+  eager = false,
+}: {
+  card: TCGCard;
+  size?: number;
+  show?: boolean;
+  eager?: boolean;
+}) {
   const slug = spriteSlug(card.name);
   const urls = slug ? fallbackSpriteUrls(card.name) : [];
   const [idx, setIdx] = useState(0);
   const [hide, setHide] = useState(!slug);
-  useEffect(() => { setIdx(0); setHide(!slug); }, [card.name, slug]);
+  useEffect(() => {
+    setIdx(0);
+    setHide(!slug);
+  }, [card.name, slug]);
   if (hide || !urls[idx]) return null;
   return (
     <div
@@ -60,7 +73,8 @@ export function CardSpriteOverlay({ card, size = 140, show = true, eager = false
           width: "90%",
           height: "90%",
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(56, 189, 248, 0.45) 0%, rgba(192, 132, 252, 0.2) 50%, transparent 75%)",
+          background:
+            "radial-gradient(circle, rgba(56, 189, 248, 0.45) 0%, rgba(192, 132, 252, 0.2) 50%, transparent 75%)",
           filter: "blur(6px)",
         }}
       />
@@ -79,7 +93,8 @@ export function CardSpriteOverlay({ card, size = 140, show = true, eager = false
           width: "100%",
           height: "100%",
           objectFit: "contain",
-          filter: "drop-shadow(0 12px 20px rgba(0,0,0,0.85)) drop-shadow(0 0 10px rgba(56,189,248,0.6))",
+          filter:
+            "drop-shadow(0 12px 20px rgba(0,0,0,0.85)) drop-shadow(0 0 10px rgba(56,189,248,0.6))",
         }}
       />
     </div>
@@ -101,7 +116,9 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
   // Prefer live market for RAW tiles so Discover never sticks on "—" while grades load.
   const displayPrice =
     grade === "raw" || !grade
-      ? (live > 0 ? live : gradedVal.estimatedGradedPrice)
+      ? live > 0
+        ? live
+        : gradedVal.estimatedGradedPrice
       : gradedVal.estimatedGradedPrice;
   const gradeMeta = getGradeMeta(grade);
   const stats = getCardLevelAndStats(card, grade);
@@ -115,18 +132,26 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
     setLoaded(false);
   }, [card.id]);
 
-  const isGold = /\b(hyper\s*rare|mega\s*hyper|rare\s*holo\s*star|gold\s*star|secret\s*rare|rare\s*secret)\b/i.test(
-    `${card.rarity || ""} ${card.name || ""}`
-  );
+  const isGold =
+    /\b(hyper\s*rare|mega\s*hyper|rare\s*holo\s*star|gold\s*star|secret\s*rare|rare\s*secret)\b/i.test(
+      `${card.rarity || ""} ${card.name || ""}`,
+    );
   const isShadowless = /shadowless/i.test(`${card.set?.name || ""} ${card.rarity || ""}`);
-  const isError = /\b(error|misprint)/i.test(`${card.set?.name || ""} ${card.rarity || ""} ${card.name || ""}`);
-  const setLine = [card.set?.name, card.number ? `#${card.number}` : null].filter(Boolean).join(" · ");
+  const isError = /\b(error|misprint)/i.test(
+    `${card.set?.name || ""} ${card.rarity || ""} ${card.name || ""}`,
+  );
+  const setLine = [card.set?.name, card.number ? `#${card.number}` : null]
+    .filter(Boolean)
+    .join(" · ");
   const priceLabel = pricePending ? null : live > 0 ? "sold avg" : displayPrice ? "market" : null;
 
   return (
     <div
       className="pv-card-wrap pv-card-press"
-      onClick={() => { rememberCard(card); onClick(card); }}
+      onClick={() => {
+        rememberCard(card);
+        onClick(card);
+      }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onFocus={() => setHovered(true)}
@@ -161,19 +186,32 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
         />
         {hovered ? <CardSpriteOverlay card={card} size={112} show eager={false} /> : null}
         {card.lang && card.lang !== "en" && (
-          <div className="pv-lang-b" title={printLangMeta(card.lang).name}>{printLangMeta(card.lang).label}</div>
+          <div className="pv-lang-b" title={printLangMeta(card.lang).name}>
+            {printLangMeta(card.lang).label}
+          </div>
         )}
         {isShadowless && (
-          <div className="pv-var-b" title="Base Set Shadowless" style={card.lang && card.lang !== "en" ? { left: 44 } : undefined}>SL</div>
+          <div
+            className="pv-var-b"
+            title="Base Set Shadowless"
+            style={card.lang && card.lang !== "en" ? { left: 44 } : undefined}
+          >
+            SL
+          </div>
         )}
         {isError && (
-          <div className="pv-err-b" title="Error / misprint">ERR</div>
+          <div className="pv-err-b" title="Error / misprint">
+            ERR
+          </div>
         )}
         {qty && qty > 1 ? <div className="pv-qty-b">×{qty}</div> : null}
         {onRemove && (
           <button
             className="pv-rm-b"
-            onClick={(e) => { e.stopPropagation(); onRemove(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove();
+            }}
             aria-label="Remove"
           >
             ×
@@ -182,18 +220,30 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
       </div>
 
       <div className="pv-card-caption">
-        <div className="pv-c-name" title={card.name}>{card.name}</div>
-        <div className="pv-c-set" title={setLine}>{setLine}</div>
+        <div className="pv-c-name" title={card.name}>
+          {card.name}
+        </div>
+        <div className="pv-c-set" title={setLine}>
+          {setLine}
+        </div>
         <div className="pv-c-price-row">
           <div className="pv-c-price">
-            {displayPrice
-              ? formatPrice(displayPrice)
-              : pricePending
-                ? <span className="pv-price-pending" title="Prices pending — new set">Pending</span>
-                : "—"}
+            {displayPrice ? (
+              formatPrice(displayPrice)
+            ) : pricePending ? (
+              <span className="pv-price-pending" title="Prices pending — new set">
+                Pending
+              </span>
+            ) : (
+              "—"
+            )}
           </div>
           {priceLabel ? <span className="pv-c-price-lbl">{priceLabel}</span> : null}
-          {isGold ? <span className="pv-gold-chip" title="Gold / Hyper / Secret Rare">GOLD</span> : null}
+          {isGold ? (
+            <span className="pv-gold-chip" title="Gold / Hyper / Secret Rare">
+              GOLD
+            </span>
+          ) : null}
         </div>
 
         <div className="pv-card-meta-badges">
@@ -207,7 +257,9 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
           >
             {gradeMeta.shortLabel}
           </span>
-          <span className="pv-lvl-chip">Lv.{stats.level} · +{stats.totalBoostPercent}%</span>
+          <span className="pv-lvl-chip">
+            Lv.{stats.level} · +{stats.totalBoostPercent}%
+          </span>
         </div>
 
         <div className="pv-card-tools">
@@ -235,10 +287,7 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
           </button>
         </div>
 
-        <div
-          className="pv-card-grade"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="pv-card-grade" onClick={(e) => e.stopPropagation()}>
           <select
             value={grade}
             onChange={(e) => {
@@ -249,7 +298,9 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
               width: "100%",
               background: "rgba(10, 15, 29, 0.95)",
               color: gradeMeta.isSlab ? "#fbbf24" : "var(--t1)",
-              border: gradeMeta.isSlab ? "1px solid rgba(251, 191, 36, 0.5)" : "1px solid var(--brd)",
+              border: gradeMeta.isSlab
+                ? "1px solid rgba(251, 191, 36, 0.5)"
+                : "1px solid var(--brd)",
               borderRadius: 5,
               fontSize: 10,
               fontFamily: "var(--mono, monospace)",
@@ -321,26 +372,43 @@ export function useToast() {
     setTimeout(() => setMsg(null), 1800);
   };
   const node = msg ? (
-    <div className="pv-toast" role="status">{msg}</div>
+    <div className="pv-toast" role="status">
+      {msg}
+    </div>
   ) : null;
   return { show, node };
 }
 
-export function CardActions({ card, onAfterAction }: { card: TCGCard; onAfterAction?: (m: string) => void }) {
+export function CardActions({
+  card,
+  onAfterAction,
+}: {
+  card: TCGCard;
+  onAfterAction?: (m: string) => void;
+}) {
   const { inVault, inWish, addToVault, toggleWish } = useVault();
-  const v = inVault(card.id), w = inWish(card.id);
+  const v = inVault(card.id),
+    w = inWish(card.id);
   return (
     <div className="flex gap-2 mt-3">
       <button
         className={`pv-btn pv-btn-fill ${v ? "yes" : ""} flex-1`}
-        onClick={(e) => { e.stopPropagation(); addToVault(card); onAfterAction?.(v ? "Added another" : "Added to vault"); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          addToVault(card);
+          onAfterAction?.(v ? "Added another" : "Added to vault");
+        }}
       >
         {v ? "✓ IN VAULT" : "+ ADD TO VAULT"}
       </button>
       <button
         className="pv-btn pv-btn-out"
         style={w ? { background: "#7c3aed", borderColor: "#7c3aed" } : undefined}
-        onClick={(e) => { e.stopPropagation(); toggleWish(card); onAfterAction?.(w ? "Removed wish" : "Wishlisted"); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          toggleWish(card);
+          onAfterAction?.(w ? "Removed wish" : "Wishlisted");
+        }}
         aria-label="Wishlist"
       >
         {w ? "★" : "☆"}

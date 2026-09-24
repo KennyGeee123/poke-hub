@@ -111,7 +111,8 @@ export function GBBattleSession({
       kindLabel === "wild"
         ? `A wild ${f.name.toUpperCase()} (Lv ${f.level}) appeared!`
         : `${kindLabel.toUpperCase()} battle — ${f.name.toUpperCase()} (Lv ${f.level})!`;
-    const rentalNote = mon.id === "rental-starter" ? `Rental ${mon.name.toUpperCase()} sent out.` : null;
+    const rentalNote =
+      mon.id === "rental-starter" ? `Rental ${mon.name.toUpperCase()} sent out.` : null;
     setLog(rentalNote ? [opener, rentalNote] : [opener]);
     setPane("main");
     setPotions(STARTING_POTIONS);
@@ -136,18 +137,31 @@ export function GBBattleSession({
     const mon = p[0] ?? rentalStarter();
     if (!p[0]) setParty([mon]);
     const lvl = Math.max(2, Math.min(60, detail.level ?? mon.level));
-    let foeMon = wildFoeMon(detail.name, lvl);
+    const foeMon = wildFoeMon(detail.name, lvl);
     try {
       const slug = spriteSlug(detail.name);
       const r = await fetch(`https://pokeapi.co/api/v2/pokemon/${slug}`);
       if (r.ok) {
         const j: any = await r.json();
         const TYPE_MAP: Record<string, string> = {
-          normal: "Colorless", fire: "Fire", water: "Water", grass: "Grass",
-          electric: "Lightning", ice: "Water", fighting: "Fighting", poison: "Darkness",
-          ground: "Fighting", flying: "Colorless", psychic: "Psychic", bug: "Grass",
-          rock: "Fighting", ghost: "Psychic", dragon: "Dragon", dark: "Darkness",
-          steel: "Metal", fairy: "Fairy",
+          normal: "Colorless",
+          fire: "Fire",
+          water: "Water",
+          grass: "Grass",
+          electric: "Lightning",
+          ice: "Water",
+          fighting: "Fighting",
+          poison: "Darkness",
+          ground: "Fighting",
+          flying: "Colorless",
+          psychic: "Psychic",
+          bug: "Grass",
+          rock: "Fighting",
+          ghost: "Psychic",
+          dragon: "Dragon",
+          dark: "Darkness",
+          steel: "Metal",
+          fairy: "Fairy",
         };
         foeMon.types = (j.types ?? []).map((t: any) => TYPE_MAP[t.type?.name] || "Colorless");
         const baseHp = j.stats?.find((s: any) => s.stat?.name === "hp")?.base_stat || 40;
@@ -287,11 +301,7 @@ export function GBBattleSession({
       await endBattle(false);
       return;
     }
-    setLog((l) => [
-      `Go! ${next.name.toUpperCase()}!`,
-      `${down.name.toUpperCase()} fainted!`,
-      ...l,
-    ]);
+    setLog((l) => [`Go! ${next.name.toUpperCase()}!`, `${down.name.toUpperCase()} fainted!`, ...l]);
     setActive(next);
     setActiveHp(next.max_hp);
     setMeFx("");
@@ -376,21 +386,26 @@ export function GBBattleSession({
     if (won) {
       const xp = 25 + foe.level * 12;
       const oldLevel = active.level;
-      let { mon, leveled } = gainXP({ ...active, wins: active.wins + 1 }, xp);
+      const { mon, leveled } = gainXP({ ...active, wins: active.wins + 1 }, xp);
       setGained(xp);
       const learnedLogs: string[] = [];
       if (leveled) {
         try {
           const learned = await newlyLearned(mon.name, oldLevel, mon.level);
           if (learned.length) {
-            let attacks = [...mon.attacks];
+            const attacks = [...mon.attacks];
             for (const nm of learned) {
               if (attacks.find((a) => a.name === nm.name)) continue;
               if (attacks.length < 4) attacks.push(nm);
               else {
-                const widx = attacks.reduce((wi, a, i, arr) => (a.damage < arr[wi].damage ? i : wi), 0);
+                const widx = attacks.reduce(
+                  (wi, a, i, arr) => (a.damage < arr[wi].damage ? i : wi),
+                  0,
+                );
                 if (nm.damage > attacks[widx].damage) {
-                  learnedLogs.push(`📘 ${mon.name} forgot ${attacks[widx].name} and learned ${nm.name}!`);
+                  learnedLogs.push(
+                    `📘 ${mon.name} forgot ${attacks[widx].name} and learned ${nm.name}!`,
+                  );
                   attacks[widx] = nm;
                   continue;
                 }
@@ -418,10 +433,14 @@ export function GBBattleSession({
       ]);
       const kind = battleKindRef.current;
       if (kind === "gym" && badgeRef.current) {
-        window.dispatchEvent(new CustomEvent("pv-adv-gym-won", { detail: { badge: badgeRef.current } }));
+        window.dispatchEvent(
+          new CustomEvent("pv-adv-gym-won", { detail: { badge: badgeRef.current } }),
+        );
       }
       if (kind === "elite" || kind === "champion") {
-        window.dispatchEvent(new CustomEvent("pv-adv-elite-won", { detail: { index: e4IndexRef.current } }));
+        window.dispatchEvent(
+          new CustomEvent("pv-adv-elite-won", { detail: { index: e4IndexRef.current } }),
+        );
       }
       setScene("victory");
     } else {
@@ -483,7 +502,11 @@ export function GBBattleSession({
         <ResultScreen
           title="VICTORY!"
           mon={active}
-          extra={gained ? `+${gained} XP — Next Lv: ${active.xp}/${xpForNext(active.level)}` : "Caught it!"}
+          extra={
+            gained
+              ? `+${gained} XP — Next Lv: ${active.xp}/${xpForNext(active.level)}`
+              : "Caught it!"
+          }
           onContinue={() => onDone("win")}
         />
       )}
@@ -520,14 +543,51 @@ export function GBBattleSession({
         </div>
         <div className="gb-controls">
           <div className="gb-dpad" aria-label="D-pad">
-            <button type="button" className="up" aria-label="Up" onClick={() => pressGbDpad("up")}>▲</button>
-            <button type="button" className="left" aria-label="Left" onClick={() => pressGbDpad("left")}>◀</button>
-            <button type="button" className="right" aria-label="Right" onClick={() => pressGbDpad("right")}>▶</button>
-            <button type="button" className="down" aria-label="Down" onClick={() => pressGbDpad("down")}>▼</button>
+            <button type="button" className="up" aria-label="Up" onClick={() => pressGbDpad("up")}>
+              ▲
+            </button>
+            <button
+              type="button"
+              className="left"
+              aria-label="Left"
+              onClick={() => pressGbDpad("left")}
+            >
+              ◀
+            </button>
+            <button
+              type="button"
+              className="right"
+              aria-label="Right"
+              onClick={() => pressGbDpad("right")}
+            >
+              ▶
+            </button>
+            <button
+              type="button"
+              className="down"
+              aria-label="Down"
+              onClick={() => pressGbDpad("down")}
+            >
+              ▼
+            </button>
           </div>
           <div className="gb-ab">
-            <button type="button" className="gb-btn gb-btn-b" aria-label="B" onClick={() => pressGbFace("B")}>B</button>
-            <button type="button" className="gb-btn gb-btn-a" aria-label="A" onClick={() => pressGbFace("A")}>A</button>
+            <button
+              type="button"
+              className="gb-btn gb-btn-b"
+              aria-label="B"
+              onClick={() => pressGbFace("B")}
+            >
+              B
+            </button>
+            <button
+              type="button"
+              className="gb-btn gb-btn-a"
+              aria-label="A"
+              onClick={() => pressGbFace("A")}
+            >
+              A
+            </button>
           </div>
         </div>
         <div className="gb-startsel">
@@ -679,8 +739,18 @@ function BattleScreen({
   return (
     <div className="gb-page gb-battle">
       <div className={`gb-arena ${catchPhase ? `pv-catching-${catchPhase}` : ""}`}>
-        <video className="gb-arena-vid" src={ARENA_CLIP} autoPlay muted loop playsInline preload="none" />
-        {atkClip && <video key={atkClip} className="gb-atk-vid" src={atkClip} autoPlay muted playsInline />}
+        <video
+          className="gb-arena-vid"
+          src={ARENA_CLIP}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="none"
+        />
+        {atkClip && (
+          <video key={atkClip} className="gb-atk-vid" src={atkClip} autoPlay muted playsInline />
+        )}
         <div className="gb-bf">
           <div className="gb-side gb-foe">
             <div className={`gb-stat ${foeLow}`}>
@@ -728,7 +798,9 @@ function BattleScreen({
             {l}
           </div>
         ))}
-        {pane === "main" && !busy && <div className="gb-log-line">What will {me.name.toUpperCase()} do?</div>}
+        {pane === "main" && !busy && (
+          <div className="gb-log-line">What will {me.name.toUpperCase()} do?</div>
+        )}
       </div>
 
       {pane === "main" && (
@@ -739,7 +811,13 @@ function BattleScreen({
           <button className="gb-move" disabled={busy} onClick={() => onPane("bag")}>
             BAG
           </button>
-          <button className="gb-move" disabled={busy || party.filter((m) => m.id !== me.id && !fainted.includes(m.id)).length < 1} onClick={() => onPane("switch")}>
+          <button
+            className="gb-move"
+            disabled={
+              busy || party.filter((m) => m.id !== me.id && !fainted.includes(m.id)).length < 1
+            }
+            onClick={() => onPane("switch")}
+          >
             POKéMON
           </button>
           <button className="gb-move gb-move-run" disabled={busy} onClick={onRun}>
@@ -751,7 +829,12 @@ function BattleScreen({
       {pane === "fight" && (
         <div className="gb-moves gb-moves-4">
           {moves.map((m, i) => (
-            <button key={i} className="gb-move" disabled={busy || !m.damage} onClick={() => m.damage && onMove(m)}>
+            <button
+              key={i}
+              className="gb-move"
+              disabled={busy || !m.damage}
+              onClick={() => m.damage && onMove(m)}
+            >
               {m.name} {m.damage ? <span>·{m.damage}</span> : null}
             </button>
           ))}
@@ -778,7 +861,12 @@ function BattleScreen({
       {pane === "switch" && (
         <div className="gb-switch">
           {party.map((m) => (
-            <button key={m.id} className="gb-switch-item" disabled={busy || m.id === me.id || fainted.includes(m.id)} onClick={() => onSwitch(m)}>
+            <button
+              key={m.id}
+              className="gb-switch-item"
+              disabled={busy || m.id === me.id || fainted.includes(m.id)}
+              onClick={() => onSwitch(m)}
+            >
               <SpriteImg name={m.name} alt={m.name} />
               <div>
                 <div className="gb-pm-name">{m.name.toUpperCase()}</div>

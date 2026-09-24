@@ -64,7 +64,10 @@ export async function setCachedSets<T>(data: T): Promise<void> {
   await idbPut(SETS_KEY, { at: Date.now(), data } satisfies Envelope<T>);
 }
 
-export async function getCachedSetCards<T>(setId: string, maxAgeMs = 7 * 24 * 60 * 60 * 1000): Promise<T | null> {
+export async function getCachedSetCards<T>(
+  setId: string,
+  maxAgeMs = 7 * 24 * 60 * 60 * 1000,
+): Promise<T | null> {
   const env = await idbGet<Envelope<T>>(setKey(setId));
   if (!env?.data) return null;
   if (Date.now() - env.at > maxAgeMs) return null;
@@ -90,11 +93,14 @@ export async function getCatalogCacheInfo(): Promise<CatalogCacheInfo> {
   }
 }
 
-
 /** Generic HTTP response cache (replaces pokeapi: localStorage entries). */
 const HTTP_PREFIX = "http:";
 
-export async function getHttpCache<T>(key: string, maxAgeMs: number, opts?: { allowStale?: boolean }): Promise<T | null> {
+export async function getHttpCache<T>(
+  key: string,
+  maxAgeMs: number,
+  opts?: { allowStale?: boolean },
+): Promise<T | null> {
   const env = await idbGet<Envelope<T>>(HTTP_PREFIX + key);
   if (!env?.data) return null;
   const stale = Date.now() - env.at > maxAgeMs;

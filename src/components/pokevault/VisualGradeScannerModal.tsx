@@ -2,11 +2,7 @@ import { PristineMoveCustomizer } from "./PristineMoveCustomizer";
 import React, { useEffect, useRef, useState } from "react";
 import type { TCGCard } from "@/lib/pokemon-api";
 import { formatPrice } from "@/lib/vault";
-import {
-  calculateGradedValue,
-  getGradeMeta,
-  predetermineCardGrade,
-} from "@/lib/card-grades";
+import { calculateGradedValue, getGradeMeta, predetermineCardGrade } from "@/lib/card-grades";
 import { getCardLevelAndStats, type PokemonStats } from "@/lib/card-stats";
 import { QuantumLaserScanner, QuantumFlipCard } from "./QuantumTransferAnimation";
 
@@ -24,7 +20,7 @@ export type DefectMarker = {
 
 export type VisualScanResult = {
   frontCentering: string; // e.g. "51/49"
-  backCentering: string;  // e.g. "53/47"
+  backCentering: string; // e.g. "53/47"
   centeringScore: number;
   cornersScore: number;
   edgesScore: number;
@@ -50,17 +46,19 @@ export function VisualGradeScannerModal({
   initialImageUrl?: string;
   onClose: () => void;
 }) {
-  const [frontSrc, setFrontSrc] = useState<string>(initialImageUrl || card.images.large || card.images.small);
+  const [frontSrc, setFrontSrc] = useState<string>(
+    initialImageUrl || card.images.large || card.images.small,
+  );
   const [backSrc, setBackSrc] = useState<string>(DEFAULT_CARD_BACK);
   const [activeSide, setActiveSide] = useState<"front" | "back">("front");
-  
+
   const [scanning, setScanning] = useState<boolean>(true);
   const [scanProgress, setScanProgress] = useState<number>(0);
   const [scanStage, setScanStage] = useState<string>("Initializing quantum dual-sided scanner...");
   const [scanResult, setScanResult] = useState<VisualScanResult | null>(null);
   const [selectedFlaw, setSelectedFlaw] = useState<DefectMarker | null>(null);
   const [overlayMode, setOverlayMode] = useState<"all" | "centering" | "defects" | "none">("all");
-  
+
   const frontInputRef = useRef<HTMLInputElement>(null);
   const backInputRef = useRef<HTMLInputElement>(null);
 
@@ -97,7 +95,7 @@ export function VisualGradeScannerModal({
 
   function performQuantumDualInspection(card: TCGCard): VisualScanResult {
     const flaws: DefectMarker[] = [];
-    let centeringScore = 96;
+    const centeringScore = 96;
     let cornersScore = 97;
     let edgesScore = 96;
     let surfaceScore = 98;
@@ -106,7 +104,7 @@ export function VisualGradeScannerModal({
     const backCentering = "53/47";
 
     const releaseYear = parseInt(card.set?.releaseDate?.slice(0, 4) || "2023", 10);
-    
+
     // Front Flaws
     if (releaseYear <= 2003) {
       cornersScore = 92;
@@ -172,11 +170,14 @@ export function VisualGradeScannerModal({
       detail: "Microscopic fiber point at 400x digital magnification.",
     });
 
-    const compositeScore = Math.round(
-      (centeringScore * 0.25 + cornersScore * 0.25 + edgesScore * 0.25 + surfaceScore * 0.25) * 10
-    ) / 10;
+    const compositeScore =
+      Math.round(
+        (centeringScore * 0.25 + cornersScore * 0.25 + edgesScore * 0.25 + surfaceScore * 0.25) *
+          10,
+      ) / 10;
 
-    const basePrice = card.tcgplayer?.prices?.holofoil?.market || card.cardmarket?.prices?.trendPrice || 25;
+    const basePrice =
+      card.tcgplayer?.prices?.holofoil?.market || card.cardmarket?.prices?.trendPrice || 25;
     const psa10Val = calculateGradedValue(card, "psa10");
     const psa9Val = calculateGradedValue(card, "psa9");
     const psa8Val = calculateGradedValue(card, "psa8");
@@ -190,7 +191,10 @@ export function VisualGradeScannerModal({
     }
 
     const expectedGross = Math.round(
-      (probabilities.psa10 * psa10Val.estimatedGradedPrice + probabilities.psa9 * psa9Val.estimatedGradedPrice + probabilities.psa8 * psa8Val.estimatedGradedPrice) / 100
+      (probabilities.psa10 * psa10Val.estimatedGradedPrice +
+        probabilities.psa9 * psa9Val.estimatedGradedPrice +
+        probabilities.psa8 * psa8Val.estimatedGradedPrice) /
+        100,
     );
     const expectedNet = Math.round((expectedGross - basePrice - 19.99) * 100) / 100;
 
@@ -226,12 +230,11 @@ export function VisualGradeScannerModal({
     reader.readAsDataURL(file);
   }
 
-  const activeFlaws = (scanResult?.flaws || []).filter(f => f.side === activeSide);
+  const activeFlaws = (scanResult?.flaws || []).filter((f) => f.side === activeSide);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-6 overflow-y-auto animate-fade-in">
       <div className="relative w-full max-w-5xl rounded-2xl bg-neutral-900 border border-neutral-700/80 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
-        
         {/* Top Header Bar */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-800 bg-neutral-950/60">
           <div className="flex items-center gap-3">
@@ -293,10 +296,8 @@ export function VisualGradeScannerModal({
 
         {/* Modal Main Body */}
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 overflow-y-auto">
-          
           {/* Left Column: Interactive Dual-Sided Visual Display (5 Cols) */}
           <div className="lg:col-span-5 flex flex-col items-center">
-            
             {/* 3D Flip Card Container */}
             <div className="relative w-full max-w-[340px] aspect-[2.5/3.5] rounded-xl overflow-hidden shadow-2xl border border-neutral-700/80 bg-neutral-950">
               <QuantumLaserScanner isScanning={scanning} side={activeSide} />
@@ -325,7 +326,8 @@ export function VisualGradeScannerModal({
                     )}
 
                     {/* Front Flaw Pins */}
-                    {(overlayMode === "all" || overlayMode === "defects") && !scanning && (
+                    {(overlayMode === "all" || overlayMode === "defects") &&
+                      !scanning &&
                       activeFlaws.map((flaw) => (
                         <button
                           key={flaw.id}
@@ -343,8 +345,7 @@ export function VisualGradeScannerModal({
                         >
                           {flaw.severity === "clean" ? "✓" : "!"}
                         </button>
-                      ))
-                    )}
+                      ))}
                   </div>
                 }
                 backContent={
@@ -371,7 +372,8 @@ export function VisualGradeScannerModal({
                     )}
 
                     {/* Back Flaw Pins */}
-                    {(overlayMode === "all" || overlayMode === "defects") && !scanning && (
+                    {(overlayMode === "all" || overlayMode === "defects") &&
+                      !scanning &&
                       activeFlaws.map((flaw) => (
                         <button
                           key={flaw.id}
@@ -389,8 +391,7 @@ export function VisualGradeScannerModal({
                         >
                           {flaw.severity === "clean" ? "✓" : "!"}
                         </button>
-                      ))
-                    )}
+                      ))}
                   </div>
                 }
               />
@@ -436,7 +437,6 @@ export function VisualGradeScannerModal({
 
           {/* Right Column: AI Diagnostics & RPG Stats Breakdown (7 Cols) */}
           <div className="lg:col-span-7 flex flex-col gap-4">
-            
             {/* Scanning Progress Bar */}
             {scanning ? (
               <div className="p-6 rounded-xl bg-neutral-950/80 border border-cyan-500/40 flex flex-col gap-3">
@@ -473,30 +473,42 @@ export function VisualGradeScannerModal({
                     <div className="grid grid-cols-5 gap-2 mt-3 pt-3 border-t border-purple-500/20 text-center font-mono">
                       <div className="p-1.5 rounded bg-neutral-900/80 border border-neutral-800">
                         <div className="text-[10px] text-neutral-400">HP</div>
-                        <div className="text-xs font-bold text-emerald-400">{scanResult.stats.boostedHp}</div>
+                        <div className="text-xs font-bold text-emerald-400">
+                          {scanResult.stats.boostedHp}
+                        </div>
                       </div>
                       <div className="p-1.5 rounded bg-neutral-900/80 border border-neutral-800">
                         <div className="text-[10px] text-neutral-400">ATK</div>
-                        <div className="text-xs font-bold text-red-400">{scanResult.stats.boostedAtk}</div>
+                        <div className="text-xs font-bold text-red-400">
+                          {scanResult.stats.boostedAtk}
+                        </div>
                       </div>
                       <div className="p-1.5 rounded bg-neutral-900/80 border border-neutral-800">
                         <div className="text-[10px] text-neutral-400">DEF</div>
-                        <div className="text-xs font-bold text-blue-400">{scanResult.stats.boostedDef}</div>
+                        <div className="text-xs font-bold text-blue-400">
+                          {scanResult.stats.boostedDef}
+                        </div>
                       </div>
                       <div className="p-1.5 rounded bg-neutral-900/80 border border-neutral-800">
                         <div className="text-[10px] text-neutral-400">SPD</div>
-                        <div className="text-xs font-bold text-amber-400">{scanResult.stats.boostedSpd}</div>
+                        <div className="text-xs font-bold text-amber-400">
+                          {scanResult.stats.boostedSpd}
+                        </div>
                       </div>
                       <div className="p-1.5 rounded bg-neutral-900/80 border border-neutral-800">
                         <div className="text-[10px] text-neutral-400">CRIT</div>
-                        <div className="text-xs font-bold text-purple-400">{scanResult.stats.boostedCritRate}%</div>
+                        <div className="text-xs font-bold text-purple-400">
+                          {scanResult.stats.boostedCritRate}%
+                        </div>
                       </div>
                     </div>
 
                     <div className="text-[10px] text-neutral-400 font-mono mt-2 flex items-center justify-between">
                       <span>Condition Multiplier: +{scanResult.stats.conditionBoostPercent}%</span>
                       {scanResult.stats.hasNaturalSlabBoost && (
-                        <span className="text-cyan-300">✓ Includes +20% Natural Slab Synergy Boost</span>
+                        <span className="text-cyan-300">
+                          ✓ Includes +20% Natural Slab Synergy Boost
+                        </span>
                       )}
                     </div>
                   </div>
@@ -516,22 +528,32 @@ export function VisualGradeScannerModal({
                   <div className="grid grid-cols-4 gap-2 text-center font-mono">
                     <div className="p-2 rounded bg-neutral-900 border border-neutral-800">
                       <div className="text-[10px] text-neutral-400">Centering</div>
-                      <div className="text-sm font-bold text-cyan-400">{scanResult?.centeringScore}</div>
-                      <div className="text-[9px] text-neutral-500">F: {scanResult?.frontCentering}</div>
+                      <div className="text-sm font-bold text-cyan-400">
+                        {scanResult?.centeringScore}
+                      </div>
+                      <div className="text-[9px] text-neutral-500">
+                        F: {scanResult?.frontCentering}
+                      </div>
                     </div>
                     <div className="p-2 rounded bg-neutral-900 border border-neutral-800">
                       <div className="text-[10px] text-neutral-400">Corners</div>
-                      <div className="text-sm font-bold text-cyan-400">{scanResult?.cornersScore}</div>
+                      <div className="text-sm font-bold text-cyan-400">
+                        {scanResult?.cornersScore}
+                      </div>
                       <div className="text-[9px] text-neutral-500">4-pt sweep</div>
                     </div>
                     <div className="p-2 rounded bg-neutral-900 border border-neutral-800">
                       <div className="text-[10px] text-neutral-400">Edges</div>
-                      <div className="text-sm font-bold text-cyan-400">{scanResult?.edgesScore}</div>
+                      <div className="text-sm font-bold text-cyan-400">
+                        {scanResult?.edgesScore}
+                      </div>
                       <div className="text-[9px] text-neutral-500">Perimeter</div>
                     </div>
                     <div className="p-2 rounded bg-neutral-900 border border-neutral-800">
                       <div className="text-[10px] text-neutral-400">Surface</div>
-                      <div className="text-sm font-bold text-cyan-400">{scanResult?.surfaceScore}</div>
+                      <div className="text-sm font-bold text-cyan-400">
+                        {scanResult?.surfaceScore}
+                      </div>
                       <div className="text-[9px] text-neutral-500">Foil / Gloss</div>
                     </div>
                   </div>
@@ -540,18 +562,25 @@ export function VisualGradeScannerModal({
                 {/* 3. True Market Price & Arbitrage Yield */}
                 <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800 flex items-center justify-between">
                   <div>
-                    <div className="text-xs text-neutral-400 font-mono">True Market Slab Valuation</div>
+                    <div className="text-xs text-neutral-400 font-mono">
+                      True Market Slab Valuation
+                    </div>
                     <div className="text-xl font-bold text-white">
                       ${scanResult?.expectedGross.toFixed(2)}
                     </div>
                   </div>
 
                   <div className="text-right">
-                    <div className="text-xs text-neutral-400 font-mono">Net Spread (After $19.99 Fee)</div>
-                    <div className={`text-lg font-bold ${
-                      (scanResult?.expectedNet || 0) >= 0 ? "text-emerald-400" : "text-amber-400"
-                    }`}>
-                      {(scanResult?.expectedNet || 0) >= 0 ? "+" : ""}${scanResult?.expectedNet.toFixed(2)}
+                    <div className="text-xs text-neutral-400 font-mono">
+                      Net Spread (After $19.99 Fee)
+                    </div>
+                    <div
+                      className={`text-lg font-bold ${
+                        (scanResult?.expectedNet || 0) >= 0 ? "text-emerald-400" : "text-amber-400"
+                      }`}
+                    >
+                      {(scanResult?.expectedNet || 0) >= 0 ? "+" : ""}$
+                      {scanResult?.expectedNet.toFixed(2)}
                     </div>
                   </div>
                 </div>
@@ -563,7 +592,10 @@ export function VisualGradeScannerModal({
                 {selectedFlaw && (
                   <div className="p-3 rounded-xl bg-neutral-900 border border-amber-500/40 text-xs">
                     <div className="flex items-center justify-between font-bold text-amber-300 mb-1">
-                      <span>[{selectedFlaw.side.toUpperCase()}] {selectedFlaw.label} ({selectedFlaw.category})</span>
+                      <span>
+                        [{selectedFlaw.side.toUpperCase()}] {selectedFlaw.label} (
+                        {selectedFlaw.category})
+                      </span>
                       <button
                         type="button"
                         onClick={() => setSelectedFlaw(null)}

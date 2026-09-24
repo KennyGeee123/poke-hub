@@ -1,16 +1,6 @@
 import React from "react";
-import {
-  Sparkles,
-  CheckCircle2,
-  Trophy,
-  X,
-  Coins,
-  ArrowRight,
-} from "lucide-react";
-import {
-  type AdventureState,
-  claimQuest,
-} from "@/lib/adventure-engine";
+import { Sparkles, CheckCircle2, Trophy, X, Coins, ArrowRight } from "lucide-react";
+import { type AdventureState, claimQuest } from "@/lib/adventure-engine";
 
 export function AdventureQuestsModal({
   adventureState,
@@ -39,7 +29,9 @@ export function AdventureQuestsModal({
             </span>
             <div>
               <h3 className="text-base font-bold text-white font-mono">ADVENTURE RESEARCH TASKS</h3>
-              <p className="text-xs text-neutral-400">Complete objectives to earn Coins, XP & Rare Candies</p>
+              <p className="text-xs text-neutral-400">
+                Complete objectives to earn Coins, XP & Rare Candies
+              </p>
             </div>
           </div>
           <button
@@ -62,8 +54,8 @@ export function AdventureQuestsModal({
                   q.claimed
                     ? "bg-neutral-900/40 border-neutral-800/50 opacity-60"
                     : q.completed
-                    ? "bg-emerald-950/30 border-emerald-500/50"
-                    : "bg-neutral-900 border-neutral-800"
+                      ? "bg-emerald-950/30 border-emerald-500/50"
+                      : "bg-neutral-900 border-neutral-800"
                 }`}
               >
                 <div className="flex items-start justify-between">

@@ -101,7 +101,9 @@ export function listingHasShipping(l: Listing): boolean {
 export function isSlabListing(l: Listing): boolean {
   if (l.isSlab) return true;
   const text = `${l.title || ""} ${l.variant || ""} ${l.condition || ""}`.toLowerCase();
-  return /\b(psa|bgs|cgc|sgc|beckett|graded|gem\s*mint\s*10|psa\s*10|psa\s*9|psa\s*8|bgs\s*9\.5|cgc\s*10)\b/i.test(text);
+  return /\b(psa|bgs|cgc|sgc|beckett|graded|gem\s*mint\s*10|psa\s*10|psa\s*9|psa\s*8|bgs\s*9\.5|cgc\s*10)\b/i.test(
+    text,
+  );
 }
 
 /** Matches listing condition / slab against target filter. */
@@ -116,15 +118,28 @@ export function matchesConditionFilter(l: Listing, filter?: string | null): bool
   if (filter === "psa9") return slab && /psa\s*9\b|mint\s*9/i.test(text);
   if (filter === "psa8") return slab && /psa\s*8\b|nm\s*mt\s*8/i.test(text);
   if (filter === "psa7") return slab && /psa\s*7\b|near\s*mint\s*7/i.test(text);
-  if (filter === "bgs" || filter === "bgs95" || filter === "bgs10_black") return slab && /bgs|beckett/i.test(text);
-  if (filter === "cgc" || filter === "cgc10_pristine" || filter === "cgc95" || filter === "cgc9") return slab && /cgc/i.test(text);
+  if (filter === "bgs" || filter === "bgs95" || filter === "bgs10_black")
+    return slab && /bgs|beckett/i.test(text);
+  if (filter === "cgc" || filter === "cgc10_pristine" || filter === "cgc95" || filter === "cgc9")
+    return slab && /cgc/i.test(text);
   if (filter === "sgc" || filter === "sgc10") return slab && /sgc/i.test(text);
 
-  if (filter === "raw_mint") return !slab && /mint|pack\s*fresh|gem\s*raw/i.test(text) && !/played|damaged|hp|mp|lp/i.test(text);
-  if (filter === "raw_nm" || filter === "nm") return !slab && /near\s*mint|\bnm\b|normal|holofoil|mint/i.test(text) && !/played|damaged|hp|mp/i.test(text);
-  if (filter === "raw_lp" || filter === "lp") return !slab && /lightly\s*played|\blp\b|excellent/i.test(text);
-  if (filter === "raw_mp" || filter === "mp") return !slab && /moderately\s*played|\bmp\b|fine|very\s*good/i.test(text);
-  if (filter === "raw_hp" || filter === "hp") return !slab && /heavily\s*played|\bhp\b|good/i.test(text);
+  if (filter === "raw_mint")
+    return (
+      !slab && /mint|pack\s*fresh|gem\s*raw/i.test(text) && !/played|damaged|hp|mp|lp/i.test(text)
+    );
+  if (filter === "raw_nm" || filter === "nm")
+    return (
+      !slab &&
+      /near\s*mint|\bnm\b|normal|holofoil|mint/i.test(text) &&
+      !/played|damaged|hp|mp/i.test(text)
+    );
+  if (filter === "raw_lp" || filter === "lp")
+    return !slab && /lightly\s*played|\blp\b|excellent/i.test(text);
+  if (filter === "raw_mp" || filter === "mp")
+    return !slab && /moderately\s*played|\bmp\b|fine|very\s*good/i.test(text);
+  if (filter === "raw_hp" || filter === "hp")
+    return !slab && /heavily\s*played|\bhp\b|good/i.test(text);
   if (filter === "raw_dmg" || filter === "dmg") return !slab && /damaged|\bdmg\b|poor/i.test(text);
 
   return true;
@@ -198,7 +213,9 @@ export function preferredPrintsFromCard(card: {
 export function printMatchScore(l: Listing, preferPrints: string[] = []): number {
   if (!preferPrints.length) return 0;
   const blob = `${l.variant || ""} ${l.condition || ""} ${l.title || ""}`.toLowerCase();
-  const hasPrintSignal = /holofoil|reverse|1st|first edition|unlimited|normal|shadowless/.test(blob);
+  const hasPrintSignal = /holofoil|reverse|1st|first edition|unlimited|normal|shadowless/.test(
+    blob,
+  );
   if (!hasPrintSignal) return 0;
   return preferPrints.some((p) => blob.includes(p.toLowerCase())) ? 0 : 1;
 }
@@ -220,9 +237,7 @@ export function rankQueue(
   const skip = new Set([...skipKeys, ...Array.from(getSoldListingKeys())]);
   const preferPrints = opts?.preferPrints ?? [];
   const condition = opts?.condition ?? null;
-  const fromQueue = data.queue?.length
-    ? data.queue
-    : data.sources.flatMap((s) => s.listings);
+  const fromQueue = data.queue?.length ? data.queue : data.sources.flatMap((s) => s.listings);
   const seen = new Set<string>();
   const priced: Listing[] = [];
   const shops: Listing[] = [];
@@ -262,7 +277,10 @@ export function mergeLiveQueue(
 }
 
 function prettyPrintName(name: string) {
-  return name.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase()).trim();
+  return name
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (s) => s.toUpperCase())
+    .trim();
 }
 
 type SeedCard = {
@@ -385,7 +403,13 @@ export function seedListingsFromCard(card: SeedCard): Listing[] {
 
 export async function getCardPrices(
   query: string,
-  opts?: { cheapOnly?: boolean; fresh?: boolean; cardId?: string; skipKeys?: string[]; condition?: string | null },
+  opts?: {
+    cheapOnly?: boolean;
+    fresh?: boolean;
+    cardId?: string;
+    skipKeys?: string[];
+    condition?: string | null;
+  },
 ): Promise<AggregateResponse> {
   const skip = (opts?.skipKeys ?? []).slice(0, 64);
   const cond = (opts?.condition || "").toLowerCase().trim();
@@ -410,7 +434,10 @@ export async function getCardPrices(
   if (opts?.fresh) qs.set("fresh", "1");
   if (cond) qs.set("condition", cond);
   for (const k of skip) qs.append("skip", k);
-  const r = await fetch(`/api/public/card-prices?${qs}`, { headers, cache: opts?.fresh ? "no-store" : "default" });
+  const r = await fetch(`/api/public/card-prices?${qs}`, {
+    headers,
+    cache: opts?.fresh ? "no-store" : "default",
+  });
   if (!r.ok) throw new Error(`card-prices ${r.status}`);
   const json = (await r.json()) as AggregateResponse;
   cache.set(key, { t: Date.now(), v: json });
@@ -418,7 +445,11 @@ export async function getCardPrices(
 }
 
 /** Lightweight: returns just the cheapest listing total (price + shipping) or null. */
-export async function getCheapestPrice(query: string, cardId?: string, condition?: string): Promise<Listing | null> {
+export async function getCheapestPrice(
+  query: string,
+  cardId?: string,
+  condition?: string,
+): Promise<Listing | null> {
   try {
     const j = await getCardPrices(query, { cheapOnly: true, cardId, condition });
     const queue = rankQueue(j, [], { condition });

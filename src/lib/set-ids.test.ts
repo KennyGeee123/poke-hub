@@ -40,8 +40,18 @@ describe("setIdAliases", () => {
 
 describe("set card completeness", () => {
   it("treats 250 of 295 Ascended Heroes as incomplete", () => {
-    expect(setCardsLookComplete(Array.from({ length: 250 }, (_, i) => ({ id: `x-${i}` })), 295)).toBe(false);
-    expect(setCardsLookComplete(Array.from({ length: 295 }, (_, i) => ({ id: `x-${i}` })), 295)).toBe(true);
+    expect(
+      setCardsLookComplete(
+        Array.from({ length: 250 }, (_, i) => ({ id: `x-${i}` })),
+        295,
+      ),
+    ).toBe(false);
+    expect(
+      setCardsLookComplete(
+        Array.from({ length: 295 }, (_, i) => ({ id: `x-${i}` })),
+        295,
+      ),
+    ).toBe(true);
   });
 
   it("reads expected total from card.set.total", () => {
@@ -53,7 +63,14 @@ describe("set card completeness", () => {
 describe("mergeSetCardsByLocalId", () => {
   it("collapses me02.5-001 and me2pt5-1", () => {
     const dx = [{ id: "me02.5-001", number: "001", name: "Oddish" }];
-    const ptcg = [{ id: "me2pt5-1", number: "1", name: "Oddish", tcgplayer: { prices: { normal: { market: 0.03 } } } }];
+    const ptcg = [
+      {
+        id: "me2pt5-1",
+        number: "1",
+        name: "Oddish",
+        tcgplayer: { prices: { normal: { market: 0.03 } } },
+      },
+    ];
     const merged = mergeSetCardsByLocalId(dx, ptcg);
     expect(merged).toHaveLength(1);
     expect(merged[0].id).toBe("me02.5-001");
@@ -82,7 +99,12 @@ describe("mergeSetCardsByLocalId", () => {
   it("overlaySetPrices never appends extra prints", () => {
     const box = [{ id: "sv03.5-006", number: "006", name: "Charizard ex" }];
     const quotes = [
-      { id: "sv3pt5-6", number: "6", name: "Charizard ex", tcgplayer: { prices: { holofoil: { market: 12 } } } },
+      {
+        id: "sv3pt5-6",
+        number: "6",
+        name: "Charizard ex",
+        tcgplayer: { prices: { holofoil: { market: 12 } } },
+      },
       { id: "sv3pt5-999", number: "999", name: "Fake Extra" },
     ];
     const out = overlaySetPrices(box, quotes);

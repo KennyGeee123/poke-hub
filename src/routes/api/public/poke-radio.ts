@@ -3,15 +3,32 @@ import { z } from "zod";
 
 const SOURCE_BASE = "https://play.pokemonshowdown.com/audio";
 const TRACKS = new Set([
-  "dpp-trainer", "dpp-rival", "hgss-johto-trainer", "hgss-kanto-trainer",
-  "bw-trainer", "bw-rival", "bw-subway-trainer", "bw2-rival",
-  "bw2-kanto-gym-leader", "bw2-homika-dogars", "xy-trainer", "xy-rival",
-  "oras-trainer", "oras-rival", "sm-trainer", "sm-rival",
-  "colosseum-miror-b", "xd-miror-b", "spl-elite4",
+  "dpp-trainer",
+  "dpp-rival",
+  "hgss-johto-trainer",
+  "hgss-kanto-trainer",
+  "bw-trainer",
+  "bw-rival",
+  "bw-subway-trainer",
+  "bw2-rival",
+  "bw2-kanto-gym-leader",
+  "bw2-homika-dogars",
+  "xy-trainer",
+  "xy-rival",
+  "oras-trainer",
+  "oras-rival",
+  "sm-trainer",
+  "sm-rival",
+  "colosseum-miror-b",
+  "xd-miror-b",
+  "spl-elite4",
 ]);
 
 const RadioQuery = z.object({
-  track: z.string().regex(/^[a-z0-9-]+$/).refine((track) => TRACKS.has(track), "Unknown track"),
+  track: z
+    .string()
+    .regex(/^[a-z0-9-]+$/)
+    .refine((track) => TRACKS.has(track), "Unknown track"),
   format: z.enum(["mp3", "ogg"]).default("mp3"),
 });
 
@@ -39,7 +56,10 @@ export const Route = createFileRoute("/api/public/poke-radio")({
         });
 
         if (!upstream.ok) {
-          return Response.json({ error: `Radio source failed: ${upstream.status}` }, { status: 502 });
+          return Response.json(
+            { error: `Radio source failed: ${upstream.status}` },
+            { status: 502 },
+          );
         }
 
         const headers = new Headers({

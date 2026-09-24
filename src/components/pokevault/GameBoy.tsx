@@ -72,7 +72,9 @@ export function GameBoyView() {
         for (const m of p) {
           try {
             const real = await movesAtLevel(m.name, m.level, m.attacks);
-            const same = real.length === m.attacks.length && real.every((r, i) => r.name === m.attacks[i]?.name);
+            const same =
+              real.length === m.attacks.length &&
+              real.every((r, i) => r.name === m.attacks[i]?.name);
             if (real.length && !same) {
               const updated = { ...m, attacks: real };
               await saveMonStats(updated);
@@ -116,7 +118,9 @@ export function GameBoyView() {
           mon.attacks = real;
           await saveMonStats(mon);
         }
-      } catch (e) { console.error(e); }
+      } catch (e) {
+        console.error(e);
+      }
       setParty((p) => [...p, mon]);
       setScene("party");
       setPickedSet(null);
@@ -130,8 +134,20 @@ export function GameBoyView() {
   }
 
   function startBattle(mon: GBMon) {
-    const lvl = Math.max(1, mon.level + (Math.random() < 0.5 ? -1 : 1) + Math.floor(Math.random() * 3) - 1);
-    const pool = ["Pidgey", "Rattata", "Oddish", "Eevee", "Meowth", "Pikachu", "Psyduck", "Growlithe"];
+    const lvl = Math.max(
+      1,
+      mon.level + (Math.random() < 0.5 ? -1 : 1) + Math.floor(Math.random() * 3) - 1,
+    );
+    const pool = [
+      "Pidgey",
+      "Rattata",
+      "Oddish",
+      "Eevee",
+      "Meowth",
+      "Pikachu",
+      "Psyduck",
+      "Growlithe",
+    ];
     const name = pool[Math.floor(Math.random() * pool.length)];
     void kickoffSpecies(mon, name, lvl);
   }
@@ -149,7 +165,8 @@ export function GameBoyView() {
     setLog([`A wild ${f.name.toUpperCase()} (Lv ${f.level}) appeared!`]);
     setPane("main");
     setPotions(STARTING_POTIONS);
-    setFoeFx(""); setMeFx("");
+    setFoeFx("");
+    setMeFx("");
     setCatchPhase(null);
     setNotice(null);
     faintedRef.current = new Set();
@@ -170,7 +187,8 @@ export function GameBoyView() {
     setLog([`A wild ${f.name.toUpperCase()} (Lv ${f.level}) appeared!`]);
     setPane("main");
     setPotions(STARTING_POTIONS);
-    setFoeFx(""); setMeFx("");
+    setFoeFx("");
+    setMeFx("");
     setCatchPhase(null);
     setNotice(null);
     faintedRef.current = new Set();
@@ -181,8 +199,13 @@ export function GameBoyView() {
   useEffect(() => {
     const onWild = async (e: Event) => {
       const detail = (e as CustomEvent).detail as {
-        name?: string; level?: number; kind?: "wild" | "gym" | "elite" | "champion";
-        catchable?: boolean; badge?: string; e4Index?: number; leader?: string;
+        name?: string;
+        level?: number;
+        kind?: "wild" | "gym" | "elite" | "champion";
+        catchable?: boolean;
+        badge?: string;
+        e4Index?: number;
+        leader?: string;
       };
       if (!detail?.name) return;
       catchableRef.current = detail.catchable !== false && (detail.kind || "wild") === "wild";
@@ -200,7 +223,9 @@ export function GameBoyView() {
         const lvl = Math.max(2, Math.min(60, detail.level ?? mon.level));
         fromAdventureRef.current = true;
         await kickoffSpecies(mon, detail.name, lvl);
-      } catch (err) { console.error(err); }
+      } catch (err) {
+        console.error(err);
+      }
     };
     // Adventure overlay owns in-tab fights; this listener remains for Game Boy tab sandbox.
     window.addEventListener("pv-gb-wild", onWild as EventListener);
@@ -275,11 +300,7 @@ export function GameBoyView() {
       await endBattle(false);
       return;
     }
-    setLog((l) => [
-      `Go! ${next.name.toUpperCase()}!`,
-      `${down.name.toUpperCase()} fainted!`,
-      ...l,
-    ]);
+    setLog((l) => [`Go! ${next.name.toUpperCase()}!`, `${down.name.toUpperCase()} fainted!`, ...l]);
     setActive(next);
     setActiveHp(next.max_hp);
     setMeFx("");
@@ -338,10 +359,15 @@ export function GameBoyView() {
         const mon = await addSpeciesToParty(foe.name, foe.level, foe.types);
         try {
           const real = await movesAtLevel(mon.name, mon.level, mon.attacks);
-          if (real.length) { mon.attacks = real; await saveMonStats(mon); }
+          if (real.length) {
+            mon.attacks = real;
+            await saveMonStats(mon);
+          }
         } catch {}
         setParty((p) => [...p, mon]);
-      } catch (e) { console.error(e); }
+      } catch (e) {
+        console.error(e);
+      }
       await wait(1100);
       setCatchPhase(null);
       setScene("victory");
@@ -361,21 +387,26 @@ export function GameBoyView() {
     if (won) {
       const xp = 25 + foe.level * 12;
       const oldLevel = active.level;
-      let { mon, leveled } = gainXP({ ...active, wins: active.wins + 1 }, xp);
+      const { mon, leveled } = gainXP({ ...active, wins: active.wins + 1 }, xp);
       setGained(xp);
       const learnedLogs: string[] = [];
       if (leveled) {
         try {
           const learned = await newlyLearned(mon.name, oldLevel, mon.level);
           if (learned.length) {
-            let attacks = [...mon.attacks];
+            const attacks = [...mon.attacks];
             for (const nm of learned) {
               if (attacks.find((a) => a.name === nm.name)) continue;
               if (attacks.length < 4) attacks.push(nm);
               else {
-                const widx = attacks.reduce((wi, a, i, arr) => (a.damage < arr[wi].damage ? i : wi), 0);
+                const widx = attacks.reduce(
+                  (wi, a, i, arr) => (a.damage < arr[wi].damage ? i : wi),
+                  0,
+                );
                 if (nm.damage > attacks[widx].damage) {
-                  learnedLogs.push(`📘 ${mon.name} forgot ${attacks[widx].name} and learned ${nm.name}!`);
+                  learnedLogs.push(
+                    `📘 ${mon.name} forgot ${attacks[widx].name} and learned ${nm.name}!`,
+                  );
                   attacks[widx] = nm;
                   continue;
                 }
@@ -384,9 +415,15 @@ export function GameBoyView() {
             }
             mon = { ...mon, attacks };
           }
-        } catch (e) { console.error(e); }
+        } catch (e) {
+          console.error(e);
+        }
       }
-      try { await saveMonStats(mon); } catch (e) { console.error(e); }
+      try {
+        await saveMonStats(mon);
+      } catch (e) {
+        console.error(e);
+      }
       setActive(mon);
       setParty((p) => p.map((x) => (x.id === mon.id ? mon : x)));
       setLog((l) => [
@@ -397,10 +434,14 @@ export function GameBoyView() {
       ]);
       const kind = battleKindRef.current;
       if (kind === "gym" && badgeRef.current) {
-        window.dispatchEvent(new CustomEvent("pv-adv-gym-won", { detail: { badge: badgeRef.current } }));
+        window.dispatchEvent(
+          new CustomEvent("pv-adv-gym-won", { detail: { badge: badgeRef.current } }),
+        );
       }
       if (kind === "elite" || kind === "champion") {
-        window.dispatchEvent(new CustomEvent("pv-adv-elite-won", { detail: { index: e4IndexRef.current } }));
+        window.dispatchEvent(
+          new CustomEvent("pv-adv-elite-won", { detail: { index: e4IndexRef.current } }),
+        );
       }
       setScene("victory");
     } else {
@@ -415,7 +456,14 @@ export function GameBoyView() {
     setParty((p) => p.filter((m) => m.id !== id));
   }
 
-  if (loading) return <div className="gb-frame"><div className="gb-screen"><div className="gb-line">LOADING…</div></div></div>;
+  if (loading)
+    return (
+      <div className="gb-frame">
+        <div className="gb-screen">
+          <div className="gb-line">LOADING…</div>
+        </div>
+      </div>
+    );
 
   return (
     <div className="gb-wrap">
@@ -423,14 +471,20 @@ export function GameBoyView() {
         <div className="gb-top">
           <div className="gb-led" />
           <div className="gb-brand">GAME BOY COLOR · DOT MATRIX WITH STEREO SOUND</div>
-          <div className="gb-dot-cluster"><span /><span /><span /></div>
+          <div className="gb-dot-cluster">
+            <span />
+            <span />
+            <span />
+          </div>
         </div>
         <div className="gb-screen">
           <div className="gb-scanlines" aria-hidden />
           {notice && (
             <div className="gb-notice" role="status">
               <div className="gb-line">{notice}</div>
-              <button className="gb-mi gb-mi-sm" onClick={() => setNotice(null)}>OK</button>
+              <button className="gb-mi gb-mi-sm" onClick={() => setNotice(null)}>
+                OK
+              </button>
             </div>
           )}
           {scene === "menu" && (
@@ -459,7 +513,10 @@ export function GameBoyView() {
               busy={busy}
               onSet={loadSet}
               onPick={pickStarter}
-              onBack={() => { setPickedSet(null); setScene(party.length ? "party" : "menu"); }}
+              onBack={() => {
+                setPickedSet(null);
+                setScene(party.length ? "party" : "menu");
+              }}
             />
           )}
           {scene === "battle" && active && foe && (
@@ -470,7 +527,9 @@ export function GameBoyView() {
               foeHp={foeHp}
               meFx={meFx}
               foeFx={foeFx}
-              catchPhase={catchPhase} catchable={catchable} atkClip={atkClip}
+              catchPhase={catchPhase}
+              catchable={catchable}
+              atkClip={atkClip}
               log={log}
               busy={busy}
               pane={pane}
@@ -489,7 +548,11 @@ export function GameBoyView() {
             <ResultScreen
               title="VICTORY!"
               mon={active}
-              extra={gained ? `+${gained} XP — Next Lv: ${active.xp}/${xpForNext(active.level)}` : "Caught it!"}
+              extra={
+                gained
+                  ? `+${gained} XP — Next Lv: ${active.xp}/${xpForNext(active.level)}`
+                  : "Caught it!"
+              }
               onContinue={() => {
                 const back = fromAdventureRef.current;
                 fromAdventureRef.current = false;
@@ -514,21 +577,71 @@ export function GameBoyView() {
         </div>
         <div className="gb-controls">
           <div className="gb-dpad" aria-label="D-pad">
-            <button type="button" className="up" aria-label="Up" onClick={() => pressGbDpad("up")}>▲</button>
-            <button type="button" className="left" aria-label="Left" onClick={() => pressGbDpad("left")}>◀</button>
-            <button type="button" className="right" aria-label="Right" onClick={() => pressGbDpad("right")}>▶</button>
-            <button type="button" className="down" aria-label="Down" onClick={() => pressGbDpad("down")}>▼</button>
+            <button type="button" className="up" aria-label="Up" onClick={() => pressGbDpad("up")}>
+              ▲
+            </button>
+            <button
+              type="button"
+              className="left"
+              aria-label="Left"
+              onClick={() => pressGbDpad("left")}
+            >
+              ◀
+            </button>
+            <button
+              type="button"
+              className="right"
+              aria-label="Right"
+              onClick={() => pressGbDpad("right")}
+            >
+              ▶
+            </button>
+            <button
+              type="button"
+              className="down"
+              aria-label="Down"
+              onClick={() => pressGbDpad("down")}
+            >
+              ▼
+            </button>
           </div>
           <div className="gb-ab">
-            <button type="button" className="gb-btn gb-btn-b" aria-label="B" onClick={() => pressGbFace("B")}>B</button>
-            <button type="button" className="gb-btn gb-btn-a" aria-label="A" onClick={() => pressGbFace("A")}>A</button>
+            <button
+              type="button"
+              className="gb-btn gb-btn-b"
+              aria-label="B"
+              onClick={() => pressGbFace("B")}
+            >
+              B
+            </button>
+            <button
+              type="button"
+              className="gb-btn gb-btn-a"
+              aria-label="A"
+              onClick={() => pressGbFace("A")}
+            >
+              A
+            </button>
           </div>
         </div>
         <div className="gb-startsel">
-          <div className="gb-pill-wrap"><div className="gb-pill" /><span>SELECT</span></div>
-          <div className="gb-pill-wrap"><div className="gb-pill" /><span>START</span></div>
+          <div className="gb-pill-wrap">
+            <div className="gb-pill" />
+            <span>SELECT</span>
+          </div>
+          <div className="gb-pill-wrap">
+            <div className="gb-pill" />
+            <span>START</span>
+          </div>
         </div>
-        <div className="gb-speaker"><span /><span /><span /><span /><span /><span /></div>
+        <div className="gb-speaker">
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
       </div>
     </div>
   );
@@ -540,8 +653,16 @@ function wait(ms: number) {
 
 /* ─────────── Sub-screens ─────────── */
 
-function Menu({ party, onContinue, onParty, onStarter }: {
-  party: GBMon[]; onContinue: () => void; onParty: () => void; onStarter: () => void;
+function Menu({
+  party,
+  onContinue,
+  onParty,
+  onStarter,
+}: {
+  party: GBMon[];
+  onContinue: () => void;
+  onParty: () => void;
+  onStarter: () => void;
 }) {
   return (
     <div className="gb-page">
@@ -550,21 +671,20 @@ function Menu({ party, onContinue, onParty, onStarter }: {
       {party.length > 0 && (
         <div className="gb-menu-preview">
           {party.slice(0, 6).map((m) => (
-            <SpriteImg
-              key={m.id}
-              className="gb-sprite"
-              name={m.name}
-              alt={m.name}
-            />
+            <SpriteImg key={m.id} className="gb-sprite" name={m.name} alt={m.name} />
           ))}
         </div>
       )}
       <div className="gb-menu">
-        <button className="gb-mi" onClick={onContinue} disabled={!party.length}>CONTINUE</button>
+        <button className="gb-mi" onClick={onContinue} disabled={!party.length}>
+          CONTINUE
+        </button>
         <button className="gb-mi" onClick={onParty} disabled={!party.length}>
           PARTY{party.length ? `  (${party.length})` : ""}
         </button>
-        <button className="gb-mi" onClick={onStarter}>NEW TRAINER</button>
+        <button className="gb-mi" onClick={onStarter}>
+          NEW TRAINER
+        </button>
       </div>
       <div className="gb-foot">© POKÉVAULT — TCG RPG</div>
     </div>
@@ -572,15 +692,29 @@ function Menu({ party, onContinue, onParty, onStarter }: {
 }
 
 function PartyView({
-  party, onBattle, onAdd, onRelease, onBack,
-}: { party: GBMon[]; onBattle: (m: GBMon) => void; onAdd: () => void; onRelease: (id: string) => void; onBack: () => void }) {
+  party,
+  onBattle,
+  onAdd,
+  onRelease,
+  onBack,
+}: {
+  party: GBMon[];
+  onBattle: (m: GBMon) => void;
+  onAdd: () => void;
+  onRelease: (id: string) => void;
+  onBack: () => void;
+}) {
   if (!party.length) {
     return (
       <div className="gb-page">
         <div className="gb-line">PARTY IS EMPTY</div>
         <div className="gb-line gb-line-sm">Catch in Adventure, or pick a starter.</div>
-        <button className="gb-mi" onClick={onAdd}>CATCH A POKÉMON</button>
-        <button className="gb-mi gb-mi-sm" onClick={onBack}>BACK</button>
+        <button className="gb-mi" onClick={onAdd}>
+          CATCH A POKÉMON
+        </button>
+        <button className="gb-mi gb-mi-sm" onClick={onBack}>
+          BACK
+        </button>
       </div>
     );
   }
@@ -594,38 +728,67 @@ function PartyView({
             <SpriteImg className="gb-sprite" name={m.name} alt={m.name} />
             <div className="gb-pm-info">
               <div className="gb-pm-name">{m.name.toUpperCase()}</div>
-              <div className="gb-pm-meta">Lv {m.level} · {m.wins}W / {m.losses}L</div>
+              <div className="gb-pm-meta">
+                Lv {m.level} · {m.wins}W / {m.losses}L
+              </div>
               <div className="gb-type-pills">
                 {(m.types.length ? m.types : ["—"]).map((t) => (
-                  <span key={t} className="gb-type-pill">{t}</span>
+                  <span key={t} className="gb-type-pill">
+                    {t}
+                  </span>
                 ))}
               </div>
               <div className="gb-hpbar" title="HP">
                 <span style={{ width: "100%" }} />
               </div>
-              <div className="gb-hp-text">HP {m.max_hp}/{m.max_hp}</div>
-              <div className="gb-xpbar"><span style={{ width: `${Math.min(100, (m.xp / xpForNext(m.level)) * 100)}%` }} /></div>
+              <div className="gb-hp-text">
+                HP {m.max_hp}/{m.max_hp}
+              </div>
+              <div className="gb-xpbar">
+                <span style={{ width: `${Math.min(100, (m.xp / xpForNext(m.level)) * 100)}%` }} />
+              </div>
             </div>
             <div className="gb-pm-acts">
-              <button className="gb-mi gb-mi-sm" onClick={() => onBattle(m)}>FIGHT</button>
-              <button className="gb-mi gb-mi-sm gb-mi-x" onClick={() => onRelease(m.id)}>RELEASE</button>
+              <button className="gb-mi gb-mi-sm" onClick={() => onBattle(m)}>
+                FIGHT
+              </button>
+              <button className="gb-mi gb-mi-sm gb-mi-x" onClick={() => onRelease(m.id)}>
+                RELEASE
+              </button>
             </div>
           </div>
         ))}
       </div>
       <div className="gb-row">
-        <button className="gb-mi gb-mi-sm" onClick={onAdd}>+ ADD</button>
-        <button className="gb-mi gb-mi-sm" onClick={onBack}>MENU</button>
+        <button className="gb-mi gb-mi-sm" onClick={onAdd}>
+          + ADD
+        </button>
+        <button className="gb-mi gb-mi-sm" onClick={onBack}>
+          MENU
+        </button>
       </div>
     </div>
   );
 }
 
 function StarterPicker({
-  sets, pickedSet, cards, loading, busy, onSet, onPick, onBack,
+  sets,
+  pickedSet,
+  cards,
+  loading,
+  busy,
+  onSet,
+  onPick,
+  onBack,
 }: {
-  sets: TCGSet[]; pickedSet: TCGSet | null; cards: TCGCard[]; loading: boolean; busy: boolean;
-  onSet: (s: TCGSet) => void; onPick: (c: TCGCard) => void; onBack: () => void;
+  sets: TCGSet[];
+  pickedSet: TCGSet | null;
+  cards: TCGCard[];
+  loading: boolean;
+  busy: boolean;
+  onSet: (s: TCGSet) => void;
+  onPick: (c: TCGCard) => void;
+  onBack: () => void;
 }) {
   const setGrid = useMemo(() => sets.slice(0, 80), [sets]);
   if (!pickedSet) {
@@ -645,40 +808,75 @@ function StarterPicker({
             </button>
           ))}
         </div>
-        <button className="gb-mi gb-mi-sm" onClick={onBack}>BACK</button>
+        <button className="gb-mi gb-mi-sm" onClick={onBack}>
+          BACK
+        </button>
       </div>
     );
   }
   return (
     <div className="gb-page">
       <div className="gb-line gb-line-hd">{pickedSet.name.toUpperCase()}</div>
-      {loading ? <div className="gb-line">LOADING…</div> : (
+      {loading ? (
+        <div className="gb-line">LOADING…</div>
+      ) : (
         <div className="gb-grid">
           {cards.map((c) => (
             <button key={c.id} className="gb-card" disabled={busy} onClick={() => onPick(c)}>
               <SpriteImg name={c.name} alt={c.name} />
               <div className="gb-cname">{c.name}</div>
-              <div className="gb-cmeta">HP {c.hp} · {(c.types || []).join("/")}</div>
+              <div className="gb-cmeta">
+                HP {c.hp} · {(c.types || []).join("/")}
+              </div>
             </button>
           ))}
         </div>
       )}
-      <button className="gb-mi gb-mi-sm" onClick={onBack}>BACK</button>
+      <button className="gb-mi gb-mi-sm" onClick={onBack}>
+        BACK
+      </button>
     </div>
   );
 }
 
 function BattleScreen({
-  me, meHp, foe, foeHp, meFx, foeFx, catchPhase, catchable, atkClip, log, busy, pane, party, fainted, potions,
-  onPane, onMove, onPotion, onSwitch, onCatch, onRun,
+  me,
+  meHp,
+  foe,
+  foeHp,
+  meFx,
+  foeFx,
+  catchPhase,
+  catchable,
+  atkClip,
+  log,
+  busy,
+  pane,
+  party,
+  fainted,
+  potions,
+  onPane,
+  onMove,
+  onPotion,
+  onSwitch,
+  onCatch,
+  onRun,
 }: {
-  me: GBMon; meHp: number; foe: GBMon; foeHp: number;
-  meFx: string; foeFx: string;
+  me: GBMon;
+  meHp: number;
+  foe: GBMon;
+  foeHp: number;
+  meFx: string;
+  foeFx: string;
   catchPhase: CatchPhase | null;
   catchable: boolean;
   atkClip: string | null;
-  log: string[]; busy: boolean; pane: BattlePane;
-  party: GBMon[]; fainted: string[]; potions: number;
+  log: string[];
+  busy: boolean;
+  pane: BattlePane;
+  party: GBMon[];
+  fainted: string[];
+  potions: number;
   onPane: (p: BattlePane) => void;
   onMove: (m: GBMove) => void;
   onPotion: () => void;
@@ -697,41 +895,65 @@ function BattleScreen({
   return (
     <div className="gb-page gb-battle">
       <div className={`gb-arena ${catchPhase ? `pv-catching-${catchPhase}` : ""}`}>
-      <video className="gb-arena-vid" src={ARENA_CLIP} autoPlay muted loop playsInline preload="none" />
-      {atkClip && (
-        <video key={atkClip} className="gb-atk-vid" src={atkClip} autoPlay muted playsInline />
-      )}
-      <div className="gb-bf">
-        <div className="gb-side gb-foe">
-          <div className={`gb-stat ${foeLow}`}>
-            <div className="gb-stat-name">{foe.name.toUpperCase()} <span>Lv{foe.level}</span></div>
-            <div className="gb-hpbar"><span className={hpColor(foeHpPct)} style={{ width: `${foeHpPct}%` }} /></div>
-            <div className="gb-hp-text">HP {foeHp}/{foe.max_hp}</div>
+        <video
+          className="gb-arena-vid"
+          src={ARENA_CLIP}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="none"
+        />
+        {atkClip && (
+          <video key={atkClip} className="gb-atk-vid" src={atkClip} autoPlay muted playsInline />
+        )}
+        <div className="gb-bf">
+          <div className="gb-side gb-foe">
+            <div className={`gb-stat ${foeLow}`}>
+              <div className="gb-stat-name">
+                {foe.name.toUpperCase()} <span>Lv{foe.level}</span>
+              </div>
+              <div className="gb-hpbar">
+                <span className={hpColor(foeHpPct)} style={{ width: `${foeHpPct}%` }} />
+              </div>
+              <div className="gb-hp-text">
+                HP {foeHp}/{foe.max_hp}
+              </div>
+            </div>
+            <SpriteImg
+              className={`gb-actor gb-actor-foe gb-fx-${foeFx}`}
+              name={foe.name}
+              alt={foe.name}
+            />
           </div>
-          <SpriteImg
-            className={`gb-actor gb-actor-foe gb-fx-${foeFx}`}
-            name={foe.name}
-            alt={foe.name}
-          />
-        </div>
-        <div className="gb-side gb-me">
-          <SpriteImg
-            className={`gb-actor gb-actor-me gb-fx-${meFx}`}
-            name={me.name}
-            back
-            alt={me.name}
-          />
-          <div className={`gb-stat ${meLow}`}>
-            <div className="gb-stat-name">{me.name.toUpperCase()} <span>Lv{me.level}</span></div>
-            <div className="gb-hpbar"><span className={hpColor(meHpPct)} style={{ width: `${meHpPct}%` }} /></div>
-            <div className="gb-hp-text">HP {meHp}/{me.max_hp} · XP {me.xp}/{xpForNext(me.level)}</div>
+          <div className="gb-side gb-me">
+            <SpriteImg
+              className={`gb-actor gb-actor-me gb-fx-${meFx}`}
+              name={me.name}
+              back
+              alt={me.name}
+            />
+            <div className={`gb-stat ${meLow}`}>
+              <div className="gb-stat-name">
+                {me.name.toUpperCase()} <span>Lv{me.level}</span>
+              </div>
+              <div className="gb-hpbar">
+                <span className={hpColor(meHpPct)} style={{ width: `${meHpPct}%` }} />
+              </div>
+              <div className="gb-hp-text">
+                HP {meHp}/{me.max_hp} · XP {me.xp}/{xpForNext(me.level)}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-      <CatchFx phase={catchPhase} />
+        <CatchFx phase={catchPhase} />
       </div>
       <div className="gb-log">
-        {log.slice(0, 3).map((l, i) => <div key={`${i}-${l}`} className="gb-log-line">{l}</div>)}
+        {log.slice(0, 3).map((l, i) => (
+          <div key={`${i}-${l}`} className="gb-log-line">
+            {l}
+          </div>
+        ))}
         {pane === "main" && !busy && (
           <div className="gb-log-line">What will {me.name.toUpperCase()} do?</div>
         )}
@@ -739,10 +961,24 @@ function BattleScreen({
 
       {pane === "main" && (
         <div className="gb-moves">
-          <button className="gb-move" disabled={busy} onClick={() => onPane("fight")}>FIGHT</button>
-          <button className="gb-move" disabled={busy} onClick={() => onPane("bag")}>BAG</button>
-          <button className="gb-move" disabled={busy || party.filter((m) => m.id !== me.id && !fainted.includes(m.id)).length < 1} onClick={() => onPane("switch")}>POKéMON</button>
-          <button className="gb-move gb-move-run" disabled={busy} onClick={onRun}>RUN</button>
+          <button className="gb-move" disabled={busy} onClick={() => onPane("fight")}>
+            FIGHT
+          </button>
+          <button className="gb-move" disabled={busy} onClick={() => onPane("bag")}>
+            BAG
+          </button>
+          <button
+            className="gb-move"
+            disabled={
+              busy || party.filter((m) => m.id !== me.id && !fainted.includes(m.id)).length < 1
+            }
+            onClick={() => onPane("switch")}
+          >
+            POKéMON
+          </button>
+          <button className="gb-move gb-move-run" disabled={busy} onClick={onRun}>
+            RUN
+          </button>
         </div>
       )}
 
@@ -758,7 +994,9 @@ function BattleScreen({
               {m.name} {m.damage ? <span>·{m.damage}</span> : null}
             </button>
           ))}
-          <button className="gb-move gb-move-run" disabled={busy} onClick={() => onPane("main")}>BACK</button>
+          <button className="gb-move gb-move-run" disabled={busy} onClick={() => onPane("main")}>
+            BACK
+          </button>
         </div>
       )}
 
@@ -770,7 +1008,9 @@ function BattleScreen({
           <button className="gb-move" disabled={busy || !catchable} onClick={onCatch}>
             {catchable ? "POKé BALL" : "CAN'T CATCH"}
           </button>
-          <button className="gb-move gb-move-run" disabled={busy} onClick={() => onPane("main")}>BACK</button>
+          <button className="gb-move gb-move-run" disabled={busy} onClick={() => onPane("main")}>
+            BACK
+          </button>
         </div>
       )}
 
@@ -786,13 +1026,17 @@ function BattleScreen({
               <SpriteImg name={m.name} alt={m.name} />
               <div>
                 <div className="gb-pm-name">{m.name.toUpperCase()}</div>
-                <div className="gb-pm-meta">Lv {m.level} · HP {m.max_hp}</div>
+                <div className="gb-pm-meta">
+                  Lv {m.level} · HP {m.max_hp}
+                </div>
               </div>
               {m.id === me.id && <span className="gb-tag">ACTIVE</span>}
               {fainted.includes(m.id) && <span className="gb-tag">FAINTED</span>}
             </button>
           ))}
-          <button className="gb-move gb-move-run" disabled={busy} onClick={() => onPane("main")}>BACK</button>
+          <button className="gb-move gb-move-run" disabled={busy} onClick={() => onPane("main")}>
+            BACK
+          </button>
         </div>
       )}
     </div>
@@ -805,14 +1049,28 @@ function hpColor(pct: number): string {
   return "";
 }
 
-function ResultScreen({ title, mon, extra, onContinue }: { title: string; mon: GBMon; extra: string; onContinue: () => void }) {
+function ResultScreen({
+  title,
+  mon,
+  extra,
+  onContinue,
+}: {
+  title: string;
+  mon: GBMon;
+  extra: string;
+  onContinue: () => void;
+}) {
   return (
     <div className="gb-page">
       <div className="gb-line gb-line-hd">{title}</div>
       <SpriteImg className="gb-actor" name={mon.name} alt={mon.name} />
-      <div className="gb-line">{mon.name.toUpperCase()} Lv {mon.level}</div>
+      <div className="gb-line">
+        {mon.name.toUpperCase()} Lv {mon.level}
+      </div>
       <div className="gb-line gb-line-sm">{extra}</div>
-      <button className="gb-mi" onClick={onContinue}>CONTINUE</button>
+      <button className="gb-mi" onClick={onContinue}>
+        CONTINUE
+      </button>
     </div>
   );
 }

@@ -1,14 +1,5 @@
 import React from "react";
-import {
-  Compass,
-  MapPin,
-  Swords,
-  X,
-  Target,
-  ArrowRight,
-  Footprints,
-  Sparkles,
-} from "lucide-react";
+import { Compass, MapPin, Swords, X, Target, ArrowRight, Footprints, Sparkles } from "lucide-react";
 import {
   type AdventureState,
   type WildCreature,
@@ -57,14 +48,13 @@ export function AdventureNearbyDrawer({
             <span className="text-[10px] uppercase font-bold text-neutral-400">
               Nearby Wildlife ({adventureState.wildCreatures.length})
             </span>
-            <span className="text-[9px] text-cyan-400/80">
-              Walk to rustling grass to reveal
-            </span>
+            <span className="text-[9px] text-cyan-400/80">Walk to rustling grass to reveal</span>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             {adventureState.wildCreatures.map((c) => {
-              const isDiscovered = c.isDiscovered || c.distanceMeters <= RADAR_DISCOVERY_RADIUS_METERS;
+              const isDiscovered =
+                c.isDiscovered || c.distanceMeters <= RADAR_DISCOVERY_RADIUS_METERS;
               const footprints =
                 c.distanceMeters <= 75 ? "🐾" : c.distanceMeters <= 150 ? "🐾🐾" : "🐾🐾🐾";
 
@@ -99,9 +89,7 @@ export function AdventureNearbyDrawer({
                           alt="Unknown Pokémon"
                           className="w-9 h-9 object-contain filter brightness-0 contrast-200 opacity-60"
                         />
-                        <span className="absolute text-[10px] font-bold text-amber-400/90">
-                          ?
-                        </span>
+                        <span className="absolute text-[10px] font-bold text-amber-400/90">?</span>
                       </div>
                     )}
                   </div>
@@ -127,9 +115,7 @@ export function AdventureNearbyDrawer({
                           <span>{footprints}</span>
                           <span>~{c.distanceMeters}m</span>
                         </div>
-                        <span className="text-[8px] text-amber-400/80 mt-0.5">
-                          Walk closer!
-                        </span>
+                        <span className="text-[8px] text-amber-400/80 mt-0.5">Walk closer!</span>
                       </>
                     )}
                   </div>

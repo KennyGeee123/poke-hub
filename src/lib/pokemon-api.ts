@@ -18,7 +18,14 @@ import {
   mergeSetLists,
   searchSpecialCards,
 } from "@/lib/special-sets";
-import { getCachedSets, setCachedSets, getCachedSetCards, setCachedSetCards, getHttpCache, setHttpCache } from "./catalog-cache";
+import {
+  getCachedSets,
+  setCachedSets,
+  getCachedSetCards,
+  setCachedSetCards,
+  getHttpCache,
+  setHttpCache,
+} from "./catalog-cache";
 import {
   expectedSetTotal,
   mergeSetCardsByLocalId,
@@ -30,7 +37,13 @@ import {
 
 const BASE = "https://api.pokemontcg.io/v2";
 
-export type TCGPrice = { low?: number; mid?: number; high?: number; market?: number; directLow?: number };
+export type TCGPrice = {
+  low?: number;
+  mid?: number;
+  high?: number;
+  market?: number;
+  directLow?: number;
+};
 export type TCGCard = {
   id: string;
   name: string;
@@ -55,7 +68,13 @@ export type TCGCard = {
   };
   images: { small: string; large: string };
   abilities?: { name: string; text: string; type: string }[];
-  attacks?: { name: string; cost?: string[]; convertedEnergyCost?: number; damage?: string; text?: string }[];
+  attacks?: {
+    name: string;
+    cost?: string[];
+    convertedEnergyCost?: number;
+    damage?: string;
+    text?: string;
+  }[];
   weaknesses?: { type: string; value: string }[];
   resistances?: { type: string; value: string }[];
   retreatCost?: string[];
@@ -72,7 +91,9 @@ export type TCGCard = {
       averageSellPrice?: number;
       lowPrice?: number;
       trendPrice?: number;
-      avg1?: number; avg7?: number; avg30?: number;
+      avg1?: number;
+      avg7?: number;
+      avg30?: number;
       reverseHoloTrend?: number;
     };
   };
@@ -176,8 +197,9 @@ async function tcgFetch<T>(path: string): Promise<T> {
         const res = await fetch(url, { headers, signal: AbortSignal.timeout(4500) });
         if (res.status === 429 || res.status >= 500) {
           lastErr = new Error(`Card API ${res.status}`);
-          const stale = cacheGet<T>(path, { allowStale: true })
-            || (await getHttpCache<T>(path, CACHE_TTL_MS, { allowStale: true }));
+          const stale =
+            cacheGet<T>(path, { allowStale: true }) ||
+            (await getHttpCache<T>(path, CACHE_TTL_MS, { allowStale: true }));
           if (stale) {
             memCache.set(path, stale);
             return stale;
@@ -222,7 +244,10 @@ const PRINT_PREF = [
   "normal",
 ];
 
-function pickTpField(tp: Record<string, TCGPrice> | undefined, key: "market" | "mid" | "low" | "directLow"): number {
+function pickTpField(
+  tp: Record<string, TCGPrice> | undefined,
+  key: "market" | "mid" | "low" | "directLow",
+): number {
   if (!tp) return 0;
   for (const k of PRINT_PREF) {
     const v = tp[k];
@@ -240,7 +265,12 @@ function pickTpField(tp: Record<string, TCGPrice> | undefined, key: "market" | "
 
 /** Prefer sold market over listing mid/low. */
 function quotedFromTcgplayer(tp: Record<string, TCGPrice> | undefined): number {
-  return pickTpField(tp, "market") || pickTpField(tp, "mid") || pickTpField(tp, "low") || pickTpField(tp, "directLow");
+  return (
+    pickTpField(tp, "market") ||
+    pickTpField(tp, "mid") ||
+    pickTpField(tp, "low") ||
+    pickTpField(tp, "directLow")
+  );
 }
 
 function cardmarketSoldUsd(cm: NonNullable<TCGCard["cardmarket"]>["prices"] | undefined): number {
@@ -273,7 +303,13 @@ export function getMarketPrice(c: TCGCard, opts?: { allowEstimate?: boolean }): 
 function estimatePrice(c: TCGCard): number {
   const r = (c.rarity || "").toLowerCase();
   let base = 0.5;
-  if (r.includes("secret") || r.includes("rainbow") || r.includes("hyper") || r.includes("special illustration")) base = 80;
+  if (
+    r.includes("secret") ||
+    r.includes("rainbow") ||
+    r.includes("hyper") ||
+    r.includes("special illustration")
+  )
+    base = 80;
   else if (r.includes("illustration rare")) base = 35;
   else if (r.includes("ultra") || r.includes("vmax") || r.includes("vstar")) base = 18;
   else if (r.includes(" ex") || r.endsWith("ex") || /\bv\b/.test(r) || r.includes("gx")) base = 8;
@@ -309,16 +345,24 @@ export function getListedLow(c: TCGCard): number {
 export function getRarityColor(rarity?: string): string {
   if (!rarity) return "#888";
   const r = rarity.toLowerCase();
-  if (r.includes("secret") || r.includes("rainbow") || r.includes("gold star") || r.includes("holo star")) return "#ec4899";
+  if (
+    r.includes("secret") ||
+    r.includes("rainbow") ||
+    r.includes("gold star") ||
+    r.includes("holo star")
+  )
+    return "#ec4899";
   if (r.includes("hyper") || r.includes("special") || r.includes("gold")) return "#f59e0b";
-  if (r.includes("ultra") || r.includes("v") || r.includes("ex") || r.includes("gx")) return "#a855f7";
+  if (r.includes("ultra") || r.includes("v") || r.includes("ex") || r.includes("gx"))
+    return "#a855f7";
   if (r.includes("holo")) return "#60a5fa";
   if (r.includes("rare")) return "#facc15";
   if (r.includes("uncommon")) return "#4ade80";
   return "#888";
 }
 
-const CARD_LIST_SELECT = "id,name,supertype,subtypes,hp,attacks,rarity,number,images,set,tcgplayer,cardmarket,types,artist";
+const CARD_LIST_SELECT =
+  "id,name,supertype,subtypes,hp,attacks,rarity,number,images,set,tcgplayer,cardmarket,types,artist";
 
 type SearchResult = { data: TCGCard[]; totalCount: number; page: number; pageSize: number };
 
@@ -348,40 +392,53 @@ export async function searchCards(opts: {
   const lang = opts.lang || "en";
   const extracted = tcgdexSearchName(opts.q);
   const luceneOnly = Boolean(opts.q && /[\w.]+:/.test(opts.q) && !extracted);
-  const text = luceneOnly ? "" : (extracted || opts.q || "");
+  const text = luceneOnly ? "" : extracted || opts.q || "";
   const parsed = parseSearchQuery(text);
   const corrected = parsed.name || (parsed.print ? "" : text);
-  const special = parsed.print === "gold" ? [] : (text.trim() ? searchSpecialCards(text) : []);
+  const special = parsed.print === "gold" ? [] : text.trim() ? searchSpecialCards(text) : [];
 
   let catalog: TCGCard[] = [];
   if (text.trim()) {
     try {
-      catalog = parsed.print === "gold"
-        ? await tcgdexSearchGold(parsed.name, Math.max(pageSize, 80), lang)
-        : await tcgdexSearchCards(text.trim(), pageSize, lang);
-    } catch { /* catalog optional */ }
+      catalog =
+        parsed.print === "gold"
+          ? await tcgdexSearchGold(parsed.name, Math.max(pageSize, 80), lang)
+          : await tcgdexSearchCards(text.trim(), pageSize, lang);
+    } catch {
+      /* catalog optional */
+    }
   }
 
   if (lang !== "en") {
-    const mixed = parsed.print === "gold"
-      ? mergeCards(catalog.filter((c) => isGoldCard(c, c.set?.name)))
-      : mergeCards(special, catalog);
+    const mixed =
+      parsed.print === "gold"
+        ? mergeCards(catalog.filter((c) => isGoldCard(c, c.set?.name)))
+        : mergeCards(special, catalog);
     mixed.forEach(rememberCard);
     const start = (page - 1) * pageSize;
     return { data: mixed.slice(start, start + pageSize), totalCount: mixed.length, page, pageSize };
   }
 
   if (parsed.print === "shadowless" || parsed.print === "error") {
-    const mixed = mergeCards(special, catalog.filter((c) => /shadowless|error|misprint/i.test(`${c.set?.name || ""} ${c.rarity || ""} ${c.name || ""}`)));
+    const mixed = mergeCards(
+      special,
+      catalog.filter((c) =>
+        /shadowless|error|misprint/i.test(`${c.set?.name || ""} ${c.rarity || ""} ${c.name || ""}`),
+      ),
+    );
     mixed.forEach(rememberCard);
-    if (mixed.length) return { data: mixed.slice(0, pageSize), totalCount: mixed.length, page, pageSize };
+    if (mixed.length)
+      return { data: mixed.slice(0, pageSize), totalCount: mixed.length, page, pageSize };
   }
 
   if (parsed.print === "gold") {
     let ptcgGold: TCGCard[] = [];
     // Single-rarity queries are reliable; the big OR lucene 500s on pokemontcg.io.
     const goldQueries = parsed.name
-      ? [`name:"${parsed.name.replace(/"/g, "")}*" rarity:"Rare Holo Star"`, `name:"${parsed.name.replace(/"/g, "")}*" rarity:"Hyper Rare"`]
+      ? [
+          `name:"${parsed.name.replace(/"/g, "")}*" rarity:"Rare Holo Star"`,
+          `name:"${parsed.name.replace(/"/g, "")}*" rarity:"Hyper Rare"`,
+        ]
       : [`rarity:"Rare Holo Star"`];
     const goldHits = await Promise.all(
       goldQueries.map((q) =>
@@ -417,11 +474,12 @@ export async function searchCards(opts: {
   }
 
   const params = new URLSearchParams();
-  const lucene = opts.q && /[\w.]+:/.test(opts.q) && !parsed.print
-    ? opts.q
-    : corrected
-      ? `name:"${corrected.replace(/"/g, "")}*"`
-      : opts.q || "";
+  const lucene =
+    opts.q && /[\w.]+:/.test(opts.q) && !parsed.print
+      ? opts.q
+      : corrected
+        ? `name:"${corrected.replace(/"/g, "")}*"`
+        : opts.q || "";
   if (lucene) params.set("q", lucene);
   params.set("page", String(page));
   params.set("pageSize", String(pageSize));
@@ -438,13 +496,20 @@ export async function searchCards(opts: {
   const ptcg = res?.data ?? [];
   const merged = mergeCards(
     special,
-    catalog.filter((c) => /shadowless|error|misprint/i.test(`${c.set?.name || ""} ${c.rarity || ""} ${c.name || ""}`)),
+    catalog.filter((c) =>
+      /shadowless|error|misprint/i.test(`${c.set?.name || ""} ${c.rarity || ""} ${c.name || ""}`),
+    ),
     ptcg,
     catalog,
   );
   if (merged.length) {
     merged.forEach(rememberCard);
-    return { data: merged.slice(0, pageSize), totalCount: Math.max(res?.totalCount ?? 0, merged.length), page, pageSize };
+    return {
+      data: merged.slice(0, pageSize),
+      totalCount: Math.max(res?.totalCount ?? 0, merged.length),
+      page,
+      pageSize,
+    };
   }
 
   const fb = fallbackSearch(corrected || text);
@@ -485,7 +550,11 @@ export async function getCard(id: string, lang?: string): Promise<TCGCard> {
             .catch(() => null)
         : Promise.resolve(null),
       tcgdexGetCard(id, useLang).catch(() => null),
-    ]).then((hit) => { if (hit?.id) rememberCard(hit); }).catch(() => {});
+    ])
+      .then((hit) => {
+        if (hit?.id) rememberCard(hit);
+      })
+      .catch(() => {});
     return memo;
   }
   const hit = await firstHit<TCGCard>([
@@ -538,7 +607,8 @@ async function fetchSetsFromNetwork(lang = "en"): Promise<TCGSet[]> {
           `/sets?orderBy=-releaseDate&pageSize=250&page=${page}`,
         );
         all.push(...(res.data ?? []));
-        if (!res.data?.length || all.length >= (res.totalCount ?? total) || res.data.length < 250) break;
+        if (!res.data?.length || all.length >= (res.totalCount ?? total) || res.data.length < 250)
+          break;
         page += 1;
         if (page > 8) break;
       } catch {
@@ -560,16 +630,18 @@ export async function getSets(lang = "en"): Promise<TCGSet[]> {
   const cacheKeyLang = lang || "en";
   // IndexedDB read-through (24h TTL). Keep a stale copy for offline/API failure.
   const cached = await getCachedSets<TCGSet[]>();
-  const stale = cacheKeyLang === "en" ? await getCachedSets<TCGSet[]>(Number.MAX_SAFE_INTEGER) : null;
+  const stale =
+    cacheKeyLang === "en" ? await getCachedSets<TCGSet[]>(Number.MAX_SAFE_INTEGER) : null;
 
   if (setsCacheLooksComplete(cached) && cacheKeyLang === "en") {
     return injectSpecialSets(cached!);
   }
 
   // Instant paint: any usable IDB list beats waiting on the full network merge.
-  const instant = (setsCacheLooksComplete(stale) ? stale : null)
-    || (cached && cached.length >= 50 ? cached : null)
-    || (stale && stale.length >= 50 ? stale : null);
+  const instant =
+    (setsCacheLooksComplete(stale) ? stale : null) ||
+    (cached && cached.length >= 50 ? cached : null) ||
+    (stale && stale.length >= 50 ? stale : null);
   if (instant?.length && cacheKeyLang === "en") {
     void fetchSetsFromNetwork(lang)
       .then((fresh) => {
@@ -595,7 +667,11 @@ export async function getSets(lang = "en"): Promise<TCGSet[]> {
   return final;
 }
 
-export async function getCardsBySet(setId: string, page = 1, lang = "en"): Promise<{ data: TCGCard[]; totalCount: number; page: number; pageSize: number }> {
+export async function getCardsBySet(
+  setId: string,
+  page = 1,
+  lang = "en",
+): Promise<{ data: TCGCard[]; totalCount: number; page: number; pageSize: number }> {
   const special = getSpecialSetCards(setId);
   if (special) {
     special.forEach(rememberCard);
@@ -616,7 +692,9 @@ export async function getCardsBySet(setId: string, page = 1, lang = "en"): Promi
   });
 }
 
-async function readCachedSetCards(setId: string): Promise<{ fresh: TCGCard[] | null; stale: TCGCard[] | null }> {
+async function readCachedSetCards(
+  setId: string,
+): Promise<{ fresh: TCGCard[] | null; stale: TCGCard[] | null }> {
   let fresh: TCGCard[] | null = null;
   let stale: TCGCard[] | null = null;
   for (const id of setIdAliases(setId)) {
@@ -733,12 +811,14 @@ export async function getAllCardsBySet(
   // Pokémon TCG API is for live prices only. Do not append extra rows — that
   // duplicates the same print (sv03.5-006 + sv3pt5-6).
   if (all.length) {
-    void fetchPokemonTcgSetPages(setId).then((ptcg) => {
-      if (!ptcg.cards.length) return;
-      overlaySetPrices(all, ptcg.cards);
-      paint(all, Math.max(total, all.length));
-      if (all.length) writeCachedSetCards(setId, all);
-    }).catch(() => {});
+    void fetchPokemonTcgSetPages(setId)
+      .then((ptcg) => {
+        if (!ptcg.cards.length) return;
+        overlaySetPrices(all, ptcg.cards);
+        paint(all, Math.max(total, all.length));
+        if (all.length) writeCachedSetCards(setId, all);
+      })
+      .catch(() => {});
   } else {
     try {
       const ptcg = await fetchPokemonTcgSetPages(setId, (pageCards, tot) => {
@@ -790,9 +870,7 @@ export async function getTrending(pageSize = 16, page = 1, lang = "en"): Promise
   // Discover + local price sort is the reliable trending feed.
   void page;
   const cards = await getDiscoverFast(lang);
-  return [...cards]
-    .sort((a, b) => getMarketPrice(b) - getMarketPrice(a))
-    .slice(0, pageSize);
+  return [...cards].sort((a, b) => getMarketPrice(b) - getMarketPrice(a)).slice(0, pageSize);
 }
 
 export async function getTopMarket(lang = "en"): Promise<TCGCard[]> {
@@ -804,11 +882,11 @@ export async function getTopMarket(lang = "en"): Promise<TCGCard[]> {
     const priced = recent.filter((c) => getMarketPrice(c) > 0);
     const pool = priced.length ? priced : recent;
     if (pool.length) {
-      return [...pool]
-        .sort((a, b) => getMarketPrice(b) - getMarketPrice(a))
-        .slice(0, 30);
+      return [...pool].sort((a, b) => getMarketPrice(b) - getMarketPrice(a)).slice(0, 30);
     }
-  } catch { /* fall through */ }
+  } catch {
+    /* fall through */
+  }
   if (lang === "en") {
     try {
       const res = await searchCards({
@@ -820,16 +898,18 @@ export async function getTopMarket(lang = "en"): Promise<TCGCard[]> {
       const priced = (res.data ?? []).filter((c) => getMarketPrice(c) > 0).slice(0, 30);
       if (priced.length) return priced;
       if (res.data?.length) return res.data.slice(0, 30);
-    } catch { /* fall through */ }
+    } catch {
+      /* fall through */
+    }
   }
   try {
     const fast = await getDiscoverFast(lang);
     if (fast.length) {
-      return [...fast]
-        .sort((a, b) => getMarketPrice(b) - getMarketPrice(a))
-        .slice(0, 30);
+      return [...fast].sort((a, b) => getMarketPrice(b) - getMarketPrice(a)).slice(0, 30);
     }
-  } catch { /* fall through */ }
+  } catch {
+    /* fall through */
+  }
   return FALLBACK_CARDS;
 }
 

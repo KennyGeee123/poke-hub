@@ -21,4 +21,10 @@ describe("Fair Trade swap", () => {
     expect(v.label).toBe("THEY ADD");
     expect(v.theyAdd).toBe(60);
   });
+
+  it("counts cash already on the table toward fairness", () => {
+    const v = fairTradeSwap(20, 80, 60, 0);
+    expect(v.fair).toBe(true);
+    expect(v.label).toBe("FAIR");
+  });
 });

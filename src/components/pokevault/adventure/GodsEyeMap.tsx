@@ -34,7 +34,10 @@ export function GodsEyeMap({
 
   const you = useMemo(() => {
     if (playerGeo) return latLngToAtlasPct(playerGeo.lat, playerGeo.lng);
-    return { x: Math.min(95, Math.max(5, playerCoords.xPct)), y: Math.min(95, Math.max(5, playerCoords.yPct)) };
+    return {
+      x: Math.min(95, Math.max(5, playerCoords.xPct)),
+      y: Math.min(95, Math.max(5, playerCoords.yPct)),
+    };
   }, [playerCoords.xPct, playerCoords.yPct, playerGeo]);
 
   const nodes = useMemo(
@@ -73,7 +76,9 @@ export function GodsEyeMap({
             <Eye className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-extrabold tracking-wide text-white uppercase">God&apos;s Eye</h2>
+            <h2 className="text-sm font-extrabold tracking-wide text-white uppercase">
+              God&apos;s Eye
+            </h2>
             <p className="text-[10px] text-neutral-400">
               Planet atlas · teleport onto GO map or GBA overworld · walk & catch
             </p>
@@ -83,7 +88,7 @@ export function GodsEyeMap({
           type="button"
           onClick={onClose}
           className="p-2 rounded-xl border border-neutral-700 text-neutral-300 hover:text-white"
-          aria-label="Close God&apos;s Eye"
+          aria-label="Close God's Eye"
         >
           <X className="w-4 h-4" />
         </button>
@@ -126,7 +131,11 @@ export function GodsEyeMap({
               backgroundSize: "40px 40px",
             }}
           />
-          <svg className="absolute inset-0 w-full h-full" viewBox={viewBox} preserveAspectRatio="xMidYMid meet">
+          <svg
+            className="absolute inset-0 w-full h-full"
+            viewBox={viewBox}
+            preserveAspectRatio="xMidYMid meet"
+          >
             {wildMarks.map((m) => (
               <circle
                 key={m.id}

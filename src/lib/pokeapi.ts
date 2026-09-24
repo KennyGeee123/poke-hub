@@ -43,7 +43,7 @@ export async function getPokedex(cardName: string): Promise<Pokedex | null> {
   try {
     const p: any = await j(`${BASE}/pokemon/${id}`);
     let species: any = null;
-    let evoNames: string[] = [];
+    const evoNames: string[] = [];
     try {
       species = await j(p.species.url);
       if (species?.evolution_chain?.url) {
@@ -55,9 +55,14 @@ export async function getPokedex(cardName: string): Promise<Pokedex | null> {
         };
         walk(evo.chain);
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
-    const flavor = species?.flavor_text_entries?.find((e: any) => e.language?.name === "en")?.flavor_text?.replace(/\s+/g, " ") ?? null;
+    const flavor =
+      species?.flavor_text_entries
+        ?.find((e: any) => e.language?.name === "en")
+        ?.flavor_text?.replace(/\s+/g, " ") ?? null;
     const genus = species?.genera?.find((g: any) => g.language?.name === "en")?.genus ?? null;
 
     return {

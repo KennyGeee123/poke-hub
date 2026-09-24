@@ -15,12 +15,7 @@ export type FoilStyle =
 /** Alias used by InteractiveHoloCard historically */
 export type HoloStyle = FoilStyle | "cosmic_galaxy";
 
-export const CELEBRATION_SET_IDS = new Set([
-  "30th",
-  "30th-c",
-  "me55",
-  "me55c",
-]);
+export const CELEBRATION_SET_IDS = new Set(["30th", "30th-c", "me55", "me55c"]);
 
 /** Sets whose standard Rare Holos were printed as cosmos (star/circle) sheets */
 const COSMOS_ERA_SET_IDS = new Set([
@@ -104,7 +99,11 @@ export function cardHasFoilFinish(card: FoilCardInput): boolean {
   const r = rarityBlob(card);
   const prices = pricesOf(card);
   if (prices.some((k) => /holo|reverse/i.test(k))) return true;
-  if (/holo|holofoil|reverse|secret|illustration|special\s*illustration|hyper|rainbow|gold|amazing|radiant|shiny|ace\s*spec|ultra\s*rare|rare\s*ultra/i.test(r)) {
+  if (
+    /holo|holofoil|reverse|secret|illustration|special\s*illustration|hyper|rainbow|gold|amazing|radiant|shiny|ace\s*spec|ultra\s*rare|rare\s*ultra/i.test(
+      r,
+    )
+  ) {
     return true;
   }
   // V / VMAX / ex / GX frames almost always carry foil texture
@@ -130,7 +129,9 @@ export function resolveFoilStyle(card: FoilCardInput): FoilStyle {
     /reverse\s*holo/.test(setName);
 
   const isSecretish =
-    /secret|hyper\s*rare|gold\s*star|rainbow\s*rare|gold\s*rare|crown\s*rare|amazing\s*rare/i.test(r);
+    /secret|hyper\s*rare|gold\s*star|rainbow\s*rare|gold\s*rare|crown\s*rare|amazing\s*rare/i.test(
+      r,
+    );
 
   const isIllustration =
     /illustration|special\s*art|alt\s*art|full\s*art|trainer\s*gallery/i.test(r) ||
@@ -140,7 +141,9 @@ export function resolveFoilStyle(card: FoilCardInput): FoilStyle {
   const isModernEx = /\bex\b/i.test(r) && !/gx/i.test(r);
   const isVOrGx = /\b(gx|\bv\b)\b/i.test(r);
 
-  const celebration = CELEBRATION_SET_IDS.has(setId) || /30th|classic\s*collection|celebration/i.test(`${setId} ${setName} ${series}`);
+  const celebration =
+    CELEBRATION_SET_IDS.has(setId) ||
+    /30th|classic\s*collection|celebration/i.test(`${setId} ${setName} ${series}`);
 
   // ─── 30th / Classic Celebration / modern illustration ───
   // Real cards: textured / soft rainbow foil in art — NEVER cosmos stars or circle fields.
@@ -160,14 +163,20 @@ export function resolveFoilStyle(card: FoilCardInput): FoilStyle {
   const cosmosImplied =
     COSMOS_ERA_SET_IDS.has(setId) ||
     /cosmos/.test(r) ||
-    (/rare\s*holo|holo\s*rare/i.test(r) && /neo|e-card|e card|ex series|nintendo black star/i.test(`${series} ${setName}`));
+    (/rare\s*holo|holo\s*rare/i.test(r) &&
+      /neo|e-card|e card|ex series|nintendo black star/i.test(`${series} ${setName}`));
 
   if (cosmosImplied && /holo/i.test(r) && !isReverse) {
     return "cosmos_holo";
   }
 
   // Classic Base / Jungle / Fossil style linear rainbow stripe
-  if (CLASSIC_STRIPE_SET_IDS.has(setId) || /wizards|base\s*set|jungle|fossil|team\s*rocket|gym\s*(heroes|challenge)/i.test(`${series} ${setName}`)) {
+  if (
+    CLASSIC_STRIPE_SET_IDS.has(setId) ||
+    /wizards|base\s*set|jungle|fossil|team\s*rocket|gym\s*(heroes|challenge)/i.test(
+      `${series} ${setName}`,
+    )
+  ) {
     if (/holo/i.test(r) || prices.some((k) => /holofoil/i.test(k) && !/reverse/i.test(k))) {
       return "prism_rainbow";
     }

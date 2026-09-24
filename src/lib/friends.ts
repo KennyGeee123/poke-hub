@@ -75,7 +75,7 @@ export async function fetchFriendships(): Promise<FriendRow[]> {
   if (error) throw error;
   const rows = (data ?? []) as Friendship[];
   const otherIds = Array.from(
-    new Set(rows.map((r) => (r.requester_id === me ? r.addressee_id : r.requester_id)))
+    new Set(rows.map((r) => (r.requester_id === me ? r.addressee_id : r.requester_id))),
   );
   let profiles: FriendProfile[] = [];
   if (otherIds.length) {
@@ -89,16 +89,14 @@ export async function fetchFriendships(): Promise<FriendRow[]> {
     const otherId = r.requester_id === me ? r.addressee_id : r.requester_id;
     const other = profiles.find((p) => p.user_id === otherId) ?? null;
     const direction: FriendRow["direction"] =
-      r.status === "accepted"
-        ? "friend"
-        : r.requester_id === me
-        ? "outgoing"
-        : "incoming";
+      r.status === "accepted" ? "friend" : r.requester_id === me ? "outgoing" : "incoming";
     return { friendship: r, other, direction };
   });
 }
 
-export async function pushVaultSnapshot(vault: Record<string, { card: TCGCard; qty: number }>): Promise<void> {
+export async function pushVaultSnapshot(
+  vault: Record<string, { card: TCGCard; qty: number }>,
+): Promise<void> {
   const { data: u } = await supabase.auth.getUser();
   const uid = u.user?.id;
   if (!uid) return;
@@ -109,7 +107,7 @@ export async function pushVaultSnapshot(vault: Record<string, { card: TCGCard; q
     .from("vault_snapshots")
     .upsert(
       { user_id: uid, cards, total_value, card_count, updated_at: new Date().toISOString() },
-      { onConflict: "user_id" }
+      { onConflict: "user_id" },
     );
   if (error) console.error("vault snapshot push", error);
 }

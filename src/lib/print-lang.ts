@@ -66,7 +66,16 @@ export const SEARCH_CHIPS: Record<string, string[]> = {
 
 export function searchChips(lang: string): string[] {
   const core = SEARCH_CHIPS[lang] ?? ["Charizard", "Pikachu", "Mewtwo", "Lugia", "Rayquaza"];
-  if (lang === "en") return ["Gold", "Gold Star", "Shadowless", "Error", "Misprint", "Shadowless Charizard", ...core];
+  if (lang === "en")
+    return [
+      "Gold",
+      "Gold Star",
+      "Shadowless",
+      "Error",
+      "Misprint",
+      "Shadowless Charizard",
+      ...core,
+    ];
   return [...core, "Gold", "Shadowless", "Error"];
 }
 

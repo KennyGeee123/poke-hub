@@ -4,13 +4,7 @@ import { getMarketPrice } from "./pokemon-api";
 
 export type QualityCategory = "ungraded" | "graded";
 
-export type RawQuality =
-  | "raw_mint"
-  | "raw_nm"
-  | "raw_lp"
-  | "raw_mp"
-  | "raw_hp"
-  | "raw_dmg";
+export type RawQuality = "raw_mint" | "raw_nm" | "raw_lp" | "raw_mp" | "raw_hp" | "raw_dmg";
 
 export type SlabGrade =
   | "psa10"
@@ -288,11 +282,7 @@ export const GRADED_SLABS: SlabGrade[] = [
   "sgc10",
 ];
 
-export const ALL_GRADES: CardGrade[] = [
-  "raw",
-  ...UNGRADED_QUALITIES,
-  ...GRADED_SLABS,
-];
+export const ALL_GRADES: CardGrade[] = ["raw", ...UNGRADED_QUALITIES, ...GRADED_SLABS];
 
 export function getGradeMeta(grade: CardGrade): GradeMeta {
   return GRADE_DEFINITIONS[grade] ?? GRADE_DEFINITIONS.raw;
@@ -321,7 +311,13 @@ const PRINT_VARIANT_LABELS: Record<string, string> = {
 };
 
 function prettyPrintKey(key: string): string {
-  return PRINT_VARIANT_LABELS[key] || `${key.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase()).trim()} (RAW)`;
+  return (
+    PRINT_VARIANT_LABELS[key] ||
+    `${key
+      .replace(/([A-Z])/g, " $1")
+      .replace(/^./, (s) => s.toUpperCase())
+      .trim()} (RAW)`
+  );
 }
 
 /** TCGPlayer print variants (holo / reverse / 1st / unlimited / shadowless), with a RAW NM fallback. */
@@ -371,7 +367,10 @@ export function gradedSlabLadder(card: TCGCard): GradedValuation[] {
   return GRADED_SLABS.map((g) => calculateGradedValue(card, g));
 }
 
-export function getEraMultiplierAdjustment(card: { set?: { releaseDate?: string; name?: string }; rarity?: string }): number {
+export function getEraMultiplierAdjustment(card: {
+  set?: { releaseDate?: string; name?: string };
+  rarity?: string;
+}): number {
   const releaseYear = parseInt(card.set?.releaseDate?.slice(0, 4) || "2020", 10);
   const rarity = (card.rarity || "").toLowerCase();
   const setName = (card.set?.name || "").toLowerCase();
@@ -389,7 +388,10 @@ export function getEraMultiplierAdjustment(card: { set?: { releaseDate?: string;
     eraBonus = 1.0;
   }
 
-  if (/secret|hyper|special\s*art|illustration|alt\s*art|gold\s*star|shining/i.test(rarity) || /shadowless|1st\s*edition/i.test(setName)) {
+  if (
+    /secret|hyper|special\s*art|illustration|alt\s*art|gold\s*star|shining/i.test(rarity) ||
+    /shadowless|1st\s*edition/i.test(setName)
+  ) {
     eraBonus *= 1.35;
   } else if (/holo|ultra|vmax|vstar|ex|gx/i.test(rarity)) {
     eraBonus *= 1.15;
@@ -457,7 +459,7 @@ export function calculateGradedValue(card: TCGCard, grade: CardGrade): GradedVal
 
   const estimatedGradedPrice = Math.max(
     rawPrice * effectiveMultiplier,
-    rawPrice + (meta.isSlab ? 18.0 : 0)
+    rawPrice + (meta.isSlab ? 18.0 : 0),
   );
 
   const rounded = Math.round(estimatedGradedPrice * 100) / 100;
@@ -486,16 +488,16 @@ export function calculateGradedValue(card: TCGCard, grade: CardGrade): GradedVal
 export type PreGradeAnalysis = {
   quality: RawQuality;
   centeringScore: number; // 0-100
-  cornersScore: number;   // 0-100
-  edgesScore: number;     // 0-100
-  surfaceScore: number;   // 0-100
+  cornersScore: number; // 0-100
+  edgesScore: number; // 0-100
+  surfaceScore: number; // 0-100
   compositeScore: number; // 0-100
   predictedGrade: "PSA 10" | "PSA 9" | "PSA 8" | "PSA 7" | "Sub-7";
   probabilities: {
     psa10: number; // 0-100%
-    psa9: number;  // 0-100%
-    psa8: number;  // 0-100%
-    sub8: number;  // 0-100%
+    psa9: number; // 0-100%
+    psa8: number; // 0-100%
+    sub8: number; // 0-100%
   };
   rawPurchasePrice: number;
   gradingFee: number;
@@ -507,7 +509,7 @@ export type PreGradeAnalysis = {
 export function predetermineCardGrade(
   card: TCGCard,
   quality: RawQuality = "raw_mint",
-  customOverrides?: { centering?: number; corners?: number; edges?: number; surface?: number }
+  customOverrides?: { centering?: number; corners?: number; edges?: number; surface?: number },
 ): PreGradeAnalysis {
   const rawPrice = getMarketPrice(card);
   const psa10Value = calculateGradedValue(card, "psa10").estimatedGradedPrice;
@@ -522,22 +524,40 @@ export function predetermineCardGrade(
 
   switch (quality) {
     case "raw_mint":
-      baseCentering = 96; baseCorners = 98; baseEdges = 97; baseSurface = 98;
+      baseCentering = 96;
+      baseCorners = 98;
+      baseEdges = 97;
+      baseSurface = 98;
       break;
     case "raw_nm":
-      baseCentering = 90; baseCorners = 92; baseEdges = 91; baseSurface = 92;
+      baseCentering = 90;
+      baseCorners = 92;
+      baseEdges = 91;
+      baseSurface = 92;
       break;
     case "raw_lp":
-      baseCentering = 82; baseCorners = 80; baseEdges = 78; baseSurface = 84;
+      baseCentering = 82;
+      baseCorners = 80;
+      baseEdges = 78;
+      baseSurface = 84;
       break;
     case "raw_mp":
-      baseCentering = 70; baseCorners = 65; baseEdges = 60; baseSurface = 68;
+      baseCentering = 70;
+      baseCorners = 65;
+      baseEdges = 60;
+      baseSurface = 68;
       break;
     case "raw_hp":
-      baseCentering = 55; baseCorners = 45; baseEdges = 40; baseSurface = 50;
+      baseCentering = 55;
+      baseCorners = 45;
+      baseEdges = 40;
+      baseSurface = 50;
       break;
     case "raw_dmg":
-      baseCentering = 35; baseCorners = 25; baseEdges = 20; baseSurface = 25;
+      baseCentering = 35;
+      baseCorners = 25;
+      baseEdges = 20;
+      baseSurface = 25;
       break;
   }
 
@@ -546,7 +566,7 @@ export function predetermineCardGrade(
   const edges = customOverrides?.edges ?? baseEdges;
   const surface = customOverrides?.surface ?? baseSurface;
 
-  const composite = Math.round((centering * 0.25) + (corners * 0.25) + (edges * 0.25) + (surface * 0.25));
+  const composite = Math.round(centering * 0.25 + corners * 0.25 + edges * 0.25 + surface * 0.25);
 
   let prob10 = 0;
   let prob9 = 0;
@@ -586,18 +606,18 @@ export function predetermineCardGrade(
   else if (prob8 >= 40) predictedGrade = "PSA 8";
   else if (composite >= 70) predictedGrade = "PSA 7";
 
-  const expectedGross = (
+  const expectedGross =
     (prob10 / 100) * psa10Value +
     (prob9 / 100) * psa9Value +
     (prob8 / 100) * psa8Value +
-    (probSub8 / 100) * sub8Value
-  );
+    (probSub8 / 100) * sub8Value;
 
   const rawCostBasis = rawPrice + GRADING_FEE_ESTIMATE;
   const expectedNet = Math.round((expectedGross - rawCostBasis) * 100) / 100;
 
-  let recommendedAction: "SUBMIT FOR GRADING" | "KEEP RAW / BINDER" | "SELL AS RAW SINGLE" = "KEEP RAW / BINDER";
-  if (expectedNet >= 25.0 && (prob10 + prob9) >= 65) {
+  let recommendedAction: "SUBMIT FOR GRADING" | "KEEP RAW / BINDER" | "SELL AS RAW SINGLE" =
+    "KEEP RAW / BINDER";
+  if (expectedNet >= 25.0 && prob10 + prob9 >= 65) {
     recommendedAction = "SUBMIT FOR GRADING";
   } else if (expectedNet < 0) {
     recommendedAction = "SELL AS RAW SINGLE";
@@ -628,7 +648,9 @@ export function predetermineCardGrade(
 export function getSlabSearchUrls(card: TCGCard, grade: CardGrade) {
   const meta = getGradeMeta(grade);
   const baseQuery = `${card.name} ${card.set?.name || ""} ${card.number || ""}`.trim();
-  const slabQuery = !meta.isSlab ? `${baseQuery} ${meta.shortLabel}` : `${baseQuery} ${meta.shortLabel}`;
+  const slabQuery = !meta.isSlab
+    ? `${baseQuery} ${meta.shortLabel}`
+    : `${baseQuery} ${meta.shortLabel}`;
 
   const enc = encodeURIComponent;
   return {

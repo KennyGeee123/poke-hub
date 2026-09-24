@@ -68,7 +68,6 @@ export function AdventureHUD({
     : adventureState.world.activeRegionId === "dresden" ||
       isInsidePark(adventureState.world.playerCoords.xPct, adventureState.world.playerCoords.yPct);
 
-
   const p = adventureState.player;
   const inv = adventureState.inventory;
   const w = adventureState.world;
@@ -156,7 +155,9 @@ export function AdventureHUD({
           {/* Energy Counter */}
           <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-neutral-950/85 backdrop-blur-md border border-cyan-500/30 text-cyan-300 text-xs font-bold shadow-xl">
             <Zap className="w-3.5 h-3.5 text-cyan-400" />
-            <span>{inv.energy}/{inv.maxEnergy}</span>
+            <span>
+              {inv.energy}/{inv.maxEnergy}
+            </span>
           </div>
 
           {/* Bag Quick Trigger */}
@@ -249,7 +250,6 @@ export function AdventureHUD({
                   <span className="text-[10px] font-bold text-neutral-200">ITEMS</span>
                 </button>
 
-                
                 {/* Pokédex (All 1,025) */}
                 {onOpenPokedex && (
                   <button
@@ -325,7 +325,9 @@ export function AdventureHUD({
               </div>
             ))}
           </div>
-          <span className="hidden sm:inline font-bold">NEARBY ({adventureState.wildCreatures.length})</span>
+          <span className="hidden sm:inline font-bold">
+            NEARBY ({adventureState.wildCreatures.length})
+          </span>
         </button>
       </div>
 
@@ -347,7 +349,9 @@ export function AdventureHUD({
               <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/40">
                 ⚡ 30-MINUTE ERA SPAWN ENGINE
               </span>
-              <h3 className="text-xl font-extrabold text-white mt-1">Active Era: {eraStatus.activeEra.name}</h3>
+              <h3 className="text-xl font-extrabold text-white mt-1">
+                Active Era: {eraStatus.activeEra.name}
+              </h3>
               <p className="text-xs text-neutral-400">
                 Overworld Pokémon spawns cycle through 5 canonical eras every 30 minutes!
               </p>
@@ -356,8 +360,13 @@ export function AdventureHUD({
             {/* Countdown Progress Card */}
             <div className="p-3.5 rounded-2xl bg-neutral-900 border border-neutral-800 flex flex-col gap-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-neutral-400">Next Rotation: <span className="text-white font-bold">{eraStatus.nextEra.name}</span></span>
-                <span className="text-cyan-400 font-bold font-mono">⏳ {eraStatus.formattedCountdown} left</span>
+                <span className="text-neutral-400">
+                  Next Rotation:{" "}
+                  <span className="text-white font-bold">{eraStatus.nextEra.name}</span>
+                </span>
+                <span className="text-cyan-400 font-bold font-mono">
+                  ⏳ {eraStatus.formattedCountdown} left
+                </span>
               </div>
               <div className="w-full h-2 rounded-full bg-neutral-950 overflow-hidden border border-neutral-800">
                 <div
@@ -427,7 +436,6 @@ export function AdventureHUD({
           </div>
         </div>
       )}
-
     </>
   );
 }

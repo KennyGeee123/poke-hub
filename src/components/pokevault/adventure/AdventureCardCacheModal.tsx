@@ -1,18 +1,7 @@
 import React, { useState } from "react";
-import {
-  Sparkles,
-  Package,
-  CheckCircle2,
-  TrendingUp,
-  X,
-  ExternalLink,
-} from "lucide-react";
+import { Sparkles, Package, CheckCircle2, TrendingUp, X, ExternalLink } from "lucide-react";
 import { InteractiveHoloCard } from "../InteractiveHoloCard";
-import {
-  type AdventureState,
-  type CardCacheDrop,
-  claimCardCache,
-} from "@/lib/adventure-engine";
+import { type AdventureState, type CardCacheDrop, claimCardCache } from "@/lib/adventure-engine";
 
 export function AdventureCardCacheModal({
   cache,
@@ -64,7 +53,9 @@ export function AdventureCardCacheModal({
             TCG CARD CACHE
           </span>
           <h3 className="text-lg font-bold text-white font-mono mt-1">{cache.title}</h3>
-          <p className="text-xs text-neutral-400">Digital collectible cache found during exploration</p>
+          <p className="text-xs text-neutral-400">
+            Digital collectible cache found during exploration
+          </p>
         </div>
 
         {/* Holographic Reveal Stage */}
@@ -83,7 +74,9 @@ export function AdventureCardCacheModal({
               height={335}
             />
             <div className="mt-2 flex items-center justify-between w-60 px-3 py-1.5 rounded-xl bg-neutral-900 border border-neutral-800 font-mono text-xs">
-              <span className="text-neutral-400">{p.setName} · {p.number}</span>
+              <span className="text-neutral-400">
+                {p.setName} · {p.number}
+              </span>
               <span className="text-emerald-400 font-bold">${p.marketPrice.toFixed(2)}</span>
             </div>
           </div>
@@ -99,7 +92,9 @@ export function AdventureCardCacheModal({
               <div className="font-mono text-xs font-bold text-fuchsia-300">
                 {isRipping ? "RIPPING PACK..." : "TAP TO OPEN PACK"}
               </div>
-              <span className="text-[10px] text-neutral-500 font-mono">Contains 1 Guaranteed Rare Card</span>
+              <span className="text-[10px] text-neutral-500 font-mono">
+                Contains 1 Guaranteed Rare Card
+              </span>
             </div>
           </div>
         )}

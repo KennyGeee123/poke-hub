@@ -50,7 +50,9 @@ describe("Pokemon Moves & Egg/Breedable Moves Customizer Engine", () => {
     const hasEggMoves = repertoire.some((m) => m.category === "egg" && m.isBreedable);
     expect(hasEggMoves).toBe(true);
 
-    const hasSignature = repertoire.some((m) => m.name === "Fire Spin" && m.category === "signature");
+    const hasSignature = repertoire.some(
+      (m) => m.name === "Fire Spin" && m.category === "signature",
+    );
     expect(hasSignature).toBe(true);
 
     const dragonDance = repertoire.find((m) => m.name === "Dragon Dance");

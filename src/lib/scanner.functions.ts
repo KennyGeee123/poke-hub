@@ -25,20 +25,23 @@ async function googleVisionOcr(dataUrl: string): Promise<{ text: string; raw?: a
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        requests: [{
-          image: { content: rawBase64(dataUrl) },
-          features: [
-            { type: "TEXT_DETECTION", maxResults: 1 },
-            { type: "LOGO_DETECTION", maxResults: 3 },
-          ],
-        }],
+        requests: [
+          {
+            image: { content: rawBase64(dataUrl) },
+            features: [
+              { type: "TEXT_DETECTION", maxResults: 1 },
+              { type: "LOGO_DETECTION", maxResults: 3 },
+            ],
+          },
+        ],
       }),
     });
     if (!res.ok) return null;
     const j: any = await res.json();
-    const text: string = j?.responses?.[0]?.fullTextAnnotation?.text
-      ?? j?.responses?.[0]?.textAnnotations?.[0]?.description
-      ?? "";
+    const text: string =
+      j?.responses?.[0]?.fullTextAnnotation?.text ??
+      j?.responses?.[0]?.textAnnotations?.[0]?.description ??
+      "";
     return { text: String(text || "").slice(0, 4000), raw: j?.responses?.[0] };
   } catch {
     return null;
@@ -58,10 +61,12 @@ export const identifyCard = createServerFn({ method: "POST" })
     const ocr = visionConfigured ? await googleVisionOcr(data.imageDataUrl) : null;
     const ocrText = ocr?.text ?? "";
 
-
     try {
       const userContent: any[] = [
-        { type: "text", text: `Identify this Pokémon card. Return JSON only.${ocrText ? `\n\nOCR text extracted from the card (use as strong hint, may contain noise):\n"""${ocrText}"""` : ""}` },
+        {
+          type: "text",
+          text: `Identify this Pokémon card. Return JSON only.${ocrText ? `\n\nOCR text extracted from the card (use as strong hint, may contain noise):\n"""${ocrText}"""` : ""}`,
+        },
         { type: "image_url", image_url: { url: data.imageDataUrl } },
       ];
 
@@ -82,7 +87,11 @@ export const identifyCard = createServerFn({ method: "POST" })
 
       if (!res.ok) {
         const txt = await res.text().catch(() => "");
-        return { ok: false as const, error: `Gateway ${res.status}: ${txt.slice(0, 200)}`, ocrText };
+        return {
+          ok: false as const,
+          error: `Gateway ${res.status}: ${txt.slice(0, 200)}`,
+          ocrText,
+        };
       }
 
       const j: any = await res.json();

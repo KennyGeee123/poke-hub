@@ -19,14 +19,17 @@ async function tcgdexHD(id: string, number?: string): Promise<string | null> {
     if (!r.ok) return null;
     const j = (await r.json()) as { image?: string };
     return j.image ? `${j.image}/high.webp` : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 const j = (v: unknown) => JSON.stringify(v, null, 2);
 
 export const searchCardsTool = defineTool({
   name: "search_cards",
-  description: "Search the Pokémon TCG catalog. Supports pokemontcg.io v2 `q` syntax (e.g. `name:charizard set.id:sv3`).",
+  description:
+    "Search the Pokémon TCG catalog. Supports pokemontcg.io v2 `q` syntax (e.g. `name:charizard set.id:sv3`).",
   parameters: z.object({
     q: z.string().describe("Query string in pokemontcg.io v2 syntax."),
     page: z.number().int().min(1).default(1),
@@ -37,8 +40,13 @@ export const searchCardsTool = defineTool({
     const res = await tcg<{ data: any[]; totalCount: number }>(`/cards?${params}`);
     return j({
       totalCount: res.totalCount,
-      cards: res.data.map(c => ({
-        id: c.id, name: c.name, set: c.set?.name, number: c.number, rarity: c.rarity, images: c.images,
+      cards: res.data.map((c) => ({
+        id: c.id,
+        name: c.name,
+        set: c.set?.name,
+        number: c.number,
+        rarity: c.rarity,
+        images: c.images,
       })),
     });
   },
@@ -66,7 +74,8 @@ export const listSetsTool = defineTool({
 
 export const getHDImageTool = defineTool({
   name: "get_hd_image",
-  description: "Resolve the highest-resolution image available for a card. Prefers TCGdex high.webp, falls back to images.large from pokemontcg.io.",
+  description:
+    "Resolve the highest-resolution image available for a card. Prefers TCGdex high.webp, falls back to images.large from pokemontcg.io.",
   parameters: z.object({
     id: z.string().describe("Card id, e.g. `sv3-199`."),
     number: z.string().optional(),
@@ -74,7 +83,9 @@ export const getHDImageTool = defineTool({
   execute: async ({ id, number }) => {
     const hd = await tcgdexHD(id, number);
     if (hd) return j({ id, url: hd, source: "tcgdex" });
-    const res = await tcg<{ data: { images: { large: string; small: string }; number: string } }>(`/cards/${encodeURIComponent(id)}`);
+    const res = await tcg<{ data: { images: { large: string; small: string }; number: string } }>(
+      `/cards/${encodeURIComponent(id)}`,
+    );
     const url = res.data.images.large || res.data.images.small;
     const second = await tcgdexHD(id, res.data.number);
     return j({ id, url: second || url, source: second ? "tcgdex" : "pokemontcg" });
@@ -83,19 +94,29 @@ export const getHDImageTool = defineTool({
 
 export const refreshSetImagesTool = defineTool({
   name: "refresh_set_images",
-  description: "Return HD image URLs for every card in a set. Use to bulk-refresh artwork in a client cache.",
+  description:
+    "Return HD image URLs for every card in a set. Use to bulk-refresh artwork in a client cache.",
   parameters: z.object({ setId: z.string().describe("e.g. `sv3`, `base1`, `swsh4`.") }),
   execute: async ({ setId }) => {
-    const params = new URLSearchParams({ q: `set.id:${setId}`, page: "1", pageSize: "250", orderBy: "number" });
+    const params = new URLSearchParams({
+      q: `set.id:${setId}`,
+      page: "1",
+      pageSize: "250",
+      orderBy: "number",
+    });
     const res = await tcg<{ data: any[]; totalCount: number }>(`/cards?${params}`);
-    const images = await Promise.all(res.data.map(async c => {
-      const hd = await tcgdexHD(c.id, c.number);
-      return {
-        id: c.id, name: c.name, number: c.number,
-        url: hd || c.images?.large || c.images?.small,
-        source: hd ? "tcgdex" : "pokemontcg",
-      };
-    }));
+    const images = await Promise.all(
+      res.data.map(async (c) => {
+        const hd = await tcgdexHD(c.id, c.number);
+        return {
+          id: c.id,
+          name: c.name,
+          number: c.number,
+          url: hd || c.images?.large || c.images?.small,
+          source: hd ? "tcgdex" : "pokemontcg",
+        };
+      }),
+    );
     return j({ setId, count: images.length, images });
   },
 });

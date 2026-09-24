@@ -1,12 +1,5 @@
 import React, { useState } from "react";
-import {
-  Package,
-  Sparkles,
-  X,
-  Zap,
-  Target,
-  ArrowRight,
-} from "lucide-react";
+import { Package, Sparkles, X, Zap, Target, ArrowRight } from "lucide-react";
 import {
   type AdventureState,
   EVOLUTION_STONES,
@@ -23,7 +16,9 @@ export function AdventureInventoryModal({
   onClose: () => void;
   onOpenEvolution: () => void;
 }) {
-  const [activeTab, setActiveTab] = useState<"evolution" | "capture" | "boosts" | "candies">("evolution");
+  const [activeTab, setActiveTab] = useState<"evolution" | "capture" | "boosts" | "candies">(
+    "evolution",
+  );
   const inv = adventureState.inventory;
 
   return (
@@ -37,7 +32,9 @@ export function AdventureInventoryModal({
             </span>
             <div>
               <h3 className="text-base font-bold text-white uppercase">Trainer Item Bag</h3>
-              <p className="text-xs text-neutral-400">All collected Evolution items, capture supplies & boosts</p>
+              <p className="text-xs text-neutral-400">
+                All collected Evolution items, capture supplies & boosts
+              </p>
             </div>
           </div>
           <button
@@ -155,7 +152,9 @@ export function AdventureInventoryModal({
                   >
                     <div>
                       <div className="text-xs font-bold text-white">{b.name}</div>
-                      <div className="text-[10px] text-neutral-400">{b.durationMinutes}m active duration</div>
+                      <div className="text-[10px] text-neutral-400">
+                        {b.durationMinutes}m active duration
+                      </div>
                     </div>
                     <span className="text-xs font-bold text-emerald-400">{count}x</span>
                   </div>

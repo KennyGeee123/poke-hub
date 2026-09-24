@@ -45,7 +45,9 @@ async function j<T>(url: string): Promise<T | null> {
     }
     if (!r.ok) return null;
     return r.json();
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 export type AltArt = { lang: string; url: string };
@@ -56,7 +58,13 @@ function assetUrl(base?: string | null, ext = "webp"): string {
   return `${base}.${ext}`;
 }
 
-function cardImages(card: { image?: string; id?: string; localId?: string | number; set?: any; number?: string }): { small: string; large: string } {
+function cardImages(card: {
+  image?: string;
+  id?: string;
+  localId?: string | number;
+  set?: any;
+  number?: string;
+}): { small: string; large: string } {
   const img = card.image;
   if (typeof img === "string" && img) {
     if (!/\.(png|jpg|jpeg|webp)$/i.test(img) && !/\/(high|low)\./i.test(img)) {
@@ -65,7 +73,9 @@ function cardImages(card: { image?: string; id?: string; localId?: string | numb
     return { small: img, large: img };
   }
   const setId = card.set?.id || (card.id || "").split("-")[0];
-  const num = String(card.localId ?? card.number ?? (card.id || "").split("-").slice(1).join("-") ?? "");
+  const num = String(
+    card.localId ?? card.number ?? (card.id || "").split("-").slice(1).join("-") ?? "",
+  );
   if (setId && num) {
     return {
       small: `https://images.pokemontcg.io/${setId}/${num}.png`,
@@ -111,7 +121,15 @@ function mapTcgplayerPrices(pricing: any): Record<string, TCGPrice> | undefined 
   return Object.keys(prices).length ? prices : undefined;
 }
 
-const FX: Record<string, number> = { USD: 1, EUR: 1.08, GBP: 1.27, JPY: 0.0067, KRW: 0.00072, CNY: 0.14, TWD: 0.031 };
+const FX: Record<string, number> = {
+  USD: 1,
+  EUR: 1.08,
+  GBP: 1.27,
+  JPY: 0.0067,
+  KRW: 0.00072,
+  CNY: 0.14,
+  TWD: 0.031,
+};
 
 function toUsd(value: number, unit?: string): number {
   if (!Number.isFinite(value) || value <= 0) return 0;
@@ -237,12 +255,7 @@ export async function tcgdexGetCard(id: string, lang = "en"): Promise<TCGCard | 
   return mapTcgdexCard(raw, undefined, lang);
 }
 
-const GOLD_RARITY_QUERIES = [
-  "Hyper rare",
-  "Mega Hyper Rare",
-  "Secret Rare",
-  "Rare Holo Star",
-];
+const GOLD_RARITY_QUERIES = ["Hyper rare", "Mega Hyper Rare", "Secret Rare", "Rare Holo Star"];
 
 export async function tcgdexSearchGold(name = "", limit = 400, lang = "en"): Promise<TCGCard[]> {
   const lists = await Promise.all([
@@ -340,22 +353,33 @@ export async function tcgdexRecentCards(limit = 32, lang = "en"): Promise<TCGCar
 
 // pokemontcg.io IDs look like "swsh4-25". TCGdex uses similar ids but with their own set codes.
 // We try direct lookup; falls back to search-by-name within the same set series.
-export async function getAltArtworks(card: { id: string; name: string; number?: string; set: { id: string; name: string } }): Promise<AltArt[]> {
+export async function getAltArtworks(card: {
+  id: string;
+  name: string;
+  number?: string;
+  set: { id: string; name: string };
+}): Promise<AltArt[]> {
   const langs = ["en", "ja", "zh-tw", "zh-cn", "ko", "th", "fr", "de", "es", "it", "pt-br"];
   const results: AltArt[] = [];
 
   const candidateId = card.number ? `${card.id.split("-")[0]}-${card.number}` : card.id;
 
-  await Promise.all(langs.map(async (lang) => {
-    const direct = await j<TCGdexCard>(tcgdexUrl(lang, `/cards/${encodeURIComponent(candidateId)}`));
-    if (direct?.image) {
-      results.push({ lang, url: `${direct.image}/high.webp` });
-      return;
-    }
-    const search = await j<TCGdexCard[]>(tcgdexUrl(lang, `/cards?name=${encodeURIComponent(card.name)}`));
-    const hit = search?.find(c => c.image);
-    if (hit?.image) results.push({ lang, url: `${hit.image}/high.webp` });
-  }));
+  await Promise.all(
+    langs.map(async (lang) => {
+      const direct = await j<TCGdexCard>(
+        tcgdexUrl(lang, `/cards/${encodeURIComponent(candidateId)}`),
+      );
+      if (direct?.image) {
+        results.push({ lang, url: `${direct.image}/high.webp` });
+        return;
+      }
+      const search = await j<TCGdexCard[]>(
+        tcgdexUrl(lang, `/cards?name=${encodeURIComponent(card.name)}`),
+      );
+      const hit = search?.find((c) => c.image);
+      if (hit?.image) results.push({ lang, url: `${hit.image}/high.webp` });
+    }),
+  );
 
   return results;
 }

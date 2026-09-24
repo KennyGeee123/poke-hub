@@ -62,7 +62,11 @@ export function rentalStarter(name = "Pikachu"): GBMon {
     xp: 0,
     max_hp: 48,
     attacks: [
-      { name: name === "Charmander" ? "Ember" : name === "Squirtle" ? "Water Gun" : "Thunder Shock", damage: 20, type: name === "Charmander" ? "Fire" : name === "Squirtle" ? "Water" : "Lightning" },
+      {
+        name: name === "Charmander" ? "Ember" : name === "Squirtle" ? "Water Gun" : "Thunder Shock",
+        damage: 20,
+        type: name === "Charmander" ? "Fire" : name === "Squirtle" ? "Water" : "Lightning",
+      },
       { name: "Tackle", damage: 10, type: "Colorless" },
     ],
     sprite_url: sprite,
@@ -118,7 +122,12 @@ export function xpForNext(level: number): number {
   return level * 50;
 }
 
-export function levelDamage(move: GBMove, attackerLvl: number, defenderTypes: string[], attackerTypes: string[]): { dmg: number; eff: "normal" | "super" | "weak" } {
+export function levelDamage(
+  move: GBMove,
+  attackerLvl: number,
+  defenderTypes: string[],
+  attackerTypes: string[],
+): { dmg: number; eff: "normal" | "super" | "weak" } {
   let dmg = Math.round(move.damage * (0.8 + attackerLvl * 0.04));
   // Use crude type matchup: shared type → weak, fire vs grass etc → super
   let eff: "normal" | "super" | "weak" = "normal";
@@ -226,7 +235,11 @@ export async function fetchParty(): Promise<GBMon[]> {
   return (data ?? []).map(rowToMon);
 }
 
-export function makeMonFromSpecies(name: string, level = 5, types: string[] = ["Colorless"]): Omit<GBMon, "id"> {
+export function makeMonFromSpecies(
+  name: string,
+  level = 5,
+  types: string[] = ["Colorless"],
+): Omit<GBMon, "id"> {
   const sprite = animatedSpriteUrl(name);
   const lvl = Math.max(2, Math.min(60, level || 5));
   return {
@@ -248,7 +261,11 @@ export function makeMonFromSpecies(name: string, level = 5, types: string[] = ["
   };
 }
 
-export async function addSpeciesToParty(name: string, level = 5, types: string[] = ["Colorless"]): Promise<GBMon> {
+export async function addSpeciesToParty(
+  name: string,
+  level = 5,
+  types: string[] = ["Colorless"],
+): Promise<GBMon> {
   const m = makeMonFromSpecies(name, level, types);
   const uid = await currentUserId();
   if (!uid) {
@@ -301,7 +318,6 @@ export async function saveMonStats(mon: GBMon): Promise<void> {
     .eq("id", mon.id);
   if (error) throw error;
 }
-
 
 /** Restore party to full health (Poké Center). Battle HP is ephemeral; this clears fatigue markers and re-persists. */
 export async function healParty(): Promise<GBMon[]> {

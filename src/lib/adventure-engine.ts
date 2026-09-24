@@ -7,7 +7,7 @@ import {
 } from "./all-pokemon-data";
 /**
  * PokéVault Pro — Adventure Living World Engine
- * 
+ *
  * Manages the full location-based exploration ecosystem:
  * - 3-Tier Economy: Coins 🪙, Energy ⚡, and XP / Levels 📈
  * - 10 Canonical Evolution Stones + Universal Rare Candy System
@@ -57,7 +57,8 @@ export const EVOLUTION_STONES: Record<EvolutionStoneId, EvolutionStoneDef> = {
     name: "Fire Stone",
     emoji: "🔥",
     element: "Fire",
-    description: "A peculiar stone that radiates intense volcanic heat. Induces evolution in specific species.",
+    description:
+      "A peculiar stone that radiates intense volcanic heat. Induces evolution in specific species.",
     priceCoins: 150,
     sellCoins: 50,
     eligibleSpecies: [
@@ -72,7 +73,8 @@ export const EVOLUTION_STONES: Record<EvolutionStoneId, EvolutionStoneDef> = {
     name: "Water Stone",
     emoji: "💧",
     element: "Water",
-    description: "A crystal-clear sapphire blue stone that triggers evolution in water-attuned creatures.",
+    description:
+      "A crystal-clear sapphire blue stone that triggers evolution in water-attuned creatures.",
     priceCoins: 150,
     sellCoins: 50,
     eligibleSpecies: [
@@ -104,7 +106,8 @@ export const EVOLUTION_STONES: Record<EvolutionStoneId, EvolutionStoneDef> = {
     name: "Leaf Stone",
     emoji: "🌿",
     element: "Grass",
-    description: "Embedded with an ancient fossilized leaf. Resonates deeply with botanical species.",
+    description:
+      "Embedded with an ancient fossilized leaf. Resonates deeply with botanical species.",
     priceCoins: 150,
     sellCoins: 50,
     eligibleSpecies: [
@@ -120,7 +123,8 @@ export const EVOLUTION_STONES: Record<EvolutionStoneId, EvolutionStoneDef> = {
     name: "Moon Stone",
     emoji: "🌙",
     element: "Cosmic",
-    description: "A dark gray meteorite shard that glimmers with the luminescence of the night sky.",
+    description:
+      "A dark gray meteorite shard that glimmers with the luminescence of the night sky.",
     priceCoins: 200,
     sellCoins: 75,
     eligibleSpecies: [
@@ -168,7 +172,8 @@ export const EVOLUTION_STONES: Record<EvolutionStoneId, EvolutionStoneDef> = {
     name: "Dusk Stone",
     emoji: "🌑",
     element: "Shadow",
-    description: "Absorbs all incoming light like midnight. Unleashes potent ghost and dark evolutions.",
+    description:
+      "Absorbs all incoming light like midnight. Unleashes potent ghost and dark evolutions.",
     priceCoins: 250,
     sellCoins: 85,
     eligibleSpecies: [
@@ -183,7 +188,8 @@ export const EVOLUTION_STONES: Record<EvolutionStoneId, EvolutionStoneDef> = {
     name: "Dawn Stone",
     emoji: "🌅",
     element: "Aura",
-    description: "Sparkles like iridescent morning dew. Awakens latent spiritual power in specific lines.",
+    description:
+      "Sparkles like iridescent morning dew. Awakens latent spiritual power in specific lines.",
     priceCoins: 250,
     sellCoins: 85,
     eligibleSpecies: [
@@ -196,7 +202,8 @@ export const EVOLUTION_STONES: Record<EvolutionStoneId, EvolutionStoneDef> = {
     name: "Ice Stone",
     emoji: "❄️",
     element: "Ice",
-    description: "Permanently frosted crystal that never melts. Triggers sub-zero glacial evolutions.",
+    description:
+      "Permanently frosted crystal that never melts. Triggers sub-zero glacial evolutions.",
     priceCoins: 200,
     sellCoins: 75,
     eligibleSpecies: [
@@ -376,7 +383,6 @@ export interface PlayerProfile {
   lastDailyClaimTimestamp: number;
 }
 
-
 export type PokemonEraId =
   | "vintage_kanto"
   | "neo_johto"
@@ -433,18 +439,72 @@ export const POKEMON_ERAS: Record<PokemonEraId, PokemonEra> = {
     description: "The classic origin era. Wizards of the Coast Base Set, Jungle & Fossil holos.",
     legendaries: ["Mewtwo", "Dragonite", "Moltres", "Zapdos", "Articuno"],
     speciesPool: [
-      { species: "Pikachu", types: ["Electric"], rarity: "uncommon", baseCatchRate: 0.6, baseCp: 450 },
-      { species: "Charizard", types: ["Fire", "Flying"], rarity: "epic", baseCatchRate: 0.25, baseCp: 1850 },
+      {
+        species: "Pikachu",
+        types: ["Electric"],
+        rarity: "uncommon",
+        baseCatchRate: 0.6,
+        baseCp: 450,
+      },
+      {
+        species: "Charizard",
+        types: ["Fire", "Flying"],
+        rarity: "epic",
+        baseCatchRate: 0.25,
+        baseCp: 1850,
+      },
       { species: "Blastoise", types: ["Water"], rarity: "epic", baseCatchRate: 0.28, baseCp: 1780 },
-      { species: "Venusaur", types: ["Grass", "Poison"], rarity: "epic", baseCatchRate: 0.28, baseCp: 1750 },
-      { species: "Gengar", types: ["Ghost", "Poison"], rarity: "epic", baseCatchRate: 0.32, baseCp: 1650 },
-      { species: "Dragonite", types: ["Dragon", "Flying"], rarity: "legendary", baseCatchRate: 0.18, baseCp: 2450 },
-      { species: "Mewtwo", types: ["Psychic"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2890 },
+      {
+        species: "Venusaur",
+        types: ["Grass", "Poison"],
+        rarity: "epic",
+        baseCatchRate: 0.28,
+        baseCp: 1750,
+      },
+      {
+        species: "Gengar",
+        types: ["Ghost", "Poison"],
+        rarity: "epic",
+        baseCatchRate: 0.32,
+        baseCp: 1650,
+      },
+      {
+        species: "Dragonite",
+        types: ["Dragon", "Flying"],
+        rarity: "legendary",
+        baseCatchRate: 0.18,
+        baseCp: 2450,
+      },
+      {
+        species: "Mewtwo",
+        types: ["Psychic"],
+        rarity: "legendary",
+        baseCatchRate: 0.12,
+        baseCp: 2890,
+      },
       { species: "Eevee", types: ["Normal"], rarity: "uncommon", baseCatchRate: 0.65, baseCp: 420 },
       { species: "Snorlax", types: ["Normal"], rarity: "rare", baseCatchRate: 0.4, baseCp: 1550 },
-      { species: "Gyarados", types: ["Water", "Flying"], rarity: "rare", baseCatchRate: 0.35, baseCp: 1620 },
-      { species: "Lapras", types: ["Water", "Ice"], rarity: "rare", baseCatchRate: 0.38, baseCp: 1480 },
-      { species: "Alakazam", types: ["Psychic"], rarity: "rare", baseCatchRate: 0.35, baseCp: 1590 },
+      {
+        species: "Gyarados",
+        types: ["Water", "Flying"],
+        rarity: "rare",
+        baseCatchRate: 0.35,
+        baseCp: 1620,
+      },
+      {
+        species: "Lapras",
+        types: ["Water", "Ice"],
+        rarity: "rare",
+        baseCatchRate: 0.38,
+        baseCp: 1480,
+      },
+      {
+        species: "Alakazam",
+        types: ["Psychic"],
+        rarity: "rare",
+        baseCatchRate: 0.35,
+        baseCp: 1590,
+      },
     ],
   },
   neo_johto: {
@@ -459,18 +519,66 @@ export const POKEMON_ERAS: Record<PokemonEraId, PokemonEra> = {
     description: "The Gold & Silver golden age. Neo Revelation shining Pokémon and legendary dogs.",
     legendaries: ["Lugia", "Ho-Oh", "Tyranitar", "Suicune", "Entei", "Raikou"],
     speciesPool: [
-      { species: "Tyranitar", types: ["Rock", "Dark"], rarity: "legendary", baseCatchRate: 0.18, baseCp: 2520 },
-      { species: "Lugia", types: ["Psychic", "Flying"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2850 },
-      { species: "Ho-Oh", types: ["Fire", "Flying"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2850 },
+      {
+        species: "Tyranitar",
+        types: ["Rock", "Dark"],
+        rarity: "legendary",
+        baseCatchRate: 0.18,
+        baseCp: 2520,
+      },
+      {
+        species: "Lugia",
+        types: ["Psychic", "Flying"],
+        rarity: "legendary",
+        baseCatchRate: 0.12,
+        baseCp: 2850,
+      },
+      {
+        species: "Ho-Oh",
+        types: ["Fire", "Flying"],
+        rarity: "legendary",
+        baseCatchRate: 0.12,
+        baseCp: 2850,
+      },
       { species: "Umbreon", types: ["Dark"], rarity: "rare", baseCatchRate: 0.45, baseCp: 1280 },
       { species: "Espeon", types: ["Psychic"], rarity: "rare", baseCatchRate: 0.45, baseCp: 1320 },
-      { species: "Scizor", types: ["Bug", "Steel"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1720 },
+      {
+        species: "Scizor",
+        types: ["Bug", "Steel"],
+        rarity: "epic",
+        baseCatchRate: 0.3,
+        baseCp: 1720,
+      },
       { species: "Feraligatr", types: ["Water"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1680 },
       { species: "Typhlosion", types: ["Fire"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1700 },
-      { species: "Ampharos", types: ["Electric"], rarity: "rare", baseCatchRate: 0.45, baseCp: 1420 },
-      { species: "Houndoom", types: ["Dark", "Fire"], rarity: "rare", baseCatchRate: 0.42, baseCp: 1390 },
-      { species: "Heracross", types: ["Bug", "Fighting"], rarity: "uncommon", baseCatchRate: 0.5, baseCp: 1150 },
-      { species: "Suicune", types: ["Water"], rarity: "legendary", baseCatchRate: 0.15, baseCp: 2350 },
+      {
+        species: "Ampharos",
+        types: ["Electric"],
+        rarity: "rare",
+        baseCatchRate: 0.45,
+        baseCp: 1420,
+      },
+      {
+        species: "Houndoom",
+        types: ["Dark", "Fire"],
+        rarity: "rare",
+        baseCatchRate: 0.42,
+        baseCp: 1390,
+      },
+      {
+        species: "Heracross",
+        types: ["Bug", "Fighting"],
+        rarity: "uncommon",
+        baseCatchRate: 0.5,
+        baseCp: 1150,
+      },
+      {
+        species: "Suicune",
+        types: ["Water"],
+        rarity: "legendary",
+        baseCatchRate: 0.15,
+        baseCp: 2350,
+      },
     ],
   },
   advanced_hoenn: {
@@ -485,17 +593,71 @@ export const POKEMON_ERAS: Record<PokemonEraId, PokemonEra> = {
     description: "Ruby, Sapphire & Emerald weather wars. The iconic EX cards and ancient dragons.",
     legendaries: ["Rayquaza", "Kyogre", "Groudon", "Metagross", "Salamence", "Latios", "Latias"],
     speciesPool: [
-      { species: "Rayquaza", types: ["Dragon", "Flying"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2980 },
-      { species: "Blaziken", types: ["Fire", "Fighting"], rarity: "epic", baseCatchRate: 0.28, baseCp: 1790 },
-      { species: "Gardevoir", types: ["Psychic", "Fairy"], rarity: "rare", baseCatchRate: 0.4, baseCp: 1540 },
-      { species: "Metagross", types: ["Steel", "Psychic"], rarity: "legendary", baseCatchRate: 0.2, baseCp: 2480 },
-      { species: "Salamence", types: ["Dragon", "Flying"], rarity: "legendary", baseCatchRate: 0.2, baseCp: 2460 },
-      { species: "Kyogre", types: ["Water"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2920 },
-      { species: "Groudon", types: ["Ground"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2920 },
+      {
+        species: "Rayquaza",
+        types: ["Dragon", "Flying"],
+        rarity: "legendary",
+        baseCatchRate: 0.12,
+        baseCp: 2980,
+      },
+      {
+        species: "Blaziken",
+        types: ["Fire", "Fighting"],
+        rarity: "epic",
+        baseCatchRate: 0.28,
+        baseCp: 1790,
+      },
+      {
+        species: "Gardevoir",
+        types: ["Psychic", "Fairy"],
+        rarity: "rare",
+        baseCatchRate: 0.4,
+        baseCp: 1540,
+      },
+      {
+        species: "Metagross",
+        types: ["Steel", "Psychic"],
+        rarity: "legendary",
+        baseCatchRate: 0.2,
+        baseCp: 2480,
+      },
+      {
+        species: "Salamence",
+        types: ["Dragon", "Flying"],
+        rarity: "legendary",
+        baseCatchRate: 0.2,
+        baseCp: 2460,
+      },
+      {
+        species: "Kyogre",
+        types: ["Water"],
+        rarity: "legendary",
+        baseCatchRate: 0.12,
+        baseCp: 2920,
+      },
+      {
+        species: "Groudon",
+        types: ["Ground"],
+        rarity: "legendary",
+        baseCatchRate: 0.12,
+        baseCp: 2920,
+      },
       { species: "Milotic", types: ["Water"], rarity: "rare", baseCatchRate: 0.35, baseCp: 1610 },
-      { species: "Flygon", types: ["Ground", "Dragon"], rarity: "rare", baseCatchRate: 0.42, baseCp: 1450 },
+      {
+        species: "Flygon",
+        types: ["Ground", "Dragon"],
+        rarity: "rare",
+        baseCatchRate: 0.42,
+        baseCp: 1450,
+      },
       { species: "Sceptile", types: ["Grass"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1680 },
-      { species: "Swampert", types: ["Water", "Ground"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1720 },
+      {
+        species: "Swampert",
+        types: ["Water", "Ground"],
+        rarity: "epic",
+        baseCatchRate: 0.3,
+        baseCp: 1720,
+      },
       { species: "Absol", types: ["Dark"], rarity: "uncommon", baseCatchRate: 0.52, baseCp: 1120 },
     ],
   },
@@ -508,20 +670,81 @@ export const POKEMON_ERAS: Record<PokemonEraId, PokemonEra> = {
     badge: "🔵 LV.X ERA",
     themeColor: "#3b82f6",
     bgGradient: "from-blue-600 to-indigo-800",
-    description: "Diamond, Pearl & Platinum cosmic deities. LV.X cards, Lucario, and time/space legends.",
+    description:
+      "Diamond, Pearl & Platinum cosmic deities. LV.X cards, Lucario, and time/space legends.",
     legendaries: ["Dialga", "Palkia", "Giratina", "Darkrai", "Garchomp", "Arceus"],
     speciesPool: [
-      { species: "Lucario", types: ["Fighting", "Steel"], rarity: "epic", baseCatchRate: 0.28, baseCp: 1820 },
-      { species: "Garchomp", types: ["Dragon", "Ground"], rarity: "legendary", baseCatchRate: 0.18, baseCp: 2580 },
-      { species: "Dialga", types: ["Steel", "Dragon"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2940 },
-      { species: "Palkia", types: ["Water", "Dragon"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2910 },
-      { species: "Giratina", types: ["Ghost", "Dragon"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2950 },
-      { species: "Darkrai", types: ["Dark"], rarity: "legendary", baseCatchRate: 0.15, baseCp: 2680 },
-      { species: "Togekiss", types: ["Fairy", "Flying"], rarity: "rare", baseCatchRate: 0.4, baseCp: 1520 },
-      { species: "Infernape", types: ["Fire", "Fighting"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1740 },
-      { species: "Electivire", types: ["Electric"], rarity: "rare", baseCatchRate: 0.38, baseCp: 1580 },
+      {
+        species: "Lucario",
+        types: ["Fighting", "Steel"],
+        rarity: "epic",
+        baseCatchRate: 0.28,
+        baseCp: 1820,
+      },
+      {
+        species: "Garchomp",
+        types: ["Dragon", "Ground"],
+        rarity: "legendary",
+        baseCatchRate: 0.18,
+        baseCp: 2580,
+      },
+      {
+        species: "Dialga",
+        types: ["Steel", "Dragon"],
+        rarity: "legendary",
+        baseCatchRate: 0.12,
+        baseCp: 2940,
+      },
+      {
+        species: "Palkia",
+        types: ["Water", "Dragon"],
+        rarity: "legendary",
+        baseCatchRate: 0.12,
+        baseCp: 2910,
+      },
+      {
+        species: "Giratina",
+        types: ["Ghost", "Dragon"],
+        rarity: "legendary",
+        baseCatchRate: 0.12,
+        baseCp: 2950,
+      },
+      {
+        species: "Darkrai",
+        types: ["Dark"],
+        rarity: "legendary",
+        baseCatchRate: 0.15,
+        baseCp: 2680,
+      },
+      {
+        species: "Togekiss",
+        types: ["Fairy", "Flying"],
+        rarity: "rare",
+        baseCatchRate: 0.4,
+        baseCp: 1520,
+      },
+      {
+        species: "Infernape",
+        types: ["Fire", "Fighting"],
+        rarity: "epic",
+        baseCatchRate: 0.3,
+        baseCp: 1740,
+      },
+      {
+        species: "Electivire",
+        types: ["Electric"],
+        rarity: "rare",
+        baseCatchRate: 0.38,
+        baseCp: 1580,
+      },
       { species: "Magmortar", types: ["Fire"], rarity: "rare", baseCatchRate: 0.38, baseCp: 1570 },
-      { species: "Weavile", types: ["Dark", "Ice"], rarity: "uncommon", baseCatchRate: 0.5, baseCp: 1250 },
+      {
+        species: "Weavile",
+        types: ["Dark", "Ice"],
+        rarity: "uncommon",
+        baseCatchRate: 0.5,
+        baseCp: 1250,
+      },
       { species: "Luxray", types: ["Electric"], rarity: "rare", baseCatchRate: 0.45, baseCp: 1410 },
     ],
   },
@@ -537,18 +760,90 @@ export const POKEMON_ERAS: Record<PokemonEraId, PokemonEra> = {
     description: "Scarlet & Violet Terastallization, Ancient & Future Paradox powerhouses.",
     legendaries: ["Miraidon", "Koraidon", "Roaring Moon", "Iron Valiant", "Chien-Pao", "Terapagos"],
     speciesPool: [
-      { species: "Miraidon", types: ["Electric", "Dragon"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 3020 },
-      { species: "Koraidon", types: ["Fighting", "Dragon"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 3020 },
-      { species: "Roaring Moon", types: ["Dragon", "Dark"], rarity: "legendary", baseCatchRate: 0.15, baseCp: 2750 },
-      { species: "Iron Valiant", types: ["Fairy", "Fighting"], rarity: "epic", baseCatchRate: 0.22, baseCp: 2280 },
-      { species: "Meowscarada", types: ["Grass", "Dark"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1760 },
-      { species: "Skeledirge", types: ["Fire", "Ghost"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1780 },
-      { species: "Quaquaval", types: ["Water", "Fighting"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1750 },
-      { species: "Tinkaton", types: ["Fairy", "Steel"], rarity: "rare", baseCatchRate: 0.42, baseCp: 1490 },
-      { species: "Ceruledge", types: ["Fire", "Ghost"], rarity: "rare", baseCatchRate: 0.38, baseCp: 1640 },
-      { species: "Dragapult", types: ["Dragon", "Ghost"], rarity: "epic", baseCatchRate: 0.25, baseCp: 2150 },
-      { species: "Baxcalibur", types: ["Dragon", "Ice"], rarity: "legendary", baseCatchRate: 0.2, baseCp: 2490 },
-      { species: "Gholdengo", types: ["Steel", "Ghost"], rarity: "rare", baseCatchRate: 0.35, baseCp: 1690 },
+      {
+        species: "Miraidon",
+        types: ["Electric", "Dragon"],
+        rarity: "legendary",
+        baseCatchRate: 0.12,
+        baseCp: 3020,
+      },
+      {
+        species: "Koraidon",
+        types: ["Fighting", "Dragon"],
+        rarity: "legendary",
+        baseCatchRate: 0.12,
+        baseCp: 3020,
+      },
+      {
+        species: "Roaring Moon",
+        types: ["Dragon", "Dark"],
+        rarity: "legendary",
+        baseCatchRate: 0.15,
+        baseCp: 2750,
+      },
+      {
+        species: "Iron Valiant",
+        types: ["Fairy", "Fighting"],
+        rarity: "epic",
+        baseCatchRate: 0.22,
+        baseCp: 2280,
+      },
+      {
+        species: "Meowscarada",
+        types: ["Grass", "Dark"],
+        rarity: "epic",
+        baseCatchRate: 0.3,
+        baseCp: 1760,
+      },
+      {
+        species: "Skeledirge",
+        types: ["Fire", "Ghost"],
+        rarity: "epic",
+        baseCatchRate: 0.3,
+        baseCp: 1780,
+      },
+      {
+        species: "Quaquaval",
+        types: ["Water", "Fighting"],
+        rarity: "epic",
+        baseCatchRate: 0.3,
+        baseCp: 1750,
+      },
+      {
+        species: "Tinkaton",
+        types: ["Fairy", "Steel"],
+        rarity: "rare",
+        baseCatchRate: 0.42,
+        baseCp: 1490,
+      },
+      {
+        species: "Ceruledge",
+        types: ["Fire", "Ghost"],
+        rarity: "rare",
+        baseCatchRate: 0.38,
+        baseCp: 1640,
+      },
+      {
+        species: "Dragapult",
+        types: ["Dragon", "Ghost"],
+        rarity: "epic",
+        baseCatchRate: 0.25,
+        baseCp: 2150,
+      },
+      {
+        species: "Baxcalibur",
+        types: ["Dragon", "Ice"],
+        rarity: "legendary",
+        baseCatchRate: 0.2,
+        baseCp: 2490,
+      },
+      {
+        species: "Gholdengo",
+        types: ["Steel", "Ghost"],
+        rarity: "rare",
+        baseCatchRate: 0.35,
+        baseCp: 1690,
+      },
     ],
   },
   black_unova: {
@@ -563,18 +858,66 @@ export const POKEMON_ERAS: Record<PokemonEraId, PokemonEra> = {
     description: "Black & White urban routes. Castelia, desert, and the original dragon.",
     legendaries: ["Reshiram", "Zekrom", "Kyurem", "Victini", "Hydreigon"],
     speciesPool: [
-      { species: "Reshiram", types: ["Dragon", "Fire"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2960 },
-      { species: "Zekrom", types: ["Dragon", "Electric"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2960 },
-      { species: "Hydreigon", types: ["Dark", "Dragon"], rarity: "legendary", baseCatchRate: 0.18, baseCp: 2480 },
-      { species: "Volcarona", types: ["Bug", "Fire"], rarity: "epic", baseCatchRate: 0.28, baseCp: 1880 },
+      {
+        species: "Reshiram",
+        types: ["Dragon", "Fire"],
+        rarity: "legendary",
+        baseCatchRate: 0.12,
+        baseCp: 2960,
+      },
+      {
+        species: "Zekrom",
+        types: ["Dragon", "Electric"],
+        rarity: "legendary",
+        baseCatchRate: 0.12,
+        baseCp: 2960,
+      },
+      {
+        species: "Hydreigon",
+        types: ["Dark", "Dragon"],
+        rarity: "legendary",
+        baseCatchRate: 0.18,
+        baseCp: 2480,
+      },
+      {
+        species: "Volcarona",
+        types: ["Bug", "Fire"],
+        rarity: "epic",
+        baseCatchRate: 0.28,
+        baseCp: 1880,
+      },
       { species: "Haxorus", types: ["Dragon"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1760 },
-      { species: "Chandelure", types: ["Ghost", "Fire"], rarity: "rare", baseCatchRate: 0.4, baseCp: 1540 },
-      { species: "Excadrill", types: ["Ground", "Steel"], rarity: "rare", baseCatchRate: 0.42, baseCp: 1490 },
+      {
+        species: "Chandelure",
+        types: ["Ghost", "Fire"],
+        rarity: "rare",
+        baseCatchRate: 0.4,
+        baseCp: 1540,
+      },
+      {
+        species: "Excadrill",
+        types: ["Ground", "Steel"],
+        rarity: "rare",
+        baseCatchRate: 0.42,
+        baseCp: 1490,
+      },
       { species: "Zoroark", types: ["Dark"], rarity: "rare", baseCatchRate: 0.38, baseCp: 1520 },
       { species: "Serperior", types: ["Grass"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1680 },
-      { species: "Emboar", types: ["Fire", "Fighting"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1720 },
+      {
+        species: "Emboar",
+        types: ["Fire", "Fighting"],
+        rarity: "epic",
+        baseCatchRate: 0.3,
+        baseCp: 1720,
+      },
       { species: "Samurott", types: ["Water"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1700 },
-      { species: "Victini", types: ["Psychic", "Fire"], rarity: "legendary", baseCatchRate: 0.15, baseCp: 2380 },
+      {
+        species: "Victini",
+        types: ["Psychic", "Fire"],
+        rarity: "legendary",
+        baseCatchRate: 0.15,
+        baseCp: 2380,
+      },
     ],
   },
   mega_kalos: {
@@ -589,18 +932,78 @@ export const POKEMON_ERAS: Record<PokemonEraId, PokemonEra> = {
     description: "X & Y megas and fairy-type debut. Lumiose, prism, and the life/destruction duo.",
     legendaries: ["Xerneas", "Yveltal", "Zygarde", "Diancie", "Greninja"],
     speciesPool: [
-      { species: "Xerneas", types: ["Fairy"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2940 },
-      { species: "Yveltal", types: ["Dark", "Flying"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2940 },
-      { species: "Greninja", types: ["Water", "Dark"], rarity: "epic", baseCatchRate: 0.28, baseCp: 1840 },
-      { species: "Aegislash", types: ["Steel", "Ghost"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1720 },
+      {
+        species: "Xerneas",
+        types: ["Fairy"],
+        rarity: "legendary",
+        baseCatchRate: 0.12,
+        baseCp: 2940,
+      },
+      {
+        species: "Yveltal",
+        types: ["Dark", "Flying"],
+        rarity: "legendary",
+        baseCatchRate: 0.12,
+        baseCp: 2940,
+      },
+      {
+        species: "Greninja",
+        types: ["Water", "Dark"],
+        rarity: "epic",
+        baseCatchRate: 0.28,
+        baseCp: 1840,
+      },
+      {
+        species: "Aegislash",
+        types: ["Steel", "Ghost"],
+        rarity: "epic",
+        baseCatchRate: 0.3,
+        baseCp: 1720,
+      },
       { species: "Goodra", types: ["Dragon"], rarity: "rare", baseCatchRate: 0.38, baseCp: 1680 },
-      { species: "Talonflame", types: ["Fire", "Flying"], rarity: "uncommon", baseCatchRate: 0.5, baseCp: 1280 },
+      {
+        species: "Talonflame",
+        types: ["Fire", "Flying"],
+        rarity: "uncommon",
+        baseCatchRate: 0.5,
+        baseCp: 1280,
+      },
       { species: "Sylveon", types: ["Fairy"], rarity: "rare", baseCatchRate: 0.42, baseCp: 1460 },
-      { species: "Pangoro", types: ["Fighting", "Dark"], rarity: "uncommon", baseCatchRate: 0.48, baseCp: 1320 },
-      { species: "Hawlucha", types: ["Fighting", "Flying"], rarity: "rare", baseCatchRate: 0.45, baseCp: 1380 },
-      { species: "Noivern", types: ["Flying", "Dragon"], rarity: "rare", baseCatchRate: 0.4, baseCp: 1510 },
-      { species: "Chesnaught", types: ["Grass", "Fighting"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1700 },
-      { species: "Delphox", types: ["Fire", "Psychic"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1710 },
+      {
+        species: "Pangoro",
+        types: ["Fighting", "Dark"],
+        rarity: "uncommon",
+        baseCatchRate: 0.48,
+        baseCp: 1320,
+      },
+      {
+        species: "Hawlucha",
+        types: ["Fighting", "Flying"],
+        rarity: "rare",
+        baseCatchRate: 0.45,
+        baseCp: 1380,
+      },
+      {
+        species: "Noivern",
+        types: ["Flying", "Dragon"],
+        rarity: "rare",
+        baseCatchRate: 0.4,
+        baseCp: 1510,
+      },
+      {
+        species: "Chesnaught",
+        types: ["Grass", "Fighting"],
+        rarity: "epic",
+        baseCatchRate: 0.3,
+        baseCp: 1700,
+      },
+      {
+        species: "Delphox",
+        types: ["Fire", "Psychic"],
+        rarity: "epic",
+        baseCatchRate: 0.3,
+        baseCp: 1710,
+      },
     ],
   },
   sun_alola: {
@@ -615,18 +1018,78 @@ export const POKEMON_ERAS: Record<PokemonEraId, PokemonEra> = {
     description: "Sun & Moon island trials. Totems, Z-moves, and Ultra Beasts.",
     legendaries: ["Solgaleo", "Lunala", "Necrozma", "Tapu Koko", "Nihilego"],
     speciesPool: [
-      { species: "Solgaleo", types: ["Psychic", "Steel"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2980 },
-      { species: "Lunala", types: ["Psychic", "Ghost"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 2980 },
-      { species: "Tapu Koko", types: ["Electric", "Fairy"], rarity: "legendary", baseCatchRate: 0.18, baseCp: 2320 },
+      {
+        species: "Solgaleo",
+        types: ["Psychic", "Steel"],
+        rarity: "legendary",
+        baseCatchRate: 0.12,
+        baseCp: 2980,
+      },
+      {
+        species: "Lunala",
+        types: ["Psychic", "Ghost"],
+        rarity: "legendary",
+        baseCatchRate: 0.12,
+        baseCp: 2980,
+      },
+      {
+        species: "Tapu Koko",
+        types: ["Electric", "Fairy"],
+        rarity: "legendary",
+        baseCatchRate: 0.18,
+        baseCp: 2320,
+      },
       { species: "Lycanroc", types: ["Rock"], rarity: "rare", baseCatchRate: 0.42, baseCp: 1480 },
-      { species: "Incineroar", types: ["Fire", "Dark"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1760 },
-      { species: "Primarina", types: ["Water", "Fairy"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1740 },
-      { species: "Decidueye", types: ["Grass", "Ghost"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1720 },
-      { species: "Mimikyu", types: ["Ghost", "Fairy"], rarity: "rare", baseCatchRate: 0.4, baseCp: 1390 },
-      { species: "Toxapex", types: ["Poison", "Water"], rarity: "uncommon", baseCatchRate: 0.5, baseCp: 1240 },
-      { species: "Kommo-o", types: ["Dragon", "Fighting"], rarity: "legendary", baseCatchRate: 0.2, baseCp: 2460 },
+      {
+        species: "Incineroar",
+        types: ["Fire", "Dark"],
+        rarity: "epic",
+        baseCatchRate: 0.3,
+        baseCp: 1760,
+      },
+      {
+        species: "Primarina",
+        types: ["Water", "Fairy"],
+        rarity: "epic",
+        baseCatchRate: 0.3,
+        baseCp: 1740,
+      },
+      {
+        species: "Decidueye",
+        types: ["Grass", "Ghost"],
+        rarity: "epic",
+        baseCatchRate: 0.3,
+        baseCp: 1720,
+      },
+      {
+        species: "Mimikyu",
+        types: ["Ghost", "Fairy"],
+        rarity: "rare",
+        baseCatchRate: 0.4,
+        baseCp: 1390,
+      },
+      {
+        species: "Toxapex",
+        types: ["Poison", "Water"],
+        rarity: "uncommon",
+        baseCatchRate: 0.5,
+        baseCp: 1240,
+      },
+      {
+        species: "Kommo-o",
+        types: ["Dragon", "Fighting"],
+        rarity: "legendary",
+        baseCatchRate: 0.2,
+        baseCp: 2460,
+      },
       { species: "Tsareena", types: ["Grass"], rarity: "rare", baseCatchRate: 0.45, baseCp: 1410 },
-      { species: "Nihilego", types: ["Rock", "Poison"], rarity: "legendary", baseCatchRate: 0.18, baseCp: 2280 },
+      {
+        species: "Nihilego",
+        types: ["Rock", "Poison"],
+        rarity: "legendary",
+        baseCatchRate: 0.18,
+        baseCp: 2280,
+      },
     ],
   },
   sword_galar: {
@@ -641,18 +1104,72 @@ export const POKEMON_ERAS: Record<PokemonEraId, PokemonEra> = {
     description: "Sword & Shield dynamax dens. Wild Area weather and the Darkest Day.",
     legendaries: ["Zacian", "Zamazenta", "Eternatus", "Dragapult", "Calyrex"],
     speciesPool: [
-      { species: "Zacian", types: ["Fairy", "Steel"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 3040 },
-      { species: "Zamazenta", types: ["Fighting", "Steel"], rarity: "legendary", baseCatchRate: 0.12, baseCp: 3020 },
-      { species: "Dragapult", types: ["Dragon", "Ghost"], rarity: "epic", baseCatchRate: 0.25, baseCp: 2150 },
-      { species: "Corviknight", types: ["Flying", "Steel"], rarity: "rare", baseCatchRate: 0.4, baseCp: 1560 },
-      { species: "Toxtricity", types: ["Electric", "Poison"], rarity: "rare", baseCatchRate: 0.42, baseCp: 1490 },
+      {
+        species: "Zacian",
+        types: ["Fairy", "Steel"],
+        rarity: "legendary",
+        baseCatchRate: 0.12,
+        baseCp: 3040,
+      },
+      {
+        species: "Zamazenta",
+        types: ["Fighting", "Steel"],
+        rarity: "legendary",
+        baseCatchRate: 0.12,
+        baseCp: 3020,
+      },
+      {
+        species: "Dragapult",
+        types: ["Dragon", "Ghost"],
+        rarity: "epic",
+        baseCatchRate: 0.25,
+        baseCp: 2150,
+      },
+      {
+        species: "Corviknight",
+        types: ["Flying", "Steel"],
+        rarity: "rare",
+        baseCatchRate: 0.4,
+        baseCp: 1560,
+      },
+      {
+        species: "Toxtricity",
+        types: ["Electric", "Poison"],
+        rarity: "rare",
+        baseCatchRate: 0.42,
+        baseCp: 1490,
+      },
       { species: "Cinderace", types: ["Fire"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1760 },
       { species: "Inteleon", types: ["Water"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1720 },
       { species: "Rillaboom", types: ["Grass"], rarity: "epic", baseCatchRate: 0.3, baseCp: 1740 },
-      { species: "Grimmsnarl", types: ["Dark", "Fairy"], rarity: "rare", baseCatchRate: 0.38, baseCp: 1580 },
-      { species: "Sirfetch'd", types: ["Fighting"], rarity: "uncommon", baseCatchRate: 0.48, baseCp: 1340 },
-      { species: "Eternatus", types: ["Poison", "Dragon"], rarity: "legendary", baseCatchRate: 0.1, baseCp: 3120 },
-      { species: "Duraludon", types: ["Steel", "Dragon"], rarity: "rare", baseCatchRate: 0.4, baseCp: 1610 },
+      {
+        species: "Grimmsnarl",
+        types: ["Dark", "Fairy"],
+        rarity: "rare",
+        baseCatchRate: 0.38,
+        baseCp: 1580,
+      },
+      {
+        species: "Sirfetch'd",
+        types: ["Fighting"],
+        rarity: "uncommon",
+        baseCatchRate: 0.48,
+        baseCp: 1340,
+      },
+      {
+        species: "Eternatus",
+        types: ["Poison", "Dragon"],
+        rarity: "legendary",
+        baseCatchRate: 0.1,
+        baseCp: 3120,
+      },
+      {
+        species: "Duraludon",
+        types: ["Steel", "Dragon"],
+        rarity: "rare",
+        baseCatchRate: 0.4,
+        baseCp: 1610,
+      },
     ],
   },
 };
@@ -668,7 +1185,6 @@ export interface ParkBiomeDef {
   featuredNestSpecies: string[];
 }
 
-
 export const RADAR_DISCOVERY_RADIUS_METERS = 45;
 
 export const DRESDEN_PARK_GEO = {
@@ -682,12 +1198,7 @@ export const DRESDEN_PARK_GEO = {
  * Calculates high-precision distance between two geographic coordinates in meters
  * using the Haversine spherical formula.
  */
-export function haversineMeters(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number
-): number {
+export function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371000; // Earth radius in meters
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
@@ -708,7 +1219,7 @@ export function geoOffsetFromMeters(
   lat: number,
   lng: number,
   dxMeters: number,
-  dyMeters: number
+  dyMeters: number,
 ): { lat: number; lng: number } {
   const latOffset = dyMeters / 111320;
   const lngOffset = dxMeters / (111320 * Math.cos((lat * Math.PI) / 180));
@@ -726,13 +1237,12 @@ const TILE_PX = 256;
 export function latLngToWorldPixels(
   lat: number,
   lng: number,
-  zoom = MAP_ZOOM_DEFAULT
+  zoom = MAP_ZOOM_DEFAULT,
 ): { x: number; y: number } {
   const n = 2 ** zoom;
   const x = ((lng + 180) / 360) * n * TILE_PX;
   const sinLat = Math.min(0.9999, Math.max(-0.9999, Math.sin((lat * Math.PI) / 180)));
-  const y =
-    (0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) * n * TILE_PX;
+  const y = (0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) * n * TILE_PX;
   return { x, y };
 }
 
@@ -740,7 +1250,7 @@ export function latLngToWorldPixels(
 export function geoScreenOffset(
   player: { lat: number; lng: number },
   target: { lat: number; lng: number },
-  zoom = MAP_ZOOM_DEFAULT
+  zoom = MAP_ZOOM_DEFAULT,
 ): { dx: number; dy: number } {
   const p = latLngToWorldPixels(player.lat, player.lng, zoom);
   const t = latLngToWorldPixels(target.lat, target.lng, zoom);
@@ -754,10 +1264,9 @@ export function metersPerPixel(lat: number, zoom = MAP_ZOOM_DEFAULT): number {
 type GeoPin = { xPct: number; yPct: number; distanceMeters: number; lat?: number; lng?: number };
 
 /** Pin percent-plane POIs onto real lat/lng around a walk origin (God's Eye teleport / GPS). */
-export function pinWorldPoisToGeo<T extends { discoveryPoints: GeoPin[]; battleArenas: GeoPin[]; cardCaches: GeoPin[] }>(
-  state: T,
-  center: { lat: number; lng: number }
-): T {
+export function pinWorldPoisToGeo<
+  T extends { discoveryPoints: GeoPin[]; battleArenas: GeoPin[]; cardCaches: GeoPin[] },
+>(state: T, center: { lat: number; lng: number }): T {
   const pin = <P extends GeoPin>(item: P): P => {
     const dxM = (item.xPct - 50) * 8;
     const dyM = (50 - item.yPct) * 8;
@@ -799,7 +1308,11 @@ export const DRESDEN_PARK_ZONE: ParkBiomeDef = {
   ],
 };
 
-export function isInsidePark(xPct: number, yPct: number, park: ParkBiomeDef = DRESDEN_PARK_ZONE): boolean {
+export function isInsidePark(
+  xPct: number,
+  yPct: number,
+  park: ParkBiomeDef = DRESDEN_PARK_ZONE,
+): boolean {
   return (
     xPct >= park.bounds.minX &&
     xPct <= park.bounds.maxX &&
@@ -858,7 +1371,7 @@ export function generateEraSpawns(
   count = 7,
   timestamp = Date.now(),
   centerGeo: { lat: number; lng: number } = DRESDEN_PARK_GEO,
-  opts: EraSpawnOptions = {}
+  opts: EraSpawnOptions = {},
 ): WildCreature[] {
   const eraKey = eraId || getEraRotationStatus(timestamp).activeEraId;
   const spawns: WildCreature[] = [];
@@ -870,9 +1383,11 @@ export function generateEraSpawns(
   }
 
   const nearDresden =
-    haversineMeters(centerGeo.lat, centerGeo.lng, DRESDEN_PARK_GEO.lat, DRESDEN_PARK_GEO.lng) <= 800;
+    haversineMeters(centerGeo.lat, centerGeo.lng, DRESDEN_PARK_GEO.lat, DRESDEN_PARK_GEO.lng) <=
+    800;
   const includePark = opts.includeParkNest ?? nearDresden;
-  const origin = opts.localOrigin || (includePark ? { xPct: 31, yPct: 48 } : { xPct: 50, yPct: 50 });
+  const origin =
+    opts.localOrigin || (includePark ? { xPct: 31, yPct: 48 } : { xPct: 50, yPct: 50 });
 
   // 1. Dresden Park nest — real-world hub only, never mixed into other region planes
   const parkCount = includePark ? 3 : 0;
@@ -880,13 +1395,12 @@ export function generateEraSpawns(
 
   // Dresden Park nest pool: draws rare/epic/legendary from full franchise
   const highTierFranchisePool = ALL_POKEMON.filter(
-    (p) => p.rarity === "rare" || p.rarity === "epic" || p.rarity === "legendary"
+    (p) => p.rarity === "rare" || p.rarity === "epic" || p.rarity === "legendary",
   );
 
   for (let i = 0; i < parkCount; i++) {
     const chosen =
-      highTierFranchisePool[Math.floor(Math.random() * highTierFranchisePool.length)] ||
-      pool[0];
+      highTierFranchisePool[Math.floor(Math.random() * highTierFranchisePool.length)] || pool[0];
 
     const parkX = Math.round(18 + Math.random() * 24); // 18-42%
     const parkY = Math.round(36 + Math.random() * 22); // 36-58%
@@ -1100,7 +1614,6 @@ export interface AdventureState {
   routes: ExplorationRoute[];
   quests: AdventureQuest[];
 }
-
 
 export function cloneAdventureState(state: AdventureState): AdventureState {
   return JSON.parse(JSON.stringify(state));
@@ -1460,13 +1973,15 @@ function hydrateAdventureGeo(state: AdventureState): AdventureState {
     dirty = true;
   }
   const needsPin = [...next.discoveryPoints, ...next.battleArenas, ...next.cardCaches].some(
-    (p) => typeof p.lat !== "number" || typeof p.lng !== "number"
+    (p) => typeof p.lat !== "number" || typeof p.lng !== "number",
   );
   const pinned = needsPin ? pinWorldPoisToGeo(next, { lat: geo.lat, lng: geo.lng }) : next;
   if (dirty && typeof window !== "undefined") {
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(pinned));
-    } catch { /* ignore quota */ }
+    } catch {
+      /* ignore quota */
+    }
   }
   return pinned;
 }
@@ -1503,7 +2018,7 @@ export function saveAdventureState(state: AdventureState): void {
 
 export function addAdventureXp(
   state: AdventureState,
-  amount: number
+  amount: number,
 ): { state: AdventureState; leveledUp: boolean; newLevel: number } {
   const updated = cloneAdventureState(state);
   let currentXp = updated.player.xp + amount;
@@ -1540,7 +2055,7 @@ export function modifyEnergy(state: AdventureState, delta: number): AdventureSta
   const updated = cloneAdventureState(state);
   updated.inventory.energy = Math.max(
     0,
-    Math.min(updated.inventory.maxEnergy, updated.inventory.energy + delta)
+    Math.min(updated.inventory.maxEnergy, updated.inventory.energy + delta),
   );
   saveAdventureState(updated);
   return updated;
@@ -1553,7 +2068,7 @@ export function modifyEnergy(state: AdventureState, delta: number): AdventureSta
 export function convertRareCandyToSpecies(
   state: AdventureState,
   species: string,
-  amount: number
+  amount: number,
 ): { success: boolean; state: AdventureState; error?: string } {
   if (state.inventory.rareCandy < amount || amount <= 0) {
     return { success: false, state, error: "Insufficient Rare Candy." };
@@ -1571,14 +2086,24 @@ export function convertRareCandyToSpecies(
 export function canEvolveCreature(
   state: AdventureState,
   fromSpecies: string,
-  stoneId?: EvolutionStoneId
-): { eligible: boolean; targetSpecies?: string; missingReason?: string; cost: { stoneRequired?: EvolutionStoneId; candiesRequired: number } } {
+  stoneId?: EvolutionStoneId,
+): {
+  eligible: boolean;
+  targetSpecies?: string;
+  missingReason?: string;
+  cost: { stoneRequired?: EvolutionStoneId; candiesRequired: number };
+} {
   if (stoneId) {
     const stoneDef = EVOLUTION_STONES[stoneId];
-    if (!stoneDef) return { eligible: false, missingReason: "Unknown Evolution Stone", cost: { candiesRequired: 0 } };
+    if (!stoneDef)
+      return {
+        eligible: false,
+        missingReason: "Unknown Evolution Stone",
+        cost: { candiesRequired: 0 },
+      };
 
     const match = stoneDef.eligibleSpecies.find(
-      (s) => s.from.toLowerCase() === fromSpecies.toLowerCase()
+      (s) => s.from.toLowerCase() === fromSpecies.toLowerCase(),
     );
     if (!match) {
       return {
@@ -1620,20 +2145,24 @@ export function canEvolveCreature(
   for (const [id, def] of Object.entries(EVOLUTION_STONES)) {
     const sId = id as EvolutionStoneId;
     const match = def.eligibleSpecies.find(
-      (s) => s.from.toLowerCase() === fromSpecies.toLowerCase()
+      (s) => s.from.toLowerCase() === fromSpecies.toLowerCase(),
     );
     if (match) {
       return canEvolveCreature(state, fromSpecies, sId);
     }
   }
 
-  return { eligible: false, missingReason: `${fromSpecies} has no stone-triggered evolutions.`, cost: { candiesRequired: 0 } };
+  return {
+    eligible: false,
+    missingReason: `${fromSpecies} has no stone-triggered evolutions.`,
+    cost: { candiesRequired: 0 },
+  };
 }
 
 export function executeEvolution(
   state: AdventureState,
   fromSpecies: string,
-  stoneId: EvolutionStoneId
+  stoneId: EvolutionStoneId,
 ): { success: boolean; state: AdventureState; evolvedTo?: string; error?: string } {
   const check = canEvolveCreature(state, fromSpecies, stoneId);
   if (!check.eligible || !check.targetSpecies) {
@@ -1676,7 +2205,7 @@ export function attemptCapture(
   creatureId: string,
   ballId: CaptureItemId,
   berryId?: CaptureItemId,
-  throwPrecision: "nice" | "great" | "excellent" = "great"
+  throwPrecision: "nice" | "great" | "excellent" = "great",
 ): {
   success: boolean;
   state: AdventureState;
@@ -1707,7 +2236,7 @@ export function attemptCapture(
 
   const finalRate = Math.min(
     1.0,
-    creature.baseCatchRate * ballMultiplier * berryMultiplier * throwMultiplier
+    creature.baseCatchRate * ballMultiplier * berryMultiplier * throwMultiplier,
   );
   const caught = Math.random() <= finalRate || ballId === "master_ball";
 
@@ -1729,7 +2258,8 @@ export function attemptCapture(
       updated.inventory.rareCandy += 1;
     }
 
-    const baseXpGain = creature.rarity === "legendary" ? 1000 : creature.rarity === "epic" ? 500 : 150;
+    const baseXpGain =
+      creature.rarity === "legendary" ? 1000 : creature.rarity === "epic" ? 500 : 150;
     const xpGain = Math.round(baseXpGain * (creature.isParkNest ? 1.5 : 1.0));
     const coinsGain = Math.floor(xpGain / 4);
     updated.inventory.coins += coinsGain;
@@ -1747,7 +2277,12 @@ export function attemptCapture(
       success: true,
       state: xpRes.state,
       creature,
-      rewards: { xp: xpGain, coins: coinsGain, candies: candyAmount, rareCandyChance: gotRareCandy },
+      rewards: {
+        xp: xpGain,
+        coins: coinsGain,
+        candies: candyAmount,
+        rareCandyChance: gotRareCandy,
+      },
     };
   }
 
@@ -1761,7 +2296,7 @@ export function attemptCapture(
 
 export function spinDiscoveryPoint(
   state: AdventureState,
-  pointId: string
+  pointId: string,
 ): {
   success: boolean;
   state: AdventureState;
@@ -1838,7 +2373,7 @@ export function spinDiscoveryPoint(
 
 export function claimCardCache(
   state: AdventureState,
-  cacheId: string
+  cacheId: string,
 ): { success: boolean; state: AdventureState; cache?: CardCacheDrop } {
   const updated = cloneAdventureState(state);
   const cache = updated.cardCaches.find((c) => c.id === cacheId);
@@ -1859,7 +2394,7 @@ export function claimCardCache(
 
 export function feedBuddy(
   state: AdventureState,
-  berryId: CaptureItemId = "razz_berry"
+  berryId: CaptureItemId = "razz_berry",
 ): { success: boolean; state: AdventureState; message: string } {
   if ((state.inventory.captureItems[berryId] || 0) <= 0) {
     return { success: false, state, message: `No ${CAPTURE_ITEMS[berryId].name} left in bag.` };
@@ -1867,15 +2402,16 @@ export function feedBuddy(
 
   const updated = cloneAdventureState(state);
   updated.inventory.captureItems[berryId] -= 1;
-  updated.buddy.heartsToday = Math.min(
-    updated.buddy.maxHeartsToday,
-    updated.buddy.heartsToday + 1
-  );
+  updated.buddy.heartsToday = Math.min(updated.buddy.maxHeartsToday, updated.buddy.heartsToday + 1);
   updated.buddy.mood = "excited";
 
   const xpRes = addAdventureXp(updated, 25);
   saveAdventureState(xpRes.state);
-  return { success: true, state: xpRes.state, message: `${updated.buddy.nickname} loved the berry! (+1 Heart, +25 XP)` };
+  return {
+    success: true,
+    state: xpRes.state,
+    message: `${updated.buddy.nickname} loved the berry! (+1 Heart, +25 XP)`,
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1886,7 +2422,7 @@ export function buyShopItem(
   state: AdventureState,
   itemType: "stone" | "capture" | "boost" | "rare_candy",
   itemId: string,
-  quantity: number = 1
+  quantity: number = 1,
 ): { success: boolean; state: AdventureState; error?: string } {
   const updated = cloneAdventureState(state);
   let unitPrice = 0;
@@ -1909,7 +2445,11 @@ export function buyShopItem(
 
   const totalCost = unitPrice * quantity;
   if (updated.inventory.coins < totalCost) {
-    return { success: false, state, error: `Need ${totalCost} Coins (Have ${updated.inventory.coins}).` };
+    return {
+      success: false,
+      state,
+      error: `Need ${totalCost} Coins (Have ${updated.inventory.coins}).`,
+    };
   }
 
   updated.inventory.coins -= totalCost;
@@ -1937,8 +2477,12 @@ export function buyShopItem(
 
 export function claimQuest(
   state: AdventureState,
-  questId: string
-): { success: boolean; state: AdventureState; rewards?: { coins: number; xp: number; rareCandy: number } } {
+  questId: string,
+): {
+  success: boolean;
+  state: AdventureState;
+  rewards?: { coins: number; xp: number; rareCandy: number };
+} {
   const updated = cloneAdventureState(state);
   const quest = updated.quests.find((q) => q.id === questId);
   if (!quest || !quest.completed || quest.claimed) {
@@ -1960,14 +2504,13 @@ export function claimQuest(
   };
 }
 
-
 // ─────────────────────────────────────────────────────────────────────────────
 // ERA ROTATION ENGINE (30-MINUTE CYCLES)
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function checkAndRotateEra(
   state: AdventureState,
-  currentTimestamp = Date.now()
+  currentTimestamp = Date.now(),
 ): { state: AdventureState; didRotate: boolean; activeEra: PokemonEra } {
   const rotation = getEraRotationStatus(currentTimestamp);
   const currentEraId = state.world.activeEraId || "vintage_kanto";
@@ -1986,7 +2529,7 @@ export function checkAndRotateEra(
 
 export function forceSwitchEra(
   state: AdventureState,
-  targetEraId: PokemonEraId
+  targetEraId: PokemonEraId,
 ): { state: AdventureState; activeEra: PokemonEra } {
   const updated = cloneAdventureState(state);
   updated.world.activeEraId = targetEraId;
@@ -1996,7 +2539,6 @@ export function forceSwitchEra(
   return { state: updated, activeEra: POKEMON_ERAS[targetEraId] };
 }
 
-
 /**
  * Updates player coordinates and recalculates distance to all wild creatures.
  * Strictly triggers discovery when a player moves within RADAR_DISCOVERY_RADIUS_METERS (45m).
@@ -2005,7 +2547,7 @@ export function updatePlayerLocation(
   state: AdventureState,
   newCoords: { xPct: number; yPct: number },
   distMeters: number,
-  newGeo?: { lat: number; lng: number; accuracy?: number; heading?: number }
+  newGeo?: { lat: number; lng: number; accuracy?: number; heading?: number },
 ): {
   state: AdventureState;
   newlyDiscovered: WildCreature[];
@@ -2037,21 +2579,26 @@ export function updatePlayerLocation(
     const isNowDiscovered = dist <= RADAR_DISCOVERY_RADIUS_METERS || wasDiscovered;
 
     if (!wasDiscovered && isNowDiscovered) {
-      newlyDiscovered.push({ ...c, distanceMeters: dist, isDiscovered: true, discoveryTimestamp: Date.now() });
+      newlyDiscovered.push({
+        ...c,
+        distanceMeters: dist,
+        isDiscovered: true,
+        discoveryTimestamp: Date.now(),
+      });
     }
 
     return {
       ...c,
       distanceMeters: dist,
       isDiscovered: isNowDiscovered,
-      discoveryTimestamp: isNowDiscovered ? (c.discoveryTimestamp || Date.now()) : undefined,
+      discoveryTimestamp: isNowDiscovered ? c.discoveryTimestamp || Date.now() : undefined,
     };
   });
 
   // Free-roam: if every wild is far away, seed a fresh cluster around the player
   const nearest = updated.wildCreatures.reduce(
     (min, c) => Math.min(min, c.distanceMeters ?? 9999),
-    9999
+    9999,
   );
   if (updated.wildCreatures.length === 0 || nearest > 220) {
     const eraId = updated.world.activeEraId;
@@ -2059,9 +2606,7 @@ export function updatePlayerLocation(
       lat: playerLat,
       lng: playerLng,
     });
-    const keep = updated.wildCreatures
-      .filter((c) => (c.distanceMeters ?? 9999) <= 180)
-      .slice(0, 3);
+    const keep = updated.wildCreatures.filter((c) => (c.distanceMeters ?? 9999) <= 180).slice(0, 3);
     updated.wildCreatures = [...keep, ...fresh].slice(0, 14);
   }
 
@@ -2094,7 +2639,7 @@ export function updatePlayerLocation(
     if (q.id === "quest-walk-1km" && !q.completed) {
       q.currentProgress = Math.min(
         q.targetProgress,
-        +(q.currentProgress + distMeters / 1000).toFixed(2)
+        +(q.currentProgress + distMeters / 1000).toFixed(2),
       );
       if (q.currentProgress >= q.targetProgress) q.completed = true;
     }

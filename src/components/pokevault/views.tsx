@@ -1,7 +1,17 @@
 import { useEffect, useState } from "react";
 import { fallbackCardImages, hdImg } from "@/lib/card-images";
 import type { TCGCard, TCGSet } from "@/lib/pokemon-api";
-import { getMarketPrice, getSets, getTopMarket, getTrending, getDiscoverFast, searchCards, getCardsBySet, getAllCardsBySet, rememberCard } from "@/lib/pokemon-api";
+import {
+  getMarketPrice,
+  getSets,
+  getTopMarket,
+  getTrending,
+  getDiscoverFast,
+  searchCards,
+  getCardsBySet,
+  getAllCardsBySet,
+  rememberCard,
+} from "@/lib/pokemon-api";
 import { formatPrice, useVault } from "@/lib/vault";
 import { CardTile, CardSkeleton } from "./CardTile";
 import { VirtualCardGrid } from "./VirtualCardGrid";
@@ -51,18 +61,24 @@ export function DiscoverView({ onOpen, onTab }: { onOpen: OnOpen; onTab: (t: str
       const sorted = [...cards].sort((a, b) => getMarketPrice(b) - getMarketPrice(a));
       setTrending(sorted);
     };
-    getDiscoverFast(lang).then(paint).catch(() => {});
-    getTrending(24, 1, lang).then(paint).catch(() => {
-      setTrending(prev => prev ?? []);
-    });
-    return () => { cancelled = true; };
+    getDiscoverFast(lang)
+      .then(paint)
+      .catch(() => {});
+    getTrending(24, 1, lang)
+      .then(paint)
+      .catch(() => {
+        setTrending((prev) => prev ?? []);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [lang]);
 
   // Rotate hero every 2 minutes
   useEffect(() => {
     if (!trending || trending.length < 2) return;
     const id = setInterval(() => {
-      setHeroIdx(i => (i + 1) % Math.min(trending.length, 20));
+      setHeroIdx((i) => (i + 1) % Math.min(trending.length, 20));
     }, 120_000);
     return () => clearInterval(id);
   }, [trending]);
@@ -76,7 +92,9 @@ export function DiscoverView({ onOpen, onTab }: { onOpen: OnOpen; onTab: (t: str
 
   return (
     <div>
-      <div className="pad" style={{ paddingBottom: 0 }}><PrintLangBar /></div>
+      <div className="pad" style={{ paddingBottom: 0 }}>
+        <PrintLangBar />
+      </div>
       {!trending && (
         <div className="pv-hero pv-hero-premium pv-hero-loading" aria-busy="true">
           <div className="pv-hero-content">
@@ -85,7 +103,12 @@ export function DiscoverView({ onOpen, onTab }: { onOpen: OnOpen; onTab: (t: str
             <div className="pv-skel-line md" />
             <div className="pv-skel-line sm" />
           </div>
-          <div className="pv-hero-img"><div className="pv-card-skel" style={{ width: 130, paddingTop: "139.5%", borderRadius: 10 }} /></div>
+          <div className="pv-hero-img">
+            <div
+              className="pv-card-skel"
+              style={{ width: 130, paddingTop: "139.5%", borderRadius: 10 }}
+            />
+          </div>
         </div>
       )}
       {trending && trending.length === 0 && (
@@ -94,28 +117,56 @@ export function DiscoverView({ onOpen, onTab }: { onOpen: OnOpen; onTab: (t: str
             <div className="pv-empty-icon">📡</div>
             <div className="pv-empty-title">DISCOVER IS QUIET</div>
             <div>Couldn’t load trending cards. Try Search or Market.</div>
-            <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap", marginTop: 12 }}>
-              <button className="pv-btn pv-btn-fill" onClick={() => onTab("search")}>Search</button>
-              <button className="pv-btn pv-btn-out" onClick={() => onTab("market")}>Market</button>
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                justifyContent: "center",
+                flexWrap: "wrap",
+                marginTop: 12,
+              }}
+            >
+              <button className="pv-btn pv-btn-fill" onClick={() => onTab("search")}>
+                Search
+              </button>
+              <button className="pv-btn pv-btn-out" onClick={() => onTab("market")}>
+                Market
+              </button>
             </div>
           </div>
         </div>
       )}
       {hero && (
         <div className="pv-hero pv-hero-premium" key={hero.id}>
-          <div className="pv-hero-bg" style={{
-            background: `linear-gradient(135deg, rgba(255,215,0,.08), transparent 60%), radial-gradient(circle at 70% 50%, rgba(255,80,0,.18), transparent 60%)`,
-          }} />
+          <div
+            className="pv-hero-bg"
+            style={{
+              background: `linear-gradient(135deg, rgba(255,215,0,.08), transparent 60%), radial-gradient(circle at 70% 50%, rgba(255,80,0,.18), transparent 60%)`,
+            }}
+          />
           <div className="pv-hero-content">
             <span className="pv-hero-badge">🔥 TRENDING #{heroIdx + 1}</span>
             <h1 className="pv-hero-name">{hero.name.toUpperCase()}</h1>
-            <div className="pv-hero-sub">{hero.set.name} • {hero.rarity ?? "—"}</div>
+            <div className="pv-hero-sub">
+              {hero.set.name} • {hero.rarity ?? "—"}
+            </div>
             <div className="pv-hero-price">{formatPrice(heroLive || getMarketPrice(hero))}</div>
             <div className="flex gap-2 flex-wrap">
-              <button className="pv-btn pv-btn-out" onClick={() => { rememberCard(hero); onOpen(hero.id); }}>View Card</button>
+              <button
+                className="pv-btn pv-btn-out"
+                onClick={() => {
+                  rememberCard(hero);
+                  onOpen(hero.id);
+                }}
+              >
+                View Card
+              </button>
               <HeroAddBtn card={hero} />
               {total > 1 && (
-                <button className="pv-btn pv-btn-out" onClick={() => setHeroIdx(i => (i + 1) % Math.min(total, 20))}>
+                <button
+                  className="pv-btn pv-btn-out"
+                  onClick={() => setHeroIdx((i) => (i + 1) % Math.min(total, 20))}
+                >
                   Next →
                 </button>
               )}
@@ -129,7 +180,11 @@ export function DiscoverView({ onOpen, onTab }: { onOpen: OnOpen; onTab: (t: str
           <div className="pv-hero-img">
             <img
               src={hero.images.small || hero.images.large}
-              srcSet={hero.images.large ? `${hero.images.small} 245w, ${hero.images.large} 600w` : undefined}
+              srcSet={
+                hero.images.large
+                  ? `${hero.images.small} 245w, ${hero.images.large} 600w`
+                  : undefined
+              }
               sizes="(max-width: 700px) 40vw, 220px"
               alt={hero.name}
               fetchPriority="high"
@@ -140,13 +195,25 @@ export function DiscoverView({ onOpen, onTab }: { onOpen: OnOpen; onTab: (t: str
       )}
 
       <div className="pv-qa-row">
-        <button className="pv-btn pv-btn-out" onClick={() => onTab("market")}>📈 Market Prices</button>
-        <button className="pv-btn pv-btn-out" onClick={() => onTab("sets")}>📦 Browse Sets</button>
-        <button className="pv-btn pv-btn-out" onClick={() => onTab("search")}>🔍 Search Cards</button>
-        <button className="pv-btn pv-btn-fill" onClick={() => onTab("battle")}>⚔ Battle Mode</button>
+        <button className="pv-btn pv-btn-out" onClick={() => onTab("market")}>
+          📈 Market Prices
+        </button>
+        <button className="pv-btn pv-btn-out" onClick={() => onTab("sets")}>
+          📦 Browse Sets
+        </button>
+        <button className="pv-btn pv-btn-out" onClick={() => onTab("search")}>
+          🔍 Search Cards
+        </button>
+        <button className="pv-btn pv-btn-fill" onClick={() => onTab("battle")}>
+          ⚔ Battle Mode
+        </button>
       </div>
 
-      <Rail title={`🔥 TRENDING NOW${total ? ` · ${total}` : ""}`} cards={trending} onOpen={onOpen} />
+      <Rail
+        title={`🔥 TRENDING NOW${total ? ` · ${total}` : ""}`}
+        cards={trending}
+        onOpen={onOpen}
+      />
     </div>
   );
 }
@@ -163,13 +230,26 @@ function HeroAddBtn({ card }: { card: TCGCard }) {
 
 const RAIL_CAP = 18;
 
-function Rail({ title, cards, onOpen }: { title: string; cards: TCGCard[] | null; onOpen: OnOpen }) {
+function Rail({
+  title,
+  cards,
+  onOpen,
+}: {
+  title: string;
+  cards: TCGCard[] | null;
+  onOpen: OnOpen;
+}) {
   const shown = cards ? cards.slice(0, RAIL_CAP) : null;
   return (
     <div style={{ borderBottom: "1px solid var(--brd)" }}>
       <div className="pv-rail-hdr">
         <div className="pv-rail-title">{title}</div>
-        {cards && <div className="pv-rail-cnt">{shown!.length}{cards.length > RAIL_CAP ? ` / ${cards.length}` : ""}</div>}
+        {cards && (
+          <div className="pv-rail-cnt">
+            {shown!.length}
+            {cards.length > RAIL_CAP ? ` / ${cards.length}` : ""}
+          </div>
+        )}
       </div>
       <div className="pv-rail-scroll hide-scroll pv-stagger">
         {shown
@@ -210,15 +290,27 @@ export function MarketView({ onOpen }: { onOpen: OnOpen }) {
         setErr(e?.message || "Could not load market data.");
       });
   };
-  useEffect(() => { load(); }, [lang]);
+  useEffect(() => {
+    load();
+  }, [lang]);
 
-  const filtered = (cards ?? []).filter(c => {
+  const filtered = (cards ?? []).filter((c) => {
     if (filter === "all") return true;
     const r = (c.rarity ?? "").toLowerCase();
     if (filter === "ultra") return r.includes("ultra");
     if (filter === "holo") return r.includes("holo");
-    if (filter === "ex") return /\b(ex|gx|v|vmax|vstar)\b/i.test(c.subtypes?.join(" ") ?? "") || /\b(ex|gx|v)\b/i.test(c.name);
-    if (filter === "special") return r.includes("special") || r.includes("rainbow") || r.includes("secret") || r.includes("hyper");
+    if (filter === "ex")
+      return (
+        /\b(ex|gx|v|vmax|vstar)\b/i.test(c.subtypes?.join(" ") ?? "") ||
+        /\b(ex|gx|v)\b/i.test(c.name)
+      );
+    if (filter === "special")
+      return (
+        r.includes("special") ||
+        r.includes("rainbow") ||
+        r.includes("secret") ||
+        r.includes("hyper")
+      );
     return true;
   });
 
@@ -228,10 +320,19 @@ export function MarketView({ onOpen }: { onOpen: OnOpen }) {
       <div className="pv-section-title">📈 MARKET LEADERBOARD</div>
       <div className="flex gap-2 flex-wrap mb-4">
         {[
-          ["all", "All Cards"], ["ultra", "Ultra Rare"], ["holo", "Holofoil"],
-          ["ex", "EX / GX / V"], ["special", "Special Art"],
+          ["all", "All Cards"],
+          ["ultra", "Ultra Rare"],
+          ["holo", "Holofoil"],
+          ["ex", "EX / GX / V"],
+          ["special", "Special Art"],
         ].map(([k, l]) => (
-          <button key={k} className={`pv-pill ${filter === k ? "on" : ""}`} onClick={() => setFilter(k)}>{l}</button>
+          <button
+            key={k}
+            className={`pv-pill ${filter === k ? "on" : ""}`}
+            onClick={() => setFilter(k)}
+          >
+            {l}
+          </button>
         ))}
       </div>
       {!cards && !err && <div className="pv-empty">Loading market data…</div>}
@@ -239,31 +340,60 @@ export function MarketView({ onOpen }: { onOpen: OnOpen }) {
         <div className="pv-empty">
           <div className="pv-empty-title">MARKET DIDN’T LOAD</div>
           <div>{err}</div>
-          <button className="pv-btn pv-btn-fill" style={{ marginTop: 12 }} onClick={load}>Retry</button>
+          <button className="pv-btn pv-btn-fill" style={{ marginTop: 12 }} onClick={load}>
+            Retry
+          </button>
         </div>
       )}
       {cards && cards.length > 0 && filtered.length === 0 && (
         <div className="pv-empty">
           <div className="pv-empty-title">NO MATCHES</div>
           <div>Nothing in this rarity filter — try All Cards.</div>
-          <button className="pv-btn pv-btn-fill" style={{ marginTop: 12 }} onClick={() => setFilter("all")}>Show all</button>
+          <button
+            className="pv-btn pv-btn-fill"
+            style={{ marginTop: 12 }}
+            onClick={() => setFilter("all")}
+          >
+            Show all
+          </button>
         </div>
       )}
       <div className="pv-lb-list">
         {filtered.map((c, i) => (
-          <div key={c.id} className="pv-lb-row" onClick={() => onOpen(c.id)} role="button" tabIndex={0}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(c.id); } }}>
+          <div
+            key={c.id}
+            className="pv-lb-row"
+            onClick={() => onOpen(c.id)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onOpen(c.id);
+              }
+            }}
+          >
             <div className="pv-lb-rank">{i + 1}</div>
             <LbImg card={c} />
             <div className="pv-lb-info">
-              <div className="pv-lb-name">{c.name}{c.lang && c.lang !== "en" ? ` · ${c.lang}` : ""}</div>
-              <div className="pv-lb-rar">{c.set.name} • {c.rarity ?? "—"}</div>
+              <div className="pv-lb-name">
+                {c.name}
+                {c.lang && c.lang !== "en" ? ` · ${c.lang}` : ""}
+              </div>
+              <div className="pv-lb-rar">
+                {c.set.name} • {c.rarity ?? "—"}
+              </div>
             </div>
-            <div className="pv-lb-price"><LiveAskPrice card={c} /></div>
+            <div className="pv-lb-price">
+              <LiveAskPrice card={c} />
+            </div>
             <button
               className={`pv-btn pv-btn-fill ${inVault(c.id) ? "yes" : ""}`}
               style={{ padding: "6px 10px", fontSize: 10 }}
-              onClick={(e) => { e.stopPropagation(); addToVault(c); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                addToVault(c);
+              }}
             >
               {inVault(c.id) ? "✓" : "+ Add"}
             </button>
@@ -285,24 +415,34 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
   const load = (blank = false) => {
     setErr(null);
     if (blank) setSets(null);
-    getSets(lang).then(setSets).catch((e: any) => {
-      setSets((prev) => prev ?? []);
-      setErr(e?.message || "Could not load sets.");
-    });
+    getSets(lang)
+      .then(setSets)
+      .catch((e: any) => {
+        setSets((prev) => prev ?? []);
+        setErr(e?.message || "Could not load sets.");
+      });
   };
-  useEffect(() => { load(!sets); }, [lang]);
+  useEffect(() => {
+    load(!sets);
+  }, [lang]);
 
-  const filtered = (sets ?? []).filter(s => {
+  const filtered = (sets ?? []).filter((s) => {
     const id = (s.id || "").toLowerCase();
     const name = (s.name || "").toLowerCase();
-    if (chip === "shadowless") return id === "base1sl" || id === "bss" || name.includes("shadowless");
+    if (chip === "shadowless")
+      return id === "base1sl" || id === "bss" || name.includes("shadowless");
     if (chip === "error") return id === "error" || /\b(error|misprint)/.test(name);
     if (chip === "box") {
       if (id === "error") return false;
       const n = Number(s.total || s.printedTotal || 0);
       return n >= 30 && !/promo|mcdonald|jumbo|ko|zh/i.test(id + name);
     }
-    if (filter && !name.includes(filter.toLowerCase()) && !(s.series || "").toLowerCase().includes(filter.toLowerCase())) return false;
+    if (
+      filter &&
+      !name.includes(filter.toLowerCase()) &&
+      !(s.series || "").toLowerCase().includes(filter.toLowerCase())
+    )
+      return false;
     return true;
   });
 
@@ -313,16 +453,27 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
         className="pv-input mb-3"
         placeholder="Filter sets by name or series…"
         value={filter}
-        onChange={e => setFilter(e.target.value)}
+        onChange={(e) => setFilter(e.target.value)}
       />
       <div className="flex gap-2 flex-wrap mb-4">
-        {([
-          ["all", "All sets"],
-          ["box", "Box sets"],
-          ["shadowless", "Shadowless"],
-          ["error", "Error / Misprint"],
-        ] as const).map(([k, l]) => (
-          <button key={k} className={`pv-pill ${chip === k ? "on" : ""}`} onClick={() => { setChip(k); if (k !== "all") setFilter(""); }}>{l}</button>
+        {(
+          [
+            ["all", "All sets"],
+            ["box", "Box sets"],
+            ["shadowless", "Shadowless"],
+            ["error", "Error / Misprint"],
+          ] as const
+        ).map(([k, l]) => (
+          <button
+            key={k}
+            className={`pv-pill ${chip === k ? "on" : ""}`}
+            onClick={() => {
+              setChip(k);
+              if (k !== "all") setFilter("");
+            }}
+          >
+            {l}
+          </button>
         ))}
       </div>
       {!sets && !err && <div className="pv-empty">Loading every set…</div>}
@@ -330,7 +481,13 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
         <div className="pv-empty">
           <div className="pv-empty-title">SETS DIDN’T LOAD</div>
           <div>{err}</div>
-          <button className="pv-btn pv-btn-fill" style={{ marginTop: 12 }} onClick={() => load(true)}>Retry</button>
+          <button
+            className="pv-btn pv-btn-fill"
+            style={{ marginTop: 12 }}
+            onClick={() => load(true)}
+          >
+            Retry
+          </button>
         </div>
       )}
       {sets && (
@@ -345,21 +502,64 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
         </div>
       )}
       <div className="pv-sets-grid">
-        {filtered.map(s => {
+        {filtered.map((s) => {
           const special = s.id === "base1sl" || s.id === "error";
           return (
-          <div key={s.id} className="pv-set-el" onClick={() => onPickSet(s)} role="button" tabIndex={0}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPickSet(s); } }}>
-            {s.images?.logo
-              ? <img className="pv-set-logo" src={s.images.logo} alt={s.name} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-              : <div className="pv-set-logo" />}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</div>
-              <div style={{ fontSize: 10, color: "var(--t3)" }}>{s.series} • {s.releaseDate}</div>
-              <div style={{ fontSize: 10, color: special ? "var(--gold)" : "var(--t3)" }}>{s.total} cards{special ? " · special print" : ""}</div>
+            <div
+              key={s.id}
+              className="pv-set-el"
+              onClick={() => onPickSet(s)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onPickSet(s);
+                }
+              }}
+            >
+              {s.images?.logo ? (
+                <img
+                  className="pv-set-logo"
+                  src={s.images.logo}
+                  alt={s.name}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              ) : (
+                <div className="pv-set-logo" />
+              )}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {s.name}
+                </div>
+                <div style={{ fontSize: 10, color: "var(--t3)" }}>
+                  {s.series} • {s.releaseDate}
+                </div>
+                <div style={{ fontSize: 10, color: special ? "var(--gold)" : "var(--t3)" }}>
+                  {s.total} cards{special ? " · special print" : ""}
+                </div>
+              </div>
+              {s.images?.symbol && (
+                <img
+                  className="pv-set-sym"
+                  src={s.images.symbol}
+                  alt=""
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              )}
             </div>
-            {s.images?.symbol && <img className="pv-set-sym" src={s.images.symbol} alt="" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />}
-          </div>
           );
         })}
       </div>
@@ -376,11 +576,25 @@ function isFlakyCatalogSet(set: TCGSet): boolean {
 
 function isPendingPriceSetView(set: TCGSet): boolean {
   const id = (set.id || "").toLowerCase();
-  return id === "30th" || id === "30th-c" || id === "me55" || id === "me55c"
-    || id.startsWith("30th") || id.startsWith("me55");
+  return (
+    id === "30th" ||
+    id === "30th-c" ||
+    id === "me55" ||
+    id === "me55c" ||
+    id.startsWith("30th") ||
+    id.startsWith("me55")
+  );
 }
 
-export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () => void; onOpen: OnOpen }) {
+export function SetCardsView({
+  set,
+  onBack,
+  onOpen,
+}: {
+  set: TCGSet;
+  onBack: () => void;
+  onOpen: OnOpen;
+}) {
   const [cards, setCards] = useState<TCGCard[] | null>(null);
   const [showBox, setShowBox] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -396,11 +610,17 @@ export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () 
       setCards(null);
       setTotal(0);
     }
-    getAllCardsBySet(set.id, (page, tot) => {
-      setCards(page);
-      setTotal(tot);
-    }, set.name, set.lang || "en", Math.max(set.total || 0, set.printedTotal || 0))
-      .then(r => {
+    getAllCardsBySet(
+      set.id,
+      (page, tot) => {
+        setCards(page);
+        setTotal(tot);
+      },
+      set.name,
+      set.lang || "en",
+      Math.max(set.total || 0, set.printedTotal || 0),
+    )
+      .then((r) => {
         setCards(r.data);
         setTotal(r.totalCount);
         if (!r.data?.length) {
@@ -427,7 +647,10 @@ export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () 
         }
       });
   };
-  useEffect(() => { load(); setMissingOnly(false); }, [set.id]);
+  useEffect(() => {
+    load();
+    setMissingOnly(false);
+  }, [set.id]);
 
   const ownedCount = cards ? cards.filter((c) => inVault(c.id)).length : 0;
   const catalogTotal = Math.max(total, cards?.length ?? 0, set.total || 0);
@@ -437,27 +660,43 @@ export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () 
 
   return (
     <div className="pad">
-      <button className="pv-back" onClick={onBack}>← All sets</button>
+      <button className="pv-back" onClick={onBack}>
+        ← All sets
+      </button>
       <div className="flex items-center gap-3 mb-4 flex-wrap">
         {set.images?.logo && <img src={set.images.logo} alt={set.name} style={{ height: 44 }} />}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: "Bebas Neue", fontSize: 24, letterSpacing: 2 }}>{set.name.toUpperCase()}</div>
-          <div style={{ color: "var(--t3)", fontSize: 11 }}>{set.series} • {cards ? `${cards.length}${total && cards.length < total ? ` / ${total}` : total ? ` / ${total}` : ""}` : set.total} cards • {set.releaseDate}</div>
+          <div style={{ fontFamily: "Bebas Neue", fontSize: 24, letterSpacing: 2 }}>
+            {set.name.toUpperCase()}
+          </div>
+          <div style={{ color: "var(--t3)", fontSize: 11 }}>
+            {set.series} •{" "}
+            {cards
+              ? `${cards.length}${total && cards.length < total ? ` / ${total}` : total ? ` / ${total}` : ""}`
+              : set.total}{" "}
+            cards • {set.releaseDate}
+          </div>
           {set.id === "base1sl" && (
-            <div style={{ color: "var(--gold)", fontSize: 11, marginTop: 4 }}>1999 English Base Set shadowless print — all 102 cards plus Red Cheeks Pikachu.</div>
+            <div style={{ color: "var(--gold)", fontSize: 11, marginTop: 4 }}>
+              1999 English Base Set shadowless print — all 102 cards plus Red Cheeks Pikachu.
+            </div>
           )}
           {set.id === "error" && (
-            <div style={{ color: "var(--gold)", fontSize: 11, marginTop: 4 }}>Named factory errors and misprints (no-symbol Jungle/Fossil, Black Dot Charizard, Prerelease Raichu, and more).</div>
+            <div style={{ color: "var(--gold)", fontSize: 11, marginTop: 4 }}>
+              Named factory errors and misprints (no-symbol Jungle/Fossil, Black Dot Charizard,
+              Prerelease Raichu, and more).
+            </div>
           )}
           {isPendingPriceSetView(set) && (
             <div className="pv-price-pending-banner" role="status">
-              Prices pending — new set. Live quotes load from TCGPlayer when available; tiles show Pending until then.
+              Prices pending — new set. Live quotes load from TCGPlayer when available; tiles show
+              Pending until then.
             </div>
           )}
         </div>
         <button
           className="pv-btn pv-btn-fill"
-          onClick={() => setShowBox(s => !s)}
+          onClick={() => setShowBox((s) => !s)}
           style={{ whiteSpace: "nowrap" }}
         >
           {showBox ? "✕ Hide Box" : "🎁 Find Sealed Booster Box"}
@@ -498,14 +737,26 @@ export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () 
         <div className="pv-catalog-soft" role="status">
           <div className="pv-catalog-soft-title">Catalog note</div>
           <div>{softNote}</div>
-          <button className="pv-btn pv-btn-fill" style={{ marginTop: 10 }} onClick={() => load(false)}>Retry</button>
+          <button
+            className="pv-btn pv-btn-fill"
+            style={{ marginTop: 10 }}
+            onClick={() => load(false)}
+          >
+            Retry
+          </button>
         </div>
       )}
       {err && (
         <div className="pv-empty">
           <div className="pv-empty-title">SET DIDN’T LOAD</div>
           <div>{err}</div>
-          <button className="pv-btn pv-btn-fill" style={{ marginTop: 12 }} onClick={() => load(true)}>Retry</button>
+          <button
+            className="pv-btn pv-btn-fill"
+            style={{ marginTop: 12 }}
+            onClick={() => load(true)}
+          >
+            Retry
+          </button>
         </div>
       )}
       {!err && !softNote && cards && cards.length === 0 && (
@@ -519,7 +770,9 @@ export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () 
       )}
       {!cards && !err && !softNote && (
         <div className="pv-card-grid">
-          {Array.from({ length: 12 }).map((_, i) => <CardSkeleton key={i} />)}
+          {Array.from({ length: 12 }).map((_, i) => (
+            <CardSkeleton key={i} />
+          ))}
         </div>
       )}
       {visible && (
@@ -552,9 +805,10 @@ export function SearchView({ onOpen }: { onOpen: OnOpen }) {
     setErr(null);
     const raw = query.trim();
     const parsed = parseSearchQuery(raw);
-    const queries = lang !== "en" || /[:*]/.test(raw) || parsed.print
-      ? [raw]
-      : [raw, `name:"${raw}*"`, `name:${raw}*`];
+    const queries =
+      lang !== "en" || /[:*]/.test(raw) || parsed.print
+        ? [raw]
+        : [raw, `name:"${raw}*"`, `name:${raw}*`];
     try {
       let lastErr: unknown = null;
       let res: { data: TCGCard[]; totalCount: number } | null = null;
@@ -614,28 +868,52 @@ export function SearchView({ onOpen }: { onOpen: OnOpen }) {
   return (
     <div className="pad">
       <PrintLangBar />
-      <form onSubmit={e => { e.preventDefault(); runSearch(q, 1); }}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          runSearch(q, 1);
+        }}
+      >
         <input
           className="pv-input mb-3"
           placeholder={searchPlaceholder(lang)}
           value={q}
-          onChange={e => setQ(e.target.value)}
+          onChange={(e) => setQ(e.target.value)}
         />
       </form>
       <div className="flex gap-2 flex-wrap mb-4">
-        {searchChips(lang).map(n => (
-          <button key={n} className="pv-pill" onClick={() => { setQ(n); runSearch(n, 1); }}>{n}</button>
+        {searchChips(lang).map((n) => (
+          <button
+            key={n}
+            className="pv-pill"
+            onClick={() => {
+              setQ(n);
+              runSearch(n, 1);
+            }}
+          >
+            {n}
+          </button>
         ))}
       </div>
-      {!cards && !loading && <div className="pv-empty"><div className="pv-empty-icon">🔍</div><div className="pv-empty-title">SEARCH POKÉMON CARDS</div><div>Try a Pokémon name above</div></div>}
+      {!cards && !loading && (
+        <div className="pv-empty">
+          <div className="pv-empty-icon">🔍</div>
+          <div className="pv-empty-title">SEARCH POKÉMON CARDS</div>
+          <div>Try a Pokémon name above</div>
+        </div>
+      )}
       {loading && page === 1 && (
         <div className="pv-card-grid">
-          {Array.from({ length: 8 }).map((_, i) => <CardSkeleton key={i} />)}
+          {Array.from({ length: 8 }).map((_, i) => (
+            <CardSkeleton key={i} />
+          ))}
         </div>
       )}
       {cards && cards.length > 0 && (
         <>
-          <div style={{ color: "var(--t3)", fontSize: 11, marginBottom: 10 }}>{total.toLocaleString("en-US")} results for "{active}"</div>
+          <div style={{ color: "var(--t3)", fontSize: 11, marginBottom: 10 }}>
+            {total.toLocaleString("en-US")} results for "{active}"
+          </div>
           <VirtualCardGrid
             items={cards}
             getKey={(c) => c.id}
@@ -656,7 +934,15 @@ export function SearchView({ onOpen }: { onOpen: OnOpen }) {
         <div className="pv-empty">
           <div className="pv-empty-title">{err ? "SEARCH FAILED" : "NO CARDS FOUND"}</div>
           <div>{err ?? `Nothing matched "${active}".`}</div>
-          {err && <button className="pv-btn pv-btn-fill" style={{ marginTop: 12 }} onClick={() => runSearch(active, 1)}>Retry</button>}
+          {err && (
+            <button
+              className="pv-btn pv-btn-fill"
+              style={{ marginTop: 12 }}
+              onClick={() => runSearch(active, 1)}
+            >
+              Retry
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -668,7 +954,9 @@ export function VaultView({ onOpen }: { onOpen: OnOpen }) {
   const { vault, wish, totalValue, totalCards, uniqueCards, removeFromVault } = useVault();
   const entries = Object.values(vault);
   const sorted = entries.slice().sort((a, b) => b.addedAt - a.addedAt);
-  const topByValue = entries.slice().sort((a, b) => getMarketPrice(b.card) - getMarketPrice(a.card));
+  const topByValue = entries
+    .slice()
+    .sort((a, b) => getMarketPrice(b.card) - getMarketPrice(a.card));
 
   const [greeting, setGreeting] = useState("Welcome");
   useEffect(() => {
@@ -713,13 +1001,21 @@ export function VaultView({ onOpen }: { onOpen: OnOpen }) {
       </div>
 
       <div className="pv-toolbar">
-        <button className="pv-tool-btn primary" onClick={() => alert("Import flow coming soon — paste a TCGPlayer/CSV export.")}>
+        <button
+          className="pv-tool-btn primary"
+          onClick={() => alert("Import flow coming soon — paste a TCGPlayer/CSV export.")}
+        >
           ⤓ Import Collection
         </button>
-        <button className="pv-tool-btn gold" onClick={() => window.dispatchEvent(new CustomEvent("pv-goto", { detail: "search" }))}>
+        <button
+          className="pv-tool-btn gold"
+          onClick={() => window.dispatchEvent(new CustomEvent("pv-goto", { detail: "search" }))}
+        >
           + Add Card
         </button>
-        <button className="pv-tool-btn" onClick={() => exportJSON(entries)}>⤒ Export JSON</button>
+        <button className="pv-tool-btn" onClick={() => exportJSON(entries)}>
+          ⤒ Export JSON
+        </button>
       </div>
 
       {entries.length === 0 ? (
@@ -728,33 +1024,81 @@ export function VaultView({ onOpen }: { onOpen: OnOpen }) {
             <div className="pv-empty-icon">🔒</div>
             <div className="pv-empty-title">VAULT EMPTY</div>
             <div>Add cards from Discover, Market, Scan, or Search.</div>
-            <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap", marginTop: 12 }}>
-              <button className="pv-btn pv-btn-fill" onClick={() => window.dispatchEvent(new CustomEvent("pv-goto", { detail: "search" }))}>Search cards</button>
-              <button className="pv-btn pv-btn-out" onClick={() => window.dispatchEvent(new CustomEvent("pv-goto", { detail: "discover" }))}>Discover</button>
-              <button className="pv-btn pv-btn-out" onClick={() => window.dispatchEvent(new CustomEvent("pv-goto", { detail: "scan" }))}>Scan a card</button>
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                justifyContent: "center",
+                flexWrap: "wrap",
+                marginTop: 12,
+              }}
+            >
+              <button
+                className="pv-btn pv-btn-fill"
+                onClick={() =>
+                  window.dispatchEvent(new CustomEvent("pv-goto", { detail: "search" }))
+                }
+              >
+                Search cards
+              </button>
+              <button
+                className="pv-btn pv-btn-out"
+                onClick={() =>
+                  window.dispatchEvent(new CustomEvent("pv-goto", { detail: "discover" }))
+                }
+              >
+                Discover
+              </button>
+              <button
+                className="pv-btn pv-btn-out"
+                onClick={() => window.dispatchEvent(new CustomEvent("pv-goto", { detail: "scan" }))}
+              >
+                Scan a card
+              </button>
             </div>
           </div>
         </div>
       ) : (
         <div className="pad">
           <CollectionInsightsCard />
-          <div className="pv-section-title" style={{ marginTop: 22 }}>LATEST ADDITIONS</div>
+          <div className="pv-section-title" style={{ marginTop: 22 }}>
+            LATEST ADDITIONS
+          </div>
           <div className="pv-latest">
-            {sorted.slice(0, 8).map(e => (
+            {sorted.slice(0, 8).map((e) => (
               <div key={e.card.id} className="pv-latest-row" onClick={() => onOpen(e.card.id)}>
-                <img className="pv-latest-img" {...hdImg(e.card, { tile: true })} alt={e.card.name} loading="lazy" decoding="async" />
+                <img
+                  className="pv-latest-img"
+                  {...hdImg(e.card, { tile: true })}
+                  alt={e.card.name}
+                  loading="lazy"
+                  decoding="async"
+                />
                 <div className="pv-latest-meta">
                   <div className="pv-latest-name">{e.card.name}</div>
-                  <div className="pv-latest-sub">{e.card.set.name} • #{e.card.number}</div>
+                  <div className="pv-latest-sub">
+                    {e.card.set.name} • #{e.card.number}
+                  </div>
                   {e.card.rarity && (
-                    <span className="pv-latest-rar" style={{ background: "rgba(255,255,255,.05)", color: "var(--t2)", border: "1px solid var(--brd)" }}>
+                    <span
+                      className="pv-latest-rar"
+                      style={{
+                        background: "rgba(255,255,255,.05)",
+                        color: "var(--t2)",
+                        border: "1px solid var(--brd)",
+                      }}
+                    >
                       {e.card.rarity}
                     </span>
                   )}
                 </div>
                 <div className="pv-latest-price">
-                  <div className="pv-latest-price-v">{formatPrice(getMarketPrice(e.card) * e.qty)}</div>
-                  <div className="pv-latest-price-q">×{e.qty} @ {formatPrice(getMarketPrice(e.card))}</div>
+                  <div className="pv-latest-price-v">
+                    {formatPrice(getMarketPrice(e.card) * e.qty)}
+                  </div>
+                  <div className="pv-latest-price-q">
+                    ×{e.qty} @ {formatPrice(getMarketPrice(e.card))}
+                  </div>
                   <CheapestPill
                     query={`${e.card.name} ${e.card.set.name} ${e.card.number}`}
                     marketPrice={getMarketPrice(e.card)}
@@ -765,7 +1109,9 @@ export function VaultView({ onOpen }: { onOpen: OnOpen }) {
             ))}
           </div>
 
-          <div className="pv-section-title" style={{ marginTop: 22 }}>TOP HOLDINGS</div>
+          <div className="pv-section-title" style={{ marginTop: 22 }}>
+            TOP HOLDINGS
+          </div>
           <VirtualCardGrid
             items={topByValue}
             getKey={(e) => e.card.id}

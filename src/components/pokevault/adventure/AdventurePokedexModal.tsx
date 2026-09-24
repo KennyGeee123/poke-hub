@@ -13,11 +13,7 @@ import {
   BookOpen,
   Filter,
 } from "lucide-react";
-import {
-  ALL_POKEMON,
-  GENERATION_METADATA,
-  type NationalDexPokemon,
-} from "@/lib/all-pokemon-data";
+import { ALL_POKEMON, GENERATION_METADATA, type NationalDexPokemon } from "@/lib/all-pokemon-data";
 import { animatedSpriteUrl } from "@/lib/sprites";
 
 const ALL_TYPES = [
@@ -288,9 +284,7 @@ export function AdventurePokedexModal({
                   </div>
 
                   {/* Base CP Pill */}
-                  <span className="mt-1 text-[10px] text-amber-400 font-bold">
-                    CP {mon.baseCp}
-                  </span>
+                  <span className="mt-1 text-[10px] text-amber-400 font-bold">CP {mon.baseCp}</span>
                 </button>
               );
             })}
@@ -308,8 +302,8 @@ export function AdventurePokedexModal({
                     selectedPokemon.rarity === "legendary"
                       ? "bg-amber-500/20 text-amber-400 border-amber-500/50"
                       : selectedPokemon.rarity === "epic"
-                      ? "bg-purple-500/20 text-purple-400 border-purple-500/50"
-                      : "bg-cyan-500/20 text-cyan-400 border-cyan-500/50"
+                        ? "bg-purple-500/20 text-purple-400 border-purple-500/50"
+                        : "bg-cyan-500/20 text-cyan-400 border-cyan-500/50"
                   }`}
                 >
                   {selectedPokemon.rarity}
@@ -370,7 +364,9 @@ export function AdventurePokedexModal({
                   <div className="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-emerald-400"
-                      style={{ width: `${Math.min(100, (selectedPokemon.baseStats.hp / 250) * 100)}%` }}
+                      style={{
+                        width: `${Math.min(100, (selectedPokemon.baseStats.hp / 250) * 100)}%`,
+                      }}
                     />
                   </div>
 
@@ -381,7 +377,9 @@ export function AdventurePokedexModal({
                   <div className="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-rose-500"
-                      style={{ width: `${Math.min(100, (selectedPokemon.baseStats.atk / 190) * 100)}%` }}
+                      style={{
+                        width: `${Math.min(100, (selectedPokemon.baseStats.atk / 190) * 100)}%`,
+                      }}
                     />
                   </div>
 
@@ -392,7 +390,9 @@ export function AdventurePokedexModal({
                   <div className="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-blue-500"
-                      style={{ width: `${Math.min(100, (selectedPokemon.baseStats.def / 230) * 100)}%` }}
+                      style={{
+                        width: `${Math.min(100, (selectedPokemon.baseStats.def / 230) * 100)}%`,
+                      }}
                     />
                   </div>
 
@@ -403,7 +403,9 @@ export function AdventurePokedexModal({
                   <div className="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-amber-400"
-                      style={{ width: `${Math.min(100, (selectedPokemon.baseStats.spe / 180) * 100)}%` }}
+                      style={{
+                        width: `${Math.min(100, (selectedPokemon.baseStats.spe / 180) * 100)}%`,
+                      }}
                     />
                   </div>
                 </div>
@@ -427,7 +429,9 @@ export function AdventurePokedexModal({
           ) : (
             <div className="hidden md:flex w-80 rounded-2xl bg-neutral-900/40 border border-neutral-800/60 p-6 flex-col items-center justify-center text-center text-neutral-500 shrink-0">
               <BookOpen className="w-10 h-10 mb-2 opacity-40 text-neutral-400" />
-              <p className="text-xs">Select any Pokémon to inspect its 3D model, combat stats, and TCG cards.</p>
+              <p className="text-xs">
+                Select any Pokémon to inspect its 3D model, combat stats, and TCG cards.
+              </p>
             </div>
           )}
         </div>

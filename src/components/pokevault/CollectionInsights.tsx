@@ -50,19 +50,36 @@ export function CollectionInsightsCard() {
         marginTop: 16,
         padding: 16,
         borderRadius: 14,
-        background:
-          "linear-gradient(135deg, rgba(0,245,212,.08), rgba(255,0,110,.08))",
+        background: "linear-gradient(135deg, rgba(0,245,212,.08), rgba(255,0,110,.08))",
         border: "1px solid var(--brd)",
         boxShadow: "var(--glow-cyan)",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+          flexWrap: "wrap",
+        }}
+      >
         <div>
-          <div style={{ fontFamily: "Bebas Neue, Impact, sans-serif", letterSpacing: 2, fontSize: 22, color: "var(--neon-cyan)", textShadow: "var(--glow-cyan)" }}>
+          <div
+            style={{
+              fontFamily: "Bebas Neue, Impact, sans-serif",
+              letterSpacing: 2,
+              fontSize: 22,
+              color: "var(--neon-cyan)",
+              textShadow: "var(--glow-cyan)",
+            }}
+          >
             ✦ AI COLLECTION INSIGHTS
           </div>
           <div style={{ fontSize: 12, color: "var(--t3)", marginTop: 2 }}>
-            {empty ? "Add cards to unlock analysis." : `Analyzes top holdings · ${formatPrice(totalValue)} tracked`}
+            {empty
+              ? "Add cards to unlock analysis."
+              : `Analyzes top holdings · ${formatPrice(totalValue)} tracked`}
           </div>
         </div>
         <button
@@ -76,7 +93,17 @@ export function CollectionInsightsCard() {
       </div>
 
       {err && (
-        <div style={{ marginTop: 12, padding: 10, borderRadius: 8, background: "rgba(255,0,110,.12)", border: "1px solid var(--neon-pink)", color: "#fff", fontSize: 13 }}>
+        <div
+          style={{
+            marginTop: 12,
+            padding: 10,
+            borderRadius: 8,
+            background: "rgba(255,0,110,.12)",
+            border: "1px solid var(--neon-pink)",
+            color: "#fff",
+            fontSize: 13,
+          }}
+        >
           {err}
         </div>
       )}

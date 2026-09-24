@@ -132,7 +132,9 @@ export function HDBattleArena({
     // Calculate Damage
     const mult = getTypeEffectiveness(move.type, foe.types);
     const isCrit = Math.random() < 0.12;
-    const baseDmg = Math.round((playerMon.level * 2.5 * (move.power / 50)) * mult * (isCrit ? 1.5 : 1.0));
+    const baseDmg = Math.round(
+      playerMon.level * 2.5 * (move.power / 50) * mult * (isCrit ? 1.5 : 1.0),
+    );
     const finalDmg = Math.max(8, baseDmg + Math.floor(Math.random() * 6));
 
     setFoeAnim("hit");
@@ -183,7 +185,7 @@ export function HDBattleArena({
     setFoeAnim("");
 
     const foeMult = getTypeEffectiveness(foeMove.type, playerMon.types);
-    const foeDmg = Math.max(5, Math.round((foe.level * 2.0 * (foeMove.power / 50)) * foeMult));
+    const foeDmg = Math.max(5, Math.round(foe.level * 2.0 * (foeMove.power / 50) * foeMult));
 
     setPlayerAnim("hit");
     await new Promise((r) => setTimeout(r, 400));
@@ -286,7 +288,9 @@ export function HDBattleArena({
           {/* Foe Status HUD */}
           <div className="w-56 sm:w-64 p-3 rounded-2xl bg-neutral-950/85 backdrop-blur-md border border-neutral-800 shadow-xl flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-white font-mono tracking-wide">{foe.name}</span>
+              <span className="text-sm font-bold text-white font-mono tracking-wide">
+                {foe.name}
+              </span>
               <span className="text-xs font-mono font-bold text-amber-400">Lv. {foe.level}</span>
             </div>
 
@@ -316,7 +320,11 @@ export function HDBattleArena({
               <div className="w-full h-2.5 rounded-full bg-neutral-900 overflow-hidden border border-neutral-800">
                 <div
                   className={`h-full transition-all duration-300 ${
-                    foeHpPct > 50 ? "bg-emerald-500" : foeHpPct > 20 ? "bg-amber-500" : "bg-rose-500 animate-pulse"
+                    foeHpPct > 50
+                      ? "bg-emerald-500"
+                      : foeHpPct > 20
+                        ? "bg-amber-500"
+                        : "bg-rose-500 animate-pulse"
                   }`}
                   style={{ width: `${foeHpPct}%` }}
                 />
@@ -335,10 +343,10 @@ export function HDBattleArena({
                 foeAnim === "attack"
                   ? "-translate-x-6 translate-y-6 scale-110"
                   : foeAnim === "hit"
-                  ? "translate-x-3 -translate-y-3 opacity-60"
-                  : foeAnim === "faint"
-                  ? "translate-y-12 opacity-0"
-                  : "hover:scale-105"
+                    ? "translate-x-3 -translate-y-3 opacity-60"
+                    : foeAnim === "faint"
+                      ? "translate-y-12 opacity-0"
+                      : "hover:scale-105"
               }`}
             />
           </div>
@@ -357,10 +365,10 @@ export function HDBattleArena({
                 playerAnim === "attack"
                   ? "translate-x-8 -translate-y-8 scale-110"
                   : playerAnim === "hit"
-                  ? "-translate-x-4 translate-y-4 opacity-60"
-                  : playerAnim === "faint"
-                  ? "translate-y-12 opacity-0"
-                  : ""
+                    ? "-translate-x-4 translate-y-4 opacity-60"
+                    : playerAnim === "faint"
+                      ? "translate-y-12 opacity-0"
+                      : ""
               }`}
             />
           </div>
@@ -368,8 +376,12 @@ export function HDBattleArena({
           {/* Player Status HUD */}
           <div className="w-56 sm:w-64 p-3 rounded-2xl bg-neutral-950/85 backdrop-blur-md border border-neutral-800 shadow-xl flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-white font-mono tracking-wide">{playerMon.name}</span>
-              <span className="text-xs font-mono font-bold text-cyan-400">Lv. {playerMon.level}</span>
+              <span className="text-sm font-bold text-white font-mono tracking-wide">
+                {playerMon.name}
+              </span>
+              <span className="text-xs font-mono font-bold text-cyan-400">
+                Lv. {playerMon.level}
+              </span>
             </div>
 
             {/* Player Types */}
@@ -401,8 +413,8 @@ export function HDBattleArena({
                     playerHpPct > 50
                       ? "bg-emerald-500"
                       : playerHpPct > 20
-                      ? "bg-amber-500"
-                      : "bg-rose-500 animate-pulse"
+                        ? "bg-amber-500"
+                        : "bg-rose-500 animate-pulse"
                   }`}
                   style={{ width: `${playerHpPct}%` }}
                 />
@@ -436,7 +448,9 @@ export function HDBattleArena({
                   {battleOver === "win" ? "Victory!" : "Defeat..."}
                 </h4>
                 <p className="text-xs text-neutral-400">
-                  {battleOver === "win" ? "You won the battle and earned battle rewards!" : "Blacked out and returned to camp."}
+                  {battleOver === "win"
+                    ? "You won the battle and earned battle rewards!"
+                    : "Blacked out and returned to camp."}
                 </p>
               </div>
             </div>
@@ -474,13 +488,17 @@ export function HDBattleArena({
                   >
                     <div className="flex items-center justify-between w-full">
                       <span className="font-bold text-white text-xs font-mono">{m.name}</span>
-                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${conf.bg} ${conf.text}`}>
+                      <span
+                        className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${conf.bg} ${conf.text}`}
+                      >
                         {m.type}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-[10px] text-neutral-400 font-mono mt-1">
                       <span>Power: {m.power}</span>
-                      <span>PP: {m.pp}/{m.maxPp}</span>
+                      <span>
+                        PP: {m.pp}/{m.maxPp}
+                      </span>
                     </div>
                   </button>
                 );
@@ -527,7 +545,9 @@ export function HDBattleArena({
                       <span>{b.name}</span>
                       <span className="text-neutral-400 text-[10px]">x{count}</span>
                     </div>
-                    <span className="text-[10px] text-neutral-400">Capture Power x{b.multiplier}</span>
+                    <span className="text-[10px] text-neutral-400">
+                      Capture Power x{b.multiplier}
+                    </span>
                   </button>
                 );
               })}
@@ -562,12 +582,16 @@ export function HDBattleArena({
                     idx === activePartyIdx
                       ? "bg-cyan-500/20 border-cyan-500/50"
                       : p.currentHp <= 0
-                      ? "bg-neutral-900 opacity-40 border-neutral-800"
-                      : "bg-neutral-900 hover:bg-neutral-800 border-neutral-800"
+                        ? "bg-neutral-900 opacity-40 border-neutral-800"
+                        : "bg-neutral-900 hover:bg-neutral-800 border-neutral-800"
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <img src={p.spriteUrl || animatedSpriteUrl(p.species)} alt={p.name} className="w-8 h-8 object-contain" />
+                    <img
+                      src={p.spriteUrl || animatedSpriteUrl(p.species)}
+                      alt={p.name}
+                      className="w-8 h-8 object-contain"
+                    />
                     <div className="text-left">
                       <div className="text-xs font-bold text-white font-mono">{p.name}</div>
                       <div className="text-[10px] text-neutral-400">Lv. {p.level}</div>

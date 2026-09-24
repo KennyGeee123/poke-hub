@@ -6,7 +6,7 @@ export function generateCardSvgFallback(name: string, number?: string, setName?:
   const safeName = (name || "Pokémon Card").replace(/[<>&"]/g, "");
   const safeNum = (number || "001").replace(/[<>&"]/g, "");
   const safeSet = (setName || "Vault").replace(/[<>&"]/g, "");
-  
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 420" width="100%" height="100%">
     <defs>
       <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -69,33 +69,26 @@ function tcgdexBase(url: string): string | null {
   return m !== url ? m : null;
 }
 
-export function hdImg(card: Pick<TCGCard, "images">, opts?: { tile?: boolean }): { src: string; srcSet?: string; sizes?: string } {
+export function hdImg(
+  card: Pick<TCGCard, "images">,
+  opts?: { tile?: boolean },
+): { src: string; srcSet?: string; sizes?: string } {
   const small = card.images?.small ?? "";
   const large = card.images?.large ?? small;
   if (opts?.tile) {
     // Prefer low.webp / small; never lead with hires/high for ~140px tiles.
-    const tileSrc =
-      tileImageUrl(small) ||
-      tileImageUrl(large) ||
-      small ||
-      large;
+    const tileSrc = tileImageUrl(small) || tileImageUrl(large) || small || large;
     const low =
       (small && isTcgdex(small) ? tcgdexHighToLow(small) : "") ||
       (large && isTcgdex(large) ? tcgdexHighToLow(large) : "") ||
       tileSrc;
     const high =
       (large && isTcgdex(large) && /\/high\./i.test(large) ? large : "") ||
-      (small && isTcgdex(small)
-        ? small.replace(/\/low\.(webp|png|jpg)$/i, "/high.$1")
-        : "");
+      (small && isTcgdex(small) ? small.replace(/\/low\.(webp|png|jpg)$/i, "/high.$1") : "");
     return {
       src: low || tileSrc,
       srcSet:
-        low && high && low !== high
-          ? `${low} 245w, ${high} 600w`
-          : low
-            ? `${low} 245w`
-            : undefined,
+        low && high && low !== high ? `${low} 245w, ${high} 600w` : low ? `${low} 245w` : undefined,
       sizes: "140px",
     };
   }
@@ -218,7 +211,9 @@ export function fallbackCardImages(card: ImgCard, opts?: { tile?: boolean }): st
 
 const HD_CACHE_KEY = "pv-hd-img:";
 
-export async function resolveHDImage(card: Pick<TCGCard, "id" | "name" | "number" | "set" | "images">): Promise<string> {
+export async function resolveHDImage(
+  card: Pick<TCGCard, "id" | "name" | "number" | "set" | "images">,
+): Promise<string> {
   if (typeof localStorage !== "undefined") {
     const cached = localStorage.getItem(HD_CACHE_KEY + card.id);
     if (cached) return cached;
@@ -233,7 +228,9 @@ export async function resolveHDImage(card: Pick<TCGCard, "id" | "name" | "number
         const j = (await r.json()) as { image?: string };
         if (j.image) {
           const url = `${j.image}/high.webp`;
-          try { localStorage.setItem(HD_CACHE_KEY + card.id, url); } catch {}
+          try {
+            localStorage.setItem(HD_CACHE_KEY + card.id, url);
+          } catch {}
           return url;
         }
       }

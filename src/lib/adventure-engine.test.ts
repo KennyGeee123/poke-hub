@@ -245,23 +245,60 @@ describe("Adventure Living World Engine & Economy", () => {
   });
 
   it("does not dump Dresden Park nests onto a foreign region walk plane", () => {
-    const kanto = generateEraSpawns("vintage_kanto", 14, 1000, { lat: 35.68, lng: 139.76 }, {
-      includeParkNest: false,
-      localOrigin: { xPct: 50, yPct: 50 },
-    });
+    const kanto = generateEraSpawns(
+      "vintage_kanto",
+      14,
+      1000,
+      { lat: 35.68, lng: 139.76 },
+      {
+        includeParkNest: false,
+        localOrigin: { xPct: 50, yPct: 50 },
+      },
+    );
     expect(kanto.some((s) => s.isParkNest)).toBe(false);
     expect(kanto.every((s) => s.eraId === "vintage_kanto")).toBe(true);
   });
 
   it("keeps unique gen pools for Unova/Kalos/Alola/Galar instead of Paldea", async () => {
     const { getPokemonByGen } = await import("./all-pokemon-data");
-    const unova = generateEraSpawns("black_unova", 8, 2000, { lat: 40.71, lng: -74 }, { includeParkNest: false });
-    const kalos = generateEraSpawns("mega_kalos", 8, 2000, { lat: 48.86, lng: 2.35 }, { includeParkNest: false });
-    const alola = generateEraSpawns("sun_alola", 8, 2000, { lat: 21.3, lng: -157.85 }, { includeParkNest: false });
-    const galar = generateEraSpawns("sword_galar", 8, 2000, { lat: 51.5, lng: -0.12 }, { includeParkNest: false });
-    const paldea = generateEraSpawns("modern_paldea", 8, 2000, { lat: 40.4, lng: -3.7 }, { includeParkNest: false });
+    const unova = generateEraSpawns(
+      "black_unova",
+      8,
+      2000,
+      { lat: 40.71, lng: -74 },
+      { includeParkNest: false },
+    );
+    const kalos = generateEraSpawns(
+      "mega_kalos",
+      8,
+      2000,
+      { lat: 48.86, lng: 2.35 },
+      { includeParkNest: false },
+    );
+    const alola = generateEraSpawns(
+      "sun_alola",
+      8,
+      2000,
+      { lat: 21.3, lng: -157.85 },
+      { includeParkNest: false },
+    );
+    const galar = generateEraSpawns(
+      "sword_galar",
+      8,
+      2000,
+      { lat: 51.5, lng: -0.12 },
+      { includeParkNest: false },
+    );
+    const paldea = generateEraSpawns(
+      "modern_paldea",
+      8,
+      2000,
+      { lat: 40.4, lng: -3.7 },
+      { includeParkNest: false },
+    );
 
-    const ids = (spawns: typeof unova) => new Set(spawns.map((s) => s.nationalDexId).filter(Boolean) as number[]);
+    const ids = (spawns: typeof unova) =>
+      new Set(spawns.map((s) => s.nationalDexId).filter(Boolean) as number[]);
     const genOf = (id: number) => {
       if (id <= 151) return 1;
       if (id <= 251) return 2;
@@ -282,7 +319,6 @@ describe("Adventure Living World Engine & Economy", () => {
     expect([...ids(paldea)].every((id) => genOf(id) === 9)).toBe(true);
   });
 });
-
 
 describe("National Pokédex Registry (All 1,025 Pokémon) & 45m Discovery Engine", () => {
   it("contains all 1,025 National Pokédex entries across Gen 1 to Gen 9", async () => {
@@ -323,15 +359,26 @@ describe("National Pokédex Registry (All 1,025 Pokémon) & 45m Discovery Engine
   });
 
   it("calculates accurate real-world geographic distances via Haversine formula", async () => {
-    const { haversineMeters, geoOffsetFromMeters, DRESDEN_PARK_GEO } = await import("./adventure-engine");
+    const { haversineMeters, geoOffsetFromMeters, DRESDEN_PARK_GEO } =
+      await import("./adventure-engine");
 
     // Same point should be 0 meters
-    const zeroDist = haversineMeters(DRESDEN_PARK_GEO.lat, DRESDEN_PARK_GEO.lng, DRESDEN_PARK_GEO.lat, DRESDEN_PARK_GEO.lng);
+    const zeroDist = haversineMeters(
+      DRESDEN_PARK_GEO.lat,
+      DRESDEN_PARK_GEO.lng,
+      DRESDEN_PARK_GEO.lat,
+      DRESDEN_PARK_GEO.lng,
+    );
     expect(zeroDist).toBe(0);
 
     // Offset 50 meters North
     const offsetPoint = geoOffsetFromMeters(DRESDEN_PARK_GEO.lat, DRESDEN_PARK_GEO.lng, 0, 50);
-    const measuredDist = haversineMeters(DRESDEN_PARK_GEO.lat, DRESDEN_PARK_GEO.lng, offsetPoint.lat, offsetPoint.lng);
+    const measuredDist = haversineMeters(
+      DRESDEN_PARK_GEO.lat,
+      DRESDEN_PARK_GEO.lng,
+      offsetPoint.lat,
+      offsetPoint.lng,
+    );
     expect(Math.abs(measuredDist - 50)).toBeLessThanOrEqual(2);
   });
 
@@ -341,7 +388,7 @@ describe("National Pokédex Registry (All 1,025 Pokémon) & 45m Discovery Engine
       updatePlayerLocation,
       RADAR_DISCOVERY_RADIUS_METERS,
       DRESDEN_PARK_GEO,
-      geoOffsetFromMeters
+      geoOffsetFromMeters,
     } = await import("./adventure-engine");
 
     const state = getDefaultAdventureState();
@@ -395,12 +442,10 @@ describe("National Pokédex Registry (All 1,025 Pokémon) & 45m Discovery Engine
     ];
 
     // Player is at Dresden Park center
-    const result = updatePlayerLocation(
-      state,
-      { xPct: 50, yPct: 50 },
-      10,
-      { lat: DRESDEN_PARK_GEO.lat, lng: DRESDEN_PARK_GEO.lng }
-    );
+    const result = updatePlayerLocation(state, { xPct: 50, yPct: 50 }, 10, {
+      lat: DRESDEN_PARK_GEO.lat,
+      lng: DRESDEN_PARK_GEO.lng,
+    });
 
     const farCreature = result.state.wildCreatures.find((c) => c.id === "test-far");
     const closeCreature = result.state.wildCreatures.find((c) => c.id === "test-close");
@@ -473,4 +518,3 @@ describe("Adventure visuals — on-disk trainer + local sprites first", () => {
     expect(fallbackSpriteUrls("Pecharunt")[0]).toContain("pokemondb.net");
   });
 });
-

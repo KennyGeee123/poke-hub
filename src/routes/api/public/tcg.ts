@@ -69,8 +69,12 @@ export const Route = createFileRoute("/api/public/tcg")({
                 artist: raw?.illustrator,
                 set: { id: setId, name: String(raw?.set?.name || setId) },
                 images: {
-                  small: img ? `${img}/low.webp` : `https://images.pokemontcg.io/${setId}/${num}.png`,
-                  large: img ? `${img}/high.webp` : `https://images.pokemontcg.io/${setId}/${num}_hires.png`,
+                  small: img
+                    ? `${img}/low.webp`
+                    : `https://images.pokemontcg.io/${setId}/${num}.png`,
+                  large: img
+                    ? `${img}/high.webp`
+                    : `https://images.pokemontcg.io/${setId}/${num}_hires.png`,
                 },
               };
               return Response.json(

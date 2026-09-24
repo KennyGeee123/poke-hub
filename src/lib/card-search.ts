@@ -65,19 +65,100 @@ const SPELL: Record<string, string> = {
 };
 
 const NAMES = new Set([
-  "charizard", "pikachu", "mewtwo", "blastoise", "venusaur", "gyarados", "alakazam",
-  "ninetales", "machamp", "dragonite", "umbreon", "espeon", "rayquaza", "lugia", "mew",
-  "charmander", "charmeleon", "squirtle", "wartortle", "bulbasaur", "ivysaur",
-  "nidoking", "nidoqueen", "arcanine", "gengar", "haunter", "gastly", "lapras",
-  "snorlax", "eevee", "vaporeon", "jolteon", "flareon", "articuno", "zapdos", "moltres",
-  "mew", "mewtwo", "clefairy", "clefable", "jigglypuff", "wigglytuff", "raichu",
-  "sandslash", "ninetales", "golduck", "primeape", "poliwrath", "kadabra", "machoke",
-  "golem", "rapidash", "slowbro", "magneton", "farfetchd", "dewgong", "muk", "cloyster",
-  "onix", "hypno", "kingler", "electrode", "exeggutor", "marowak", "hitmonlee", "hitmonchan",
-  "lickitung", "weezing", "rhydon", "chansey", "tangela", "kangaskhan", "seadra", "seaking",
-  "starmie", "mr mime", "scyther", "jynx", "electabuzz", "magmar", "pinsir", "tauros",
-  "gyarados", "lapras", "ditto", "eevee", "porygon", "omastar", "kabutops", "aerodactyl",
-  "snorlax", "dragonair", "dragonite", "mewtwo",
+  "charizard",
+  "pikachu",
+  "mewtwo",
+  "blastoise",
+  "venusaur",
+  "gyarados",
+  "alakazam",
+  "ninetales",
+  "machamp",
+  "dragonite",
+  "umbreon",
+  "espeon",
+  "rayquaza",
+  "lugia",
+  "mew",
+  "charmander",
+  "charmeleon",
+  "squirtle",
+  "wartortle",
+  "bulbasaur",
+  "ivysaur",
+  "nidoking",
+  "nidoqueen",
+  "arcanine",
+  "gengar",
+  "haunter",
+  "gastly",
+  "lapras",
+  "snorlax",
+  "eevee",
+  "vaporeon",
+  "jolteon",
+  "flareon",
+  "articuno",
+  "zapdos",
+  "moltres",
+  "mew",
+  "mewtwo",
+  "clefairy",
+  "clefable",
+  "jigglypuff",
+  "wigglytuff",
+  "raichu",
+  "sandslash",
+  "ninetales",
+  "golduck",
+  "primeape",
+  "poliwrath",
+  "kadabra",
+  "machoke",
+  "golem",
+  "rapidash",
+  "slowbro",
+  "magneton",
+  "farfetchd",
+  "dewgong",
+  "muk",
+  "cloyster",
+  "onix",
+  "hypno",
+  "kingler",
+  "electrode",
+  "exeggutor",
+  "marowak",
+  "hitmonlee",
+  "hitmonchan",
+  "lickitung",
+  "weezing",
+  "rhydon",
+  "chansey",
+  "tangela",
+  "kangaskhan",
+  "seadra",
+  "seaking",
+  "starmie",
+  "mr mime",
+  "scyther",
+  "jynx",
+  "electabuzz",
+  "magmar",
+  "pinsir",
+  "tauros",
+  "gyarados",
+  "lapras",
+  "ditto",
+  "eevee",
+  "porygon",
+  "omastar",
+  "kabutops",
+  "aerodactyl",
+  "snorlax",
+  "dragonair",
+  "dragonite",
+  "mewtwo",
 ]);
 
 export function normalize(s: string): string {
@@ -120,7 +201,7 @@ function maxDist(len: number): number {
 
 export function fuzzyEq(q: string, target: string): boolean {
   if (!q || !target) return false;
-  if (target === q || target.includes(q) || q.includes(target) && q.length >= 4) return true;
+  if (target === q || target.includes(q) || (q.includes(target) && q.length >= 4)) return true;
   return levenshtein(q, target) <= maxDist(Math.min(q.length, target.length));
 }
 
@@ -129,7 +210,10 @@ const GOLD_SPECIES = /\b(golduck|goldeen|seaking|goldango)\b/;
 export function detectPrint(q: string): PrintKind {
   const n = normalize(q);
   if (/\b(error|misprint|mis-print|black\s*dot)\b/.test(n)) return "error";
-  if (/\b(shadow\s*less|shadd?owless|shadeless|shadoless|shadowles)\b/.test(n) || n.includes("shadowless")) {
+  if (
+    /\b(shadow\s*less|shadd?owless|shadeless|shadoless|shadowles)\b/.test(n) ||
+    n.includes("shadowless")
+  ) {
     return "shadowless";
   }
   if (/\b(1st\s*ed(ition)?|first\s*ed(ition)?|1ed)\b/.test(n)) return "1st";
@@ -138,7 +222,9 @@ export function detectPrint(q: string): PrintKind {
   if (
     n === "gold" ||
     n === "★" ||
-    /\b(gold\s*stars?|gold\s*rares?|gold\s*cards?|gold\s*foil|hyper\s*rares?|mega\s*hyper(?:\s*rares?)?|crown\s*rares?)\b/.test(n)
+    /\b(gold\s*stars?|gold\s*rares?|gold\s*cards?|gold\s*foil|hyper\s*rares?|mega\s*hyper(?:\s*rares?)?|crown\s*rares?)\b/.test(
+      n,
+    )
   ) {
     return "gold";
   }
@@ -153,7 +239,10 @@ function stripPrint(q: string): string {
     .replace(/\bunlimi?ted\b/g, " ")
     .replace(/\b(error|misprint|mis-print|black\s*dot)\b/g, " ")
     .replace(/\bpromo(s| card)?\b/g, " ")
-    .replace(/\b(gold\s*stars?|gold\s*rares?|gold\s*cards?|gold\s*foil|hyper\s*rares?|mega\s*hyper(?:\s*rares?)?|crown\s*rares?)\b/g, " ")
+    .replace(
+      /\b(gold\s*stars?|gold\s*rares?|gold\s*cards?|gold\s*foil|hyper\s*rares?|mega\s*hyper(?:\s*rares?)?|crown\s*rares?)\b/g,
+      " ",
+    )
     .replace(/(?<![a-z])gold(?![a-z])/g, " ")
     .replace(/\b(holo|holofoil|base\s*set|wotc|unlimited)\b/g, " ")
     .replace(/\s+/g, " ")
@@ -181,7 +270,8 @@ export function correctName(q: string, extra: string[] = []): string {
   if (bestD <= maxDist(joined.length) && bestD > 0) return best;
   if (parts.length === 1) {
     for (const name of dict) {
-      if (name.startsWith(joined) || joined.startsWith(name)) return name.length >= joined.length ? name : joined;
+      if (name.startsWith(joined) || joined.startsWith(name))
+        return name.length >= joined.length ? name : joined;
     }
   }
   return joined;
@@ -204,7 +294,8 @@ export function isShadowlessCard(c: SearchableCard, setName?: string): boolean {
 }
 
 export function isErrorCard(c: SearchableCard, setName?: string): boolean {
-  const blob = `${c.variant || ""} ${c.setId || ""} ${c.id || ""} ${setName || ""} ${Object.values(c.names || {}).join(" ")}`.toLowerCase();
+  const blob =
+    `${c.variant || ""} ${c.setId || ""} ${c.id || ""} ${setName || ""} ${Object.values(c.names || {}).join(" ")}`.toLowerCase();
   return /\b(error|misprint|mis-print|black\s*dot)\b/.test(blob) || (c.setId || "") === "error";
 }
 
@@ -229,7 +320,10 @@ export function cardMatchesPrint(c: SearchableCard, print: PrintKind, setName?: 
   if (!print) return true;
   const sl = isShadowlessCard(c, setName);
   if (print === "shadowless" || print === "1st") return sl;
-  if (print === "unlimited") return !sl && ((c.setId || "").startsWith("base") || (setName || "").toLowerCase().includes("base"));
+  if (print === "unlimited")
+    return (
+      !sl && ((c.setId || "").startsWith("base") || (setName || "").toLowerCase().includes("base"))
+    );
   if (print === "error") return isErrorCard(c, setName);
   if (print === "promo") return isPromoCard(c, setName);
   if (print === "gold") return isGoldCard(c, setName);
@@ -273,7 +367,13 @@ export function cardSearchScore(
 
   const best = Math.min(scoreLabels(own, 0), scoreLabels(extra, 4));
   if (best >= 99) return null;
-  if (parsed.print && (isShadowlessCard(c, setName) || isErrorCard(c, setName) || isPromoCard(c, setName) || isGoldCard(c, setName))) {
+  if (
+    parsed.print &&
+    (isShadowlessCard(c, setName) ||
+      isErrorCard(c, setName) ||
+      isPromoCard(c, setName) ||
+      isGoldCard(c, setName))
+  ) {
     return Math.max(0, best - 1);
   }
   return best;

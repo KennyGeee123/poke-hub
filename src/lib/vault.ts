@@ -119,7 +119,7 @@ function idbGet<T>(key: string): Promise<T | undefined> {
         req.onsuccess = () => resolve(req.result as T | undefined);
         req.onerror = () => reject(req.error);
         tx.oncomplete = () => db.close();
-      })
+      }),
   );
 }
 
@@ -134,7 +134,7 @@ function idbSet(key: string, value: unknown): Promise<void> {
           resolve();
         };
         tx.onerror = () => reject(tx.error);
-      })
+      }),
   );
 }
 
@@ -460,7 +460,7 @@ export function useVault() {
 
   const totalValue = Object.values(vault).reduce(
     (sum, e) => sum + getMarketPrice(e.card) * e.qty,
-    0
+    0,
   );
   const totalCards = Object.values(vault).reduce((s, e) => s + e.qty, 0);
   const uniqueCards = Object.keys(vault).length;

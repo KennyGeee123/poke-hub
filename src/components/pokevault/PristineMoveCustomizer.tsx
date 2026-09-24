@@ -16,7 +16,7 @@ export function PristineMoveCustomizer({
 }) {
   const repertoire = getFullMoveRepertoireForCard(card);
   const [activeMoves, setActiveMoves] = useState<PokemonMove[]>(() =>
-    getCustomMoveSet(card.id, card)
+    getCustomMoveSet(card.id, card),
   );
 
   function handleSwapSlot(slotIdx: number, moveId: string) {
@@ -66,8 +66,8 @@ export function PristineMoveCustomizer({
                   move.isBreedable
                     ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
                     : move.category === "signature"
-                    ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
-                    : "bg-purple-500/20 text-purple-300 border border-purple-500/40"
+                      ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
+                      : "bg-purple-500/20 text-purple-300 border border-purple-500/40"
                 }`}
               >
                 {move.categoryLabel}
@@ -118,8 +118,12 @@ export function PristineMoveCustomizer({
 
             {/* Move Detail Snippet */}
             <div className="flex items-center justify-between text-[10px] text-neutral-400 font-mono pt-1">
-              <span>Type: <b className="text-neutral-200">{move.type}</b></span>
-              <span>Power: <b className="text-amber-400">{move.power > 0 ? move.power : "—"}</b></span>
+              <span>
+                Type: <b className="text-neutral-200">{move.type}</b>
+              </span>
+              <span>
+                Power: <b className="text-amber-400">{move.power > 0 ? move.power : "—"}</b>
+              </span>
             </div>
             <p className="text-[9px] text-neutral-400 italic line-clamp-1">{move.description}</p>
           </div>

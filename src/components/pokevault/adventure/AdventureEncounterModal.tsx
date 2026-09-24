@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Sparkles,
-  Zap,
-  Target,
-  Swords,
-  X,
-  CheckCircle,
-  ExternalLink,
-} from "lucide-react";
+import { Sparkles, Zap, Target, Swords, X, CheckCircle, ExternalLink } from "lucide-react";
 import {
   type AdventureState,
   type WildCreature,
@@ -35,7 +27,9 @@ export function AdventureEncounterModal({
   const [selectedBall, setSelectedBall] = useState<CaptureItemId>("poke_ball");
   const [selectedBerry, setSelectedBerry] = useState<CaptureItemId | undefined>(undefined);
   const [isThrowing, setIsThrowing] = useState(false);
-  const [throwPhase, setThrowPhase] = useState<"aiming" | "flying" | "shaking" | "caught" | "escaped">("aiming");
+  const [throwPhase, setThrowPhase] = useState<
+    "aiming" | "flying" | "shaking" | "caught" | "escaped"
+  >("aiming");
   const [captureReward, setCaptureReward] = useState<{
     xp: number;
     coins: number;
@@ -43,13 +37,13 @@ export function AdventureEncounterModal({
     rareCandyChance: boolean;
   } | null>(null);
 
-  const availableBalls = (["poke_ball", "great_ball", "ultra_ball", "master_ball"] as CaptureItemId[]).filter(
-    (b) => (adventureState.inventory.captureItems[b] || 0) > 0
-  );
+  const availableBalls = (
+    ["poke_ball", "great_ball", "ultra_ball", "master_ball"] as CaptureItemId[]
+  ).filter((b) => (adventureState.inventory.captureItems[b] || 0) > 0);
 
-  const availableBerries = (["razz_berry", "nanab_berry", "pinap_berry", "golden_razz"] as CaptureItemId[]).filter(
-    (b) => (adventureState.inventory.captureItems[b] || 0) > 0
-  );
+  const availableBerries = (
+    ["razz_berry", "nanab_berry", "pinap_berry", "golden_razz"] as CaptureItemId[]
+  ).filter((b) => (adventureState.inventory.captureItems[b] || 0) > 0);
 
   function handleThrow() {
     if (isThrowing || throwPhase !== "aiming") return;
@@ -60,7 +54,13 @@ export function AdventureEncounterModal({
       setThrowPhase("shaking");
 
       setTimeout(() => {
-        const res = attemptCapture(adventureState, creature.id, selectedBall, selectedBerry, "great");
+        const res = attemptCapture(
+          adventureState,
+          creature.id,
+          selectedBall,
+          selectedBerry,
+          "great",
+        );
         if (res.success && res.rewards) {
           setThrowPhase("caught");
           setCaptureReward(res.rewards);
@@ -108,7 +108,6 @@ export function AdventureEncounterModal({
           </div>
         </div>
 
-        
         {/* Wild Emergence Banner & Classic Battle Switcher */}
         <div className="w-full flex items-center justify-between p-2.5 rounded-2xl bg-neutral-900/90 border border-neutral-800 text-left">
           <div className="flex items-center gap-2 min-w-0">
@@ -142,7 +141,11 @@ export function AdventureEncounterModal({
             src={animatedSpriteUrl(creature.species)}
             alt={creature.species}
             className={`w-36 h-36 object-contain relative z-10 filter drop-shadow-[0_12px_18px_rgba(0,0,0,0.8)] transition-transform duration-300 ${
-              throwPhase === "shaking" ? "scale-0 opacity-0" : throwPhase === "caught" ? "scale-110" : "animate-bounce"
+              throwPhase === "shaking"
+                ? "scale-0 opacity-0"
+                : throwPhase === "caught"
+                  ? "scale-110"
+                  : "animate-bounce"
             }`}
           />
 
@@ -170,7 +173,9 @@ export function AdventureEncounterModal({
               <span className="text-amber-400">· +50% CANDY BONUS</span>
             </div>
           )}
-          <h3 className="text-xl font-extrabold text-white font-mono tracking-wide">{creature.species}</h3>
+          <h3 className="text-xl font-extrabold text-white font-mono tracking-wide">
+            {creature.species}
+          </h3>
           <div className="flex items-center gap-1.5 mt-1 text-xs font-mono">
             {creature.types.map((t) => (
               <span key={t} className="px-2 py-0.5 rounded bg-neutral-800 text-neutral-300">
@@ -209,7 +214,9 @@ export function AdventureEncounterModal({
               </span>
             )}
             {captureReward.rareCandyChance && (
-              <span className="text-xs text-amber-300 font-bold">✨ Bonus: +1 Rare Candy Dropped!</span>
+              <span className="text-xs text-amber-300 font-bold">
+                ✨ Bonus: +1 Rare Candy Dropped!
+              </span>
             )}
             <button
               type="button"
@@ -258,7 +265,8 @@ export function AdventureEncounterModal({
                         : "bg-neutral-900 border-neutral-800 text-neutral-400"
                     }`}
                   >
-                    {CAPTURE_ITEMS[berry].name} ({adventureState.inventory.captureItems[berry] || 0})
+                    {CAPTURE_ITEMS[berry].name} ({adventureState.inventory.captureItems[berry] || 0}
+                    )
                   </button>
                 ))}
               </div>
@@ -272,7 +280,11 @@ export function AdventureEncounterModal({
               className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:brightness-110 text-neutral-950 font-mono font-bold text-xs tracking-wider shadow-xl shadow-cyan-500/25 transition flex items-center justify-center gap-2 cursor-pointer"
             >
               <Target className="w-4 h-4" />
-              <span>{isThrowing ? "THROWING..." : `THROW ${CAPTURE_ITEMS[selectedBall].name.toUpperCase()}`}</span>
+              <span>
+                {isThrowing
+                  ? "THROWING..."
+                  : `THROW ${CAPTURE_ITEMS[selectedBall].name.toUpperCase()}`}
+              </span>
             </button>
           </div>
         )}

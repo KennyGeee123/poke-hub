@@ -68,10 +68,14 @@ export const MOCK_TRAINERS: Omit<TradeParty, "items" | "cashSweetener" | "isRead
     avatar: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/87.png",
     reputation: 99.9,
     completedTrades: 429,
-  }
+  },
 ];
 
-export function createTradeItem(card: TCGCard, grade: CardGrade = "raw", type: TradeItemType = "card"): TradeItem {
+export function createTradeItem(
+  card: TCGCard,
+  grade: CardGrade = "raw",
+  type: TradeItemType = "card",
+): TradeItem {
   const stats = getCardLevelAndStats(card, grade);
   const marketPrice = getEstimatedGradePrice(card, grade);
   return {
@@ -81,11 +85,15 @@ export function createTradeItem(card: TCGCard, grade: CardGrade = "raw", type: T
     grade,
     stats,
     marketPrice,
-    isFoil: card.rarity?.toLowerCase().includes("holo") || card.rarity?.toLowerCase().includes("secret"),
+    isFoil:
+      card.rarity?.toLowerCase().includes("holo") || card.rarity?.toLowerCase().includes("secret"),
   };
 }
 
-export function evaluateTradeFairness(sender: TradeParty, receiver: TradeParty): {
+export function evaluateTradeFairness(
+  sender: TradeParty,
+  receiver: TradeParty,
+): {
   senderTotal: number;
   receiverTotal: number;
   delta: number;
@@ -101,7 +109,13 @@ export function evaluateTradeFairness(sender: TradeParty, receiver: TradeParty):
   const delta = Math.round((receiverTotal - senderTotal) * 100) / 100; // Positive = sender is getting more value
 
   if (senderTotal === 0 && receiverTotal === 0) {
-    return { senderTotal: 0, receiverTotal: 0, delta: 0, fairnessScore: 100, suggestion: "Add items to both sides to initiate valuation." };
+    return {
+      senderTotal: 0,
+      receiverTotal: 0,
+      delta: 0,
+      fairnessScore: 100,
+      suggestion: "Add items to both sides to initiate valuation.",
+    };
   }
 
   const maxVal = Math.max(senderTotal, receiverTotal, 1);
@@ -139,9 +153,14 @@ export type FairTradeVerdict = {
 };
 
 /** Cash to put on the swap so both sides match live market. */
-export function fairTradeSwap(mine: number, theirs: number): FairTradeVerdict {
-  const a = Math.max(0, Number(mine) || 0);
-  const b = Math.max(0, Number(theirs) || 0);
+export function fairTradeSwap(
+  mine: number,
+  theirs: number,
+  cashMine = 0,
+  cashTheirs = 0,
+): FairTradeVerdict {
+  const a = Math.max(0, Number(mine) || 0) + Math.max(0, Number(cashMine) || 0);
+  const b = Math.max(0, Number(theirs) || 0) + Math.max(0, Number(cashTheirs) || 0);
   if (!(a > 0) || !(b > 0)) {
     return {
       mine: a,
@@ -213,7 +232,7 @@ export function saveTradeToLedger(trade: TradeOffer): void {
   if (typeof window === "undefined") return;
   try {
     const history = loadTradeLedger();
-    const updated = [trade, ...history.filter(t => t.id !== trade.id)].slice(0, 30);
+    const updated = [trade, ...history.filter((t) => t.id !== trade.id)].slice(0, 30);
     localStorage.setItem(TRADE_HISTORY_KEY, JSON.stringify(updated));
   } catch (err) {
     console.error("Failed to save trade to ledger", err);

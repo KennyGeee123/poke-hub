@@ -35,13 +35,31 @@ describe("Quick Strike refill + ticker helpers", () => {
   test("needsRefill is true below 4 remaining rows", () => {
     const rows = [1, 2, 3].map((n) => L({ source: "TCGplayer", price: n, url: `https://x/${n}` }));
     expect(needsRefill(rows)).toBe(true);
-    expect(needsRefill([...rows, L({ source: "Cardmarket", price: 4, url: "https://x/4" })])).toBe(false);
+    expect(needsRefill([...rows, L({ source: "Cardmarket", price: 4, url: "https://x/4" })])).toBe(
+      false,
+    );
   });
 
   test("skip does not collapse the rest of the live queue", () => {
-    const a = L({ source: "TCGplayer", price: 1, url: "https://tcgplayer.com/p/1", variant: "normal" });
-    const b = L({ source: "TCGplayer", price: 2, url: "https://tcgplayer.com/p/1", variant: "holofoil" });
-    const c = L({ source: "Cardmarket", price: 3, url: "https://cardmarket.com/p/1", variant: "low", currency: "EUR" });
+    const a = L({
+      source: "TCGplayer",
+      price: 1,
+      url: "https://tcgplayer.com/p/1",
+      variant: "normal",
+    });
+    const b = L({
+      source: "TCGplayer",
+      price: 2,
+      url: "https://tcgplayer.com/p/1",
+      variant: "holofoil",
+    });
+    const c = L({
+      source: "Cardmarket",
+      price: 3,
+      url: "https://cardmarket.com/p/1",
+      variant: "low",
+      currency: "EUR",
+    });
     const skip = [listingKey(a)];
     const next = rankQueue(
       { query: "", cheapest: a, queue: [a, b, c], sources: [], generatedAt: "" },
@@ -51,9 +69,26 @@ describe("Quick Strike refill + ticker helpers", () => {
   });
 
   test("mergeLiveQueue never reinserts skipped keys and re-ranks by landed cost", () => {
-    const seed = L({ source: "TCGplayer", price: 9, url: "https://tcgplayer.com/p/1", variant: "normal", shipping: 0 });
-    const liveCheap = L({ source: "Cardmarket", price: 2, shipping: 1, url: "https://cardmarket.com/p/1", variant: "low" });
-    const liveSkip = L({ source: "TCGplayer", price: 1, url: "https://tcgplayer.com/p/2", variant: "holofoil" });
+    const seed = L({
+      source: "TCGplayer",
+      price: 9,
+      url: "https://tcgplayer.com/p/1",
+      variant: "normal",
+      shipping: 0,
+    });
+    const liveCheap = L({
+      source: "Cardmarket",
+      price: 2,
+      shipping: 1,
+      url: "https://cardmarket.com/p/1",
+      variant: "low",
+    });
+    const liveSkip = L({
+      source: "TCGplayer",
+      price: 1,
+      url: "https://tcgplayer.com/p/2",
+      variant: "holofoil",
+    });
     const merged = mergeLiveQueue([seed], [liveSkip, liveCheap], [listingKey(liveSkip)]);
     expect(merged[0].source).toBe("Cardmarket");
     expect(listingTotal(merged[0])).toBe(3);
@@ -90,9 +125,24 @@ describe("Quick Strike refill + ticker helpers", () => {
 
 describe("Slab vs Raw Condition Arbitrage & Sold Tracking", () => {
   test("identifies slab listings by title and company signatures", () => {
-    const slab1 = L({ source: "eBay", price: 250, url: "https://ebay.com/itm/1", title: "Charizard Base Set PSA 10 Gem Mint" });
-    const slab2 = L({ source: "eBay", price: 120, url: "https://ebay.com/itm/2", title: "Blastoise 1st Edition BGS 9.5 Beckett" });
-    const raw = L({ source: "TCGplayer", price: 45, url: "https://tcgplayer.com/p/3", title: "Venusaur Holo Near Mint" });
+    const slab1 = L({
+      source: "eBay",
+      price: 250,
+      url: "https://ebay.com/itm/1",
+      title: "Charizard Base Set PSA 10 Gem Mint",
+    });
+    const slab2 = L({
+      source: "eBay",
+      price: 120,
+      url: "https://ebay.com/itm/2",
+      title: "Blastoise 1st Edition BGS 9.5 Beckett",
+    });
+    const raw = L({
+      source: "TCGplayer",
+      price: 45,
+      url: "https://tcgplayer.com/p/3",
+      title: "Venusaur Holo Near Mint",
+    });
 
     expect(isSlabListing(slab1)).toBe(true);
     expect(isSlabListing(slab2)).toBe(true);
@@ -100,10 +150,32 @@ describe("Slab vs Raw Condition Arbitrage & Sold Tracking", () => {
   });
 
   test("filters listings by condition and grade requirements", () => {
-    const psa10 = L({ source: "eBay", price: 500, url: "https://ebay.com/itm/10", title: "Gengar VMAX PSA 10" });
-    const psa9 = L({ source: "eBay", price: 200, url: "https://ebay.com/itm/9", title: "Gengar VMAX PSA 9 Mint" });
-    const rawNM = L({ source: "TCGplayer", price: 150, url: "https://tcgplayer.com/p/1", title: "Gengar VMAX Near Mint", condition: "Near Mint" });
-    const rawLP = L({ source: "TCGplayer", price: 110, url: "https://tcgplayer.com/p/2", title: "Gengar VMAX Lightly Played", condition: "Lightly Played" });
+    const psa10 = L({
+      source: "eBay",
+      price: 500,
+      url: "https://ebay.com/itm/10",
+      title: "Gengar VMAX PSA 10",
+    });
+    const psa9 = L({
+      source: "eBay",
+      price: 200,
+      url: "https://ebay.com/itm/9",
+      title: "Gengar VMAX PSA 9 Mint",
+    });
+    const rawNM = L({
+      source: "TCGplayer",
+      price: 150,
+      url: "https://tcgplayer.com/p/1",
+      title: "Gengar VMAX Near Mint",
+      condition: "Near Mint",
+    });
+    const rawLP = L({
+      source: "TCGplayer",
+      price: 110,
+      url: "https://tcgplayer.com/p/2",
+      title: "Gengar VMAX Lightly Played",
+      condition: "Lightly Played",
+    });
 
     expect(matchesConditionFilter(psa10, "psa10")).toBe(true);
     expect(matchesConditionFilter(psa9, "psa10")).toBe(false);
@@ -114,14 +186,25 @@ describe("Slab vs Raw Condition Arbitrage & Sold Tracking", () => {
   });
 
   test("tracks sold listings and excludes them from ranked queue", () => {
-    const item = L({ source: "eBay", price: 80, url: "https://ebay.com/itm/sold1", title: "Mewtwo GX" });
+    const item = L({
+      source: "eBay",
+      price: 80,
+      url: "https://ebay.com/itm/sold1",
+      title: "Mewtwo GX",
+    });
     const key = listingKey(item);
 
     expect(isListingSold(key)).toBe(false);
     markListingSold(key);
     expect(isListingSold(key)).toBe(true);
 
-    const queue = rankQueue({ query: "", cheapest: item, queue: [item], sources: [], generatedAt: "" });
+    const queue = rankQueue({
+      query: "",
+      cheapest: item,
+      queue: [item],
+      sources: [],
+      generatedAt: "",
+    });
     expect(queue).toHaveLength(0);
   });
 });

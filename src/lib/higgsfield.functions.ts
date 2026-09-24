@@ -18,12 +18,7 @@ type JobResp = {
 };
 
 function pickUrl(j: JobResp): string | undefined {
-  return (
-    j.result?.url ||
-    j.result?.raw?.url ||
-    j.results?.[0]?.url ||
-    j.results?.[0]?.raw?.url
-  );
+  return j.result?.url || j.result?.raw?.url || j.results?.[0]?.url || j.results?.[0]?.raw?.url;
 }
 
 export const generateHiggsfieldImage = createServerFn({ method: "POST" })
@@ -87,7 +82,13 @@ export const pollHiggsfieldImage = createServerFn({ method: "POST" })
       headers: { "hf-api-key": apiKey, "hf-secret": apiSecret },
     });
     if (!res.ok) {
-      return { id: data.id, status: `error ${res.status}`, url: undefined as string | undefined, pending: false, failed: true };
+      return {
+        id: data.id,
+        status: `error ${res.status}`,
+        url: undefined as string | undefined,
+        pending: false,
+        failed: true,
+      };
     }
     const pj = (await res.json()) as JobResp;
     const url = pickUrl(pj);

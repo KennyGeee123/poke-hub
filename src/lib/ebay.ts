@@ -33,7 +33,9 @@ export async function getEbaySold(query: string): Promise<EbayResponse> {
     if ((e as Error)?.name === "AbortError") {
       throw new Error("eBay sold listings timed out — please try again.");
     }
-    throw new Error(`Could not reach eBay sold listings: ${(e as Error)?.message ?? "network error"}`);
+    throw new Error(
+      `Could not reach eBay sold listings: ${(e as Error)?.message ?? "network error"}`,
+    );
   } finally {
     clearTimeout(timer);
   }

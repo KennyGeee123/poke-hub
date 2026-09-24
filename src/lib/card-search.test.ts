@@ -39,7 +39,11 @@ describe("gold search", () => {
 
   it("scores every gold card when the query is Gold", () => {
     const parsed = parseSearchQuery("Gold");
-    expect(cardSearchScore(card({ rarity: "Hyper rare", names: { en: "Mew ex" } }), parsed, "en")).not.toBeNull();
-    expect(cardSearchScore(card({ rarity: "Common", names: { en: "Golduck" } }), parsed, "en")).toBeNull();
+    expect(
+      cardSearchScore(card({ rarity: "Hyper rare", names: { en: "Mew ex" } }), parsed, "en"),
+    ).not.toBeNull();
+    expect(
+      cardSearchScore(card({ rarity: "Common", names: { en: "Golduck" } }), parsed, "en"),
+    ).toBeNull();
   });
 });

@@ -6,8 +6,24 @@ import { setIdAliases } from "../../../lib/set-ids";
 
 const UPSTREAM = "https://api.tcgdex.net/v2";
 const LANGS = new Set([
-  "en", "fr", "es", "es-mx", "de", "it", "pt", "pt-br", "pt-pt",
-  "nl", "pl", "ru", "ja", "ko", "zh-tw", "zh-cn", "id", "th",
+  "en",
+  "fr",
+  "es",
+  "es-mx",
+  "de",
+  "it",
+  "pt",
+  "pt-br",
+  "pt-pt",
+  "nl",
+  "pl",
+  "ru",
+  "ja",
+  "ko",
+  "zh-tw",
+  "zh-cn",
+  "id",
+  "th",
 ]);
 const ASIA = new Set(["ja", "ko", "zh-tw", "zh-cn", "id", "th"]);
 
@@ -37,14 +53,66 @@ type CatSet = {
   region?: string;
   releaseDate?: string;
 };
-type Catalog = { sets: CatSet[]; cards: CatCard[]; dexNames?: Record<string, Record<string, string>> };
+type Catalog = {
+  sets: CatSet[];
+  cards: CatCard[];
+  dexNames?: Record<string, Record<string, string>>;
+};
 
 const DEX_ALIASES: Record<number, Record<string, string>> = {
-  6: { en: "Charizard", ja: "リザードン", ko: "리자몽", "zh-tw": "噴火龍", "zh-cn": "喷火龙", th: "ลิซาร์ดอน", fr: "Dracaufeu", de: "Glurak", es: "Charizard", it: "Charizard", pt: "Charizard" },
-  25: { en: "Pikachu", ja: "ピカチュウ", ko: "피카츄", "zh-tw": "皮卡丘", "zh-cn": "皮卡丘", th: "พิคาชู", fr: "Pikachu", de: "Pikachu" },
-  150: { en: "Mewtwo", ja: "ミュウツー", ko: "뮤츠", "zh-tw": "超夢", "zh-cn": "超梦", th: "มิวทู", fr: "Mewtwo", de: "Mewtu" },
-  249: { en: "Lugia", ja: "ルギア", ko: "루기아", "zh-tw": "洛奇亞", "zh-cn": "洛奇亚", th: "ลูเกีย", fr: "Lugia", de: "Lugia" },
-  384: { en: "Rayquaza", ja: "レックウザ", ko: "레쿠자", "zh-tw": "烈空坐", "zh-cn": "烈空坐", th: "เรคควอซา", fr: "Rayquaza", de: "Rayquaza" },
+  6: {
+    en: "Charizard",
+    ja: "リザードン",
+    ko: "리자몽",
+    "zh-tw": "噴火龍",
+    "zh-cn": "喷火龙",
+    th: "ลิซาร์ดอน",
+    fr: "Dracaufeu",
+    de: "Glurak",
+    es: "Charizard",
+    it: "Charizard",
+    pt: "Charizard",
+  },
+  25: {
+    en: "Pikachu",
+    ja: "ピカチュウ",
+    ko: "피카츄",
+    "zh-tw": "皮卡丘",
+    "zh-cn": "皮卡丘",
+    th: "พิคาชู",
+    fr: "Pikachu",
+    de: "Pikachu",
+  },
+  150: {
+    en: "Mewtwo",
+    ja: "ミュウツー",
+    ko: "뮤츠",
+    "zh-tw": "超夢",
+    "zh-cn": "超梦",
+    th: "มิวทู",
+    fr: "Mewtwo",
+    de: "Mewtu",
+  },
+  249: {
+    en: "Lugia",
+    ja: "ルギア",
+    ko: "루기아",
+    "zh-tw": "洛奇亞",
+    "zh-cn": "洛奇亚",
+    th: "ลูเกีย",
+    fr: "Lugia",
+    de: "Lugia",
+  },
+  384: {
+    en: "Rayquaza",
+    ja: "レックウザ",
+    ko: "레쿠자",
+    "zh-tw": "烈空坐",
+    "zh-cn": "烈空坐",
+    th: "เรคควอซา",
+    fr: "Rayquaza",
+    de: "Rayquaza",
+  },
 };
 
 let CAT: Catalog | null = null;
@@ -56,13 +124,19 @@ async function loadCatalog(request: Request): Promise<Catalog | null> {
   try {
     const { readFileSync, existsSync } = await import("node:fs");
     const { join } = await import("node:path");
-    for (const p of ["public/asia-catalog.json", ".output/public/asia-catalog.json", "dist/client/asia-catalog.json"]) {
+    for (const p of [
+      "public/asia-catalog.json",
+      ".output/public/asia-catalog.json",
+      "dist/client/asia-catalog.json",
+    ]) {
       const full = join(process.cwd(), p);
       if (!existsSync(full)) continue;
       CAT = JSON.parse(readFileSync(full, "utf8")) as Catalog;
       if (CAT?.cards?.length) return CAT;
     }
-  } catch { /* fall through to HTTP */ }
+  } catch {
+    /* fall through to HTTP */
+  }
   try {
     const r = await fetch(new URL("/asia-catalog.json", request.url), {
       signal: AbortSignal.timeout(8000),
@@ -71,7 +145,9 @@ async function loadCatalog(request: Request): Promise<Catalog | null> {
       CAT = (await r.json()) as Catalog;
       return CAT;
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return CAT;
 }
 
@@ -85,7 +161,11 @@ function namesForDex(catalog: Catalog, dex?: number | null): Record<string, stri
   return { ...(catalog.dexNames?.[String(dex)] || {}), ...(DEX_ALIASES[dex] || {}) };
 }
 
-function pickName(names: Record<string, string> | undefined, lang: string, extra?: Record<string, string>): string {
+function pickName(
+  names: Record<string, string> | undefined,
+  lang: string,
+  extra?: Record<string, string>,
+): string {
   const merged = { ...(extra || {}), ...(names || {}) };
   const pt = langKey(lang);
   const order = [lang, pt];
@@ -104,17 +184,27 @@ function pickName(names: Record<string, string> | undefined, lang: string, extra
 }
 
 function cardImage(c: CatCard, lang: string): string {
-  if (c.tcgplayer) return `https://tcgplayer-cdn.tcgplayer.com/product/${c.tcgplayer}_in_1000x1000.jpg`;
+  if (c.tcgplayer)
+    return `https://tcgplayer-cdn.tcgplayer.com/product/${c.tcgplayer}_in_1000x1000.jpg`;
   const serie = (c.serie || "sv").toLowerCase().replace(/[^a-z0-9]/g, "") || "sv";
   const assetLang = lang === "pt-br" ? "pt" : lang;
   return `https://assets.tcgdex.net/${assetLang}/${serie}/${c.setId}/${c.localId}/high.webp`;
 }
 
-function toTcgdexCard(c: CatCard, lang: string, setName: string, price?: number | null, catalog?: Catalog | null) {
+function toTcgdexCard(
+  c: CatCard,
+  lang: string,
+  setName: string,
+  price?: number | null,
+  catalog?: Catalog | null,
+) {
   const img = cardImage(c, lang);
-  const paid = (typeof price === "number" && price > 0)
-    ? price
-    : (typeof c.market === "number" && c.market > 0 ? c.market : undefined);
+  const paid =
+    typeof price === "number" && price > 0
+      ? price
+      : typeof c.market === "number" && c.market > 0
+        ? c.market
+        : undefined;
   const pricing: any = {};
   if (typeof paid === "number" && paid > 0) {
     pricing.tcgplayer = {
@@ -124,7 +214,9 @@ function toTcgdexCard(c: CatCard, lang: string, setName: string, price?: number 
     };
   }
   const extra = namesForDex(catalog || CAT || { sets: [], cards: [] }, c.dex?.[0]);
-  const rarity = c.variant ? `${c.variant[0].toUpperCase()}${c.variant.slice(1)} ${c.rarity || ""}`.trim() : c.rarity;
+  const rarity = c.variant
+    ? `${c.variant[0].toUpperCase()}${c.variant.slice(1)} ${c.rarity || ""}`.trim()
+    : c.rarity;
   return {
     id: c.id,
     name: pickName(c.names, lang, extra),
@@ -135,7 +227,12 @@ function toTcgdexCard(c: CatCard, lang: string, setName: string, price?: number 
     types: c.types,
     illustrator: c.illustrator,
     category: c.category,
-    set: { id: c.setId, name: setName, serie: { name: c.serie }, releaseDate: (catalog || CAT)?.sets.find((s) => s.id === c.setId)?.releaseDate },
+    set: {
+      id: c.setId,
+      name: setName,
+      serie: { name: c.serie },
+      releaseDate: (catalog || CAT)?.sets.find((s) => s.id === c.setId)?.releaseDate,
+    },
     pricing: Object.keys(pricing).length ? pricing : undefined,
   };
 }
@@ -151,7 +248,14 @@ function marketFromUpstream(raw: any): number {
   const tp = raw?.pricing?.tcgplayer;
   if (tp && typeof tp === "object") {
     for (const field of ["marketPrice", "midPrice", "lowPrice"] as const) {
-      for (const k of ["holofoil", "1stEditionHolofoil", "reverseHolofoil", "unlimitedHolofoil", "normal", "unlimited"]) {
+      for (const k of [
+        "holofoil",
+        "1stEditionHolofoil",
+        "reverseHolofoil",
+        "unlimitedHolofoil",
+        "normal",
+        "unlimited",
+      ]) {
         const n = Number(tp[k]?.[field]);
         if (Number.isFinite(n) && n > 0) return n;
       }
@@ -198,10 +302,13 @@ async function tcgplayerPrice(productId: number): Promise<number | null> {
   const hit = priceCache.get(productId);
   if (hit && Date.now() - hit.t < PRICE_TTL) return hit.p;
   try {
-    const r = await fetch(`https://infinite-api.tcgplayer.com/price/history/${productId}?range=quarter`, {
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(2500),
-    });
+    const r = await fetch(
+      `https://infinite-api.tcgplayer.com/price/history/${productId}?range=quarter`,
+      {
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(2500),
+      },
+    );
     if (!r.ok) {
       priceCache.set(productId, { t: Date.now(), p: null });
       return null;
@@ -226,7 +333,11 @@ async function tcgplayerPrice(productId: number): Promise<number | null> {
 }
 
 /** Prefer catalog market + TCGdex upstream (TCGPlayer infinite is often 403 from Vercel). */
-async function hydratePrices(cards: CatCard[], limit = 48, lang = "en"): Promise<Map<string, number>> {
+async function hydratePrices(
+  cards: CatCard[],
+  limit = 48,
+  lang = "en",
+): Promise<Map<string, number>> {
   const out = new Map<string, number>();
   for (const c of cards) {
     const m = Number(c.market);
@@ -299,11 +410,18 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
     const parsedPeek = name ? parseSearchQuery(name, enDict(CAT)) : null;
     const wantAllPrints = Boolean(rarityQ || (parsedPeek && parsedPeek.print && !parsedPeek.name));
     const defaultLimit = wantAllPrints ? 400 : 80;
-    const limit = Math.min(400, Math.max(1, Number(sp.get("limit") || defaultLimit) || defaultLimit));
+    const limit = Math.min(
+      400,
+      Math.max(1, Number(sp.get("limit") || defaultLimit) || defaultLimit),
+    );
 
     if (rarityQ && !name) {
       const hits = preferRegion(
-        CAT.cards.filter((c) => (c.rarity || "").toLowerCase() === rarityQ || (c.rarity || "").toLowerCase().includes(rarityQ)),
+        CAT.cards.filter(
+          (c) =>
+            (c.rarity || "").toLowerCase() === rarityQ ||
+            (c.rarity || "").toLowerCase().includes(rarityQ),
+        ),
         lang,
       ).slice(0, limit);
       const prices = await hydratePrices(hits, 24, lang);
@@ -312,7 +430,7 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
 
     if (name) {
       const parsed = parseSearchQuery(name, enDict(CAT));
-      const want = parsed.print ? "intl" : (ASIA.has(lang) ? "asia" : "intl");
+      const want = parsed.print ? "intl" : ASIA.has(lang) ? "asia" : "intl";
       const scored: { c: CatCard; s: number }[] = [];
       for (const c of CAT.cards) {
         const enName = (c.names?.en || "").toLowerCase();
@@ -331,7 +449,8 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
         if (ra !== rb) return ra - rb;
         return a.s - b.s;
       });
-      const cap = parsed.print && !parsed.name ? Math.min(400, limit) : Math.min(Math.max(limit, 40), 80);
+      const cap =
+        parsed.print && !parsed.name ? Math.min(400, limit) : Math.min(Math.max(limit, 40), 80);
       const hits = scored.slice(0, cap).map((x) => x.c);
       const prices = await hydratePrices(hits, parsed.print ? 40 : 24, lang);
       return json(hits.map((c) => toTcgdexCard(c, lang, setName(c.setId), prices.get(c.id), CAT)));
@@ -371,10 +490,16 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
         const n = marketFromUpstream(raw);
         if (n > 0) live = n;
       }
-    } catch { /* catalog still serves */ }
+    } catch {
+      /* catalog still serves */
+    }
     if (!c) {
       if (live != null) {
-        return json({ id, name: id, pricing: { tcgplayer: { unit: "USD", normal: { marketPrice: live } } } });
+        return json({
+          id,
+          name: id,
+          pricing: { tcgplayer: { unit: "USD", normal: { marketPrice: live } } },
+        });
       }
       return json({ error: "Not found" }, 404);
     }
@@ -388,7 +513,10 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
     const list = CAT.sets
       .filter((s) => {
         if (!withCards.has(s.id)) return false;
-        if (ASIA.has(lang)) return (s.region || "asia") === "asia" && (s.names[lang] || s.names.ja || s.names["zh-tw"]);
+        if (ASIA.has(lang))
+          return (
+            (s.region || "asia") === "asia" && (s.names[lang] || s.names.ja || s.names["zh-tw"])
+          );
         return (s.region || "intl") === "intl" || s.names[lang] || s.names.en;
       })
       .map((s) => ({
@@ -461,7 +589,9 @@ export const Route = createFileRoute("/api/public/tcgdex")({
           "cache-control": "public, s-maxage=180, stale-while-revalidate=900",
         };
         const upstreamPaths = setOne
-          ? setIdAliases(decodeURIComponent(setOne[1])).slice(0, 6).map((id) => `/sets/${encodeURIComponent(id)}`)
+          ? setIdAliases(decodeURIComponent(setOne[1]))
+              .slice(0, 6)
+              .map((id) => `/sets/${encodeURIComponent(id)}`)
           : [path];
         for (const upPath of upstreamPaths) {
           try {
@@ -479,10 +609,12 @@ export const Route = createFileRoute("/api/public/tcgdex")({
                 },
               });
             }
-          } catch { /* api.tcgdex.net is often unreachable from cloud IPs */ }
+          } catch {
+            /* api.tcgdex.net is often unreachable from cloud IPs */
+          }
         }
 
-        const late = catalog || await loadCatalog(request);
+        const late = catalog || (await loadCatalog(request));
         const fallback = late ? await fromCatalog(lang, path, late) : null;
         if (fallback) return fallback;
         return Response.json({ error: "TCGdex unavailable" }, { status: 502 });

@@ -70,7 +70,11 @@ export function cachedPricePending(id: string): boolean {
 export function applyLiveQuote(card: TCGCard, market: number): TCGCard {
   if (!(market > 0)) return card;
   const prices = { ...(card.tcgplayer?.prices || {}) };
-  const prefer = prices.holofoil ? "holofoil" : prices.reverseHolofoil ? "reverseHolofoil" : "normal";
+  const prefer = prices.holofoil
+    ? "holofoil"
+    : prices.reverseHolofoil
+      ? "reverseHolofoil"
+      : "normal";
   const prev = prices[prefer] || {};
   return {
     ...card,
@@ -134,7 +138,10 @@ function flush() {
         let q = got[id];
         if (!q) {
           for (const alias of priceIdAliases(id)) {
-            if (got[alias]) { q = got[alias]; break; }
+            if (got[alias]) {
+              q = got[alias];
+              break;
+            }
           }
         }
         const wait = waiters.get(id) || [];
@@ -214,7 +221,12 @@ export function useLivePrice(card: TCGCard | null | undefined): number {
       }
     });
     const on = (e: Event) => {
-      const d = (e as CustomEvent).detail as { id?: string; market?: number; soldAvg?: number; pending?: boolean };
+      const d = (e as CustomEvent).detail as {
+        id?: string;
+        market?: number;
+        soldAvg?: number;
+        pending?: boolean;
+      };
       if (d?.id !== id) return;
       if (d.pending) return;
       const m = (d.soldAvg && d.soldAvg > 0 ? d.soldAvg : d.market) || 0;
@@ -234,7 +246,9 @@ export function useLivePrice(card: TCGCard | null | undefined): number {
 export function usePricePending(card: TCGCard | null | undefined): boolean {
   const id = card?.id || "";
   const seed = isPendingPriceSet(card);
-  const [pendingFlag, setPendingFlag] = useState(() => cachedPricePending(id) || (seed && !(cachedLivePrice(id) ?? 0)));
+  const [pendingFlag, setPendingFlag] = useState(
+    () => cachedPricePending(id) || (seed && !(cachedLivePrice(id) ?? 0)),
+  );
 
   useEffect(() => {
     setPendingFlag(cachedPricePending(id) || (seed && !(cachedLivePrice(id) ?? 0)));

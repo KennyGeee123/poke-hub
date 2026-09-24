@@ -44,6 +44,7 @@ export function AdventureView() {
   const [adventureState, setAdventureState] = useState<AdventureState>(loadAdventureState);
   const [viewMode, setViewMode] = useState<"living_world" | "retro_gb">("living_world");
 
+
   const retroIframeRef = useRef<HTMLIFrameElement | null>(null);
   const [gbBattleFoe, setGbBattleFoe] = useState<GBBattleFoe | null>(null);
 
@@ -96,10 +97,7 @@ export function AdventureView() {
   }, []);
 
   // Active Modals
-  const [activeCreature, setActiveCreature] = useState<{
-    creature: WildCreature;
-    mode: "catch" | "battle";
-  } | null>(null);
+  const [activeCreature, setActiveCreature] = useState<{ creature: WildCreature; mode: "catch" | "battle" } | null>(null);
   const [activeDiscoveryPoint, setActiveDiscoveryPoint] = useState<DiscoveryPoint | null>(null);
   const [activeBattleArena, setActiveBattleArena] = useState<BattleArena | null>(null);
   const [activeCardCache, setActiveCardCache] = useState<CardCacheDrop | null>(null);
@@ -126,38 +124,10 @@ export function AdventureView() {
       currentHp: 120,
       types: ["Electric"],
       moves: [
-        {
-          name: "Thunderbolt",
-          type: "Electric",
-          power: 90,
-          pp: 15,
-          maxPp: 15,
-          description: "Powerful electric strike.",
-        },
-        {
-          name: "Iron Tail",
-          type: "Normal",
-          power: 75,
-          pp: 15,
-          maxPp: 15,
-          description: "Hard tail slam.",
-        },
-        {
-          name: "Volt Tackle",
-          type: "Electric",
-          power: 120,
-          pp: 5,
-          maxPp: 5,
-          description: "High-voltage charge.",
-        },
-        {
-          name: "Quick Attack",
-          type: "Normal",
-          power: 40,
-          pp: 30,
-          maxPp: 30,
-          description: "Always strikes first.",
-        },
+        { name: "Thunderbolt", type: "Electric", power: 90, pp: 15, maxPp: 15, description: "Powerful electric strike." },
+        { name: "Iron Tail", type: "Normal", power: 75, pp: 15, maxPp: 15, description: "Hard tail slam." },
+        { name: "Volt Tackle", type: "Electric", power: 120, pp: 5, maxPp: 5, description: "High-voltage charge." },
+        { name: "Quick Attack", type: "Normal", power: 40, pp: 30, maxPp: 30, description: "Always strikes first." },
       ],
     },
     {
@@ -168,38 +138,10 @@ export function AdventureView() {
       currentHp: 165,
       types: ["Fire", "Flying"],
       moves: [
-        {
-          name: "Flamethrower",
-          type: "Fire",
-          power: 90,
-          pp: 15,
-          maxPp: 15,
-          description: "Scorching flame blast.",
-        },
-        {
-          name: "Dragon Claw",
-          type: "Dragon",
-          power: 80,
-          pp: 15,
-          maxPp: 15,
-          description: "Slashes with sharp claws.",
-        },
-        {
-          name: "Fire Blast",
-          type: "Fire",
-          power: 110,
-          pp: 5,
-          maxPp: 5,
-          description: "Intense five-pronged fireball.",
-        },
-        {
-          name: "Wing Attack",
-          type: "Flying",
-          power: 60,
-          pp: 25,
-          maxPp: 25,
-          description: "Strikes with wings.",
-        },
+        { name: "Flamethrower", type: "Fire", power: 90, pp: 15, maxPp: 15, description: "Scorching flame blast." },
+        { name: "Dragon Claw", type: "Dragon", power: 80, pp: 15, maxPp: 15, description: "Slashes with sharp claws." },
+        { name: "Fire Blast", type: "Fire", power: 110, pp: 5, maxPp: 5, description: "Intense five-pronged fireball." },
+        { name: "Wing Attack", type: "Flying", power: 60, pp: 25, maxPp: 25, description: "Strikes with wings." },
       ],
     },
   ]);
@@ -214,25 +156,19 @@ export function AdventureView() {
   const handleUpdateCoords = (
     newCoords: { xPct: number; yPct: number },
     distMeters: number,
-    newGeo?: { lat: number; lng: number; accuracy?: number; heading?: number },
+    newGeo?: { lat: number; lng: number; accuracy?: number; heading?: number }
   ) => {
     setAdventureState((prev) => {
       const result = updatePlayerLocation(prev, newCoords, distMeters, newGeo);
       if (result.newlyDiscovered && result.newlyDiscovered.length > 0) {
         const first = result.newlyDiscovered[0];
-        toast.success(`✨ Wild ${first.species} nearby! Walk up & catch · CP ${first.cp}`, {
+        toast.success(`✨ Wild ${first.species} emerged from the tall grass! CP ${first.cp}`, {
           icon: "⚡",
         });
         if (typeof window !== "undefined" && navigator.vibrate) {
           try {
             navigator.vibrate([40, 40, 80]);
           } catch {}
-        }
-        // Auto-open catch sheet when you walk into radar range (GO-style)
-        if (!hdBattleOpen) {
-          setTimeout(() => {
-            setActiveCreature({ creature: first, mode: "catch" });
-          }, 0);
         }
       }
       return result.state;
@@ -249,22 +185,8 @@ export function AdventureView() {
       currentHp: Math.round(level * 4.2 + 25),
       types,
       moves: [
-        {
-          name: "Tackle",
-          type: "Normal",
-          power: 40,
-          pp: 35,
-          maxPp: 35,
-          description: "Full body charge.",
-        },
-        {
-          name: types[0] === "Fire" ? "Ember" : types[0] === "Water" ? "Water Gun" : "Quick Strike",
-          type: types[0] || "Normal",
-          power: 65,
-          pp: 20,
-          maxPp: 20,
-          description: "Signature elemental strike.",
-        },
+        { name: "Tackle", type: "Normal", power: 40, pp: 35, maxPp: 35, description: "Full body charge." },
+        { name: types[0] === "Fire" ? "Ember" : types[0] === "Water" ? "Water Gun" : "Quick Strike", type: types[0] || "Normal", power: 65, pp: 20, maxPp: 20, description: "Signature elemental strike." },
       ],
     };
     setCurrentBattleFoe(foe);
@@ -346,12 +268,7 @@ export function AdventureView() {
                 adventureState={adventureState}
                 onSelectCreature={(creature, mode) => {
                   if (mode === "battle") {
-                    startHdBattle(
-                      creature.species,
-                      creature.species,
-                      creature.level,
-                      creature.types,
-                    );
+                    startHdBattle(creature.species, creature.species, creature.level, creature.types);
                   } else {
                     setActiveCreature({ creature, mode });
                   }
@@ -362,11 +279,10 @@ export function AdventureView() {
                     `Gym Leader (${arena.championSpecies})`,
                     arena.championSpecies,
                     arena.championLevel,
-                    ["Fire", "Flying"],
+                    ["Fire", "Flying"]
                   );
                 }}
                 onSelectCardCache={(cache) => setActiveCardCache(cache)}
-                onStateUpdate={handleStateUpdate}
                 onUpdateCoords={handleUpdateCoords}
               />
 
@@ -396,12 +312,7 @@ export function AdventureView() {
                   onSelectCreature={(c) => setActiveCreature({ creature: c, mode: "catch" })}
                   onSelectDiscoveryPoint={(p) => setActiveDiscoveryPoint(p)}
                   onSelectBattleArena={(a) => {
-                    startHdBattle(
-                      `Leader ${a.championSpecies}`,
-                      a.championSpecies,
-                      a.championLevel,
-                      ["Fire"],
-                    );
+                    startHdBattle(`Leader ${a.championSpecies}`, a.championSpecies, a.championLevel, ["Fire"]);
                   }}
                 />
               )}
@@ -494,6 +405,7 @@ export function AdventureView() {
             />
           )}
 
+          
           {/* 9. National Pokédex Directory (All 1,025 Pokémon) */}
           {pokedexOpen && (
             <AdventurePokedexModal
@@ -555,6 +467,7 @@ export function AdventureView() {
               </div>
             </div>
           )}
+
         </div>
       )}
     </div>

@@ -1,17 +1,6 @@
 import React, { useState } from "react";
-import {
-  Heart,
-  Sparkles,
-  Footprints,
-  Gift,
-  X,
-  Smile,
-  Zap,
-} from "lucide-react";
-import {
-  type AdventureState,
-  feedBuddy,
-} from "@/lib/adventure-engine";
+import { Heart, Sparkles, Footprints, Gift, X, Smile, Zap } from "lucide-react";
+import { type AdventureState, feedBuddy } from "@/lib/adventure-engine";
 import { animatedSpriteUrl } from "@/lib/sprites";
 
 export function AdventureBuddyModal({
@@ -101,7 +90,9 @@ export function AdventureBuddyModal({
               <div
                 key={i}
                 className={`w-3 h-3 rounded-full ${
-                  i < buddy.heartsToday ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" : "bg-neutral-800"
+                  i < buddy.heartsToday
+                    ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]"
+                    : "bg-neutral-800"
                 }`}
               />
             ))}

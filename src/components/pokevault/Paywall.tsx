@@ -20,12 +20,14 @@ export function Paywall({ reason }: Props) {
     //   await paddle.Checkout.open({ items: [{ priceId: PADDLE_PRICE_IDS[t] }] })
     // For now, simulate a successful subscription locally so the UX is testable.
     const label =
-      t === "scout" ? "Deal Scout ($4.99/mo)" :
-      t === "pro" ? "Pro Trainer ($9.99/mo)" :
-      "Elite Champion ($19.99/mo)";
+      t === "scout"
+        ? "Deal Scout ($4.99/mo)"
+        : t === "pro"
+          ? "Pro Trainer ($9.99/mo)"
+          : "Elite Champion ($19.99/mo)";
     const ok = window.confirm(
       `Subscribe to ${label}?\n\n` +
-      `(Paddle checkout will activate here once payment setup is finished.)`
+        `(Paddle checkout will activate here once payment setup is finished.)`,
     );
     if (ok) setTier(t);
   };
@@ -35,9 +37,7 @@ export function Paywall({ reason }: Props) {
       <div className="pv-paywall-head">
         <div className="pv-paywall-eyebrow">★ PokéVault Premium</div>
         <h1 className="pv-paywall-title">UNLOCK THE FULL POKÉDEX</h1>
-        <p className="pv-paywall-sub">
-          {reason ?? "Catch every feature. Cancel anytime."}
-        </p>
+        <p className="pv-paywall-sub">{reason ?? "Catch every feature. Cancel anytime."}</p>
       </div>
 
       <div className="pv-tier-grid">
@@ -45,10 +45,7 @@ export function Paywall({ reason }: Props) {
           const isCurrent = tier === t.id;
           const featured = t.id === "scout";
           return (
-            <div
-              key={t.id}
-              className={`pv-tier ${featured ? "featured" : ""}`}
-            >
+            <div key={t.id} className={`pv-tier ${featured ? "featured" : ""}`}>
               {t.badge && <div className="pv-tier-badge">{t.badge}</div>}
               <div className="pv-tier-name">{t.name}</div>
               <div className="pv-tier-price">
