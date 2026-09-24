@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { isOwnerEmail } from "./owner";
+import { authRedirectUrl } from "./platform";
+import { listenForAuthDeepLinks, openAuthUrl } from "./native";
 
 type AuthCtx = {
   user: User | null;
@@ -9,6 +11,9 @@ type AuthCtx = {
   loading: boolean;
   isOwner: boolean;
   signOut: () => Promise<void>;
+  signInWithGoogle: () => Promise<{ error: string | null }>;
+  signInWithApple: () => Promise<{ error: string | null }>;
+  completeOAuth: (code: string) => Promise<{ error: string | null }>;
 };
 
 const Ctx = createContext<AuthCtx>({
@@ -17,6 +22,9 @@ const Ctx = createContext<AuthCtx>({
   loading: false,
   isOwner: false,
   signOut: async () => {},
+  signInWithGoogle: async () => ({ error: null }),
+  signInWithApple: async () => ({ error: null }),
+  completeOAuth: async () => ({ error: null }),
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -24,6 +32,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Default false so SSR + first paint render the guest shell instead of a spinner wall.
   const [loading, setLoading] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+
+  const completeOAuth = async (code: string): Promise<{ error: string | null }> => {
+    try {
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      if (error) return { error: error.message };
+      return { error: null };
+    } catch (e: unknown) {
+      return { error: e instanceof Error ? e.message : "Sign-in failed." };
+    }
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -67,9 +85,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       finish(null);
     }
+    const stopDeepLinks = listenForAuthDeepLinks((code) => {
+      void completeOAuth(code);
+    });
     return () => {
       window.clearTimeout(timer);
       unsub();
+      stopDeepLinks();
     };
   }, []);
 
@@ -96,6 +118,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [user?.id, emailOwner]);
 
+  const signInWithOAuth = async (provider: "google" | "apple") => {
+    try {
+      const redirectTo = authRedirectUrl("/login");
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo,
+          skipBrowserRedirect: true,
+          ...(provider === "google"
+            ? { queryParams: { access_type: "offline", prompt: "select_account" } }
+            : {}),
+        },
+      });
+      if (error) return { error: error.message };
+      if (!data?.url) return { error: `${provider} did not return a sign-in URL.` };
+      await openAuthUrl(data.url);
+      return { error: null };
+    } catch (e: unknown) {
+      return { error: e instanceof Error ? e.message : `${provider} sign-in failed` };
+    }
+  };
+
   return (
     <Ctx.Provider
       value={{
@@ -106,6 +150,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signOut: async () => {
           await supabase.auth.signOut();
         },
+        signInWithGoogle: () => signInWithOAuth("google"),
+        signInWithApple: () => signInWithOAuth("apple"),
+        completeOAuth,
       }}
     >
       {children}

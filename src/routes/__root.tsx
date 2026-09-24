@@ -10,6 +10,8 @@ import {
 
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/lib/auth";
+import { useEffect } from "react";
+import { initNativeShell } from "@/lib/native";
 
 function NotFoundComponent() {
   return (
@@ -95,7 +97,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
-      { rel: "apple-touch-icon", href: "/favicon.svg" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "preconnect", href: "https://images.pokemontcg.io" },
       { rel: "preconnect", href: "https://assets.tcgdex.net" },
       { rel: "preconnect", href: "https://tcgplayer-cdn.tcgplayer.com" },
@@ -129,6 +131,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    void initNativeShell();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -18,7 +18,7 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const nav = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, loading, signInWithGoogle, signInWithApple } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -66,21 +66,22 @@ function LoginPage() {
     setErr(null);
     setBusy(true);
     try {
-      const redirectTo = `${window.location.origin}/login`;
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo,
-          skipBrowserRedirect: true,
-          queryParams: { access_type: "offline", prompt: "select_account" },
-        },
-      });
-      if (error) throw error;
-      if (!data?.url)
-        throw new Error("Google did not return a sign-in URL. Try again in a moment.");
-      window.location.assign(data.url);
+      const { error } = await signInWithGoogle();
+      if (error) throw new Error(error);
     } catch (e: any) {
       setErr(e?.message ?? "Google sign-in failed");
+      setBusy(false);
+    }
+  };
+
+  const onApple = async () => {
+    setErr(null);
+    setBusy(true);
+    try {
+      const { error } = await signInWithApple();
+      if (error) throw new Error(error);
+    } catch (e: any) {
+      setErr(e?.message ?? "Apple sign-in failed");
       setBusy(false);
     }
   };
@@ -121,6 +122,16 @@ function LoginPage() {
           </svg>
           Continue with Google
         </button>
+        <button onClick={onApple} disabled={busy} className="pv-login-google" style={{ marginTop: 10 }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
+            <path
+              fill="currentColor"
+              d="M16.7 12.6c0-2.1 1.7-3.1 1.8-3.2-1-1.4-2.5-1.6-3-1.6-1.3-.1-2.5.8-3.1.8-.7 0-1.7-.7-2.8-.7-1.4 0-2.8.9-3.5 2.2-1.5 2.6-.4 6.4 1.1 8.5.7 1 1.6 2.2 2.7 2.1 1.1 0 1.5-.7 2.8-.7s1.7.7 2.8.7c1.2 0 1.9-1 2.6-2 .8-1.2 1.1-2.3 1.1-2.4-.1 0-2.1-.8-2.1-3.7zM14.6 6.5c.6-.7 1-1.7.9-2.7-0.9.1-1.9.6-2.5 1.3-.6.6-1.1 1.7-.9 2.6 1 .1 1.9-.4 2.5-1.2z"
+            />
+          </svg>
+          Continue with Apple
+        </button>
+
 
         <div className="flex items-center gap-2 my-4">
           <div className="h-px flex-1 bg-border" />
@@ -171,6 +182,18 @@ function LoginPage() {
 
         <p className="text-center text-xs text-muted-foreground mt-6">
           Free accounts include <strong>2 submissions</strong>. Upgrade for unlimited.
+        </p>
+
+
+        <p className="text-center text-xs text-muted-foreground mt-4">
+          <a href="/privacy.html" className="hover:underline">Privacy</a>
+          {" · "}
+          <a href="/terms.html" className="hover:underline">Terms</a>
+          {" · "}
+          <a href="/support.html" className="hover:underline">Support</a>
+        </p>
+        <p className="text-center text-[10px] text-muted-foreground mt-2 px-2">
+          Unofficial fan app — not affiliated with Nintendo, The Pokémon Company, or Game Freak.
         </p>
 
         <p className="text-center text-sm mt-3">
