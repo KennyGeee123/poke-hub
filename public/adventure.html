@@ -43,12 +43,38 @@
     #sidebar { width: 100%; max-width: 360px; max-height: 220px; }
     body { padding: 8px; padding-bottom: 200px; align-items: flex-start; }
   }
-  html.embedded body { padding: 0; min-height: 100%; align-items: stretch; background: #0b1220; }
-  html.embedded #app { max-width: none; width: 100%; margin: 0; gap: 0; flex-wrap: nowrap; }
+  /* Embedded in the PokéVault Adventure tab: the square world view is sized to
+     fit the frame (never cropped), and on touch screens room is reserved under
+     it for the D-pad so the pad never covers the map. */
+  html.embedded, html.embedded body { height: 100%; overflow: hidden; }
+  html.embedded body { padding: 0; min-height: 0; display: block; background: #0b1220; }
+  html.embedded #app { max-width: none; width: 100%; height: 100%; margin: 0; gap: 0; flex-wrap: nowrap; display: flex; align-items: flex-start; justify-content: center; }
   html.embedded #sidebar { display: none; }
-  html.embedded #game-wrap { max-width: none; flex: 1 1 auto; border-radius: 0; border-width: 0; }
-  html.embedded canvas#game { width: 100% !important; max-width: none; }
-  html.embedded #dpad { left: 10px; bottom: 10px; width: 140px; height: 140px; }
+  html.embedded #game-wrap {
+    flex: 0 0 auto; max-width: none; border-radius: 0; border-width: 0;
+    width: min(100vw, 100vh); height: min(100vw, 100vh);
+  }
+  html.embedded canvas#game { width: 100% !important; height: 100% !important; max-width: none; }
+  html.embedded #dpad { left: 10px; bottom: 10px; width: 132px; height: 132px; }
+  @media not all and (min-width: 900px) and (hover: hover) and (pointer: fine) {
+    html.embedded #game-wrap { width: min(100vw, calc(100vh - 150px)); height: min(100vw, calc(100vh - 150px)); }
+    html.embedded #dpad { left: 50%; transform: translateX(-50%); }
+  }
+  @media (max-width: 520px) {
+    #hud-bar { top: 6px; left: 6px; right: 6px; gap: 5px; flex-wrap: wrap; }
+    #compass { width: 36px; height: 36px; }
+    #compass-needle { border-bottom-width: 13px; border-left-width: 5px; border-right-width: 5px; }
+    #compass span { display: none; }
+    #region-chip { padding: 5px 9px; font-size: 11px; letter-spacing: 1px; }
+    #biome-chip { display: none; }
+    #follower-chip { font-size: 10px; padding: 2px 8px 2px 2px; }
+    #follower-chip img { width: 18px; height: 18px; }
+    #party-hud { padding: 4px 6px; gap: 3px; }
+    #party-hud .pip { width: 10px; height: 10px; border-width: 1.5px; }
+    #region-label { top: 52px; font-size: 14px; padding: 6px 14px; letter-spacing: 2px; }
+    #coords-hud { font-size: 10px; bottom: 6px; left: 6px; padding: 3px 7px; }
+    #modal { width: min(340px, 92vw); padding: 22px 16px 14px; }
+  }
 
   #game-wrap {
     position: relative;
@@ -1003,7 +1029,11 @@ const FieldTrainers = {
     const list = this.list(MapManager.current);
     for (const tr of list) {
       if (tr.beaten) continue;
-      if (Math.abs(tr.x - Player.x) + Math.abs(tr.y - Player.y) <= 1) {
+      const d = Math.abs(tr.x - Player.x) + Math.abs(tr.y - Player.y);
+      // After a lost/fled battle the trainer waits until you step away before
+      // challenging again (otherwise every step next to them re-starts a fight).
+      if (tr.engaged) { if (d > 2) tr.engaged = false; continue; }
+      if (d <= 1) {
         Sites.trainer(tr);
         return;
       }
@@ -1036,6 +1066,7 @@ const Sites = {
   },
   trainer(tr) {
     if (!tr || tr.beaten) return;
+    tr.engaged = true;
     EncounterSystem.current = { name: tr.mon, kind: "trainer", level: tr.level, leader: tr.title, catchable: false, trainerId: tr.id, color: tr.color };
     Player.frozen = true;
     EncounterSystem.handed = false;
@@ -1068,6 +1099,7 @@ const Sites = {
     const e = league[idx];
     if (!e) return;
     EncounterSystem.current = { name: e.mon, emoji: "◆", color: "#7c3aed", kind: e.kind, level: e.level, leader: e.leader, e4Index: idx };
+    EncounterSystem.handed = false;
     Player.frozen = true;
     UIManager.openTrainer(e.kind === "champion" ? "CHAMPION BATTLE" : "ELITE FOUR",
       e.leader + " · " + e.type, e.mon, "This is a trainer battle. You cannot catch their Pokémon.");
@@ -1157,6 +1189,7 @@ const UIManager = {
     sp.innerHTML = pokeImgTag(name);
   },
   openWild(poke) {
+    this.toastOpen = false;
     const water = poke && poke.habitat === 'water';
     document.getElementById('modal-title').textContent = water ? 'A wild Pokémon surfaced!' : 'A wild Pokémon appeared!';
     this.setSprite(poke.name);
@@ -1172,6 +1205,7 @@ const UIManager = {
     document.body.classList.add('modal-open');
   },
   openTrainer(title, subtitle, mon, msg) {
+    this.toastOpen = false;
     document.getElementById('modal-title').textContent = title;
     this.setSprite(mon);
     document.getElementById('poke-name').textContent = subtitle;
@@ -1186,6 +1220,9 @@ const UIManager = {
   },
   toastModal(title, msg) {
     Player.frozen = true;
+    this.toastOpen = true;
+    const m = document.getElementById('modal');
+    m.style.background = ''; m.style.color = ''; m.style.borderColor = '';
     document.getElementById('modal-title').textContent = title;
     document.getElementById('poke-sprite').textContent = '◆';
     document.getElementById('poke-name').textContent = '';
@@ -1197,6 +1234,7 @@ const UIManager = {
     document.body.classList.add('modal-open');
   },
   openBattleHandoff(poke) {
+    this.toastOpen = false;
     const trainer = poke.kind && poke.kind !== 'wild';
     document.getElementById('modal-title').textContent = trainer ? '⚔ TRAINER BATTLE' : '⚔ BATTLE STARTING!';
     this.setSprite(poke.name);
@@ -1213,6 +1251,7 @@ const UIManager = {
     document.body.classList.add('modal-open');
   },
   closeModal() {
+    this.toastOpen = false;
     this.modal.classList.remove('active');
     document.body.classList.remove('modal-open');
     const m = document.getElementById('modal');
@@ -1839,8 +1878,12 @@ const Input = {
       }
       if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
-        if (UIManager.modal && UIManager.modal.classList.contains('active') && EncounterSystem.current) {
+        if (UIManager.modal && UIManager.modal.classList.contains('active') && EncounterSystem.current && !UIManager.toastOpen) {
           EncounterSystem.fight();
+          return;
+        }
+        if (UIManager.modal && UIManager.modal.classList.contains('active') && UIManager.toastOpen) {
+          EncounterSystem.close();
           return;
         }
         Player.interact();
@@ -1935,7 +1978,42 @@ window.addEventListener('message', (e) => {
     UIManager.modal.classList.remove('active');
     document.body.classList.remove('modal-open');
   }
-  if (d.type === 'pv-adventure-resume') EncounterSystem.close();
+  if (d.type === 'pv-adventure-resume') {
+    if (UIManager.toastOpen) {
+      // A badge / Elite Four result arrived during the battle: keep that card
+      // on screen (Continue unfreezes) instead of closing it unseen.
+      clearTimeout(EncounterSystem.autoTimer);
+      EncounterSystem.autoTimer = null;
+      EncounterSystem.current = null;
+      EncounterSystem.handed = false;
+      UIManager.modal.classList.add('active');
+      document.body.classList.add('modal-open');
+    } else {
+      EncounterSystem.close();
+    }
+  }
+  if (d.type === 'pv-adventure-whiteout') {
+    clearTimeout(EncounterSystem.autoTimer);
+    EncounterSystem.autoTimer = null;
+    EncounterSystem.current = null;
+    EncounterSystem.handed = false;
+    // Back to this area's Poké Center, standing just outside the door.
+    const c = POI[MapManager.current].center;
+    Player.x = c.x; Player.y = Math.min(MAP_SIZE - 2, c.y + 1);
+    if ([2, 8, 10, 12, 9, 18, 19, 20, 21].includes(MapManager.tileAt(Player.x, Player.y))) {
+      const mid = Math.floor(MAP_SIZE / 2);
+      Player.x = mid; Player.y = mid;
+    }
+    Player.facing = 'down';
+    Player.trail = [{ x: Player.x, y: Player.y, facing: 'down' }];
+    Player._inCenter = false;
+    const b = behindPos();
+    Follower.x = b.x; Follower.y = b.y;
+    Camera.sync(true);
+    UIManager.updateCoords();
+    SaveSystem.save();
+    UIManager.toastModal("WHITED OUT", "You rushed back to the Poké Center. Your party has been healed.");
+  }
   if (d.type === 'pv-adventure-badge' && d.badge) {
     const b = SaveSystem.state.badges || (SaveSystem.state.badges = []);
     if (!b.includes(d.badge)) b.push(d.badge);

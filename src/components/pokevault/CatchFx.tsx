@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FX_VIDEOS_ENABLED } from "@/lib/battle-cine";
 
 export type CatchPhase = "throw" | "shake" | "caught" | "broke";
 
@@ -18,7 +19,7 @@ export function CatchFx({ phase }: { phase: CatchPhase | null }) {
   const src = VIDEO[phase];
   return (
     <div className={`pv-catch pv-catch-${phase}`} aria-hidden>
-      {src && videoOk && (
+      {FX_VIDEOS_ENABLED && src && videoOk && (
         <video
           className="pv-catch-video"
           src={src}

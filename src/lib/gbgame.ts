@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { TCGCard } from "./pokemon-api";
 import { animatedSpriteUrl, staticSpriteUrl } from "./sprites";
+import { healAllHp } from "./gb-hp";
 
 export type GBMove = {
   name: string;
@@ -319,8 +320,9 @@ export async function saveMonStats(mon: GBMon): Promise<void> {
   if (error) throw error;
 }
 
-/** Restore party to full health (Poké Center). Battle HP is ephemeral; this clears fatigue markers and re-persists. */
+/** Restore party to full health (Poké Center / white-out). Clears carried-over battle HP. */
 export async function healParty(): Promise<GBMon[]> {
+  healAllHp();
   const party = await fetchParty();
   const healed = party.map((m) => ({ ...m }));
   const uid = await currentUserId();

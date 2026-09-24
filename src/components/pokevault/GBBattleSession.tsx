@@ -18,7 +18,8 @@ import { SpriteImg } from "./SpriteImg";
 import { hpPct } from "@/lib/battle";
 import { movesAtLevel, newlyLearned } from "@/lib/pokeapi-moves";
 import { CatchFx, type CatchPhase } from "./CatchFx";
-import { ARENA_CLIP, battleClipFor } from "@/lib/battle-cine";
+import { ARENA_CLIP, FX_VIDEOS_ENABLED, battleClipFor } from "@/lib/battle-cine";
+import { getMonHp, healAllHp, moveMonHp, setMonHp } from "@/lib/gb-hp";
 import { pressGbDpad, pressGbFace } from "@/lib/gb-face";
 
 export type GBBattleFoe = {
@@ -40,6 +41,17 @@ const isPlayable = (c: TCGCard) =>
 
 const STARTING_POTIONS = 3;
 
+/**
+ * Real PokéAPI move power (40–120) against our small HP pools meant a Lv 6
+ * Caterpie's Tackle took ~90% of a starter's HP. Scale damage for both sides
+ * so an even fight lasts a few turns (and HP carried between fights matters).
+ */
+const ADV_DAMAGE_SCALE = 0.4;
+function advDamage(...args: Parameters<typeof levelDamage>) {
+  const r = levelDamage(...args);
+  return { ...r, dmg: Math.max(1, Math.round(r.dmg * ADV_DAMAGE_SCALE)) };
+}
+
 function wait(ms: number) {
   return new Promise((res) => setTimeout(res, ms));
 }
@@ -56,7 +68,7 @@ export function GBBattleSession({
   chrome = true,
 }: {
   foe: GBBattleFoe;
-  onDone: (result: "win" | "lose" | "run" | "cancel") => void;
+  onDone: (result: "win" | "lose" | "run" | "cancel" | "caught") => void;
   /** Include Game Boy bezel chrome (default true for Adventure overlay). */
   chrome?: boolean;
 }) {
@@ -90,6 +102,29 @@ export function GBBattleSession({
   const faintedRef = useRef<Set<string>>(new Set());
   const partyRef = useRef<GBMon[]>([]);
   const [fainted, setFainted] = useState<string[]>([]);
+  const [caughtMon, setCaughtMon] = useState<GBMon | null>(null);
+  // Refs mirror the live battle values so chained async turns (potion → foe
+  // turn, switch → foe turn) never read a stale render's HP or active mon.
+  const activeRef = useRef<GBMon | null>(null);
+  const activeHpRef = useRef(0);
+  const foeRef = useRef<GBMon | null>(null);
+  const foeHpRef = useRef(0);
+  const trainerIdRef = useRef<string | undefined>(undefined);
+
+  function putActive(mon: GBMon | null) {
+    activeRef.current = mon;
+    setActive(mon);
+  }
+  function putActiveHp(hp: number) {
+    activeHpRef.current = hp;
+    setActiveHp(hp);
+    const mon = activeRef.current;
+    if (mon) setMonHp(mon, hp);
+  }
+  function putFoeHp(hp: number) {
+    foeHpRef.current = hp;
+    setFoeHp(hp);
+  }
 
   useEffect(() => {
     pendingFoeRef.current = foeProps;
@@ -98,30 +133,40 @@ export function GBBattleSession({
     partyRef.current = party;
   }, [party]);
 
-  async function kickoff(mon: GBMon, f: GBMon, kindLabel: string) {
-    try {
-      const real = await movesAtLevel(f.name, f.level, f.attacks);
-      if (real.length) f.attacks = real;
-    } catch {}
-    setActive(mon);
+  async function kickoff(mon: GBMon, f: GBMon, kindLabel: string, extraLog: string[] = []) {
+    // Resolve real level-up moves for both sides in parallel so the rental /
+    // caught mons fight on the same damage scale as the wild foe.
+    const [foeMoves, myMoves] = await Promise.all([
+      movesAtLevel(f.name, f.level, f.attacks).catch(() => [] as GBMove[]),
+      mon.id === "rental-starter"
+        ? movesAtLevel(mon.name, mon.level, mon.attacks).catch(() => [] as GBMove[])
+        : Promise.resolve([] as GBMove[]),
+    ]);
+    if (foeMoves.length) f.attacks = foeMoves;
+    if (myMoves.length) {
+      mon = { ...mon, attacks: myMoves };
+      setParty((p) => p.map((x) => (x.id === mon.id ? mon : x)));
+      partyRef.current = partyRef.current.map((x) => (x.id === mon.id ? mon : x));
+    }
+    putActive(mon);
+    foeRef.current = f;
     setFoe(f);
-    setActiveHp(mon.max_hp);
-    setFoeHp(f.max_hp);
+    putActiveHp(getMonHp(mon));
+    putFoeHp(f.max_hp);
     const opener =
       kindLabel === "wild"
         ? `A wild ${f.name.toUpperCase()} (Lv ${f.level}) appeared!`
         : `${kindLabel.toUpperCase()} battle — ${f.name.toUpperCase()} (Lv ${f.level})!`;
     const rentalNote =
       mon.id === "rental-starter" ? `Rental ${mon.name.toUpperCase()} sent out.` : null;
-    setLog(rentalNote ? [opener, rentalNote] : [opener]);
+    setLog([opener, ...(rentalNote ? [rentalNote] : []), ...extraLog]);
     setPane("main");
     setPotions(STARTING_POTIONS);
     setFoeFx("");
     setMeFx("");
     setCatchPhase(null);
     setNotice(null);
-    faintedRef.current = new Set();
-    setFainted([]);
+    setCaughtMon(null);
     setScene("battle");
   }
 
@@ -132,10 +177,29 @@ export function GBBattleSession({
     battleKindRef.current = kind;
     badgeRef.current = detail.badge;
     e4IndexRef.current = detail.e4Index ?? 0;
+    trainerIdRef.current = detail.trainerId;
     setCatchable(catchableRef.current);
 
-    const mon = p[0] ?? rentalStarter();
-    if (!p[0]) setParty([mon]);
+    const extraLog: string[] = [];
+    let roster = p.length ? p : [rentalStarter()];
+    // Carried-over HP: fainted mons sit out until a Poké Center heal.
+    let alive = roster.filter((m) => getMonHp(m) > 0);
+    if (!alive.length) {
+      // Everyone is down (e.g. the tab closed mid-white-out) — patch them up
+      // instead of starting an unwinnable fight.
+      healAllHp();
+      alive = roster;
+      extraLog.push("Your party was patched up at the nearest Poké Center.");
+    }
+    faintedRef.current = new Set(roster.filter((m) => getMonHp(m) <= 0).map((m) => m.id));
+    setFainted([...faintedRef.current]);
+    if (!p.length) {
+      setParty(roster);
+      partyRef.current = roster;
+    } else {
+      roster = p;
+    }
+    const mon = alive[0];
     const lvl = Math.max(2, Math.min(60, detail.level ?? mon.level));
     const foeMon = wildFoeMon(detail.name, lvl);
     try {
@@ -170,7 +234,7 @@ export function GBBattleSession({
     } catch (err) {
       console.error(err);
     }
-    await kickoff(mon, foeMon, kind);
+    await kickoff(mon, foeMon, kind, extraLog);
   }
 
   useEffect(() => {
@@ -234,16 +298,18 @@ export function GBBattleSession({
   }
 
   async function playerAttack(move: GBMove) {
+    const active = activeRef.current;
+    const foe = foeRef.current;
     if (busy || !active || !foe) return;
     setBusy(true);
     setPane("main");
-    const { dmg, eff } = levelDamage(move, active.level, foe.types, active.types);
+    const { dmg, eff } = advDamage(move, active.level, foe.types, active.types);
     setAtkClip(battleClipFor(move.name, active.types?.[0]));
     setFoeFx("flash");
     await wait(180);
     setFoeFx("hit");
-    const newFoeHp = Math.max(0, foeHp - dmg);
-    setFoeHp(newFoeHp);
+    const newFoeHp = Math.max(0, foeHpRef.current - dmg);
+    putFoeHp(newFoeHp);
     setLog((l) => [
       `▶ ${active.name.toUpperCase()} used ${move.name}!  ${dmg} dmg${eff === "super" ? " ★ super effective!" : eff === "weak" ? " (not very effective)" : ""}`,
       ...l,
@@ -262,15 +328,20 @@ export function GBBattleSession({
   }
 
   async function foeTurn() {
-    if (!active || !foe) return;
+    const active = activeRef.current;
+    const foe = foeRef.current;
+    if (!active || !foe) {
+      setBusy(false);
+      return;
+    }
     const fmove = foe.attacks[Math.floor(Math.random() * foe.attacks.length)];
-    const fdmg = levelDamage(fmove, foe.level, active.types, foe.types).dmg;
+    const fdmg = advDamage(fmove, foe.level, active.types, foe.types).dmg;
     setAtkClip(battleClipFor(fmove.name, foe.types?.[0]));
     setMeFx("flash");
     await wait(180);
     setMeFx("hit");
-    const newPlayerHp = Math.max(0, activeHp - fdmg);
-    setActiveHp(newPlayerHp);
+    const newPlayerHp = Math.max(0, activeHpRef.current - fdmg);
+    putActiveHp(newPlayerHp);
     setLog((l) => [`◀ Foe ${foe.name.toUpperCase()} used ${fmove.name}!  ${fdmg} dmg`, ...l]);
     await wait(550);
     setMeFx("");
@@ -288,34 +359,42 @@ export function GBBattleSession({
     faintedRef.current.add(down.id);
     setFainted([...faintedRef.current]);
     const loser = { ...down, losses: down.losses + 1 };
-    try {
-      await saveMonStats(loser);
-    } catch (e) {
-      console.error(e);
+    if (loser.id !== "rental-starter") {
+      try {
+        await saveMonStats(loser);
+      } catch (e) {
+        console.error(e);
+      }
     }
     const nextParty = partyRef.current.map((x) => (x.id === loser.id ? loser : x));
     setParty(nextParty);
     partyRef.current = nextParty;
-    const next = nextParty.find((m) => !faintedRef.current.has(m.id));
+    const next = nextParty.find((m) => !faintedRef.current.has(m.id) && getMonHp(m) > 0);
     if (!next) {
       await endBattle(false);
       return;
     }
     setLog((l) => [`Go! ${next.name.toUpperCase()}!`, `${down.name.toUpperCase()} fainted!`, ...l]);
-    setActive(next);
-    setActiveHp(next.max_hp);
+    putActive(next);
+    putActiveHp(getMonHp(next));
     setMeFx("");
     setPane("main");
     setBusy(false);
   }
 
   async function usePotion() {
+    const active = activeRef.current;
     if (busy || !active || potions <= 0) return;
+    const maxHp = Number.isFinite(active.max_hp) && active.max_hp > 0 ? active.max_hp : 1;
+    if (activeHpRef.current >= maxHp) {
+      setLog((l) => [`${active.name.toUpperCase()} is already at full HP.`, ...l]);
+      setPane("main");
+      return;
+    }
     setBusy(true);
     setPane("main");
-    const maxHp = Number.isFinite(active.max_hp) && active.max_hp > 0 ? active.max_hp : 1;
-    const heal = Math.max(0, Math.min(maxHp - activeHp, 30));
-    setActiveHp((h) => Math.max(0, Math.min(maxHp, h + heal)));
+    const heal = Math.max(0, Math.min(maxHp - activeHpRef.current, 30));
+    putActiveHp(Math.max(0, Math.min(maxHp, activeHpRef.current + heal)));
     setPotions((p) => p - 1);
     setLog((l) => [`✚ Used POTION. Restored ${heal} HP.`, ...l]);
     await wait(500);
@@ -323,18 +402,21 @@ export function GBBattleSession({
   }
 
   async function switchTo(mon: GBMon) {
+    const active = activeRef.current;
     if (busy || !active || mon.id === active.id) return;
-    if (faintedRef.current.has(mon.id)) return;
+    if (faintedRef.current.has(mon.id) || getMonHp(mon) <= 0) return;
     setBusy(true);
     setPane("main");
-    setActive(mon);
-    setActiveHp(mon.max_hp);
+    putActive(mon);
+    putActiveHp(getMonHp(mon));
     setLog((l) => [`↺ Go! ${mon.name.toUpperCase()}!`, ...l]);
     await wait(500);
     await foeTurn();
   }
 
   async function tryCatch() {
+    const active = activeRef.current;
+    const foe = foeRef.current;
     if (busy || !active || !foe) return;
     if (!catchableRef.current) {
       setLog((l) => [`You can't catch a trainer's Pokémon!`, ...l]);
@@ -342,7 +424,7 @@ export function GBBattleSession({
     }
     setBusy(true);
     setPane("main");
-    const hpFactor = 1 - hpPct(foeHp, foe.max_hp) / 100;
+    const hpFactor = 1 - hpPct(foeHpRef.current, foe.max_hp) / 100;
     const lvlFactor = Math.max(0.15, 1 - foe.level / 80);
     const chance = Math.min(0.92, 0.18 + hpFactor * 0.55 + lvlFactor * 0.25);
     setLog((l) => [`🎯 Threw a POKÉ BALL at ${foe.name.toUpperCase()}!`, ...l]);
@@ -353,7 +435,7 @@ export function GBBattleSession({
     if (Math.random() < chance) {
       setCatchPhase("caught");
       setLog((l) => [`✨ Gotcha! ${foe.name.toUpperCase()} was caught!`, ...l]);
-      window.dispatchEvent(new CustomEvent("pv-adventure-caught", { detail: { name: foe.name } }));
+      let saved: GBMon | null = null;
       try {
         const mon = await addSpeciesToParty(foe.name, foe.level, foe.types);
         try {
@@ -363,12 +445,21 @@ export function GBBattleSession({
             await saveMonStats(mon);
           }
         } catch {}
+        // Caught at the HP it had left, like the handheld games.
+        setMonHp(mon, Math.max(1, Math.round((foeHpRef.current / foe.max_hp) * mon.max_hp)));
+        saved = mon;
         setParty((p) => [...p, mon]);
+        partyRef.current = [...partyRef.current, mon];
+        window.dispatchEvent(
+          new CustomEvent("pv-adventure-caught", { detail: { name: foe.name } }),
+        );
       } catch (e) {
         console.error(e);
+        setNotice("Caught it, but saving to your party failed. Check your connection.");
       }
       await wait(1100);
       setCatchPhase(null);
+      setCaughtMon(saved ?? { ...foe, id: "caught-unsaved" });
       setScene("victory");
       setGained(0);
       setBusy(false);
@@ -382,6 +473,8 @@ export function GBBattleSession({
   }
 
   async function endBattle(won: boolean) {
+    const active = activeRef.current;
+    const foe = foeRef.current;
     if (!active || !foe) return;
     if (won) {
       const xp = 25 + foe.level * 12;
@@ -419,14 +512,34 @@ export function GBBattleSession({
           console.error(e);
         }
       }
-      try {
-        await saveMonStats(mon);
-      } catch (e) {
-        console.error(e);
+      const joinLogs: string[] = [];
+      if (mon.id === "rental-starter") {
+        // The rental earned its keep — make it a real party member so the
+        // XP / levels from this fight are not thrown away.
+        try {
+          const joined = await addSpeciesToParty(mon.name, mon.level, mon.types);
+          const real: GBMon = { ...mon, id: joined.id, card_id: joined.card_id, slot: joined.slot };
+          moveMonHp("rental-starter", real.id);
+          const oldId = mon.id;
+          mon = real;
+          setParty((p) => p.map((x) => (x.id === oldId ? real : x)));
+          partyRef.current = partyRef.current.map((x) => (x.id === oldId ? real : x));
+          joinLogs.push(`🎒 ${mon.name.toUpperCase()} joined your party!`);
+        } catch (e) {
+          console.error(e);
+        }
       }
-      setActive(mon);
+      if (mon.id !== "rental-starter") {
+        try {
+          await saveMonStats(mon);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      putActive(mon);
       setParty((p) => p.map((x) => (x.id === mon.id ? mon : x)));
       setLog((l) => [
+        ...joinLogs,
         ...learnedLogs,
         leveled ? `🌟 ${mon.name} grew to Lv ${mon.level}!` : `+${xp} XP`,
         `🏆 Victory!`,
@@ -441,6 +554,11 @@ export function GBBattleSession({
       if (kind === "elite" || kind === "champion") {
         window.dispatchEvent(
           new CustomEvent("pv-adv-elite-won", { detail: { index: e4IndexRef.current } }),
+        );
+      }
+      if (kind === "trainer" && trainerIdRef.current) {
+        window.dispatchEvent(
+          new CustomEvent("pv-adv-trainer-won", { detail: { id: trainerIdRef.current } }),
         );
       }
       setScene("victory");
@@ -499,15 +617,23 @@ export function GBBattleSession({
           onRun={() => onDone("run")}
         />
       )}
-      {scene === "victory" && active && (
+      {scene === "victory" && caughtMon && (
+        <ResultScreen
+          title="GOTCHA!"
+          mon={caughtMon}
+          extra={
+            caughtMon.id === "caught-unsaved"
+              ? "Caught — but it couldn't be saved to your party."
+              : `${caughtMon.name.toUpperCase()} was added to your party.`
+          }
+          onContinue={() => onDone("caught")}
+        />
+      )}
+      {scene === "victory" && !caughtMon && active && (
         <ResultScreen
           title="VICTORY!"
           mon={active}
-          extra={
-            gained
-              ? `+${gained} XP — Next Lv: ${active.xp}/${xpForNext(active.level)}`
-              : "Caught it!"
-          }
+          extra={`+${gained} XP — Next Lv: ${active.xp}/${xpForNext(active.level)}`}
           onContinue={() => onDone("win")}
         />
       )}
@@ -515,7 +641,7 @@ export function GBBattleSession({
         <ResultScreen
           title="WHITE OUT…"
           mon={active}
-          extra="Your whole party fainted. Heal at a Poké Center and try again."
+          extra="Your whole party fainted. You hurry back to the Poké Center to heal."
           onContinue={() => onDone("lose")}
         />
       )}
@@ -740,16 +866,18 @@ function BattleScreen({
   return (
     <div className="gb-page gb-battle">
       <div className={`gb-arena ${catchPhase ? `pv-catching-${catchPhase}` : ""}`}>
-        <video
-          className="gb-arena-vid"
-          src={ARENA_CLIP}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="none"
-        />
-        {atkClip && (
+        {FX_VIDEOS_ENABLED && (
+          <video
+            className="gb-arena-vid"
+            src={ARENA_CLIP}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="none"
+          />
+        )}
+        {FX_VIDEOS_ENABLED && atkClip && (
           <video key={atkClip} className="gb-atk-vid" src={atkClip} autoPlay muted playsInline />
         )}
         <div className="gb-bf">
@@ -872,7 +1000,7 @@ function BattleScreen({
               <div>
                 <div className="gb-pm-name">{m.name.toUpperCase()}</div>
                 <div className="gb-pm-meta">
-                  Lv {m.level} · HP {m.max_hp}
+                  Lv {m.level} · HP {m.id === me.id ? meHp : getMonHp(m)}/{m.max_hp}
                 </div>
               </div>
               {m.id === me.id && <span className="gb-tag">ACTIVE</span>}
