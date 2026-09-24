@@ -709,18 +709,25 @@ export async function getAllCardsBySet(
     return { data: extra, totalCount: extra.length };
   }
 
-  let all: TCGCard[] = cached?.length ? cached.slice() : [];
-  let total = Math.max(expectedCount, all.length, expectedSetTotal(all));
+  let all: TCGCard[] = [];
+  let total = Math.max(expectedCount, expectedSetTotal(cached || []));
 
   try {
     const dx = await tcgdexGetSetCards(setId, lang);
     if (dx.length) {
-      all = mergeSetCardsByLocalId(dx, all);
+      all = mergeSetCardsByLocalId(dx, []);
       total = Math.max(total, dx.length, all.length, expectedSetTotal(all));
+      paint(all, total);
+    } else if (cached?.length) {
+      all = cached.slice();
+      total = Math.max(total, all.length);
       paint(all, total);
     }
   } catch {
-    /* pokemontcg next */
+    if (cached?.length) {
+      all = cached.slice();
+      paint(all, Math.max(total, all.length));
+    }
   }
 
   // Pokémon TCG API is for live prices only. Do not append extra rows — that
@@ -757,7 +764,7 @@ export async function getAllCardsBySet(
 
   all = sortSetCards(mergeSetCardsByLocalId(all, []));
   const result = { data: all, totalCount: Math.max(total, all.length, expectedCount) };
-  if (result.data.length >= (cached?.length || 0)) writeCachedSetCards(setId, result.data);
+  if (result.data.length) writeCachedSetCards(setId, result.data);
   return result;
 }
 
