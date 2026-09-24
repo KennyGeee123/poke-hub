@@ -502,7 +502,22 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
           <div>Try a different name or clear the filter.</div>
         </div>
       )}
-      <div className="pv-sets-grid">
+      {chip === "box" && filtered.length > 0 && (
+        <div className="pv-box-tab-edge" aria-hidden>
+          {filtered
+            .filter((s) => s.images?.symbol || s.images?.logo)
+            .slice(0, 36)
+            .map((s) => (
+              <img
+                key={`rail-${s.id}`}
+                src={s.images!.symbol || s.images!.logo}
+                alt=""
+                title={s.name}
+              />
+            ))}
+        </div>
+      )}
+      <div className={`pv-sets-grid ${chip === "box" ? "pv-box-tab-grid" : ""}`}>
         {filtered.map((s) => {
           const special = s.id === "base1sl" || s.id === "error";
           return (

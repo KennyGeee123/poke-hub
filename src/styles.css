@@ -419,6 +419,37 @@
 .pv-sets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
 .pv-set-el { background: var(--s2); border: 1px solid var(--brd); border-radius: 12px; padding: 14px; cursor: pointer; display: flex; gap: 12px; align-items: center; transition: .2s; }
 .pv-set-el:hover { border-color: var(--brd2); background: var(--s3); }
+.pv-box-tab-edge {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 10px 8px;
+  border: 2px solid var(--gold);
+  border-radius: 16px 16px 0 0;
+  background:
+    linear-gradient(180deg, rgba(226,181,58,.12), transparent 70%),
+    var(--s2);
+  box-shadow: inset 0 0 0 6px rgba(11,12,16,.55);
+}
+.pv-box-tab-edge img {
+  height: 26px;
+  width: auto;
+  max-width: 72px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 6px rgba(226,181,58,.35));
+}
+.pv-box-tab-grid {
+  border: 2px solid var(--gold);
+  border-top: none;
+  border-radius: 0 0 16px 16px;
+  padding: 12px;
+  background: rgba(11,12,16,.35);
+}
+.pv-app-shell .pv-pill.on {
+  box-shadow: 0 0 0 1px var(--gold), inset 0 0 12px rgba(226,181,58,.2);
+}
 .pv-set-logo { height: 36px; object-fit: contain; max-width: 84px; flex-shrink: 0; }
 .pv-set-sym { width: 26px; height: 26px; object-fit: contain; opacity: .85; flex-shrink: 0; }
 
