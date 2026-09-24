@@ -4,10 +4,64 @@ import { z } from "zod";
 
 const TCG_BASE = "https://api.pokemontcg.io/v2";
 
+// pokemontcg.io intermittently answers 500/502/429 — retry with backoff (same policy as
+// /api/public/tcg) and send the server key when configured, so MCP tools don't fail at random.
 async function tcg<T>(path: string): Promise<T> {
-  const r = await fetch(`${TCG_BASE}${path}`);
-  if (!r.ok) throw new Error(`pokemontcg.io ${r.status}`);
-  return r.json() as Promise<T>;
+  const key = process.env.POKEMONTCG_API_KEY || process.env.VITE_POKEMONTCG_API_KEY || "";
+  const headers: Record<string, string> = { Accept: "application/json" };
+  if (key) headers["X-Api-Key"] = key;
+  let last = "network error";
+  for (let i = 0; i < 4; i++) {
+    try {
+      const r = await fetch(`${TCG_BASE}${path}`, {
+        headers,
+        signal: AbortSignal.timeout(9000),
+      });
+      if (r.ok) return (await r.json()) as T;
+      last = String(r.status);
+      if (r.status < 500 && r.status !== 429) break;
+    } catch (e) {
+      last = e instanceof Error ? e.message : String(e);
+    }
+    await new Promise((res) => setTimeout(res, 350 * (i + 1)));
+  }
+  throw new Error(`pokemontcg.io ${last}`);
+}
+
+/** Minimal pokemontcg-shaped card from TCGdex, used when pokemontcg.io is down. */
+async function tcgdexCard(id: string): Promise<Record<string, unknown> | null> {
+  try {
+    const r = await fetch(`https://api.tcgdex.net/v2/en/cards/${encodeURIComponent(id)}`, {
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) return null;
+    const raw = (await r.json()) as {
+      id?: string;
+      name?: string;
+      hp?: number;
+      types?: string[];
+      rarity?: string;
+      localId?: string;
+      illustrator?: string;
+      image?: string;
+      set?: { id?: string; name?: string };
+    };
+    const img = raw.image ?? "";
+    return {
+      id: raw.id ?? id,
+      name: raw.name ?? id,
+      hp: raw.hp != null ? String(raw.hp) : undefined,
+      types: raw.types,
+      rarity: raw.rarity,
+      number: raw.localId,
+      artist: raw.illustrator,
+      set: { id: raw.set?.id, name: raw.set?.name },
+      images: img ? { small: `${img}/low.webp`, large: `${img}/high.webp` } : undefined,
+      source: "tcgdex",
+    };
+  } catch {
+    return null;
+  }
 }
 
 async function tcgdexHD(id: string, number?: string): Promise<string | null> {
@@ -57,8 +111,14 @@ export const getCardTool = defineTool({
   description: "Fetch full details for a Pokémon TCG card by id (e.g. `sv3-199`).",
   parameters: z.object({ id: z.string() }),
   execute: async ({ id }) => {
-    const res = await tcg<{ data: any }>(`/cards/${encodeURIComponent(id)}`);
-    return j(res.data);
+    try {
+      const res = await tcg<{ data: any }>(`/cards/${encodeURIComponent(id)}`);
+      return j(res.data);
+    } catch (e) {
+      const fallback = await tcgdexCard(id);
+      if (fallback) return j(fallback);
+      throw e;
+    }
   },
 });
 
