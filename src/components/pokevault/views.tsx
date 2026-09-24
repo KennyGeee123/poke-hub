@@ -13,6 +13,7 @@ import {
   rememberCard,
 } from "@/lib/pokemon-api";
 import { formatPrice, useVault } from "@/lib/vault";
+import { uniqueBoxPrints } from "@/lib/set-ids";
 import { CardTile, CardSkeleton } from "./CardTile";
 import { VirtualCardGrid } from "./VirtualCardGrid";
 import { CollectionInsightsCard } from "./CollectionInsights";
@@ -601,6 +602,7 @@ export function SetCardsView({
   const [softNote, setSoftNote] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
   const [missingOnly, setMissingOnly] = useState(false);
+  const [showAlts, setShowAlts] = useState(false);
   const { inVault } = useVault();
 
   const load = (blank = true) => {
@@ -652,10 +654,16 @@ export function SetCardsView({
     setMissingOnly(false);
   }, [set.id]);
 
-  const ownedCount = cards ? cards.filter((c) => inVault(c.id)).length : 0;
-  const catalogTotal = Math.max(total, cards?.length ?? 0, set.total || 0);
-  const missingCount = cards ? Math.max(0, cards.length - ownedCount) : 0;
-  const visible = missingOnly && cards ? cards.filter((c) => !inVault(c.id)) : cards;
+  const printed = set.printedTotal || 0;
+  const boxed = cards
+    ? showAlts
+      ? uniqueBoxPrints(cards, 0)
+      : uniqueBoxPrints(cards, printed)
+    : null;
+  const ownedCount = boxed ? boxed.filter((c) => inVault(c.id)).length : 0;
+  const catalogTotal = boxed?.length ?? Math.max(printed, cards?.length ?? 0, set.total || 0);
+  const missingCount = boxed ? Math.max(0, boxed.length - ownedCount) : 0;
+  const visible = missingOnly && boxed ? boxed.filter((c) => !inVault(c.id)) : boxed;
   const pct = catalogTotal > 0 ? Math.min(100, Math.round((ownedCount / catalogTotal) * 100)) : 0;
 
   return (
@@ -671,10 +679,10 @@ export function SetCardsView({
           </div>
           <div style={{ color: "var(--t3)", fontSize: 11 }}>
             {set.series} •{" "}
-            {cards
-              ? `${cards.length}${total && cards.length < total ? ` / ${total}` : total ? ` / ${total}` : ""}`
+            {boxed
+              ? `${boxed.length} unique prints${showAlts && cards && cards.length > boxed.length ? ` · ${cards.length} with alts` : ""}`
               : set.total}{" "}
-            cards • {set.releaseDate}
+            • {set.releaseDate}
           </div>
           {set.id === "base1sl" && (
             <div style={{ color: "var(--gold)", fontSize: 11, marginTop: 4 }}>
@@ -694,6 +702,15 @@ export function SetCardsView({
             </div>
           )}
         </div>
+        {printed > 0 && (
+          <button
+            className={`pv-pill ${showAlts ? "on" : ""}`}
+            onClick={() => setShowAlts((s) => !s)}
+            type="button"
+          >
+            {showAlts ? "Hide alt arts" : "Show alt arts"}
+          </button>
+        )}
         <button
           className="pv-btn pv-btn-fill"
           onClick={() => setShowBox((s) => !s)}

@@ -6,6 +6,7 @@ import {
   overlaySetPrices,
   setCardsLookComplete,
   setIdAliases,
+  uniqueBoxPrints,
 } from "./set-ids";
 
 describe("setIdAliases", () => {
@@ -94,6 +95,24 @@ describe("mergeSetCardsByLocalId", () => {
 
   it("does not treat a short cache as complete when expected is unknown", () => {
     expect(setCardsLookComplete([{ id: "a-1" }], 0)).toBe(false);
+  });
+
+  it("drops IR/SIR copies when a main-set print of the same name exists", () => {
+    const cards = [
+      { id: "sv03.5-001", number: "001", name: "Bulbasaur" },
+      { id: "sv03.5-166", number: "166", name: "Bulbasaur" },
+      { id: "sv03.5-006", number: "006", name: "Charizard ex" },
+      { id: "sv03.5-199", number: "199", name: "Charizard ex" },
+      { id: "sv08-001", number: "001", name: "Exeggcute" },
+      { id: "sv08-002", number: "002", name: "Exeggcute" },
+    ];
+    const out = uniqueBoxPrints(cards, 165);
+    expect(out.map((c) => c.id).sort()).toEqual([
+      "sv03.5-001",
+      "sv03.5-006",
+      "sv08-001",
+      "sv08-002",
+    ]);
   });
 
   it("overlaySetPrices never appends extra prints", () => {

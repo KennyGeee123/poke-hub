@@ -158,6 +158,35 @@ export function setCardsLookComplete(cards: unknown[] | null | undefined, expect
   return n >= expected;
 }
 
+/** Drop illustration/secret copies of a name already in the printed checklist. */
+export function uniqueBoxPrints<T extends SetCardLike>(cards: T[], printedTotal = 0): T[] {
+  const byKey = new Map<string, T>();
+  for (const c of cards) {
+    const name = (c.name || "").toLowerCase().replace(/\s+/g, " ").trim();
+    const key = `${name}::${localCardNumber(c)}`;
+    if (!byKey.has(key)) byKey.set(key, c);
+  }
+  const uniq = [...byKey.values()];
+  if (!(printedTotal > 0)) return uniq;
+  const byName = new Map<string, T[]>();
+  for (const c of uniq) {
+    const name = (c.name || "").toLowerCase().replace(/\s+/g, " ").trim();
+    const list = byName.get(name) || [];
+    list.push(c);
+    byName.set(name, list);
+  }
+  const kept: T[] = [];
+  for (const list of byName.values()) {
+    const mains = list.filter((c) => {
+      const n = Number(String(localCardNumber(c)).replace(/\D/g, "")) || 0;
+      return n > 0 && n <= printedTotal;
+    });
+    if (mains.length) kept.push(...mains);
+    else kept.push(...list);
+  }
+  return kept;
+}
+
 export function sortSetCards<T extends SetCardLike>(cards: T[]): T[] {
   return cards.slice().sort((a, b) => {
     const na = Number(String(a.number || "").replace(/[^\d]/g, ""));
