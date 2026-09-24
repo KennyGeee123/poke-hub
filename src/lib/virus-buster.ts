@@ -100,7 +100,7 @@ export function securityHeaders(): Record<string, string> {
     "Permissions-Policy": "camera=(self), microphone=(), geolocation=()",
     "X-Virus-Buster": "on",
     "Content-Security-Policy":
-      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https: https://*.supabase.co https://accounts.google.com; frame-src 'self' https://accounts.google.com https://*.google.com https://*.supabase.co; form-action 'self' https://accounts.google.com https://*.supabase.co; media-src 'self' https: blob:; frame-ancestors 'self'",
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https: https://*.supabase.co https://accounts.google.com https://appleid.apple.com; frame-src 'self' https://accounts.google.com https://appleid.apple.com https://*.google.com https://*.supabase.co; form-action 'self' https://accounts.google.com https://appleid.apple.com https://*.supabase.co; media-src 'self' https: blob:; frame-ancestors 'self'",
   };
 }
 
