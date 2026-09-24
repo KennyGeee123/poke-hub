@@ -405,13 +405,17 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
     const id = decodeURIComponent(setOne[1]);
     const s = CAT.sets.find((x) => x.id === id);
     const cards = CAT.cards.filter((c) => c.setId === id);
-    if (!s && !cards.length) return json({ error: "Not found" }, 404);
+    // Unknown / thin catalog sets must fall through to api.tcgdex.net so
+    // English box sets (base1, swsh, etc.) still return every card.
+    const official = Number(s?.official || 0);
+    if (!s && !cards.length) return null;
+    if (official > 0 && cards.length < official) return null;
     const prices = await hydratePrices(cards, 20, lang);
     const name = s ? pickName(s.names, lang) : id;
     return json({
       id,
       name,
-      cardCount: { official: s?.official || cards.length, total: cards.length },
+      cardCount: { official: official || cards.length, total: Math.max(official, cards.length) },
       serie: { name: s?.serie || "SV" },
       releaseDate: s?.releaseDate || "",
       cards: cards.map((c) => toTcgdexCard(c, lang, name, prices.get(c.id), CAT)),
@@ -437,7 +441,7 @@ export const Route = createFileRoute("/api/public/tcgdex")({
         const pathname = path.split("?")[0];
         // Full English box-set list lives on api.tcgdex.net (~220). The bundled
         // asia-catalog only has SV/intl extras — never prefer it for /sets.
-        const preferUpstream = pathname === "/sets" || pathname === "/sets/";
+        const preferUpstream = pathname === "/sets" || pathname === "/sets/" || pathname.startsWith("/sets/");
 
         if (catalog && !preferUpstream) {
           const hit = await fromCatalog(lang, path, catalog);

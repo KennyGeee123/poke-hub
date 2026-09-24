@@ -608,14 +608,35 @@ export async function getCardsBySet(setId: string, page = 1, lang = "en"): Promi
   });
 }
 
+function mergeSetCardLists(...lists: TCGCard[][]): TCGCard[] {
+  const seen = new Set<string>();
+  const out: TCGCard[] = [];
+  for (const list of lists) {
+    for (const c of list) {
+      if (!c) continue;
+      const k = c.id || `${c.set?.id || ""}-${c.number || ""}-${c.name || ""}`;
+      if (!k || seen.has(k)) continue;
+      seen.add(k);
+      out.push(c);
+    }
+  }
+  out.sort((a, b) => {
+    const na = Number(String(a.number || "").replace(/\D/g, "")) || 0;
+    const nb = Number(String(b.number || "").replace(/\D/g, "")) || 0;
+    if (na !== nb) return na - nb;
+    return String(a.number || "").localeCompare(String(b.number || ""), undefined, { numeric: true });
+  });
+  return out;
+}
+
 /** Load every card in a set, calling onPage after each API page so the grid can paint early. */
 export async function getAllCardsBySet(
   setId: string,
   onPage?: (cards: TCGCard[], total: number) => void,
   setName?: string,
   lang = "en",
+  expectedCount = 0,
 ): Promise<{ data: TCGCard[]; totalCount: number }> {
-  // Fresh IDB hit (7d). Keep an unlimited stale copy for API blackouts.
   const special = getSpecialSetCards(setId);
   if (special) {
     special.forEach(rememberCard);
@@ -626,88 +647,57 @@ export async function getAllCardsBySet(
   if (lang === "en") {
     const cached = await getCachedSetCards<TCGCard[]>(setId);
     staleCards = await getCachedSetCards<TCGCard[]>(setId, Number.MAX_SAFE_INTEGER);
+    const complete = (list?: TCGCard[] | null) =>
+      !!list?.length && (!expectedCount || list.length >= expectedCount);
+    if (complete(cached)) {
+      cached!.forEach(rememberCard);
+      onPage?.(cached!, cached!.length);
+      return { data: cached!, totalCount: cached!.length };
+    }
     if (cached?.length) {
       cached.forEach(rememberCard);
-      onPage?.(cached, cached.length);
-      return { data: cached, totalCount: cached.length };
-    }
-    // Paint last-known cards immediately while network refresh runs.
-    if (staleCards?.length) {
+      onPage?.(cached, Math.max(cached.length, expectedCount));
+    } else if (staleCards?.length) {
       staleCards.forEach(rememberCard);
-      onPage?.(staleCards, staleCards.length);
+      onPage?.(staleCards, Math.max(staleCards.length, expectedCount));
     }
+  }
+
+  const buckets: TCGCard[][] = [];
+  try {
+    const dx = await tcgdexGetSetCards(setId, lang);
+    if (dx.length) buckets.push(dx);
+  } catch {
+    /* pokemontcg next */
+  }
+
+  try {
+    let page = 1;
+    const ptcg: TCGCard[] = [];
+    for (;;) {
+      const next = await getCardsBySet(setId, page);
+      if (!next.data?.length) break;
+      ptcg.push(...next.data);
+      page += 1;
+      if (page > 24) break;
+      if (next.totalCount && ptcg.length >= next.totalCount) break;
+    }
+    if (ptcg.length) buckets.push(ptcg);
+  } catch {
+    /* ok */
   }
 
   if (lang !== "en") {
-    const extra = await tcgdexGetSetCards(setId, lang);
-    extra.forEach(rememberCard);
-    onPage?.(extra, extra.length);
-    return { data: extra, totalCount: extra.length };
+    const extra = await tcgdexGetSetCards(setId, lang).catch(() => [] as TCGCard[]);
+    if (extra.length) buckets.push(extra);
   }
 
-  // TCGdex set endpoint is one request for the whole set — prefer it over serial pokemontcg pages.
-  let all: TCGCard[] = [];
-  let total = 0;
-  try {
-    const dx = await tcgdexGetSetCards(setId, lang);
-    if (dx.length) {
-      all = dx;
-      total = dx.length;
-      dx.forEach(rememberCard);
-      onPage?.(all, total);
-    }
-  } catch {
-    // fall through to pokemontcg
-  }
+  let all = mergeSetCardLists(...buckets, staleCards || []);
+  let total = Math.max(all.length, expectedCount);
+  all.forEach(rememberCard);
+  if (all.length) onPage?.(all, total);
 
-  // Only page pokemontcg when TCGdex was empty/thin, or to fill gaps.
-  const needPokemonPages = all.length === 0;
-  if (needPokemonPages) {
-    try {
-      let page = 1;
-      for (;;) {
-        const next = await getCardsBySet(setId, page);
-        if (!next.data?.length) break;
-        all = all.concat(next.data);
-        total = Math.max(total, next.totalCount ?? 0, all.length);
-        onPage?.(all, total);
-        page += 1;
-        if (page > 20) break;
-        if (all.length >= (next.totalCount ?? 0) && next.totalCount) break;
-      }
-    } catch {
-      // pokemontcg.io failed
-    }
-  } else {
-    // Optional enrich: one pokemontcg page for market fields without blocking first paint.
-    void getCardsBySet(setId, 1)
-      .then((next) => {
-        if (!next.data?.length) return;
-        const byId = new Map(all.map((c) => [c.id, c]));
-        let changed = false;
-        for (const c of next.data) {
-          const prev = byId.get(c.id);
-          if (!prev) {
-            all.push(c);
-            byId.set(c.id, c);
-            changed = true;
-            continue;
-          }
-          if (!prev.tcgplayer?.prices && c.tcgplayer?.prices) {
-            Object.assign(prev, { tcgplayer: c.tcgplayer, cardmarket: c.cardmarket ?? prev.cardmarket });
-            changed = true;
-          }
-        }
-        if (changed) {
-          total = Math.max(total, all.length);
-          onPage?.(all.slice(), total);
-          void setCachedSetCards(setId, all);
-        }
-      })
-      .catch(() => {});
-  }
-
-  if (all.length === 0 && setName) {
+  if (all.length < Math.max(expectedCount, 1) && setName) {
     try {
       const fallback = await searchCards({
         q: `set.name:"${setName.replace(/"/g, "")}"`,
@@ -716,8 +706,9 @@ export async function getAllCardsBySet(
         select: CARD_LIST_SELECT,
         lang,
       });
-      all = fallback.data ?? [];
-      total = Math.max(total, fallback.totalCount ?? all.length, all.length);
+      all = mergeSetCardLists(all, fallback.data ?? []);
+      total = Math.max(total, fallback.totalCount ?? 0, all.length, expectedCount);
+      all.forEach(rememberCard);
       onPage?.(all, total);
     } catch {}
   }

@@ -297,7 +297,11 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
     const name = (s.name || "").toLowerCase();
     if (chip === "shadowless") return id === "base1sl" || id === "bss" || name.includes("shadowless");
     if (chip === "error") return id === "error" || /\b(error|misprint)/.test(name);
-    if (chip === "box" && id === "error") return false;
+    if (chip === "box") {
+      if (id === "error") return false;
+      const n = Number(s.total || s.printedTotal || 0);
+      return n >= 30 && !/promo|mcdonald|jumbo|ko|zh/i.test(id + name);
+    }
     if (filter && !name.includes(filter.toLowerCase()) && !(s.series || "").toLowerCase().includes(filter.toLowerCase())) return false;
     return true;
   });
@@ -400,7 +404,7 @@ export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () 
     getAllCardsBySet(set.id, (page, tot) => {
       setCards(page);
       setTotal(tot);
-    }, set.name, set.lang || "en")
+    }, set.name, set.lang || "en", Math.max(set.total || 0, set.printedTotal || 0))
       .then(r => {
         setCards(r.data);
         setTotal(r.totalCount);
