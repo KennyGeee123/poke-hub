@@ -32,6 +32,19 @@ dist-ssr
 *.sw?
 
 .env*
+!.env.example
 .env.local
 .vercel
 .local-secrets/
+
+# Capacitor generated copies (ios/android projects themselves are committed)
+ios/App/App/public
+ios/App/Pods
+ios/DerivedData
+android/app/src/main/assets/public
+android/app/build
+android/.idea
+android/local.properties
+*.jks
+*.mobileprovision
+www/

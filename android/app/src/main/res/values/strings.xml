@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PokéVault</string>
+    <string name="title_activity_main">PokéVault</string>
+    <string name="package_name">com.kennygeee.pokevault</string>
+    <string name="custom_url_scheme">com.kennygeee.pokevault</string>
+</resources>

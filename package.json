@@ -1,5 +1,5 @@
 {
-  "name": "tanstack_start_ts",
+  "name": "pokevault",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -10,9 +10,20 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "catalog:print": "node scripts/build-print-catalog.mjs"
+    "catalog:print": "node scripts/build-print-catalog.mjs",
+    "icons": "python3 scripts/generate-icons.py",
+    "cap:sync": "node scripts/prepare-www.mjs && npx cap sync",
+    "ios": "npm run cap:sync && npx cap open ios",
+    "android": "npm run cap:sync && npx cap open android"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/browser": "^8.0.4",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/keyboard": "^8.0.5",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.3",
     "@cloudflare/vite-plugin": "^1.25.5",
     "@hookform/resolvers": "^5.2.2",
     "@modelcontextprotocol/sdk": "^1.29.0",
@@ -74,6 +85,10 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/ios": "^8.5.2",
     "@eslint/js": "^9.32.0",
     "@types/node": "^22.16.5",
     "@types/react": "^19.2.0",
