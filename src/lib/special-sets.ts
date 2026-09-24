@@ -216,6 +216,23 @@ function normName(s: string): string {
     .trim();
 }
 
+/** Celebration + Classic are one 30th box; sum their card counts, don't max. */
+function mergeSetTotals(a: TCGSet, b: TCGSet): number {
+  const ids = new Set(
+    [...setIdAliases(a.id), ...setIdAliases(b.id)].map((x) => x.toLowerCase()),
+  );
+  const celeb = ids.has("30th") || ids.has("me55");
+  const classic = ids.has("30th-c") || ids.has("me55c");
+  const ta = Number(a.total) || 0;
+  const tb = Number(b.total) || 0;
+  if (celeb && classic) {
+    const aClassic = /classic/i.test(a.name || "") || /30th-c|me55c/i.test(a.id);
+    const bClassic = /classic/i.test(b.name || "") || /30th-c|me55c/i.test(b.id);
+    if (aClassic !== bClassic) return ta + tb;
+  }
+  return Math.max(ta, tb) || ta || tb;
+}
+
 function setRichness(s: TCGSet): number {
   let n = 0;
   if (s.images?.logo) n += 4;
@@ -236,7 +253,7 @@ function preferRicherSet(a: TCGSet, b: TCGSet, canon: string): TCGSet {
     id: canon,
     name: base.name || other.name,
     series: base.series || other.series,
-    total: Math.max(Number(base.total) || 0, Number(other.total) || 0) || base.total,
+    total: mergeSetTotals(a, b),
     printedTotal:
       Math.max(Number(base.printedTotal) || 0, Number(other.printedTotal) || 0) ||
       base.printedTotal,

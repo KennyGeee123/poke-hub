@@ -1,7 +1,7 @@
 // TCGdex API — free, no key. Multi-language alt artworks + catalog fallback.
 // https://api.tcgdex.net/v2/<lang>/cards/<id>  (id format: <set-id>-<number>)
 import type { TCGCard, TCGPrice, TCGSet } from "@/lib/pokemon-api";
-import { setIdAliases } from "@/lib/set-ids";
+import { mergeSetCardsByLocalId, setIdAliases } from "@/lib/set-ids";
 
 const BASE = "https://api.tcgdex.net/v2";
 
@@ -318,11 +318,17 @@ async function fetchTcgdexSetPayload(setId: string, lang: string): Promise<any |
 
 export async function tcgdexGetSetCards(setId: string, lang = "en"): Promise<TCGCard[]> {
   let best: TCGCard[] = [];
-  for (const id of setIdAliases(setId)) {
+  const aliases = setIdAliases(setId);
+  const mergeFamilies = aliases.some((a) => /^(30th|me55)/i.test(a));
+  for (const id of aliases) {
     const raw = await fetchTcgdexSetPayload(id, lang);
     const cards = Array.isArray(raw?.cards) ? raw.cards : Array.isArray(raw) ? raw : [];
     if (!cards.length) continue;
     const mapped = cards.map((c: any) => mapTcgdexCard(c, raw, lang)).filter((c: TCGCard) => c?.id);
+    if (mergeFamilies) {
+      best = mergeSetCardsByLocalId(best, mapped);
+      continue;
+    }
     if (mapped.length > best.length) best = mapped;
     const want = Number(raw?.cardCount?.total || raw?.cardCount?.official || 0);
     if (want > 0 && mapped.length >= want) return mapped;

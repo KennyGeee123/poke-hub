@@ -674,9 +674,10 @@ export function SetCardsView({
     if (cards?.length) hydrateLivePrices(cards);
   }, [cards]);
 
-  const printed = set.printedTotal || 0;
+  const is30thBox = /^(30th|me55)/i.test(set.id);
+  const printed = is30thBox ? 0 : set.printedTotal || 0;
   const boxed = cards
-    ? showAlts
+    ? showAlts || is30thBox
       ? uniqueBoxPrints(cards, 0)
       : uniqueBoxPrints(cards, printed)
     : null;

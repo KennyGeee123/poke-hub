@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import {
+  canonicalSetId,
   expectedSetTotal,
   localCardNumber,
   mergeSetCardsByLocalId,
@@ -36,6 +37,14 @@ describe("setIdAliases", () => {
     expect(setIdAliases("wsv10pt5")).toContain("sv10.5w");
     expect(setIdAliases("me55")).toContain("30th");
     expect(setIdAliases("sv8")).toContain("sv08");
+  });
+
+  it("merges 30th Celebration and Classic Collection into one box", () => {
+    const a = setIdAliases("30th");
+    for (const id of ["30th", "me55", "30th-c", "me55c"]) {
+      expect(a).toContain(id);
+      expect(canonicalSetId(id)).toBe("30th");
+    }
   });
 });
 

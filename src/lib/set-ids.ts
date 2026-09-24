@@ -7,8 +7,7 @@ const SET_ID_GROUPS: string[][] = [
   ["me3", "me03"],
   ["me4", "me04"],
   ["me5", "me05"],
-  ["me55", "30th"],
-  ["me55c", "30th-c"],
+  ["me55", "30th", "me55c", "30th-c"],
   ["zsv10pt5", "sv10.5b"],
   ["wsv10pt5", "sv10.5w"],
   ["sv8", "sv08"],
@@ -35,7 +34,6 @@ function aliasRank(id: string): number {
 /** Prefer TCGdex canonical ids (30th / 30th-c) over pokemontcg mirrors (me55 / me55c). */
 const CANONICAL_PREFER = [
   "30th",
-  "30th-c",
   "me02.5",
   "me01",
   "me02",
