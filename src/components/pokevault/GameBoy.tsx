@@ -387,7 +387,8 @@ export function GameBoyView() {
     if (won) {
       const xp = 25 + foe.level * 12;
       const oldLevel = active.level;
-      const { mon, leveled } = gainXP({ ...active, wins: active.wins + 1 }, xp);
+      // eslint-disable-next-line prefer-const -- mon is reassigned when a move is learned
+      let { mon, leveled } = gainXP({ ...active, wins: active.wins + 1 }, xp);
       setGained(xp);
       const learnedLogs: string[] = [];
       if (leveled) {
