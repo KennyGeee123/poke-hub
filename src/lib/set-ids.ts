@@ -120,6 +120,22 @@ export function mergeSetCardsByLocalId<T extends SetCardLike>(primary: T[], extr
   return out;
 }
 
+/** Copy live quotes onto the box list. Never adds extra rows. */
+export function overlaySetPrices<T extends SetCardLike>(box: T[], quotes: T[]): T[] {
+  if (!quotes.length) return box;
+  const byLocal = new Map<string, T>();
+  for (const c of box) {
+    byLocal.set(`${(c.name || "").toLowerCase().trim()}::${localCardNumber(c)}`, c);
+  }
+  for (const q of quotes) {
+    const hit = byLocal.get(`${(q.name || "").toLowerCase().trim()}::${localCardNumber(q)}`);
+    if (!hit) continue;
+    if (!hit.tcgplayer?.prices && q.tcgplayer?.prices) hit.tcgplayer = q.tcgplayer;
+    if (!hit.cardmarket && q.cardmarket) hit.cardmarket = q.cardmarket;
+  }
+  return box;
+}
+
 export function expectedSetTotal(cards: SetCardLike[], fallback = 0): number {
   let max = fallback;
   for (const c of cards) {

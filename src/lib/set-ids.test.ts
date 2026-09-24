@@ -3,6 +3,7 @@ import {
   expectedSetTotal,
   localCardNumber,
   mergeSetCardsByLocalId,
+  overlaySetPrices,
   setCardsLookComplete,
   setIdAliases,
 } from "./set-ids";
@@ -76,5 +77,16 @@ describe("mergeSetCardsByLocalId", () => {
 
   it("does not treat a short cache as complete when expected is unknown", () => {
     expect(setCardsLookComplete([{ id: "a-1" }], 0)).toBe(false);
+  });
+
+  it("overlaySetPrices never appends extra prints", () => {
+    const box = [{ id: "sv03.5-006", number: "006", name: "Charizard ex" }];
+    const quotes = [
+      { id: "sv3pt5-6", number: "6", name: "Charizard ex", tcgplayer: { prices: { holofoil: { market: 12 } } } },
+      { id: "sv3pt5-999", number: "999", name: "Fake Extra" },
+    ];
+    const out = overlaySetPrices(box, quotes);
+    expect(out).toHaveLength(1);
+    expect(out[0].tcgplayer?.prices).toBeTruthy();
   });
 });

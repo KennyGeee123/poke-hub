@@ -22,6 +22,7 @@ import { getCachedSets, setCachedSets, getCachedSetCards, setCachedSetCards, get
 import {
   expectedSetTotal,
   mergeSetCardsByLocalId,
+  overlaySetPrices,
   setCardsLookComplete,
   setIdAliases,
   sortSetCards,
@@ -727,8 +728,7 @@ export async function getAllCardsBySet(
   if (all.length) {
     void fetchPokemonTcgSetPages(setId).then((ptcg) => {
       if (!ptcg.cards.length) return;
-      const merged = mergeSetCardsByLocalId(all, ptcg.cards);
-      all = merged;
+      overlaySetPrices(all, ptcg.cards);
       paint(all, Math.max(total, all.length));
       if (all.length) writeCachedSetCards(setId, all);
     }).catch(() => {});
