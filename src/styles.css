@@ -3536,13 +3536,29 @@ html, body, .pv-app {
 .ft-hit-price { font-family: "Bebas Neue", sans-serif; color: var(--gold); font-size: 16px; }
 .ft-iso-stage {
   position: relative;
-  height: 220px;
+  height: 240px;
   margin: 0 0 16px;
   border-radius: 16px;
   border: 1px solid var(--gold);
   overflow: hidden;
   background: #0b0c10 url("/fair-trade/iso-stage.jpg") center / cover no-repeat;
   perspective: 900px;
+}
+.ft-iso-rail {
+  position: absolute;
+  inset: 0 0 auto;
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  overflow: hidden;
+  opacity: 0.42;
+  pointer-events: none;
+}
+.ft-iso-rail img {
+  height: 52px;
+  width: auto;
+  border-radius: 4px;
+  border: 1px solid rgba(226,181,58,.45);
 }
 .ft-iso-card {
   position: absolute;

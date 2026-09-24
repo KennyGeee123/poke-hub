@@ -288,6 +288,20 @@ export function FairTradeView() {
       </p>
 
       <div className="ft-iso-stage" aria-hidden>
+        <div className="ft-iso-rail">
+          {[
+            "https://assets.tcgdex.net/en/sv/sv03.5/001/high.webp",
+            "https://assets.tcgdex.net/en/sv/sv03.5/006/high.webp",
+            "https://assets.tcgdex.net/en/sv/sv08/001/high.webp",
+            "https://assets.tcgdex.net/en/swsh/swsh12/001/high.webp",
+            "https://images.pokemontcg.io/base1/4_hires.png",
+            "https://assets.tcgdex.net/en/sv/sv03.5/007/high.webp",
+            "https://assets.tcgdex.net/en/sv/sv02/001/high.webp",
+            "https://assets.tcgdex.net/en/sv/sv08/004/high.webp",
+          ].map((src) => (
+            <img key={src} src={src} alt="" />
+          ))}
+        </div>
         <IsoCard card={mine} side="left" />
         <IsoCard card={theirs} side="right" />
       </div>
