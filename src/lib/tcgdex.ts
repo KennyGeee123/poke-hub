@@ -1,6 +1,7 @@
 // TCGdex API — free, no key. Multi-language alt artworks + catalog fallback.
 // https://api.tcgdex.net/v2/<lang>/cards/<id>  (id format: <set-id>-<number>)
 import type { TCGCard, TCGPrice, TCGSet } from "@/lib/pokemon-api";
+import { setIdAliases } from "@/lib/set-ids";
 
 const BASE = "https://api.tcgdex.net/v2";
 
@@ -290,11 +291,30 @@ export async function tcgdexGetSets(lang = "en"): Promise<TCGSet[]> {
   return raw.map((s) => mapTcgdexSet(s, lang)).filter((s) => s.id);
 }
 
+async function fetchTcgdexSetPayload(setId: string, lang: string): Promise<any | null> {
+  const path = `/sets/${encodeURIComponent(setId)}`;
+  const first = await j<any>(tcgdexUrl(lang, path));
+  if (Array.isArray(first?.cards) && first.cards.length) return first;
+  // Browser proxy 404s English box sets missing from asia-catalog (me2pt5 / me02.5).
+  if (typeof window !== "undefined") {
+    const direct = await j<any>(`${BASE}/${lang}${path}`);
+    if (Array.isArray(direct?.cards) && direct.cards.length) return direct;
+  }
+  return first;
+}
+
 export async function tcgdexGetSetCards(setId: string, lang = "en"): Promise<TCGCard[]> {
-  const raw = await j<any>(tcgdexUrl(lang, `/sets/${encodeURIComponent(setId)}`));
-  if (!raw) return [];
-  const cards = Array.isArray(raw.cards) ? raw.cards : [];
-  return cards.map((c: any) => mapTcgdexCard(c, raw, lang));
+  let best: TCGCard[] = [];
+  for (const id of setIdAliases(setId)) {
+    const raw = await fetchTcgdexSetPayload(id, lang);
+    const cards = Array.isArray(raw?.cards) ? raw.cards : Array.isArray(raw) ? raw : [];
+    if (!cards.length) continue;
+    const mapped = cards.map((c: any) => mapTcgdexCard(c, raw, lang)).filter((c: TCGCard) => c?.id);
+    if (mapped.length > best.length) best = mapped;
+    const want = Number(raw?.cardCount?.total || raw?.cardCount?.official || 0);
+    if (want > 0 && mapped.length >= want) return mapped;
+  }
+  return best;
 }
 
 export async function tcgdexRecentCards(limit = 32, lang = "en"): Promise<TCGCard[]> {

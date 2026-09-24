@@ -336,11 +336,6 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
       {sets && (
         <div style={{ fontSize: 11, color: "var(--t3)", marginBottom: 10 }}>
           {filtered.length} of {sets.length} sets
-          {sets.some((s) => /me2pt5/i.test(s.id) || /ascended heroes/i.test(s.name || "")) ? (
-            <span style={{ marginLeft: 8, color: "#e2b53a" }}>
-              · Ascended Heroes (me2pt5) may soft-fail — open set for retry note
-            </span>
-          ) : null}
         </div>
       )}
       {sets && filtered.length === 0 && (
@@ -412,7 +407,7 @@ export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () 
           const flaky = isFlakyCatalogSet(set);
           setSoftNote(
             flaky
-              ? `Catalog returned no cards for ${set.name} (${set.id}). Ascended Heroes / me2pt5 often 500s — we retried once. Tap Retry or browse other sets.`
+              ? `Catalog returned no cards for ${set.name} (${set.id}). Tap Retry — we map me2pt5 to TCGdex me02.5 and page until the printed total is filled.`
               : `Catalog returned no cards for ${set.name}. Sources may be busy — Retry in a moment.`,
           );
         }
@@ -532,6 +527,7 @@ export function SetCardsView({ set, onBack, onOpen }: { set: TCGSet; onBack: () 
           items={visible}
           getKey={(c) => c.id}
           renderItem={(c) => <CardTile card={c} onClick={() => onOpen(c.id)} />}
+          windowAbove={10000}
         />
       )}
     </div>

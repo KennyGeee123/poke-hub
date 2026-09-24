@@ -19,6 +19,13 @@ import {
   searchSpecialCards,
 } from "@/lib/special-sets";
 import { getCachedSets, setCachedSets, getCachedSetCards, setCachedSetCards, getHttpCache, setHttpCache } from "./catalog-cache";
+import {
+  expectedSetTotal,
+  mergeSetCardsByLocalId,
+  setCardsLookComplete,
+  setIdAliases,
+  sortSetCards,
+} from "./set-ids";
 
 const BASE = "https://api.pokemontcg.io/v2";
 
@@ -608,25 +615,53 @@ export async function getCardsBySet(setId: string, page = 1, lang = "en"): Promi
   });
 }
 
-function mergeSetCardLists(...lists: TCGCard[][]): TCGCard[] {
-  const seen = new Set<string>();
-  const out: TCGCard[] = [];
-  for (const list of lists) {
-    for (const c of list) {
-      if (!c) continue;
-      const k = c.id || `${c.set?.id || ""}-${c.number || ""}-${c.name || ""}`;
-      if (!k || seen.has(k)) continue;
-      seen.add(k);
-      out.push(c);
-    }
+async function readCachedSetCards(setId: string): Promise<{ fresh: TCGCard[] | null; stale: TCGCard[] | null }> {
+  let fresh: TCGCard[] | null = null;
+  let stale: TCGCard[] | null = null;
+  for (const id of setIdAliases(setId)) {
+    const hit = await getCachedSetCards<TCGCard[]>(id);
+    if (hit?.length && (!fresh || hit.length > fresh.length)) fresh = hit;
+    const old = await getCachedSetCards<TCGCard[]>(id, Number.MAX_SAFE_INTEGER);
+    if (old?.length && (!stale || old.length > stale.length)) stale = old;
   }
-  out.sort((a, b) => {
-    const na = Number(String(a.number || "").replace(/\D/g, "")) || 0;
-    const nb = Number(String(b.number || "").replace(/\D/g, "")) || 0;
-    if (na !== nb) return na - nb;
-    return String(a.number || "").localeCompare(String(b.number || ""), undefined, { numeric: true });
-  });
-  return out;
+  return { fresh, stale };
+}
+
+function writeCachedSetCards(setId: string, cards: TCGCard[]) {
+  for (const id of setIdAliases(setId)) void setCachedSetCards(id, cards);
+}
+
+async function fetchPokemonTcgSetPages(
+  setId: string,
+  onPage?: (cards: TCGCard[], total: number) => void,
+): Promise<{ cards: TCGCard[]; total: number }> {
+  let best: TCGCard[] = [];
+  let bestTotal = 0;
+  for (const id of setIdAliases(setId)) {
+    const chunk: TCGCard[] = [];
+    let total = 0;
+    try {
+      let page = 1;
+      for (;;) {
+        const next = await getCardsBySet(id, page);
+        if (!next.data?.length) break;
+        chunk.push(...next.data);
+        total = Math.max(total, next.totalCount ?? 0, chunk.length);
+        onPage?.(chunk, total);
+        page += 1;
+        if (page > 24) break;
+        if (next.totalCount && chunk.length >= next.totalCount) break;
+      }
+    } catch {
+      /* try next alias */
+    }
+    if (chunk.length > best.length) {
+      best = chunk;
+      bestTotal = Math.max(total, chunk.length);
+    }
+    if (best.length) break;
+  }
+  return { cards: best, total: bestTotal };
 }
 
 /** Load every card in a set, calling onPage after each API page so the grid can paint early. */
@@ -643,85 +678,86 @@ export async function getAllCardsBySet(
     onPage?.(special, special.length);
     return { data: special, totalCount: special.length };
   }
+
+  const paint = (cards: TCGCard[], total: number) => {
+    cards.forEach(rememberCard);
+    onPage?.(cards, Math.max(total, cards.length, expectedCount));
+  };
+
   let staleCards: TCGCard[] | null = null;
+  let cached: TCGCard[] | null = null;
   if (lang === "en") {
-    const cached = await getCachedSetCards<TCGCard[]>(setId);
-    staleCards = await getCachedSetCards<TCGCard[]>(setId, Number.MAX_SAFE_INTEGER);
-    const complete = (list?: TCGCard[] | null) =>
-      !!list?.length && (!expectedCount || list.length >= expectedCount);
-    if (complete(cached)) {
-      cached!.forEach(rememberCard);
-      onPage?.(cached!, cached!.length);
-      return { data: cached!, totalCount: cached!.length };
-    }
-    if (cached?.length) {
-      cached.forEach(rememberCard);
-      onPage?.(cached, Math.max(cached.length, expectedCount));
-    } else if (staleCards?.length) {
-      staleCards.forEach(rememberCard);
-      onPage?.(staleCards, Math.max(staleCards.length, expectedCount));
+    const stored = await readCachedSetCards(setId);
+    cached = stored.fresh;
+    staleCards = stored.stale;
+    const instant = cached?.length ? cached : staleCards;
+    if (instant?.length) {
+      const need = Math.max(expectedCount, expectedSetTotal(instant));
+      paint(instant, Math.max(instant.length, need));
+      // Only skip the network when we already have the full printed box.
+      if (cached?.length && expectedCount > 0 && cached.length >= expectedCount) {
+        return { data: cached, totalCount: Math.max(cached.length, expectedCount) };
+      }
     }
   }
 
-  const buckets: TCGCard[][] = [];
+  if (lang !== "en") {
+    const extra = await tcgdexGetSetCards(setId, lang);
+    extra.forEach(rememberCard);
+    onPage?.(extra, extra.length);
+    return { data: extra, totalCount: extra.length };
+  }
+
+  let all: TCGCard[] = cached?.length ? cached.slice() : [];
+  let total = Math.max(expectedCount, all.length, expectedSetTotal(all));
+
   try {
     const dx = await tcgdexGetSetCards(setId, lang);
-    if (dx.length) buckets.push(dx);
+    if (dx.length) {
+      all = mergeSetCardsByLocalId(dx, all);
+      total = Math.max(total, dx.length, all.length, expectedSetTotal(all));
+      paint(all, total);
+    }
   } catch {
     /* pokemontcg next */
   }
 
-  try {
-    let page = 1;
-    const ptcg: TCGCard[] = [];
-    for (;;) {
-      const next = await getCardsBySet(setId, page);
-      if (!next.data?.length) break;
-      ptcg.push(...next.data);
-      page += 1;
-      if (page > 24) break;
-      if (next.totalCount && ptcg.length >= next.totalCount) break;
-    }
-    if (ptcg.length) buckets.push(ptcg);
-  } catch {
-    /* ok */
-  }
-
-  if (lang !== "en") {
-    const extra = await tcgdexGetSetCards(setId, lang).catch(() => [] as TCGCard[]);
-    if (extra.length) buckets.push(extra);
-  }
-
-  let all = mergeSetCardLists(...buckets, staleCards || []);
-  let total = Math.max(all.length, expectedCount);
-  all.forEach(rememberCard);
-  if (all.length) onPage?.(all, total);
-
-  if (all.length < Math.max(expectedCount, 1) && setName) {
+  // Pokémon TCG API is for live prices only. Do not append extra rows — that
+  // duplicates the same print (sv03.5-006 + sv3pt5-6).
+  if (all.length) {
+    void fetchPokemonTcgSetPages(setId).then((ptcg) => {
+      if (!ptcg.cards.length) return;
+      const merged = mergeSetCardsByLocalId(all, ptcg.cards);
+      all = merged;
+      paint(all, Math.max(total, all.length));
+      if (all.length) writeCachedSetCards(setId, all);
+    }).catch(() => {});
+  } else {
     try {
-      const fallback = await searchCards({
-        q: `set.name:"${setName.replace(/"/g, "")}"`,
-        pageSize: 250,
-        orderBy: "number",
-        select: CARD_LIST_SELECT,
-        lang,
+      const ptcg = await fetchPokemonTcgSetPages(setId, (pageCards, tot) => {
+        all = mergeSetCardsByLocalId(all, pageCards);
+        total = Math.max(total, tot, all.length);
+        paint(all, total);
       });
-      all = mergeSetCardLists(all, fallback.data ?? []);
-      total = Math.max(total, fallback.totalCount ?? 0, all.length, expectedCount);
-      all.forEach(rememberCard);
-      onPage?.(all, total);
-    } catch {}
+      if (ptcg.cards.length) {
+        all = mergeSetCardsByLocalId(all, ptcg.cards);
+        total = Math.max(total, ptcg.total, all.length);
+        paint(all, total);
+      }
+    } catch {
+      /* pokemontcg.io failed */
+    }
   }
 
-  // Last-good IDB when both APIs came back empty (me2pt5 / Ascended Heroes class failures)
   if (all.length === 0 && staleCards?.length) {
     staleCards.forEach(rememberCard);
     onPage?.(staleCards, staleCards.length);
     return { data: staleCards, totalCount: staleCards.length };
   }
 
-  const result = { data: all, totalCount: Math.max(total, all.length) };
-  if (result.data.length) void setCachedSetCards(setId, result.data);
+  all = sortSetCards(mergeSetCardsByLocalId(all, []));
+  const result = { data: all, totalCount: Math.max(total, all.length, expectedCount) };
+  if (result.data.length >= (cached?.length || 0)) writeCachedSetCards(setId, result.data);
   return result;
 }
 

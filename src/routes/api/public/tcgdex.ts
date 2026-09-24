@@ -2,6 +2,7 @@
 // (JP/CN/KO/TH + EN/EU SV) plus live TCGPlayer market prices.
 import { createFileRoute } from "@tanstack/react-router";
 import { cardSearchScore, parseSearchQuery, type SearchableCard } from "../../../lib/card-search";
+import { setIdAliases } from "../../../lib/set-ids";
 
 const UPSTREAM = "https://api.tcgdex.net/v2";
 const LANGS = new Set([
@@ -403,10 +404,17 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
   const setOne = pathname.match(/^\/sets\/([^/]+)$/);
   if (setOne) {
     const id = decodeURIComponent(setOne[1]);
-    const s = CAT.sets.find((x) => x.id === id);
-    const cards = CAT.cards.filter((c) => c.setId === id);
+    let s = CAT.sets.find((x) => x.id === id);
+    let cards = CAT.cards.filter((c) => c.setId === id);
+    if (!s && !cards.length) {
+      for (const alt of setIdAliases(id)) {
+        s = CAT.sets.find((x) => x.id === alt);
+        cards = CAT.cards.filter((c) => c.setId === alt);
+        if (s || cards.length) break;
+      }
+    }
     // Unknown / thin catalog sets must fall through to api.tcgdex.net so
-    // English box sets (base1, swsh, etc.) still return every card.
+    // English box sets (Ascended Heroes, Mega Evolution, etc.) still return every card.
     const official = Number(s?.official || 0);
     if (!s && !cards.length) return null;
     if (official > 0 && cards.length < official) return null;
@@ -439,31 +447,40 @@ export const Route = createFileRoute("/api/public/tcgdex")({
 
         const catalog = await loadCatalog(request);
         const pathname = path.split("?")[0];
-        // Full English box-set list lives on api.tcgdex.net (~220). The bundled
-        // asia-catalog only has SV/intl extras — never prefer it for /sets.
-        const preferUpstream = pathname === "/sets" || pathname === "/sets/" || pathname.startsWith("/sets/");
+        // Full English box-set list + per-set cards live on api.tcgdex.net.
+        // asia-catalog 404s Mega Evolution / Ascended Heroes — never prefer it for /sets.
+        const setOne = pathname.match(/^\/sets\/([^/]+)$/);
+        const preferUpstream = pathname === "/sets" || pathname === "/sets/" || !!setOne;
 
         if (catalog && !preferUpstream) {
           const hit = await fromCatalog(lang, path, catalog);
           if (hit) return hit;
         }
 
-        try {
-          const r = await fetch(`${UPSTREAM}/${lang}${path}`, {
-            headers: { Accept: "application/json" },
-            signal: AbortSignal.timeout(preferUpstream ? 8000 : 1200),
-          });
-          if (r.ok) {
-            const body = await r.text();
-            return new Response(body, {
-              status: 200,
-              headers: {
-                "content-type": r.headers.get("content-type") || "application/json",
-                "cache-control": "public, s-maxage=180, stale-while-revalidate=900",
-              },
+        const cacheHeaders = {
+          "cache-control": "public, s-maxage=180, stale-while-revalidate=900",
+        };
+        const upstreamPaths = setOne
+          ? setIdAliases(decodeURIComponent(setOne[1])).slice(0, 6).map((id) => `/sets/${encodeURIComponent(id)}`)
+          : [path];
+        for (const upPath of upstreamPaths) {
+          try {
+            const r = await fetch(`${UPSTREAM}/${lang}${upPath}`, {
+              headers: { Accept: "application/json" },
+              signal: AbortSignal.timeout(preferUpstream ? 8000 : 1200),
             });
-          }
-        } catch { /* api.tcgdex.net is often unreachable from cloud IPs */ }
+            if (r.ok) {
+              const body = await r.text();
+              return new Response(body, {
+                status: 200,
+                headers: {
+                  "content-type": r.headers.get("content-type") || "application/json",
+                  ...cacheHeaders,
+                },
+              });
+            }
+          } catch { /* api.tcgdex.net is often unreachable from cloud IPs */ }
+        }
 
         const late = catalog || await loadCatalog(request);
         const fallback = late ? await fromCatalog(lang, path, late) : null;
