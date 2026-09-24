@@ -208,6 +208,23 @@ export function MoreSheet({ open, activeTab, isPro, onClose, onPick }: MoreSheet
           isPro={isPro}
           onPick={onPick}
         />
+
+        <div className="pv-more-sec">Legal</div>
+        <div className="pv-more-legal">
+          <a href="/privacy.html" className="pv-more-legal-link">
+            Privacy Policy
+          </a>
+          <a href="/terms.html" className="pv-more-legal-link">
+            Terms of Service
+          </a>
+          <a href="/support.html" className="pv-more-legal-link">
+            Support
+          </a>
+          <p className="pv-more-legal-note">
+            Unofficial fan app — not affiliated with Nintendo, The Pokémon Company, or Game
+            Freak.
+          </p>
+        </div>
       </div>
     </div>
   );

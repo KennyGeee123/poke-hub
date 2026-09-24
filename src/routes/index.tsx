@@ -456,6 +456,20 @@ function SettingsPanel({
           </p>
         )}
       </div>
+      <div className="pv-settings-row" style={{ marginTop: 10, flexWrap: "wrap", gap: 8 }}>
+        <a className="pv-settings-action" href="/privacy.html">
+          Privacy
+        </a>
+        <a className="pv-settings-action" href="/terms.html">
+          Terms
+        </a>
+        <a className="pv-settings-action" href="/support.html">
+          Support
+        </a>
+      </div>
+      <p className="pv-settings-hint" style={{ marginTop: 8 }}>
+        Unofficial fan app — not affiliated with Nintendo, The Pokémon Company, or Game Freak.
+      </p>
     </div>
   );
 }

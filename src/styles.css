@@ -4236,3 +4236,29 @@ html, body, .pv-app {
     animation: none !important;
   }
 }
+
+
+/* More sheet legal footer */
+.pv-more-legal {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 4px 20px;
+}
+.pv-more-legal-link {
+  color: var(--t2, #94a3b8);
+  font-size: 0.85rem;
+  text-decoration: none;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+.pv-more-legal-link:hover {
+  color: var(--t1, #f1f5f9);
+  background: color-mix(in oklab, var(--s3, #1e293b) 80%, transparent);
+}
+.pv-more-legal-note {
+  margin: 6px 8px 0;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: var(--t3, #64748b);
+}
