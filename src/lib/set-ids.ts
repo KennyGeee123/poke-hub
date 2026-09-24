@@ -32,6 +32,34 @@ function aliasRank(id: string): number {
   return 2;
 }
 
+/** Prefer TCGdex canonical ids (30th / 30th-c) over pokemontcg mirrors (me55 / me55c). */
+const CANONICAL_PREFER = [
+  "30th",
+  "30th-c",
+  "me02.5",
+  "me01",
+  "me02",
+  "me03",
+  "me04",
+  "me05",
+  "sv10.5b",
+  "sv10.5w",
+  "sv08",
+  "sv03",
+  "sv03.5",
+];
+
+export function canonicalSetId(id: string): string {
+  const aliases = setIdAliases(id);
+  if (!aliases.length) return (id || "").trim();
+  const lower = new Map(aliases.map((a) => [a.toLowerCase(), a]));
+  for (const pref of CANONICAL_PREFER) {
+    const hit = lower.get(pref.toLowerCase());
+    if (hit) return hit;
+  }
+  return aliases[0];
+}
+
 /** Every known id for a box set, TCGdex-native forms first. */
 export function setIdAliases(id: string): string[] {
   const raw = (id || "").trim();

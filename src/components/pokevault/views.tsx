@@ -669,6 +669,11 @@ export function SetCardsView({
     setMissingOnly(false);
   }, [set.id]);
 
+  // Kick the live-price queue as soon as the set grid has cards (tiles also self-queue).
+  useEffect(() => {
+    if (cards?.length) hydrateLivePrices(cards);
+  }, [cards]);
+
   const printed = set.printedTotal || 0;
   const boxed = cards
     ? showAlts
@@ -712,8 +717,8 @@ export function SetCardsView({
           )}
           {isPendingPriceSetView(set) && (
             <div className="pv-price-pending-banner" role="status">
-              Prices pending — new set. Live quotes load from TCGPlayer when available; tiles show
-              Pending until then.
+              New-set prices load live from TCGPlayer / sold averages when available. Tiles refresh
+              automatically; cards with no market data yet show — instead of staying Pending.
             </div>
           )}
         </div>

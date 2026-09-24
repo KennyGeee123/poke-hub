@@ -1,11 +1,13 @@
-FROZEN — launch-ready working state 2026-09-22 (foil-match)
+FROZEN — launch-ready working state 2026-09-24 (prices + 30th set dedupe)
 Live: https://pokedex-hub-lime.vercel.app/
 Lock: launch-lock/WORKING-STATE.json
-Id:   pokedex-hub-launch-ready-2026-09-22-foil-match
+Id:   pokedex-hub-launch-ready-2026-09-24-prices-set-dedupe
 
-Foil tilt overlays match real card finishes (30th Celebration → texture_sheen,
-no cosmos stars/circles). Keeps Geek Squad: VirtualCardGrid, solid chrome,
-lazy tabs, Holo idle rAF off, captions/tile-fast/box-set/sold-avg.
+Card tiles refetch soft pending quotes (ttl) so sold-avg/tcgcsv can land;
+exhausted pending shows — not infinite Pending. Sets list collapses
+me55/30th and me55c/30th-c alias pairs to one box each (canonical TCGdex ids).
+Classic never cross-maps by number. Geek Squad grid/chrome unchanged.
 
 Do not apply drive-by / "hack" edits to hashed files.
-To thaw for a real change: update files, rebuild WORKING-STATE.json from a verified live launch, then git tag.
+To thaw for a real change: update files, rebuild WORKING-STATE.json from a
+verified live launch, then git tag.

@@ -1,4 +1,5 @@
 import type { TCGCard, TCGSet } from "@/lib/pokemon-api";
+import { canonicalSetId, setIdAliases } from "@/lib/set-ids";
 import { parseSearchQuery } from "@/lib/card-search";
 import shadowlessCatalog from "./shadowless-catalog.json";
 import errorCatalog from "./error-catalog.json";
@@ -215,19 +216,76 @@ function normName(s: string): string {
     .trim();
 }
 
+function setRichness(s: TCGSet): number {
+  let n = 0;
+  if (s.images?.logo) n += 4;
+  if (s.images?.symbol) n += 2;
+  if ((s.total || 0) > 0) n += 1;
+  if ((s.printedTotal || 0) > 0) n += 1;
+  if (s.releaseDate) n += 1;
+  return n;
+}
+
+/** Keep richer art/totals; stamp canonical id (30th / 30th-c over me55 / me55c). */
+function preferRicherSet(a: TCGSet, b: TCGSet, canon: string): TCGSet {
+  const useB = setRichness(b) > setRichness(a);
+  const base = useB ? b : a;
+  const other = useB ? a : b;
+  return {
+    ...base,
+    id: canon,
+    name: base.name || other.name,
+    series: base.series || other.series,
+    total: Math.max(Number(base.total) || 0, Number(other.total) || 0) || base.total,
+    printedTotal:
+      Math.max(Number(base.printedTotal) || 0, Number(other.printedTotal) || 0) ||
+      base.printedTotal,
+    releaseDate: base.releaseDate || other.releaseDate,
+    images: {
+      logo: base.images?.logo || other.images?.logo,
+      symbol: base.images?.symbol || other.images?.symbol,
+    },
+  };
+}
+
+/**
+ * Merge set catalogs. Collapse SET_ID_GROUPS alias families to one box
+ * (me55→30th Celebration, me55c→30th-c Classic). Exact id / name still dedupe.
+ */
 export function mergeSetLists(primary: TCGSet[], extra: TCGSet[]): TCGSet[] {
-  const out = [...primary];
-  const ids = new Set(out.map((s) => s.id.toLowerCase()));
-  const names = new Set(out.map((s) => normName(s.name)));
-  for (const s of extra) {
-    if (!s?.id) continue;
-    const id = s.id.toLowerCase();
+  const out: TCGSet[] = [];
+  const canonIndex = new Map<string, number>();
+  const names = new Set<string>();
+
+  const take = (s: TCGSet) => {
+    if (!s?.id) return;
+    const canon = canonicalSetId(s.id);
+    const canonKey = canon.toLowerCase();
     const name = normName(s.name);
-    if (ids.has(id) || (name && names.has(name))) continue;
-    out.push(s);
-    ids.add(id);
+    const idx = canonIndex.get(canonKey);
+    if (idx != null) {
+      out[idx] = preferRicherSet(out[idx], s, canon);
+      if (name) names.add(name);
+      return;
+    }
+    for (const alias of setIdAliases(s.id)) {
+      const hit = canonIndex.get(alias.toLowerCase());
+      if (hit != null) {
+        out[hit] = preferRicherSet(out[hit], s, out[hit].id);
+        if (name) names.add(name);
+        return;
+      }
+    }
+    if (name && names.has(name)) return;
+    const entry = preferRicherSet(s, s, canon);
+    canonIndex.set(canonKey, out.length);
+    for (const alias of setIdAliases(canon)) canonIndex.set(alias.toLowerCase(), out.length);
+    out.push(entry);
     if (name) names.add(name);
-  }
+  };
+
+  for (const s of primary) take(s);
+  for (const s of extra) take(s);
   return out;
 }
 

@@ -2,7 +2,16 @@ import { useEffect, useState } from "react";
 import type { TCGCard } from "@/lib/pokemon-api";
 import { getMarketPrice } from "@/lib/pokemon-api";
 
-type Quote = { market: number; source: string; soldAvg?: number; pending?: boolean };
+type Quote = {
+  market: number;
+  source: string;
+  soldAvg?: number;
+  pending?: boolean;
+  /** When this quote was cached (ms). Used for pending TTL. */
+  at?: number;
+  /** How many times we got pending-new-set for this id. */
+  tries?: number;
+};
 
 const cache = new Map<string, Quote>();
 const inflight = new Set<string>();
@@ -10,6 +19,12 @@ const waiters = new Map<string, Array<(q: Quote | null) => void>>();
 const EVT = "pv-live-price";
 
 const PENDING_SET_RE = /^(30th|30th-c|me55|me55c)(-|$)/i;
+/** Pending quotes are soft — refetch after this so tcgcsv/sold-avg can land. */
+const PENDING_TTL_MS = 45_000;
+/** After this many pending responses, stop showing "Pending" (show — / N/A). */
+const PENDING_MAX_TRIES = 3;
+/** Once exhausted, still poke the API occasionally (longer TTL). */
+const PENDING_EXHAUSTED_TTL_MS = 5 * 60_000;
 
 export function isPendingPriceSet(cardOrId: TCGCard | string | null | undefined): boolean {
   if (!cardOrId) return false;
@@ -20,29 +35,64 @@ export function isPendingPriceSet(cardOrId: TCGCard | string | null | undefined)
 }
 
 function displayMarket(q: Quote): number {
-  if (q.pending) return 0;
+  // Real money always wins over a stale pending flag.
   if (q.soldAvg && q.soldAvg > 0) return q.soldAvg;
-  return q.market > 0 ? q.market : 0;
+  if (q.market > 0) return q.market;
+  if (q.pending) return 0;
+  return 0;
 }
 
+function hasMoney(q: Quote | null | undefined): boolean {
+  if (!q) return false;
+  return (q.soldAvg || 0) > 0 || q.market > 0;
+}
+
+/** Real market quotes are strong. pending is NEVER strong — must allow refetch. */
 function isStrongQuote(q: Quote): boolean {
-  if (q.pending) return true; // don't keep refetching forever
+  if (q.pending && !hasMoney(q)) return false;
   return (
     (q.soldAvg || 0) > 0 ||
     q.source === "sold-avg" ||
     q.source === "tcgplayer-market" ||
     q.source === "pokemontcg-market" ||
-    q.source === "tcgcsv-market"
+    q.source === "tcgcsv-market" ||
+    q.source === "tcgplayer-mid" ||
+    q.source === "tcgplayer-low" ||
+    q.source === "cardmarket-low"
   );
 }
 
-function emit(id: string, q: Quote) {
-  const normalized: Quote = {
+function pendingTtl(q: Quote): number {
+  return (q.tries || 0) >= PENDING_MAX_TRIES ? PENDING_EXHAUSTED_TTL_MS : PENDING_TTL_MS;
+}
+
+function isFreshPending(q: Quote): boolean {
+  if (!q.pending || hasMoney(q)) return false;
+  const at = q.at || 0;
+  return Date.now() - at < pendingTtl(q);
+}
+
+function isPendingExhausted(q: Quote | undefined): boolean {
+  return !!q?.pending && !hasMoney(q) && (q.tries || 0) >= PENDING_MAX_TRIES;
+}
+
+function normalizeQuote(q: Quote, prev?: Quote): Quote {
+  const money = hasMoney(q);
+  const tries = q.pending && !money ? (prev?.tries || 0) + 1 : 0;
+  return {
     ...q,
-    market: displayMarket(q),
+    market: money ? displayMarket(q) : q.market > 0 ? q.market : 0,
     soldAvg: q.soldAvg && q.soldAvg > 0 ? q.soldAvg : undefined,
-    pending: !!q.pending,
+    // Clear pending whenever we have a real price.
+    pending: money ? false : !!q.pending,
+    at: Date.now(),
+    tries: money ? 0 : tries || q.tries || 0,
   };
+}
+
+function emit(id: string, q: Quote) {
+  const prev = cache.get(id);
+  const normalized = normalizeQuote(q, prev);
   const targets = priceIdAliases(id);
   for (const key of targets) cache.set(key, normalized);
   if (typeof window !== "undefined") {
@@ -58,13 +108,17 @@ function quoted(card: TCGCard): number {
 
 export function cachedLivePrice(id: string): number | null {
   const q = cache.get(id);
-  if (!q || q.pending) return null;
+  if (!q) return null;
   const n = displayMarket(q);
   return n > 0 ? n : null;
 }
 
+/** True only while we still owe the user a short "Pending" wait — not after retries exhaust. */
 export function cachedPricePending(id: string): boolean {
-  return !!cache.get(id)?.pending;
+  const q = cache.get(id);
+  if (!q?.pending || hasMoney(q)) return false;
+  if (isPendingExhausted(q)) return false;
+  return true;
 }
 
 export function applyLiveQuote(card: TCGCard, market: number): TCGCard {
@@ -124,9 +178,18 @@ async function fetchBatch(ids: string[]): Promise<Record<string, Quote>> {
 let timer: ReturnType<typeof setTimeout> | null = null;
 const pending: string[] = [];
 
+function shouldFetch(id: string): boolean {
+  if (inflight.has(id)) return false;
+  const hit = cache.get(id);
+  if (!hit) return true;
+  if (isStrongQuote(hit)) return false;
+  if (hit.pending && isFreshPending(hit)) return false;
+  return true;
+}
+
 function flush() {
   timer = null;
-  const ids = pending.splice(0, 24).filter((id) => !cache.has(id) && !inflight.has(id));
+  const ids = pending.splice(0, 24).filter((id) => shouldFetch(id));
   if (!ids.length) {
     if (pending.length) schedule();
     return;
@@ -147,18 +210,18 @@ function flush() {
         const wait = waiters.get(id) || [];
         waiters.delete(id);
         inflight.delete(id);
-        if (q && (q.pending || q.market > 0 || (q.soldAvg || 0) > 0)) {
+        if (q && (hasMoney(q) || q.pending)) {
+          // Drop pending flag if the payload already has money.
+          if (hasMoney(q)) q = { ...q, pending: false };
           emit(id, q);
           wait.forEach((fn) => fn(cache.get(id) || q));
+        } else if (isPendingPriceSet(id)) {
+          // Soft pending for new sets — TTL + try budget so UI can leave "Pending".
+          const pend: Quote = { market: 0, source: "pending-new-set", pending: true };
+          emit(id, pend);
+          wait.forEach((fn) => fn(cache.get(id) || pend));
         } else {
-          // Mark known new sets as pending so tiles can show honest empty-state
-          if (isPendingPriceSet(id)) {
-            const pend: Quote = { market: 0, source: "pending-new-set", pending: true };
-            emit(id, pend);
-            wait.forEach((fn) => fn(pend));
-          } else {
-            wait.forEach((fn) => fn(null));
-          }
+          wait.forEach((fn) => fn(null));
         }
       }
     })
@@ -184,7 +247,15 @@ export function requestLivePrice(id: string): Promise<Quote | null> {
   if (!id) return Promise.resolve(null);
   const hit = cache.get(id);
   if (hit && isStrongQuote(hit)) return Promise.resolve(hit);
-  if (hit) cache.delete(id);
+  // Fresh pending: resolve immediately so tiles can show Pending without re-queue spam.
+  if (hit?.pending && isFreshPending(hit)) return Promise.resolve(hit);
+  // Stale / weak — drop so flush will fetch again.
+  if (hit && (!hit.pending || !isFreshPending(hit))) {
+    for (const key of priceIdAliases(id)) {
+      const cur = cache.get(key);
+      if (cur && !isStrongQuote(cur)) cache.delete(key);
+    }
+  }
   return new Promise((resolve) => {
     const list = waiters.get(id) || [];
     list.push(resolve);
@@ -199,6 +270,7 @@ export function hydrateLivePrices(cards: TCGCard[]) {
     if (!c?.id) continue;
     const hit = cache.get(c.id);
     if (hit && isStrongQuote(hit)) continue;
+    if (hit?.pending && isFreshPending(hit)) continue;
     void requestLivePrice(c.id);
   }
 }
@@ -215,10 +287,9 @@ export function useLivePrice(card: TCGCard | null | undefined): number {
     if (!id) return;
     let alive = true;
     void requestLivePrice(id).then((q) => {
-      if (alive && q && !q.pending) {
-        const m = displayMarket(q);
-        if (m > 0) setN(m);
-      }
+      if (!alive || !q) return;
+      const m = displayMarket(q);
+      if (m > 0) setN(m);
     });
     const on = (e: Event) => {
       const d = (e as CustomEvent).detail as {
@@ -228,7 +299,6 @@ export function useLivePrice(card: TCGCard | null | undefined): number {
         pending?: boolean;
       };
       if (d?.id !== id) return;
-      if (d.pending) return;
       const m = (d.soldAvg && d.soldAvg > 0 ? d.soldAvg : d.market) || 0;
       if (m > 0) setN(m);
     };
@@ -242,7 +312,7 @@ export function useLivePrice(card: TCGCard | null | undefined): number {
   return n;
 }
 
-/** True when live quote (or set id) says prices are not available yet for a new set. */
+/** True while waiting for first quotes on a new set — false after money lands or retries exhaust. */
 export function usePricePending(card: TCGCard | null | undefined): boolean {
   const id = card?.id || "";
   const seed = isPendingPriceSet(card);
@@ -256,14 +326,38 @@ export function usePricePending(card: TCGCard | null | undefined): boolean {
     let alive = true;
     void requestLivePrice(id).then((q) => {
       if (!alive) return;
-      if (q && !q.pending && displayMarket(q) > 0) setPendingFlag(false);
-      else if (q?.pending || (seed && !(q && displayMarket(q) > 0))) setPendingFlag(true);
+      if (q && hasMoney(q)) {
+        setPendingFlag(false);
+        return;
+      }
+      if (q?.pending) {
+        setPendingFlag(!isPendingExhausted(q) && cachedPricePending(id));
+        return;
+      }
+      // Non-pending empty for a new-set id: keep Pending only until try budget is spent.
+      if (seed) {
+        const cached = cache.get(id);
+        setPendingFlag(cachedPricePending(id) || (!cached && !(cachedLivePrice(id) ?? 0)));
+      } else {
+        setPendingFlag(false);
+      }
     });
     const on = (e: Event) => {
-      const d = (e as CustomEvent).detail as { id?: string; market?: number; pending?: boolean };
+      const d = (e as CustomEvent).detail as {
+        id?: string;
+        market?: number;
+        soldAvg?: number;
+        pending?: boolean;
+        tries?: number;
+      };
       if (d?.id !== id) return;
-      if (d.pending) setPendingFlag(true);
-      else if ((d.market || 0) > 0) setPendingFlag(false);
+      if ((d.soldAvg || 0) > 0 || (d.market || 0) > 0) {
+        setPendingFlag(false);
+        return;
+      }
+      if (d.pending) {
+        setPendingFlag(!((d.tries || 0) >= PENDING_MAX_TRIES));
+      }
     };
     window.addEventListener(EVT, on);
     return () => {

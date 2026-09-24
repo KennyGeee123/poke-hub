@@ -33,9 +33,9 @@
     "loopAction": "pokedex-launch-lock",
     "intervalMs": 300000
   },
-  "id": "pokedex-hub-launch-ready-2026-09-22-foil-match",
-  "frozenAt": "2026-09-23T02:15:04.869Z",
-  "rootSha256": "69a280a696a738e03b9dcd44d035085f8769f0df199e66982a1401aff4af1a2e",
+  "id": "pokedex-hub-launch-ready-2026-09-24-prices-set-dedupe",
+  "frozenAt": "2026-09-24T11:11:12Z",
+  "rootSha256": "eb0f5f4283e6eae7f084f334ba89cbc8c4bd0dcbeaa87f4e615276c7522acdc7",
   "fileCount": 220,
   "files": [
     {
@@ -65,8 +65,8 @@
     },
     {
       "path": "eslint.config.js",
-      "sha256": "3266245a1ff610a0b37dbb8b8c77b93a125e0d8758b9838cfd04b2e0a1397d56",
-      "bytes": 1250
+      "sha256": "46e4ae55cccc4fe37fa54ecf03a5194c1398c109a0f0ee0287f60662fbb789e1",
+      "bytes": 1390
     },
     {
       "path": "package.json",
@@ -440,53 +440,53 @@
     },
     {
       "path": "src/components/pokevault/Adventure.tsx",
-      "sha256": "ac71b4acd5331307237a2bf3628b80212a4ded104a096c744a882451154a2a7a",
-      "bytes": 20726
+      "sha256": "5595b86b19a774cba52ce0c37ee5ce7217583a7a853fddaf2b1956a53ac7374f",
+      "bytes": 21638
     },
     {
       "path": "src/components/pokevault/Battle.tsx",
-      "sha256": "b0982e4f9dffd49cffa07ff10747d1d832a6391663734f57b8b682a394df9989",
-      "bytes": 46870
+      "sha256": "9b18284f4a3c917cc3931d5b998b574215d0829c19a40e1209a9fcf2ebfc85e0",
+      "bytes": 56989
     },
     {
       "path": "src/components/pokevault/CardDetail.tsx",
-      "sha256": "14c1547382db234ca17fae15dd42b52565b92b94f3f574fa2de7fe0ba954d732",
-      "bytes": 47627
+      "sha256": "e5f65b15a043e4c2473bf98c4afa2955da971ac5c70d49c106d503e64a40360e",
+      "bytes": 54595
     },
     {
       "path": "src/components/pokevault/CardTile.tsx",
-      "sha256": "40f6aa7858da02c7daee59b2cc2e02ec806267a552ee9cc52f469ed41a7405d5",
-      "bytes": 12197
+      "sha256": "cabdf2e86032ac3b63d640c78b9f389697b6eb47be7a7310b9488791d2a4c544",
+      "bytes": 12757
     },
     {
       "path": "src/components/pokevault/CatchFx.tsx",
-      "sha256": "95bd08244e7b1a85c214171f04c55c697810a670cee921d8ec7c610a44b7352d",
-      "bytes": 1232
+      "sha256": "29b0570255d4c8970dd4becf6dc66d6c2422a80cc83277c92c97f91ba60ea2e6",
+      "bytes": 1238
     },
     {
       "path": "src/components/pokevault/CheapestPill.tsx",
-      "sha256": "862212395f50ad0c9da887a52e8f4a540a2d5ce4a585eb7ecc5344e8bca2b6c5",
-      "bytes": 2651
+      "sha256": "05c5b9775056609809e19ecdb0f4f3052432abdb8fbd4e0b2e9bd8f965a6d2d9",
+      "bytes": 2811
     },
     {
       "path": "src/components/pokevault/CollectionInsights.tsx",
-      "sha256": "f54007393131dbd9a9a8e790300cce90c9ae45c302d581cd70efd20180eb01bf",
-      "bytes": 3368
+      "sha256": "a81c0b1551ee2c8a53c5661472288ff0ed41712586cd8cfece9b0756f27677a6",
+      "bytes": 3680
     },
     {
       "path": "src/components/pokevault/Friends.tsx",
-      "sha256": "68305e9105886717c526b27157c71eafa484dff9be07cfc6879ba29cddf0eb42",
-      "bytes": 19175
+      "sha256": "9d58513495d0b032e873cea5fdd912d32ab6320f0c914b2663c3288a5660db14",
+      "bytes": 21829
     },
     {
       "path": "src/components/pokevault/GBBattleSession.tsx",
-      "sha256": "21fa5353fdc78288d349f3b2fe5cb9faf2f43fbe33df6b2858066f151d728711",
-      "bytes": 26484
+      "sha256": "bb644ea5de344e5125f2a36c05925b4eeb925241afffa30253a3d5df13021d43",
+      "bytes": 27728
     },
     {
       "path": "src/components/pokevault/GameBoy.tsx",
-      "sha256": "3ae1789fe08105d72d9c827dfdc03db159c6117d27885e872300f1d0e0257306",
-      "bytes": 30528
+      "sha256": "1cb18f9fcfc1003c5987be7427de33dad9f84d31d57a9ae9aff49e963408dc5b",
+      "bytes": 33107
     },
     {
       "path": "src/components/pokevault/InteractiveHoloCard.tsx",
@@ -495,68 +495,68 @@
     },
     {
       "path": "src/components/pokevault/Marketplace.tsx",
-      "sha256": "db5dc6f9e5109ad46c052d58f55f6c1e638d27b40a35c7a9280f487936dad47e",
-      "bytes": 13323
+      "sha256": "a08eefbdcb8c5f4906ab2fe56ce171bc9be7d5c9e4ab030bbac5d377b24e38a4",
+      "bytes": 14454
     },
     {
       "path": "src/components/pokevault/MoveFx.tsx",
-      "sha256": "a4ba6b7e6a730fe92768f99537de7bc8f074a8d15441dcee265ec3ff9205c6c5",
-      "bytes": 10281
+      "sha256": "0ef8ab7046deeb704a3420ce8a1b38043e858842e357d75329aa0fba7f64e619",
+      "bytes": 10957
     },
     {
       "path": "src/components/pokevault/MusicPlayer.tsx",
-      "sha256": "966d0f809421a62d9393771dd1a021a2f4dc9afc2a77eadf18e81556f66c6960",
-      "bytes": 10061
+      "sha256": "11820172461f4dbb09a3131e8f26e5c0931ed828fc96c5173a5a1772ff6729c8",
+      "bytes": 10542
     },
     {
       "path": "src/components/pokevault/Paywall.tsx",
-      "sha256": "c37b6e9a9ffbc2090dd39ce78bc051b529e778659e3c48371a6698cb216681df",
-      "bytes": 3174
+      "sha256": "790e7df5ded0e1aa6fb6d092514d7e72702a4468f0ef0c2524eabf7d836f8211",
+      "bytes": 3140
     },
     {
       "path": "src/components/pokevault/PokedexHub.tsx",
-      "sha256": "de823679b95e1b22e751d7193e314ac1ab9616ff1d80e7267cbfa7aae4dde707",
-      "bytes": 13689
+      "sha256": "3b0d9b319ea60d99e0d443a4475a0dbfce2d7e8f4e5ee4240d35462b8b5eeafc",
+      "bytes": 15131
     },
     {
       "path": "src/components/pokevault/PriceCompare.tsx",
-      "sha256": "56e1bca1361063fad5578087e9fb51b6a24bcce5ca465452cdeba8e1cbe91fc1",
-      "bytes": 10607
+      "sha256": "a8225f0d997738fa33f92cffc2bdb6370f3affd2053b098e1203cf32ca9de60c",
+      "bytes": 12478
     },
     {
       "path": "src/components/pokevault/PrintLangBar.tsx",
-      "sha256": "f93325e7ba0dbf9fea0e017eac432c089aaf21e01ec976b8010d2fc18b281a0d",
-      "bytes": 539
+      "sha256": "4c035b42e74c305c580dcf20c7804e67a550c949ab91edf68624275215483306",
+      "bytes": 568
     },
     {
       "path": "src/components/pokevault/QuickStrike.tsx",
-      "sha256": "01933b114beea0314b0f43b0d45c69c1b429efa4f0698fdef83cb95658a86ac9",
-      "bytes": 15403
+      "sha256": "28d0c6948118e241010da3387e7c219f50010eb99628ed9ada5909a3306d57d6",
+      "bytes": 16302
     },
     {
       "path": "src/components/pokevault/Scanner.tsx",
-      "sha256": "6b4ec6dad677f7f3c9935beaa806b02e93684bb33180b0ef2cd61e3c76304c19",
-      "bytes": 12097
+      "sha256": "a2d6f235f157ee412e53c56120691b0d313f6a896a3f8625e862a60a60168fae",
+      "bytes": 13567
     },
     {
       "path": "src/components/pokevault/SpriteImg.tsx",
-      "sha256": "1c58b1c077e4562b955e414af4ffd230c8d59190301415db857d41dc7f89e8f3",
-      "bytes": 782
+      "sha256": "efa92ea2909a17994bdde485d793ff4841e818f5c4a67aec13d0eb9bf905eda1",
+      "bytes": 788
     },
     {
       "path": "src/components/pokevault/VirtualCardGrid.tsx",
-      "sha256": "779033086da1efabbda7d0731a1e71b195086c606dfbdd6abb59fb3072289ab1",
-      "bytes": 5056
+      "sha256": "9cc0cab3b0207ddb29ca3bc0623d23fe6d64872aec6e8699b6e216c736d1a7f0",
+      "bytes": 5284
     },
     {
       "path": "src/components/pokevault/adventure/GodsEyeMap.tsx",
-      "sha256": "8ead9233baca37b67f32dedd5b886b808655191f3dde8841d2a5decb72a5aa8a",
-      "bytes": 8732
+      "sha256": "327cdbe895ece96156353eaabfd8bcc6191818f6b9a90bc4dbd04e134c308789",
+      "bytes": 8819
     },
     {
       "path": "src/components/pokevault/views.tsx",
-      "sha256": "0e500e6f22bed8a6f7f7d769dddc6d58024105f7d06e2129c41ce5227587d725",
-      "bytes": 34454
+      "sha256": "8a39b355bbe734d4ec560838685485d75170b7156a0f113707572bc0342c7cbc",
+      "bytes": 40010
     },
     {
       "path": "src/components/ui/accordion.tsx",
@@ -795,43 +795,43 @@
     },
     {
       "path": "src/integrations/supabase/auth-attacher.ts",
-      "sha256": "24d0dbdf8dc0fd49b391a948bd04e1db43b97a1d851acc391dd3d1b13b9797fd",
-      "bytes": 611
+      "sha256": "6f3a336700721b5cbf9235fb18b9575cdb5d1f55e4656b2f4a3cadc7ae81b8eb",
+      "bytes": 617
     },
     {
       "path": "src/integrations/supabase/auth-middleware.ts",
-      "sha256": "6390ee78f14fe7e81b376aafac27191e8ed5961ff6c0c14fc34f075b6e435613",
-      "bytes": 2296
+      "sha256": "a6bb7c7d527dc84fc3d5506fffb79db93517e6abd423b1119a4df51d745787be",
+      "bytes": 2243
     },
     {
       "path": "src/integrations/supabase/client.server.ts",
-      "sha256": "bdc1d70aec8795119fda41dea9dc017750ddae6bf32e96f675495c6585f62da6",
-      "bytes": 1753
+      "sha256": "81c163cef5e11379b6fd363b3e55672df426b624b559c5c9373923c8abf9e231",
+      "bytes": 1754
     },
     {
       "path": "src/integrations/supabase/client.ts",
-      "sha256": "ab7350e783e62f0701c53293c5faa1d11be5a6eebf160c2463657ae5e8080583",
-      "bytes": 1660
+      "sha256": "69480299bce262c3d1f120302a89767db75b5523a2dba3a1d057214d46a69529",
+      "bytes": 1665
     },
     {
       "path": "src/integrations/supabase/types.ts",
-      "sha256": "f9fe8399a89fb1ee01140f2765ea064fee09f1a1c077b21953e2731c9fc7fc7a",
-      "bytes": 8780
+      "sha256": "ea27367be4590d2a4ca8a96cf6c9e7f82647d4879347bb94e7d53f1bf62a1d4f",
+      "bytes": 8920
     },
     {
       "path": "src/lib/auth.tsx",
-      "sha256": "377eb32f91c274bb66c03c3e857ae16a818cb05f7ee22b460badf1b6caaa2cab",
-      "bytes": 3184
+      "sha256": "e562d0ec0c4563c42a3dd4c6c304485a0f0f3f87638fb6df7fcb7c2feaf5472f",
+      "bytes": 3278
     },
     {
       "path": "src/lib/battle-cine.ts",
-      "sha256": "c891ca6d5a930f31f7e8659ded64f27c1f862258435064cf75ce3906996ba1b8",
-      "bytes": 412
+      "sha256": "28ac615aed8c272faaf56e055e8b2c95fe9576034ed74d43c8a97c82d6d1b08e",
+      "bytes": 416
     },
     {
       "path": "src/lib/battle.ts",
-      "sha256": "178723e2b62df25f7ca059490a054d78d51dce19cec012fc502be423ae8a875b",
-      "bytes": 9582
+      "sha256": "92cff9ba2f75fb618f917091163c3f4eeeec69e4e2ca9999a2c6fd9e9ded0871",
+      "bytes": 9853
     },
     {
       "path": "src/lib/bulbapedia.ts",
@@ -840,23 +840,23 @@
     },
     {
       "path": "src/lib/card-images.ts",
-      "sha256": "64e54fbaef4465aff3927893823824548a2bd3cb3f9c3a738228396a15a7d1bf",
-      "bytes": 9261
+      "sha256": "8d458b935f6c08d2007c6073d3c73fa9abec27224912c04e72377caeb757b4d5",
+      "bytes": 9209
     },
     {
       "path": "src/lib/card-prices.ts",
-      "sha256": "69edbd9b76d3be5535e7f88214ed3ba226d9cda38554a7ecdb328c9bb3045cb5",
-      "bytes": 14967
+      "sha256": "fa4bd0fea60925f5f5f6d3e3a28e7bc7d107a553db3cba17c609b859c445635b",
+      "bytes": 15103
     },
     {
       "path": "src/lib/card-search.ts",
-      "sha256": "861e872a3163f9bbccd8c9827865448b37850ba7232c1926f001b2ef3f8bd386",
-      "bytes": 10274
+      "sha256": "124271a9d1a714bc68ced9e4fcc87c3de3ed1de47416b20048a2eea72418c2ab",
+      "bytes": 10542
     },
     {
       "path": "src/lib/ebay.ts",
-      "sha256": "76b29e4ad4e704a1ccfe021534768f652fc2d24ad4aa831f57e97304935e696c",
-      "bytes": 1527
+      "sha256": "38098ff93ae3873f6649f3bce2144eccf6e4273c7e195c6ecc0fdb4ac1bdcf72",
+      "bytes": 1540
     },
     {
       "path": "src/lib/error-capture.ts",
@@ -870,33 +870,33 @@
     },
     {
       "path": "src/lib/foil-style.ts",
-      "sha256": "7caaf23fb25e7e7ef464ef5d0c1ed88d31b3704e0993036d2b094bcf52bea2f8",
-      "bytes": 6414
+      "sha256": "3e1624a080b86b4dee54a892f6ec46d7f63d1add4fa11dd6dcbf7e74ba41f9ab",
+      "bytes": 6476
     },
     {
       "path": "src/lib/friends.ts",
-      "sha256": "0820b2aeea975b1297b9b56eafd12dfc2dccff8a5b8c98986413a92d5c3a7215",
-      "bytes": 4697
+      "sha256": "a2f891b6671ced845d93187ab553802f54d5b4124317e736a975833dbc53eaac",
+      "bytes": 4672
     },
     {
       "path": "src/lib/gb-face.ts",
-      "sha256": "dde0b8d26fa9dfd0921d622ec5d460f5a28bc863a0c6ce967ffff26a47d68bb1",
-      "bytes": 2277
+      "sha256": "a998ddd55dd8aaa2858c190327268abf4ef96be5b72c3e8de11530bd97e6a19a",
+      "bytes": 2291
     },
     {
       "path": "src/lib/gbgame.ts",
-      "sha256": "cf2680738ce9debdeafac4d63b06544a3bbe22e082b014f8295eca17b8e55183",
-      "bytes": 8934
+      "sha256": "d09ed50c2a0ac878feda1f7625a214d13bbd67bd96696c138f7e0fd8bf45c4f8",
+      "bytes": 8993
     },
     {
       "path": "src/lib/gods-eye-world.ts",
-      "sha256": "2bac0e7ba5a08df7c02cc6b1c742002b4ee92caaa52b0376feb0d2ebbc8c86c5",
-      "bytes": 7916
+      "sha256": "3e691c647c3a408fe92e06bbbac4bd26d5883013159eee1f552f51d974b3d3c3",
+      "bytes": 8686
     },
     {
       "path": "src/lib/higgsfield.functions.ts",
-      "sha256": "5593fadd1efbfb9c20e426be378bc53f0313a054857d6ee526bfce9ba2fceede",
-      "bytes": 3614
+      "sha256": "48543ff1b731fdc87219dfb4966dc664bceea65515f055379e5a3a1936b66a0e",
+      "bytes": 3639
     },
     {
       "path": "src/lib/insights.functions.ts",
@@ -905,13 +905,13 @@
     },
     {
       "path": "src/lib/live-prices.ts",
-      "sha256": "a03593b8da6b04bf14d25bad66691748842c75eaa88b33b65a0ed10985875fc4",
-      "bytes": 8388
+      "sha256": "55f16919bda96f8b98da4a2b2dcc29f2d819076781ffba1614d187acd400d71f",
+      "bytes": 11713
     },
     {
       "path": "src/lib/mcp/tools/cards.ts",
-      "sha256": "a0af49932c4d4c97c0cb2df15a78e5a49262b100e367fd4e1011f01cf187d4bf",
-      "bytes": 4132
+      "sha256": "0b38a01be107470c1f6eaede053ce105f466a451a1e87d8b6b023c3a9644c381",
+      "bytes": 4283
     },
     {
       "path": "src/lib/owner.functions.ts",
@@ -930,18 +930,18 @@
     },
     {
       "path": "src/lib/pokeapi-moves.ts",
-      "sha256": "c25380fa442d81dbfb21980f4b76681bba95d73ee376bfd3e8322697f71d5ea5",
-      "bytes": 3899
+      "sha256": "9819e9d505ef6020d4bd870186960388ccb89a8a6221f0f22c89d47a37cd0ca4",
+      "bytes": 3941
     },
     {
       "path": "src/lib/pokeapi.ts",
-      "sha256": "e7ec7588a52ef6fc7f53fd0f5deb6aed6a1f61a283a92ad4d88a94c62dc0a056",
-      "bytes": 2603
+      "sha256": "197d8f1a3ebca045d5f63fddbdd0d1d642cdd28b64dfa48b3b56e97b32c2036e",
+      "bytes": 2639
     },
     {
       "path": "src/lib/pokemon-api.ts",
-      "sha256": "fd0565f3325824a9252a51b2ec3bf8603df915c3787e080df435208b13b4f4ca",
-      "bytes": 27401
+      "sha256": "987845de01b6f3aaad7dd5787710bcbf1fe7c34bebf6dab18ec5368f3fcb6fd0",
+      "bytes": 28910
     },
     {
       "path": "src/lib/premium.ts",
@@ -950,8 +950,8 @@
     },
     {
       "path": "src/lib/print-lang.ts",
-      "sha256": "a7d7272445b2ea7a4a4d5337f6121f3c0d30fe83b130a7d0a38c4519a48a317d",
-      "bytes": 3522
+      "sha256": "d1422f1e0a523b066ca9a6c741526918149cbea96c3f5c9a005cdf9812be3b7c",
+      "bytes": 3575
     },
     {
       "path": "src/lib/pvp.ts",
@@ -960,23 +960,23 @@
     },
     {
       "path": "src/lib/scanner.functions.ts",
-      "sha256": "c9a1a465a317acde5ce5cd3a42565602b99e78c912f0fdcc5d139e62ba01b8f1",
-      "bytes": 4149
+      "sha256": "0593c07242290a8ba1ddbebe191c67e41bae5bc3b99e21ec6971cdd4b14604e5",
+      "bytes": 4255
     },
     {
       "path": "src/lib/sprites.ts",
-      "sha256": "51f7cdb0d224bcbbcf5b15dc450907d396b8adac22e14c9a000ed8671f7ef9c7",
-      "bytes": 2882
+      "sha256": "7f4222f86be79cf95898641906aff0398edaa8404eed99b1073c647106f0419b",
+      "bytes": 3013
     },
     {
       "path": "src/lib/tcg-fallback.ts",
-      "sha256": "bdb7ce8203356715d36885d21a8657beca4fab34e53a07b08ffcec964ad94683",
-      "bytes": 4984
+      "sha256": "b6f47e9b320edebd40e696f0479e7284e8b67b3ec1fc3f3420f8a2aae6650637",
+      "bytes": 5150
     },
     {
       "path": "src/lib/tcgdex.ts",
-      "sha256": "07a31af0a7064d8c3236099916a59014aa0e9ee1a87dfca8d479c0ee76059b0f",
-      "bytes": 12748
+      "sha256": "61d47d20611523240859feb3be4cfa1bcba112ba620ec0a3b952990b2dc2b8eb",
+      "bytes": 13777
     },
     {
       "path": "src/lib/utils.ts",
@@ -985,8 +985,8 @@
     },
     {
       "path": "src/lib/vault.ts",
-      "sha256": "37ccb724723ed97cb90b18c71ec27bb796444b894cca7cfb04b3fd3cfbfffd10",
-      "bytes": 14533
+      "sha256": "aa20cdf120392b51a7c08c8a359ea9a3db70217a6125c80a1fbc5978a32714b8",
+      "bytes": 14536
     },
     {
       "path": "src/routeTree.gen.ts",
@@ -1000,58 +1000,58 @@
     },
     {
       "path": "src/routes/__root.tsx",
-      "sha256": "6c6161012a046fd996b9da229e65af071b3588c90bf7b36f57552c22259973f6",
-      "bytes": 5139
+      "sha256": "a0e15d3521d04cfcbcf5f7c44b1e52205488f803326ee02d036d683f69037dd8",
+      "bytes": 5162
     },
     {
       "path": "src/routes/api/public/card-prices.ts",
-      "sha256": "4573646c7e798982ad6c49b7ba0f6b611cd32eec00271cf52154632f416c3912",
-      "bytes": 39990
+      "sha256": "ebcb06f3a6e96f96c7f3c2558e33054b1d27df18edf4d6dc2e3d3ae929111a06",
+      "bytes": 40844
     },
     {
       "path": "src/routes/api/public/ebay-sold.ts",
-      "sha256": "c35eeb192fcfb7c01ec2cf6b37e4a3a7e977680c4bd90cec6eb64e3c60f6e844",
-      "bytes": 5808
+      "sha256": "2887c02e6f02c62aac08785ebe5bc3bd095fd5c9ebeb55ca2e864b73a7be57cc",
+      "bytes": 6095
     },
     {
       "path": "src/routes/api/public/mcp.ts",
-      "sha256": "87a627d8bc88288e7b5e64f9d3795894d4c692db6001aa8483332c4ba696011e",
-      "bytes": 1339
+      "sha256": "da37f27bc3f857487d676d235a3c7b06c2dee9f56e5469f3d69ae3f551bbb923",
+      "bytes": 1362
     },
     {
       "path": "src/routes/api/public/poke-radio.ts",
-      "sha256": "851ab2c6036087b5531567b0e7667739b7250117e296d5bc778cc0c2a0e2c588",
-      "bytes": 2174
+      "sha256": "26c6396241a5291a1f05d8859c3712f79f227940db90a321c5d0a1fddec83760",
+      "bytes": 2254
     },
     {
       "path": "src/routes/api/public/prices.ts",
-      "sha256": "a6b09d3ded4bd5eec02ee97f15540e6bc2c9b5572a2772cb0f21df624cf8d67c",
-      "bytes": 15986
+      "sha256": "2642ca3ce9f8730f9485724ac328a5f25a67ea5ec81623f1ce81c3a513bca9c2",
+      "bytes": 16640
     },
     {
       "path": "src/routes/api/public/tcg.ts",
-      "sha256": "bb38a90b1bda494111404f45b05944a81f025bda24afef76c0b1dd560d2e9ce4",
-      "bytes": 3665
+      "sha256": "e51087891a30580208852de9338d1528c68395e9fca92a1c76a69dc18034c69b",
+      "bytes": 3745
     },
     {
       "path": "src/routes/api/public/tcgdex.ts",
-      "sha256": "a3f0b9828b21ba170dce2fd8a124b293087477b98bb8b2e33c8d725f1b1e9aff",
-      "bytes": 18615
+      "sha256": "4f6976cc34fc7e9eec9787f741aaf1c3615a81f36ac278d7428cf40125641720",
+      "bytes": 20216
     },
     {
       "path": "src/routes/index.tsx",
-      "sha256": "c2a84202c32e82b27a5ad8dbb14dcf7f299313982cc4dc27d83640aef88d3d80",
-      "bytes": 12116
+      "sha256": "f4a464f335d9b7fdfd411673ee6f93099da4c284a8a959f4e4a6ff8a84f6ec73",
+      "bytes": 13719
     },
     {
       "path": "src/routes/login.tsx",
-      "sha256": "e65e30a8fee50eb6aa7b3aaefff35dd5105d10486d8317c9078b68cd20ed4626",
-      "bytes": 5998
+      "sha256": "5e9319aec85e7d6fbc7a38d24dd31ce4fa0382d2fca3bd3b974462f7090732b2",
+      "bytes": 6447
     },
     {
       "path": "src/server.ts",
-      "sha256": "03e2766bea8f78f562a77d9588de780e943b34a5853577ef850f339f91a89aed",
-      "bytes": 2756
+      "sha256": "cb412d792d219276cf75c73f1af650368d19dd17a1f85f01cf2c100ce18041d5",
+      "bytes": 2769
     },
     {
       "path": "src/start.ts",
@@ -1060,8 +1060,8 @@
     },
     {
       "path": "src/styles.css",
-      "sha256": "74437688ee1a1fa0fe55677a98d9796507db5de7321461809db4f694b2254cab",
-      "bytes": 161456
+      "sha256": "3177a9eb34aeb88039ea216e411c3dcc2b14e8bf987bb939037de06351016559",
+      "bytes": 164579
     },
     {
       "path": "supabase/config.toml",
@@ -1138,5 +1138,6 @@
       "sha256": "44a244a3817413d9641b9d4fde8bfdd7d3293e26db5a39b5cee7aa946e51a163",
       "bytes": 202
     }
-  ]
+  ],
+  "thawNote": "Live prices: pending TTL/refetch (no infinite Pending); Sets: collapse me55\u219430th and me55c\u219430th-c to one box each"
 }

@@ -295,6 +295,11 @@ function isClassicSet(setKey: string): boolean {
 function pokemonAliases(id: string): string[] {
   const parsed = parseCardId(id);
   if (!parsed) return [id];
+  // Classic: same-set pad only — never me55c↔30th-c by number (different card at same #).
+  if (isClassicSet(parsed.setKey)) {
+    const locals = [...new Set([parsed.rawLocal, parsed.localId, padLocal(parsed.rawLocal)])];
+    return [...new Set(locals.map((loc) => `${parsed.setKey}-${loc}`))];
+  }
   const sets = SET_ID_ALIAS[parsed.setKey] || [parsed.setKey];
   const locals = new Set<string>();
   const raw = parsed.rawLocal;
@@ -438,14 +443,16 @@ async function quoteOne(id: string): Promise<PriceQuote | null> {
     pkmnQuote = meta.quote;
   }
 
-  // 3) tcgcsv (TCGPlayer mirror) — Classic matches by name only
+  // 3) tcgcsv (TCGPlayer mirror) — Classic 30th-c by name; me55c by number then name
   if (setKey && TCGCSV_GROUP[setKey]) {
     const csv = await quoteTcgcsv(setKey, cardLocal || parsed?.rawLocal || "", cardName);
     if (csv) return csv;
-    // Also try aliased set keys (me55c → 30th-c group is the same id, but be explicit)
+    // Aliased set keys share a TCGCSV group. Classic alts: NAME only (never number cross-map).
     for (const alt of SET_ID_ALIAS[setKey] || []) {
       if (alt === setKey) continue;
-      const csvAlt = await quoteTcgcsv(alt, cardLocal || parsed?.rawLocal || "", cardName);
+      const altLocal =
+        isClassicSet(setKey) || isClassicSet(alt) ? "" : cardLocal || parsed?.rawLocal || "";
+      const csvAlt = await quoteTcgcsv(alt, altLocal, cardName);
       if (csvAlt) return csvAlt;
     }
   }
