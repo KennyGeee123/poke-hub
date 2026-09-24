@@ -88,7 +88,7 @@ function pricesQuery(ids: string[]): string {
 
 /** Same-set pad aliases + Celebration me55↔30th. Classic never cross-maps by number. */
 export function priceIdAliases(id: string): string[] {
-  const m = id.match(/^([a-z0-9-]+?)-(\d+[a-z]?)$/i);
+  const m = id.match(/^([a-z0-9.-]+?)-(\d+[a-z]?)$/i);
   if (!m) return [id];
   const setKey = m[1].toLowerCase();
   const raw = m[2];
@@ -100,7 +100,9 @@ export function priceIdAliases(id: string): string[] {
     ? [setKey]
     : setKey === "30th" || setKey === "me55"
       ? ["30th", "me55"]
-      : [setKey];
+      : setKey === "me2pt5" || setKey === "me02.5"
+        ? ["me2pt5", "me02.5"]
+        : [setKey];
   const out: string[] = [];
   for (const s of sets) for (const loc of locals) out.push(`${s}-${loc}`);
   return [...new Set(out)];

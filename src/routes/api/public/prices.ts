@@ -12,6 +12,8 @@ const SET_ID_ALIAS: Record<string, string[]> = {
   me55: ["me55", "30th"],
   "30th-c": ["30th-c", "me55c"],
   me55c: ["me55c", "30th-c"],
+  me2pt5: ["me2pt5", "me02.5"],
+  "me02.5": ["me02.5", "me2pt5"],
 };
 
 /** TCGPlayer group ids via tcgcsv.com (public CSV mirror). */
@@ -106,7 +108,7 @@ function marketFromTcgdex(raw: any): PriceQuote | null {
 }
 
 function parseCardId(id: string): { setKey: string; localId: string; rawLocal: string } | null {
-  const m = id.match(/^([a-z0-9-]+?)-(\d+[a-z]?)$/i);
+  const m = id.match(/^([a-z0-9.-]+?)-(\d+[a-z]?)$/i);
   if (!m) return null;
   return { setKey: m[1].toLowerCase(), localId: m[2].replace(/^0+/, "") || "0", rawLocal: m[2] };
 }
