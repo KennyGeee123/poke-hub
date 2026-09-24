@@ -39,6 +39,29 @@ import { AdventurePokedexModal } from "./adventure/AdventurePokedexModal";
 import { toast } from "sonner";
 import { HDBattleArena, type BattlePokemon } from "./adventure/HDBattleArena";
 import { GBBattleSession, type GBBattleFoe } from "./GBBattleSession";
+import { healParty } from "@/lib/gbgame";
+import { healAllHp } from "@/lib/gb-hp";
+
+const RETRO_KEYS = new Set([
+  "ArrowUp",
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
+  "w",
+  "a",
+  "s",
+  "d",
+  "W",
+  "A",
+  "S",
+  "D",
+  " ",
+  "Enter",
+  "m",
+  "M",
+  "p",
+  "P",
+]);
 
 export function AdventureView() {
   const [adventureState, setAdventureState] = useState<AdventureState>(loadAdventureState);
@@ -46,6 +69,48 @@ export function AdventureView() {
 
   const retroIframeRef = useRef<HTMLIFrameElement | null>(null);
   const [gbBattleFoe, setGbBattleFoe] = useState<GBBattleFoe | null>(null);
+  const gbBattleOpenRef = useRef(false);
+  gbBattleOpenRef.current = !!gbBattleFoe;
+
+  const focusRetro = () => {
+    try {
+      retroIframeRef.current?.contentWindow?.focus();
+    } catch {}
+  };
+
+  // Keyboard play without clicking into the iframe first: forward arrows /
+  // WASD / Space from the app window into the overworld while it is visible.
+  useEffect(() => {
+    if (viewMode !== "retro_gb") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (gbBattleOpenRef.current) return;
+      if (!RETRO_KEYS.has(e.key)) return;
+      const t = e.target as HTMLElement | null;
+      if (
+        t &&
+        (t.tagName === "INPUT" ||
+          t.tagName === "TEXTAREA" ||
+          t.tagName === "SELECT" ||
+          t.isContentEditable)
+      )
+        return;
+      const win = retroIframeRef.current?.contentWindow as
+        | (Window & { document: Document })
+        | null
+        | undefined;
+      if (!win) return;
+      e.preventDefault();
+      try {
+        win.document.dispatchEvent(
+          new KeyboardEvent(e.type, { key: e.key, code: e.code, bubbles: true, cancelable: true }),
+        );
+      } catch {
+        /* cross-origin guard — iframe is same-origin in practice */
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [viewMode]);
 
   // Retro GB iframe → in-tab GBBattleSession overlay (never pv-goto gb).
   useEffect(() => {
@@ -57,7 +122,14 @@ export function AdventureView() {
     const onMsg = (e: MessageEvent) => {
       const d = e.data;
       if (!d || typeof d !== "object") return;
+      if (retroIframeRef.current && e.source !== retroIframeRef.current.contentWindow) return;
+      if (d.type === "pv-adventure-heal") {
+        healAllHp();
+        healParty().catch((err) => console.error(err));
+        return;
+      }
       if (d.type !== "pv-adventure-encounter" || typeof d.name !== "string") return;
+      if (gbBattleOpenRef.current) return;
       const kind = (d.kind as GBBattleFoe["kind"]) || "wild";
       setGbBattleFoe({
         name: d.name,
@@ -83,15 +155,21 @@ export function AdventureView() {
       const name = (e as CustomEvent).detail?.name;
       if (name) postIframe({ type: "pv-adventure-caught", name });
     };
+    const onTrainer = (e: Event) => {
+      const id = (e as CustomEvent).detail?.id;
+      if (id) postIframe({ type: "pv-adventure-trainer-won", id });
+    };
     window.addEventListener("message", onMsg);
     window.addEventListener("pv-adv-gym-won", onGym as EventListener);
     window.addEventListener("pv-adv-elite-won", onElite as EventListener);
     window.addEventListener("pv-adventure-caught", onCaught as EventListener);
+    window.addEventListener("pv-adv-trainer-won", onTrainer as EventListener);
     return () => {
       window.removeEventListener("message", onMsg);
       window.removeEventListener("pv-adv-gym-won", onGym as EventListener);
       window.removeEventListener("pv-adv-elite-won", onElite as EventListener);
       window.removeEventListener("pv-adventure-caught", onCaught as EventListener);
+      window.removeEventListener("pv-adv-trainer-won", onTrainer as EventListener);
     };
   }, []);
 
@@ -115,6 +193,9 @@ export function AdventureView() {
   // HD Turn-Based Battle State
   const [hdBattleOpen, setHdBattleOpen] = useState(false);
   const [currentBattleFoe, setCurrentBattleFoe] = useState<BattlePokemon | null>(null);
+  const [battleCtx, setBattleCtx] = useState<{ kind: "wild" | "gym"; creatureId?: string }>({
+    kind: "wild",
+  });
 
   // Default Player Party for HD Battles
   const [playerParty, setPlayerParty] = useState<BattlePokemon[]>([
@@ -231,7 +312,8 @@ export function AdventureView() {
         // Auto-open catch sheet when you walk into radar range (GO-style)
         if (!hdBattleOpen) {
           setTimeout(() => {
-            setActiveCreature({ creature: first, mode: "catch" });
+            // Never replace an encounter that's already open (e.g. mid-throw).
+            setActiveCreature((cur) => cur ?? { creature: first, mode: "catch" });
           }, 0);
         }
       }
@@ -240,7 +322,14 @@ export function AdventureView() {
   };
 
   // Launch HD Battle Arena
-  const startHdBattle = (foeName: string, foeSpecies: string, level: number, types: string[]) => {
+  const startHdBattle = (
+    foeName: string,
+    foeSpecies: string,
+    level: number,
+    types: string[],
+    ctx: { kind: "wild" | "gym"; creatureId?: string } = { kind: "wild" },
+  ) => {
+    setBattleCtx(ctx);
     const foe: BattlePokemon = {
       name: foeName,
       species: foeSpecies,
@@ -272,11 +361,11 @@ export function AdventureView() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-2 sm:p-4 flex flex-col gap-3 font-mono">
+    <div className="w-full max-w-6xl mx-auto p-1 sm:p-4 flex flex-col gap-2 sm:gap-3 font-mono">
       {/* ───────────────────────────────────────────────────────────── */}
       {/* MASTER TOP HEADER: MODE TOGGLE (LIVING WORLD vs RETRO GB) */}
       {/* ───────────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between p-2.5 sm:p-3.5 rounded-2xl bg-neutral-950/80 backdrop-blur-md border border-neutral-800 shadow-xl">
+      <div className="flex items-center justify-between gap-2 p-2 sm:p-3.5 rounded-2xl bg-neutral-950/80 backdrop-blur-md border border-neutral-800 shadow-xl">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="p-2 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 text-neutral-950 font-bold">
             <Compass className="w-5 h-5 text-neutral-950 animate-spin-slow" />
@@ -285,8 +374,13 @@ export function AdventureView() {
             <h2 className="text-sm sm:text-base font-extrabold text-white tracking-wide uppercase">
               POKÉVAULT ADVENTURE
             </h2>
-            <p className="text-[10px] sm:text-xs text-neutral-400">
+            <p className="hidden sm:block text-xs text-neutral-400">
               Living GPS Overworld · Virtual Joystick · HD Stadium Battles
+            </p>
+            <p className="sm:hidden text-[10px] text-neutral-400">
+              {viewMode === "retro_gb"
+                ? "Retro overworld · D-pad / WASD"
+                : "GPS overworld · Joystick"}
             </p>
           </div>
         </div>
@@ -295,6 +389,8 @@ export function AdventureView() {
         <div className="flex items-center gap-1 p-1 rounded-xl bg-neutral-900 border border-neutral-800 text-xs">
           <button
             type="button"
+            aria-label="Living World mode"
+            aria-pressed={viewMode === "living_world"}
             onClick={() => setViewMode("living_world")}
             className={`px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 ${
               viewMode === "living_world"
@@ -307,6 +403,8 @@ export function AdventureView() {
           </button>
           <button
             type="button"
+            aria-label="Retro Game Boy mode"
+            aria-pressed={viewMode === "retro_gb"}
             onClick={() => setViewMode("retro_gb")}
             className={`px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 ${
               viewMode === "retro_gb"
@@ -328,10 +426,30 @@ export function AdventureView() {
           {hdBattleOpen && currentBattleFoe ? (
             /* HD STADIUM BATTLE ARENA */
             <HDBattleArena
+              key={`${currentBattleFoe.species}-${battleCtx.creatureId ?? battleCtx.kind}`}
               foeMon={currentBattleFoe}
               playerParty={playerParty}
               adventureState={adventureState}
+              onStateUpdate={handleStateUpdate}
+              catchable={battleCtx.kind === "wild"}
+              foeKind={battleCtx.kind}
+              creatureId={battleCtx.creatureId}
               onBattleEnd={(res) => {
+                if (res === "win" && battleCtx.creatureId) {
+                  // The wild Pokémon fainted — it leaves the map.
+                  setAdventureState((prev) => {
+                    const next = {
+                      ...prev,
+                      wildCreatures: prev.wildCreatures.filter(
+                        (c) => c.id !== battleCtx.creatureId,
+                      ),
+                    };
+                    saveAdventureState(next);
+                    return next;
+                  });
+                }
+                if (res === "caught")
+                  toast.success(`${currentBattleFoe.species} joined your party!`);
                 setHdBattleOpen(false);
                 setCurrentBattleFoe(null);
                 setActiveCreature(null);
@@ -351,6 +469,7 @@ export function AdventureView() {
                       creature.species,
                       creature.level,
                       creature.types,
+                      { kind: "wild", creatureId: creature.id },
                     );
                   } else {
                     setActiveCreature({ creature, mode });
@@ -363,6 +482,7 @@ export function AdventureView() {
                     arena.championSpecies,
                     arena.championLevel,
                     ["Fire", "Flying"],
+                    { kind: "gym" },
                   );
                 }}
                 onSelectCardCache={(cache) => setActiveCardCache(cache)}
@@ -401,6 +521,7 @@ export function AdventureView() {
                       a.championSpecies,
                       a.championLevel,
                       ["Fire"],
+                      { kind: "gym" },
                     );
                   }}
                 />
@@ -422,7 +543,10 @@ export function AdventureView() {
               onSwitchToBattle={() => {
                 const c = activeCreature.creature;
                 setActiveCreature(null);
-                startHdBattle(c.species, c.species, c.level, c.types);
+                startHdBattle(c.species, c.species, c.level, c.types, {
+                  kind: "wild",
+                  creatureId: c.id,
+                });
               }}
               onOpenVault={() => {
                 setActiveCreature(null);
@@ -519,7 +643,7 @@ export function AdventureView() {
         /* ───────────────────────────────────────────────────────────── */
         /* MODE 2: RETRO GAME BOY CANVAS MINI-GAME */
         /* ───────────────────────────────────────────────────────────── */
-        <div className="relative w-full h-[640px] rounded-3xl overflow-hidden border border-neutral-800 bg-neutral-950 flex flex-col items-center justify-center">
+        <div className="pv-adv-stage relative w-full rounded-3xl overflow-hidden border border-neutral-800 bg-neutral-950 flex flex-col items-center justify-center">
           <iframe
             ref={retroIframeRef}
             src="/adventure.html"
@@ -527,6 +651,7 @@ export function AdventureView() {
             className="w-full h-full border-0"
             style={{ pointerEvents: gbBattleFoe ? "none" : "auto" }}
             allow="autoplay"
+            onLoad={focusRetro}
           />
 
           {gbBattleFoe && (
@@ -540,15 +665,25 @@ export function AdventureView() {
                 <GBBattleSession
                   foe={gbBattleFoe}
                   chrome
-                  onDone={() => {
+                  onDone={(result) => {
                     setGbBattleFoe(null);
+                    if (result === "lose") {
+                      // White-out: heal everyone and send the player back to
+                      // the Poké Center instead of leaving them in the grass.
+                      healAllHp();
+                      healParty().catch((err) => console.error(err));
+                    }
                     setTimeout(() => {
                       try {
                         retroIframeRef.current?.contentWindow?.postMessage(
-                          { type: "pv-adventure-resume" },
+                          {
+                            type:
+                              result === "lose" ? "pv-adventure-whiteout" : "pv-adventure-resume",
+                          },
                           "*",
                         );
                       } catch {}
+                      focusRetro();
                     }, 120);
                   }}
                 />
