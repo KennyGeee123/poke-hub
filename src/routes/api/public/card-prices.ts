@@ -726,38 +726,73 @@ async function walmart(q: string): Promise<Listing[]> {
 }
 
 // ─── TCGPlayer Sealed (via tcgcsv) ────────────────────────────────────────
+const DIRECT_GROUPS: Record<string, number> = {
+  "surging sparks": 23651,
+  "destined rivals": 24269,
+  "30th celebration": 24722,
+  "30th classic": 24837,
+  "mega evolution": 24380,
+  "stellar crown": 23537,
+  "scarlet violet": 22873,
+  "scarlet & violet": 22873,
+  "151": 23237,
+  "crown zenith": 17688,
+  "celebrations": 2867,
+  "base set": 604,
+};
+
+let sealedGroupsCache: any[] | null = null;
+let sealedGroupsAt = 0;
+
 async function tcgcsvSealed(q: string): Promise<Listing[]> {
   try {
     const ua = "PokeVault/1.0.0";
-    const r = await fetch("https://tcgcsv.com/tcgplayer/3/groups", {
-      headers: { Accept: "application/json", "User-Agent": ua },
-      signal: AbortSignal.timeout(6000),
-    });
-    if (!r.ok) return [];
-    const groupsJson: any = await r.json();
-    const groups: any[] = groupsJson?.results || [];
     const qClean = q
       .toLowerCase()
       .replace(/booster\s*box|booster\s*bundle|booster\s*pack|booster|sealed|pokemon|display|bundle|etb|elite\s*trainer/g, "")
       .trim();
 
-    const matchedGroup = groups.find((g) => {
-      const gn = (g.name || "").toLowerCase();
-      if (gn.includes(qClean) || (qClean && qClean.includes(gn))) return true;
-      const words = qClean.split(/\s+/).filter((w) => w.length > 2);
-      return words.length > 0 && words.every((w) => gn.includes(w));
-    });
+    let groupId: number | null = null;
+    for (const [key, gid] of Object.entries(DIRECT_GROUPS)) {
+      if (qClean.includes(key) || key.includes(qClean)) {
+        groupId = gid;
+        break;
+      }
+    }
 
-    if (!matchedGroup) return [];
+    if (!groupId) {
+      if (!sealedGroupsCache || Date.now() - sealedGroupsAt > 60 * 60 * 1000) {
+        const r = await fetch("https://tcgcsv.com/tcgplayer/3/groups", {
+          headers: { Accept: "application/json", "User-Agent": ua },
+          signal: AbortSignal.timeout(4000),
+        });
+        if (r.ok) {
+          const j: any = await r.json();
+          if (Array.isArray(j?.results)) {
+            sealedGroupsCache = j.results;
+            sealedGroupsAt = Date.now();
+          }
+        }
+      }
+      const matched = (sealedGroupsCache || []).find((g: any) => {
+        const gn = (g.name || "").toLowerCase();
+        if (gn.includes(qClean) || (qClean && qClean.includes(gn))) return true;
+        const words = qClean.split(/\s+/).filter((w: string) => w.length > 2);
+        return words.length > 0 && words.every((w: string) => gn.includes(w));
+      });
+      groupId = matched?.groupId || null;
+    }
+
+    if (!groupId) return [];
 
     const [prodsR, pricesR] = await Promise.all([
-      fetch(`https://tcgcsv.com/tcgplayer/3/${matchedGroup.groupId}/products`, {
+      fetch(`https://tcgcsv.com/tcgplayer/3/${groupId}/products`, {
         headers: { Accept: "application/json", "User-Agent": ua },
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(5000),
       }),
-      fetch(`https://tcgcsv.com/tcgplayer/3/${matchedGroup.groupId}/prices`, {
+      fetch(`https://tcgcsv.com/tcgplayer/3/${groupId}/prices`, {
         headers: { Accept: "application/json", "User-Agent": ua },
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(5000),
       }),
     ]);
 
@@ -790,6 +825,7 @@ async function tcgcsvSealed(q: string): Promise<Listing[]> {
         currency: "USD",
         url: prod.url || `https://www.tcgplayer.com/product/${prod.productId}`,
         image: prod.imageUrl || null,
+        condition: "raw_nm",
         variant: "sealed",
         kind: "listing",
       });
