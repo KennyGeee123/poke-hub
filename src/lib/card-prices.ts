@@ -128,12 +128,14 @@ export function matchesConditionFilter(l: Listing, filter?: string | null): bool
     return (
       !slab && /mint|pack\s*fresh|gem\s*raw/i.test(text) && !/played|damaged|hp|mp|lp/i.test(text)
     );
-  if (filter === "raw_nm" || filter === "nm")
+  if (filter === "raw_nm" || filter === "nm") {
+    if (!slab && /booster\s*box|booster\s*bundle|elite\s*trainer|booster\s*pack|sealed|display/i.test(text)) return true;
     return (
       !slab &&
       /near\s*mint|\bnm\b|normal|holofoil|mint/i.test(text) &&
       !/played|damaged|hp|mp/i.test(text)
     );
+  }
   if (filter === "raw_lp" || filter === "lp")
     return !slab && /lightly\s*played|\blp\b|excellent/i.test(text);
   if (filter === "raw_mp" || filter === "mp")

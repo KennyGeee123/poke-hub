@@ -725,11 +725,91 @@ async function walmart(q: string): Promise<Listing[]> {
   return out.sort((a, b) => a.price - b.price).slice(0, 6);
 }
 
+// ─── TCGPlayer Sealed (via tcgcsv) ────────────────────────────────────────
+async function tcgcsvSealed(q: string): Promise<Listing[]> {
+  try {
+    const ua = "PokeVault/1.0.0";
+    const r = await fetch("https://tcgcsv.com/tcgplayer/3/groups", {
+      headers: { Accept: "application/json", "User-Agent": ua },
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!r.ok) return [];
+    const groupsJson: any = await r.json();
+    const groups: any[] = groupsJson?.results || [];
+    const qClean = q
+      .toLowerCase()
+      .replace(/booster\s*box|booster\s*bundle|booster\s*pack|booster|sealed|pokemon|display|bundle|etb|elite\s*trainer/g, "")
+      .trim();
+
+    const matchedGroup = groups.find((g) => {
+      const gn = (g.name || "").toLowerCase();
+      if (gn.includes(qClean) || (qClean && qClean.includes(gn))) return true;
+      const words = qClean.split(/\s+/).filter((w) => w.length > 2);
+      return words.length > 0 && words.every((w) => gn.includes(w));
+    });
+
+    if (!matchedGroup) return [];
+
+    const [prodsR, pricesR] = await Promise.all([
+      fetch(`https://tcgcsv.com/tcgplayer/3/${matchedGroup.groupId}/products`, {
+        headers: { Accept: "application/json", "User-Agent": ua },
+        signal: AbortSignal.timeout(8000),
+      }),
+      fetch(`https://tcgcsv.com/tcgplayer/3/${matchedGroup.groupId}/prices`, {
+        headers: { Accept: "application/json", "User-Agent": ua },
+        signal: AbortSignal.timeout(8000),
+      }),
+    ]);
+
+    if (!prodsR.ok || !pricesR.ok) return [];
+    const prodsJson: any = await prodsR.json();
+    const pricesJson: any = await pricesR.json();
+    const priceMap = new Map<number, { market: number; low: number; mid: number }>();
+    for (const p of pricesJson?.results || []) {
+      const pid = Number(p.productId);
+      const m = Number(p.marketPrice) || 0;
+      const l = Number(p.lowPrice) || 0;
+      const mid = Number(p.midPrice) || 0;
+      if (pid > 0 && (m > 0 || l > 0 || mid > 0)) {
+        priceMap.set(pid, { market: m || mid || l, low: l || m || mid, mid: mid || m || l });
+      }
+    }
+
+    const out: Listing[] = [];
+    for (const prod of prodsJson?.results || []) {
+      const name = String(prod.name || "");
+      if (!/booster\s*box|elite\s*trainer|booster\s*bundle|booster\s*pack|blister|tin|collection\s*box/i.test(name)) continue;
+      if (/code\s*card/i.test(name)) continue;
+      const pr = priceMap.get(Number(prod.productId));
+      if (!pr || !(pr.market > 0)) continue;
+      out.push({
+        source: "TCGplayer",
+        title: name,
+        price: pr.low > 0 ? pr.low : pr.market,
+        priceRaw: `$${(pr.low > 0 ? pr.low : pr.market).toFixed(2)}`,
+        currency: "USD",
+        url: prod.url || `https://www.tcgplayer.com/product/${prod.productId}`,
+        image: prod.imageUrl || null,
+        variant: "sealed",
+        kind: "listing",
+      });
+    }
+    return out.sort(sortByLanded).slice(0, 10);
+  } catch {
+    return [];
+  }
+}
+
 // ─── Source registry ──────────────────────────────────────────────────────
 // Priced sources use public APIs that work from Vercel. Storefront HTML
 // scrapes (eBay 403, etc.) are shop-links only — cloud IPs are blocked.
 const PRICED: { name: string; fn: (q: string) => Promise<Listing[]>; sealed?: boolean }[] = [
-  { name: "TCGplayer", fn: tcgplayer },
+  {
+    name: "TCGplayer",
+    fn: (q: string) =>
+      /booster|sealed|bundle|etb|display|trainer/i.test(q) ? tcgcsvSealed(q) : tcgplayer(q),
+    sealed: true,
+  },
   { name: "Cardmarket", fn: cardmarket },
   { name: "Target", fn: target, sealed: true },
 ];

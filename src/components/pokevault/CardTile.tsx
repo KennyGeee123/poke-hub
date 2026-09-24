@@ -113,14 +113,13 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
   const pricePending = usePricePending(card);
   const priced = live > 0 ? applyLiveQuote(card, live) : card;
   const gradedVal = calculateGradedValue(priced, grade);
-  // Prefer live market for RAW tiles so Discover never sticks on "—" while grades load.
-  const displayPrice =
-    grade === "raw" || !grade
-      ? live > 0
-        ? live
-        : gradedVal.estimatedGradedPrice
-      : gradedVal.estimatedGradedPrice;
   const gradeMeta = getGradeMeta(grade);
+  const isRaw = !gradeMeta.isSlab;
+  // Prefer live market for RAW tiles so all box sets display immediate prices
+  const displayPrice =
+    isRaw && live > 0
+      ? Math.round(live * gradeMeta.baseMultiplier * 100) / 100
+      : gradedVal.estimatedGradedPrice || (live > 0 ? live : null);
   const stats = getCardLevelAndStats(card, grade);
 
   const fallbacks = fallbackCardImages(card, { tile: true });

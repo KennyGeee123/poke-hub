@@ -177,6 +177,8 @@ async function fetchBatch(ids: string[]): Promise<Record<string, Quote>> {
 
 let timer: ReturnType<typeof setTimeout> | null = null;
 const pending: string[] = [];
+let activeBatches = 0;
+const MAX_CONCURRENT_BATCHES = 4;
 
 function shouldFetch(id: string): boolean {
   if (inflight.has(id)) return false;
@@ -189,53 +191,52 @@ function shouldFetch(id: string): boolean {
 
 function flush() {
   timer = null;
-  const ids = pending.splice(0, 24).filter((id) => shouldFetch(id));
-  if (!ids.length) {
-    if (pending.length) schedule();
-    return;
-  }
-  ids.forEach((id) => inflight.add(id));
-  fetchBatch(ids)
-    .then((got) => {
-      for (const id of ids) {
-        let q = got[id];
-        if (!q) {
-          for (const alias of priceIdAliases(id)) {
-            if (got[alias]) {
-              q = got[alias];
-              break;
+  while (activeBatches < MAX_CONCURRENT_BATCHES && pending.length > 0) {
+    const ids = pending.splice(0, 24).filter((id) => shouldFetch(id));
+    if (!ids.length) continue;
+    ids.forEach((id) => inflight.add(id));
+    activeBatches++;
+    fetchBatch(ids)
+      .then((got) => {
+        for (const id of ids) {
+          let q = got[id];
+          if (!q) {
+            for (const alias of priceIdAliases(id)) {
+              if (got[alias]) {
+                q = got[alias];
+                break;
+              }
             }
           }
+          const wait = waiters.get(id) || [];
+          waiters.delete(id);
+          inflight.delete(id);
+          if (q && (hasMoney(q) || q.pending)) {
+            if (hasMoney(q)) q = { ...q, pending: false };
+            emit(id, q);
+            wait.forEach((fn) => fn(cache.get(id) || q));
+          } else if (isPendingPriceSet(id)) {
+            const pend: Quote = { market: 0, source: "pending-new-set", pending: true };
+            emit(id, pend);
+            wait.forEach((fn) => fn(cache.get(id) || pend));
+          } else {
+            wait.forEach((fn) => fn(null));
+          }
         }
-        const wait = waiters.get(id) || [];
-        waiters.delete(id);
-        inflight.delete(id);
-        if (q && (hasMoney(q) || q.pending)) {
-          // Drop pending flag if the payload already has money.
-          if (hasMoney(q)) q = { ...q, pending: false };
-          emit(id, q);
-          wait.forEach((fn) => fn(cache.get(id) || q));
-        } else if (isPendingPriceSet(id)) {
-          // Soft pending for new sets — TTL + try budget so UI can leave "Pending".
-          const pend: Quote = { market: 0, source: "pending-new-set", pending: true };
-          emit(id, pend);
-          wait.forEach((fn) => fn(cache.get(id) || pend));
-        } else {
+      })
+      .catch(() => {
+        for (const id of ids) {
+          inflight.delete(id);
+          const wait = waiters.get(id) || [];
+          waiters.delete(id);
           wait.forEach((fn) => fn(null));
         }
-      }
-    })
-    .catch(() => {
-      for (const id of ids) {
-        inflight.delete(id);
-        const wait = waiters.get(id) || [];
-        waiters.delete(id);
-        wait.forEach((fn) => fn(null));
-      }
-    })
-    .finally(() => {
-      if (pending.length) schedule();
-    });
+      })
+      .finally(() => {
+        activeBatches--;
+        if (pending.length) schedule();
+      });
+  }
 }
 
 function schedule() {

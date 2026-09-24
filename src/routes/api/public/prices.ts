@@ -481,20 +481,15 @@ export const Route = createFileRoute("/api/public/prices")({
           .filter(Boolean)
           .slice(0, 24);
         const prices: Record<string, PriceQuote> = {};
-        const chunk = 6;
-        for (let i = 0; i < ids.length; i += chunk) {
-          const part = ids.slice(i, i + chunk);
-          const got = await Promise.all(part.map((id) => quoteOne(id)));
-          part.forEach((id, idx) => {
-            const q = got[idx];
-            if (!q) return;
-            prices[id] = q;
-            // Stamp safe aliases so me55c-4 / me55c-004 share the quote (not cross-set Classic #s)
-            for (const alias of priceCacheAliases(id)) {
-              if (!prices[alias]) prices[alias] = q;
-            }
-          });
-        }
+        const got = await Promise.all(ids.map((id) => quoteOne(id)));
+        ids.forEach((id, idx) => {
+          const q = got[idx];
+          if (!q) return;
+          prices[id] = q;
+          for (const alias of priceCacheAliases(id)) {
+            if (!prices[alias]) prices[alias] = q;
+          }
+        });
         return Response.json(
           { prices, generatedAt: new Date().toISOString() },
           { headers: { "cache-control": "public, s-maxage=120, stale-while-revalidate=600" } },
