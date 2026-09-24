@@ -15,6 +15,11 @@ import {
 
 export type MoveSpeed = "walk" | "jog" | "bike" | "drive";
 
+/** Joystick units → meters (the map multiplies each unit by 14 m). */
+const JOY_METERS_PER_UNIT = 14;
+/** Game-scaled pace: walk ≈ 30 m/s, jog ≈ 49, bike ≈ 81, drive ≈ 134. */
+const JOY_UNITS_PER_SEC = 1.6;
+
 const SPEED_CONFIG: Record<
   MoveSpeed,
   { label: string; kmh: number; stepPct: number; icon: React.ComponentType<{ className?: string }> }
@@ -144,30 +149,53 @@ export function AdventureJoystick({
     onSpeedChange?.(s);
   }
 
-  // Continuous movement loop while holding joystick or pressing arrow keys
+  // Continuous movement loop while holding joystick or pressing arrow keys.
+  // Time-based (not per-frame) so speed is the same on 60/120 Hz screens, and
+  // batched to ~15 updates/s so the world state is not cloned + saved 60×/s.
+  const onMoveRef = useRef(onMove);
+  onMoveRef.current = onMove;
   useEffect(() => {
     let animId: number;
+    let last = performance.now();
+    let acc = 0;
+    let accDx = 0;
+    let accDy = 0;
+    const FLUSH_SEC = 1 / 15;
 
-    const tick = () => {
-      if (activeMoveRef.current) {
-        const { dx, dy } = activeMoveRef.current;
-        const step = currentSpeedConfig.stepPct;
-        const dist = Math.round(step * 12);
-        onMove(dx * step, dy * step, dist);
-      } else if (autoWalk) {
+    const tick = (now: number) => {
+      const dt = Math.min(0.1, Math.max(0, (now - last) / 1000));
+      last = now;
+      let vec: { dx: number; dy: number } | null = activeMoveRef.current;
+      let scale = 1;
+      if (!vec && autoWalk) {
         // Subtle wander simulation
         const angle = Date.now() / 4000;
-        const dx = Math.cos(angle);
-        const dy = Math.sin(angle);
-        const step = currentSpeedConfig.stepPct * 0.7;
-        onMove(dx * step, dy * step, Math.round(step * 10));
+        vec = { dx: Math.cos(angle), dy: Math.sin(angle) };
+        scale = 0.7;
+      }
+      if (vec) {
+        const step = currentSpeedConfig.stepPct * scale * JOY_UNITS_PER_SEC * dt;
+        accDx += vec.dx * step;
+        accDy += vec.dy * step;
+        acc += dt;
+        if (acc >= FLUSH_SEC) {
+          const meters = Math.hypot(accDx, accDy) * JOY_METERS_PER_UNIT;
+          onMoveRef.current(accDx, accDy, meters);
+          acc = 0;
+          accDx = 0;
+          accDy = 0;
+        }
+      } else {
+        acc = 0;
+        accDx = 0;
+        accDy = 0;
       }
       animId = requestAnimationFrame(tick);
     };
 
     animId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(animId);
-  }, [currentSpeedConfig, autoWalk, onMove]);
+  }, [currentSpeedConfig, autoWalk]);
 
   // Keyboard Arrow Keys & WASD Event Listeners
   useEffect(() => {
@@ -315,7 +343,7 @@ export function AdventureJoystick({
   // Quick directional step on button tap
   function stepDirection(dx: number, dy: number) {
     const step = currentSpeedConfig.stepPct * 1.5;
-    onMove(dx * step, dy * step, Math.round(step * 15));
+    onMove(dx * step, dy * step, Math.round(step * JOY_METERS_PER_UNIT));
   }
 
   if (minimized) {

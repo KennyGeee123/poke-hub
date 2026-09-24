@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Sparkles, Zap, Target, Swords, X, CheckCircle, ExternalLink } from "lucide-react";
 import {
   type AdventureState,
@@ -8,6 +8,7 @@ import {
   attemptCapture,
 } from "@/lib/adventure-engine";
 import { animatedSpriteUrl } from "@/lib/sprites";
+import { addWildCatchToParty } from "@/lib/adventure-party";
 
 export function AdventureEncounterModal({
   creature,
@@ -45,39 +46,68 @@ export function AdventureEncounterModal({
     ["razz_berry", "nanab_berry", "pinap_berry", "golden_razz"] as CaptureItemId[]
   ).filter((b) => (adventureState.inventory.captureItems[b] || 0) > 0);
 
+  const [partyNote, setPartyNote] = useState<string | null>(null);
+  const stateRef = useRef(adventureState);
+  stateRef.current = adventureState;
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  useEffect(() => () => timersRef.current.forEach(clearTimeout), []);
+
+  // When the selected ball / berry runs out, fall back to one you still have
+  // (previously the empty ball stayed selected and every throw "escaped").
+  const outOfBalls = availableBalls.length === 0;
+  const ballsKey = availableBalls.join(",");
+  const berriesKey = availableBerries.join(",");
+  useEffect(() => {
+    const balls = ballsKey ? (ballsKey.split(",") as CaptureItemId[]) : [];
+    const berries = berriesKey ? (berriesKey.split(",") as CaptureItemId[]) : [];
+    if (!balls.includes(selectedBall) && balls[0]) setSelectedBall(balls[0]);
+    if (selectedBerry && !berries.includes(selectedBerry)) setSelectedBerry(undefined);
+  }, [ballsKey, berriesKey, selectedBall, selectedBerry]);
+
   function handleThrow() {
-    if (isThrowing || throwPhase !== "aiming") return;
+    if (isThrowing || throwPhase !== "aiming" || outOfBalls) return;
+    if ((stateRef.current.inventory.captureItems[selectedBall] || 0) <= 0) return;
     setIsThrowing(true);
     setThrowPhase("flying");
 
-    setTimeout(() => {
-      setThrowPhase("shaking");
-
+    timersRef.current.push(
       setTimeout(() => {
-        const res = attemptCapture(
-          adventureState,
-          creature.id,
-          selectedBall,
-          selectedBerry,
-          "great",
+        setThrowPhase("shaking");
+
+        timersRef.current.push(
+          setTimeout(() => {
+            const res = attemptCapture(
+              stateRef.current,
+              creature.id,
+              selectedBall,
+              selectedBerry,
+              "great",
+            );
+            if (res.success && res.rewards) {
+              setThrowPhase("caught");
+              setCaptureReward(res.rewards);
+              onStateUpdate(res.state);
+              addWildCatchToParty(creature.species, creature.level, creature.types)
+                .then(() => setPartyNote(`${creature.species} joined your Adventure party.`))
+                .catch((e) => {
+                  console.error(e);
+                  setPartyNote("Caught! (Saving it to your party failed — check your connection.)");
+                });
+            } else {
+              setThrowPhase("escaped");
+              onStateUpdate(res.state);
+              timersRef.current.push(setTimeout(() => setThrowPhase("aiming"), 1400));
+            }
+            setIsThrowing(false);
+          }, 1600),
         );
-        if (res.success && res.rewards) {
-          setThrowPhase("caught");
-          setCaptureReward(res.rewards);
-          onStateUpdate(res.state);
-        } else {
-          setThrowPhase("escaped");
-          onStateUpdate(res.state);
-          setTimeout(() => setThrowPhase("aiming"), 1400);
-        }
-        setIsThrowing(false);
-      }, 1600);
-    }, 800);
+      }, 800),
+    );
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/85 backdrop-blur-md">
-      <div className="relative w-full max-w-lg rounded-3xl bg-neutral-950 border border-cyan-500/40 shadow-2xl p-5 sm:p-7 flex flex-col items-center gap-4 text-center overflow-hidden">
+    <div className="fixed inset-0 z-50 flex justify-center overflow-y-auto p-3 sm:p-4 pb-[calc(var(--pv-tabbar-h,72px)+var(--pv-safe-b,0px)+16px)] bg-neutral-950/85 backdrop-blur-md">
+      <div className="relative my-auto w-full max-w-lg rounded-3xl bg-neutral-950 border border-cyan-500/40 shadow-2xl p-5 sm:p-7 flex flex-col items-center gap-4 text-center overflow-hidden">
         {/* Top Header Bar */}
         <div className="w-full flex items-center justify-between border-b border-neutral-800 pb-2.5">
           <div className="flex items-center gap-2">
@@ -132,7 +162,7 @@ export function AdventureEncounterModal({
         </div>
 
         {/* 3D Creature Arena Stage */}
-        <div className="relative w-full h-64 rounded-2xl bg-gradient-to-b from-cyan-950/30 via-neutral-900 to-neutral-950 border border-neutral-800/80 flex items-center justify-center overflow-hidden">
+        <div className="relative w-full h-44 sm:h-64 rounded-2xl bg-gradient-to-b from-cyan-950/30 via-neutral-900 to-neutral-950 border border-neutral-800/80 flex items-center justify-center overflow-hidden">
           {/* Floor Shadow Ring */}
           <div className="absolute bottom-6 w-44 h-12 rounded-full bg-cyan-500/15 filter blur-sm" />
 
@@ -213,6 +243,7 @@ export function AdventureEncounterModal({
                 <span>🌳</span> Dresden Park Nest Bonus: +50% Extra Candies Awarded!
               </span>
             )}
+            {partyNote && <span className="text-xs text-cyan-300 font-bold">🎒 {partyNote}</span>}
             {captureReward.rareCandyChance && (
               <span className="text-xs text-amber-300 font-bold">
                 ✨ Bonus: +1 Rare Candy Dropped!
@@ -272,18 +303,31 @@ export function AdventureEncounterModal({
               </div>
             </div>
 
+            {throwPhase === "escaped" && (
+              <div className="text-xs font-mono font-bold text-rose-300" role="status">
+                💢 {creature.species} broke free! Try again.
+              </div>
+            )}
+            {outOfBalls && (
+              <div className="text-xs font-mono text-amber-300" role="status">
+                You're out of Poké Balls — spin a landmark or visit the Shop for more.
+              </div>
+            )}
+
             {/* Throw Action */}
             <button
               type="button"
-              disabled={isThrowing}
+              disabled={isThrowing || outOfBalls || throwPhase !== "aiming"}
               onClick={handleThrow}
-              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:brightness-110 text-neutral-950 font-mono font-bold text-xs tracking-wider shadow-xl shadow-cyan-500/25 transition flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:brightness-110 text-neutral-950 font-mono font-bold text-xs tracking-wider shadow-xl shadow-cyan-500/25 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Target className="w-4 h-4" />
               <span>
                 {isThrowing
                   ? "THROWING..."
-                  : `THROW ${CAPTURE_ITEMS[selectedBall].name.toUpperCase()}`}
+                  : outOfBalls
+                    ? "NO POKÉ BALLS LEFT"
+                    : `THROW ${CAPTURE_ITEMS[selectedBall].name.toUpperCase()}`}
               </span>
             </button>
           </div>

@@ -464,8 +464,10 @@ export function AdventureWorldMap({
         if (mapStyle === "dark" && cartoKey) {
           url = `https://a.basemaps.cartocdn.com/dark_all/${zoom}/${tx}/${ty}@2x.png?api_key=${encodeURIComponent(cartoKey)}`;
         } else if (mapStyle === "dark") {
-          // Esri World Dark Gray Base — tile order is z/y/x (= zoom/ty/tx)
-          url = `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/${zoom}/${ty}/${tx}`;
+          // Esri's Dark Gray Canvas stops at z16 and returns "Map data not yet
+          // available" placeholders at our z17 walk zoom, so render the street
+          // map and darken it with a CSS filter instead (see tile <img> below).
+          url = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${zoom}/${ty}/${tx}`;
         } else {
           // Esri World Street Map — tile order is z/y/x (= zoom/ty/tx)
           url = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${zoom}/${ty}/${tx}`;
@@ -482,11 +484,20 @@ export function AdventureWorldMap({
     return tiles;
   }, [tileInfo, mapStyle]);
 
+  const hasCartoKey = !!(
+    (import.meta.env.VITE_CARTO_API_KEY as string | undefined)?.trim() ||
+    (import.meta.env.VITE_MAP_TILE_KEY as string | undefined)?.trim()
+  );
+  const darkTileFilter =
+    mapStyle === "dark" && !hasCartoKey
+      ? "invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9) saturate(0.55)"
+      : "contrast(1.25) brightness(0.95)";
+
   const isNight = timeOfDay === "night";
   const isSunset = timeOfDay === "sunset";
 
   return (
-    <div className="relative w-full h-[640px] sm:h-[720px] rounded-3xl overflow-hidden border border-neutral-800 bg-neutral-950 shadow-2xl select-none font-mono">
+    <div className="pv-adv-stage relative w-full rounded-3xl overflow-hidden border border-neutral-800 bg-neutral-950 shadow-2xl select-none font-mono">
       {/* Dynamic 2.5D Map Canvas Viewport */}
       <div
         onClick={handleMapClick}
@@ -503,13 +514,14 @@ export function AdventureWorldMap({
             imageRendering: walkSkin === "gba" ? "pixelated" : undefined,
           }}
         >
-          <div className="relative w-[768px] h-[768px]">
+          {/* One filter pass for the whole tile layer (per-tile filters cost ~25 passes/frame). */}
+          <div className="relative w-[768px] h-[768px]" style={{ filter: darkTileFilter }}>
             {tileGrid.map((t) => (
               <img
                 key={t.key}
                 src={t.url}
                 alt="Map Tile"
-                className="absolute w-[256px] h-[256px] object-cover pointer-events-none filter contrast-125 brightness-95"
+                className="absolute w-[256px] h-[256px] object-cover pointer-events-none"
                 style={{
                   left: `calc(50% + ${t.xOffset}px)`,
                   top: `calc(50% + ${t.yOffset}px)`,
@@ -857,7 +869,7 @@ export function AdventureWorldMap({
       {/* ───────────────────────────────────────────────────────────── */}
       {/* REAL-WORLD GPS & LOCATION STATUS HUD (TOP LEFT) */}
       {/* ───────────────────────────────────────────────────────────── */}
-      <div className="absolute top-4 left-4 z-40 flex flex-col items-start gap-1 pointer-events-auto">
+      <div className="absolute top-[4.25rem] left-3 sm:left-4 z-30 flex flex-col items-start gap-1 pointer-events-auto max-w-[55%]">
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-neutral-950/85 backdrop-blur-md border border-neutral-800 shadow-xl text-xs">
           <Radio
             className={`w-3.5 h-3.5 ${
@@ -887,7 +899,7 @@ export function AdventureWorldMap({
       {/* ───────────────────────────────────────────────────────────── */}
       {/* MAP CONTROLS & ENVIRONMENT SWITCHERS (TOP RIGHT) */}
       {/* ───────────────────────────────────────────────────────────── */}
-      <div className="absolute top-4 right-4 z-40 flex flex-col items-end gap-2">
+      <div className="absolute top-[4.25rem] right-3 sm:right-4 z-30 flex flex-col items-end gap-1.5 sm:gap-2">
         {/* Real GPS Toggle */}
         <button
           type="button"

@@ -87,9 +87,10 @@ export function AdventureHUD({
           <div className="relative w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 p-0.5 flex items-center justify-center shadow">
             <div className="w-full h-full rounded-[10px] bg-neutral-950 flex items-center justify-center overflow-hidden">
               <img
-                src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/1.png"
+                src="/adventure-assets/trainer-down.png"
                 alt="Trainer"
                 className="w-8 h-8 object-contain"
+                style={{ imageRendering: "pixelated" }}
               />
             </div>
             {/* Level Tag */}
