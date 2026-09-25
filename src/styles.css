@@ -8510,3 +8510,21 @@ body[data-pv-tab="adventure"] .pv-music-panel,
 .pv-app-shell .pv-greet-sub {
   color: rgba(244, 239, 228, 0.65) !important;
 }
+
+/* Vault stats: 2x2 on phones so Import/Export stay above the tab bar */
+@media (max-width: 640px) {
+  .pv-app-shell .pv-stat-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .pv-app-shell .pv-stat-card {
+    padding: 12px 12px 10px;
+  }
+  .pv-app-shell .pv-stat-val {
+    font-size: 28px;
+  }
+  .pv-app-shell .pv-greet {
+    padding: 14px 16px 4px;
+  }
+}
