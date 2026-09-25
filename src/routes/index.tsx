@@ -113,6 +113,12 @@ function Index() {
     if (detailId) window.scrollTo({ top: 0 });
   }, [detailId]);
   useEffect(() => {
+    document.body.dataset.pvTab = tab;
+    return () => {
+      delete document.body.dataset.pvTab;
+    };
+  }, [tab]);
+  useEffect(() => {
     const h = (e: Event) => {
       const t = (e as CustomEvent).detail as Tab;
       setDetailId(null);

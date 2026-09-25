@@ -8385,6 +8385,8 @@ body,
   bottom: calc(var(--pv-tabbar-h) + var(--pv-safe-b) + 70px) !important;
 }
 /* Hide the radio FAB over Adventure — it sits on the D-pad / More tab and covers party chips. */
+body[data-pv-tab="adventure"] .pv-music-fab,
+body[data-pv-tab="adventure"] .pv-music-panel,
 .pv-app-shell[data-tab="adventure"] .pv-music-fab,
 .pv-app-shell[data-tab="adventure"] .pv-music-panel {
   display: none !important;
