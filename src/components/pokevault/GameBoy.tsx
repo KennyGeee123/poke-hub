@@ -17,7 +17,7 @@ import { SpriteImg } from "./SpriteImg";
 import { hpPct } from "@/lib/battle";
 import { movesAtLevel, newlyLearned } from "@/lib/pokeapi-moves";
 import { CatchFx, type CatchPhase } from "./CatchFx";
-import { ARENA_CLIP, battleClipFor } from "@/lib/battle-cine";
+import { ARENA_CLIP, FX_VIDEOS_ENABLED, battleClipFor } from "@/lib/battle-cine";
 import { pressGbDpad, pressGbFace } from "@/lib/gb-face";
 
 type Scene = "menu" | "party" | "starter" | "battle" | "victory" | "defeat";
@@ -896,16 +896,18 @@ function BattleScreen({
   return (
     <div className="gb-page gb-battle">
       <div className={`gb-arena ${catchPhase ? `pv-catching-${catchPhase}` : ""}`}>
-        <video
-          className="gb-arena-vid"
-          src={ARENA_CLIP}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="none"
-        />
-        {atkClip && (
+        {FX_VIDEOS_ENABLED && (
+          <video
+            className="gb-arena-vid"
+            src={ARENA_CLIP}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="none"
+          />
+        )}
+        {FX_VIDEOS_ENABLED && atkClip && (
           <video key={atkClip} className="gb-atk-vid" src={atkClip} autoPlay muted playsInline />
         )}
         <div className="gb-bf">

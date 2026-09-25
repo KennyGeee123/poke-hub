@@ -776,7 +776,7 @@ export function AdventureWorldMap({
                 <img
                   src={animatedSpriteUrl(creature.species)}
                   alt={creature.species}
-                  className={`w-14 h-14 sm:w-16 sm:h-16 object-contain relative z-10 filter animate-bounce ${
+                  className={`w-14 h-14 sm:w-16 sm:h-16 object-contain relative z-10 filter animate-bounce [image-rendering:pixelated] ${
                     creature.isParkNest
                       ? "drop-shadow-[0_0_12px_rgba(16,185,129,0.9)]"
                       : "drop-shadow-[0_8px_12px_rgba(0,0,0,0.8)]"
@@ -1015,11 +1015,12 @@ export function AdventureWorldMap({
         <button
           type="button"
           onClick={() => setGodsEyeOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition shadow-xl bg-gradient-to-r from-amber-500 to-orange-600 text-neutral-950 border-amber-300 shadow-[0_0_18px_rgba(245,158,11,0.45)]"
+          className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-bold transition shadow-xl bg-gradient-to-r from-amber-500 to-orange-600 text-neutral-950 border-amber-300 shadow-[0_0_18px_rgba(245,158,11,0.45)]"
           title="God's Eye world atlas — teleport across regions"
         >
           <Eye className="w-3.5 h-3.5" />
-          <span>GOD&apos;S EYE</span>
+          <span className="hidden sm:inline">GOD&apos;S EYE</span>
+          <span className="sm:hidden sr-only">God&apos;s Eye</span>
         </button>
 
         {/* Recenter on GPS */}

@@ -23,6 +23,7 @@ import {
 } from "@/lib/battle";
 import { animatedSpriteUrl, staticSpriteUrl, spriteSlug } from "@/lib/sprites";
 import { MoveFx, type MoveFxData } from "./MoveFx";
+import { ARENA_CLIP, FX_VIDEOS_ENABLED } from "@/lib/battle-cine";
 
 /** Animated Pokémon sprite that floats above a TCG card. */
 function PokeSprite({
@@ -864,14 +865,9 @@ export function BattleView({
 
       <div className={`pv-board pv-arena${attackFlash ? ` flash-${attackFlash}` : ""}`}>
         <div className="pv-arena-bg" aria-hidden>
-          <video
-            className="pv-arena-vid"
-            src="/fx/battle-arena.mp4"
-            autoPlay
-            muted
-            loop
-            playsInline
-          />
+          {FX_VIDEOS_ENABLED && (
+            <video className="pv-arena-vid" src={ARENA_CLIP} autoPlay muted loop playsInline />
+          )}
           <div className="pv-arena-grid" />
           <div className="pv-arena-orb pv-arena-orb-top" />
           <div className="pv-arena-orb pv-arena-orb-bot" />

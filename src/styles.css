@@ -7010,7 +7010,7 @@ footer,
   font-family: "Bebas Neue", Impact, sans-serif;
   font-size: 18px;
   letter-spacing: 2px;
-  color: var(--navy);
+  color: #e8eef8;
   margin: 20px 0 12px;
 }
 
@@ -8366,6 +8366,80 @@ body,
   color: var(--t3, #64748b);
 }
 
+/* ===== Visual QA pack (2026-09-24) ===== */
+:root {
+  /* Real tabbar height is ~79px (52 min-height items + padding + safe area). */
+  --pv-tabbar-h: 84px;
+}
+.pv-app.pv-app-shell {
+  padding-bottom: calc(var(--pv-tabbar-h) + var(--pv-safe-b) + 28px);
+}
+.pv-music-fab {
+  bottom: calc(var(--pv-tabbar-h) + var(--pv-safe-b) + 14px) !important;
+  right: 14px !important;
+  z-index: 95 !important;
+  width: 48px !important;
+  height: 48px !important;
+}
+.pv-music-panel {
+  bottom: calc(var(--pv-tabbar-h) + var(--pv-safe-b) + 70px) !important;
+}
+/* Hide the radio FAB over Adventure — it sits on the D-pad / More tab and covers party chips. */
+.pv-app-shell[data-tab="adventure"] .pv-music-fab,
+.pv-app-shell[data-tab="adventure"] .pv-music-panel {
+  display: none !important;
+}
+.pv-music-fab-note {
+  position: relative;
+  z-index: 3;
+  font-size: 16px;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+/* Storage health chip is debug-y on phones; keep it for desktop footers. */
+@media (max-width: 640px) {
+  .pv-storage-chip {
+    display: none !important;
+  }
+  .pv-app-shell .pv-gb-footer {
+    padding: 10px 12px 12px;
+    font-size: 10px;
+  }
+}
+/* Landscape phone Adventure: reclaim vertical space. */
+@media (max-height: 480px) and (orientation: landscape) {
+  .pv-adv-stage {
+    height: clamp(220px, calc(100dvh - 96px), 420px) !important;
+  }
+  .pv-app-shell[data-tab="adventure"] .pv-hdr-actions .pv-hdr-val,
+  .pv-app-shell[data-tab="adventure"] .pv-gb-badge.pv-vb-on {
+    display: none;
+  }
+}
+/* Language pills: allow horizontal swipe without page scroll bleed. */
+.pv-app-shell .pv-lang-bar,
+.pv-app-shell .pv-print-lang {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  max-width: 100%;
+}
+.pv-app-shell .pv-lang-bar::-webkit-scrollbar,
+.pv-app-shell .pv-print-lang::-webkit-scrollbar {
+  display: none;
+}
+/* Pixel art sprites stay crisp when scaled. */
+.pv-adv-stage img[alt="Trainer"],
+.pv-adv-stage img[alt="Map Tile"] {
+  image-rendering: pixelated;
+}
+.gb-page img,
+.gb-arena img,
+.pv-adv-battle-overlay img {
+  image-rendering: pixelated;
+}
+
 /* Adventure stage: fill the space between the app header and the fixed bottom
    tab bar so the map, D-pad and battle controls never sit under the tabs. */
 .pv-adv-stage {
@@ -8393,4 +8467,22 @@ body,
       760px
     );
   }
+}
+
+.pv-adv-stage img[src*="pokemondb"],
+.pv-adv-stage img[src*="pokemonshowdown"],
+.pv-hd-arena img,
+.pv-adv-encounter img {
+  image-rendering: pixelated;
+}
+
+/* Login page: muted text was nearly invisible on cream */
+.pv-login .text-muted-foreground,
+.pv-login-card .text-muted-foreground {
+  color: #5a6478 !important;
+}
+.pv-login .text-muted-foreground a,
+.pv-login-card .text-muted-foreground a,
+.pv-login button.text-muted-foreground {
+  color: #3d4a63 !important;
 }

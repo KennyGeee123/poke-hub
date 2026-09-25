@@ -352,23 +352,10 @@ function MusicPlayerGate() {
           setMounted(true);
           setWantOpen(true);
         }}
-        style={{
-          position: "fixed",
-          right: 14,
-          bottom: 88,
-          zIndex: 90,
-          width: 44,
-          height: 44,
-          borderRadius: 999,
-          border: "1px solid rgba(226,181,58,.35)",
-          background: "rgba(18,26,43,.96)",
-          color: "#e2b53a",
-          fontSize: 18,
-          boxShadow: "0 8px 24px rgba(0,0,0,.4)",
-          cursor: "pointer",
-        }}
       >
-        ♪
+        <span className="pv-music-fab-note" aria-hidden>
+          ♪
+        </span>
       </button>
     );
   }

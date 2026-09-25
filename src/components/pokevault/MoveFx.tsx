@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { battleClipFor } from "@/lib/battle-cine";
+import { FX_VIDEOS_ENABLED, battleClipFor } from "@/lib/battle-cine";
 
 const CLASH_MOVES = /flamethrower|thunderbolt|solar beam|hydro pump|hyper beam/i;
 
@@ -174,7 +174,7 @@ export function MoveFx({ fx, onDone }: { fx: MoveFxData; onDone: () => void }) {
       style={{ "--fx-hue": kit.hue } as React.CSSProperties}
       aria-hidden
     >
-      {cineOk && (
+      {FX_VIDEOS_ENABLED && cineOk && (
         <video
           className="pv-fx-clash-vid"
           src={cine}

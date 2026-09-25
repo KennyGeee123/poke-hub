@@ -106,7 +106,7 @@ export function AdventureEncounterModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-center overflow-y-auto p-3 sm:p-4 pb-[calc(var(--pv-tabbar-h,72px)+var(--pv-safe-b,0px)+16px)] bg-neutral-950/85 backdrop-blur-md">
+    <div className="pv-adv-encounter fixed inset-0 z-50 flex justify-center overflow-y-auto p-3 sm:p-4 pb-[calc(var(--pv-tabbar-h,84px)+var(--pv-safe-b,0px)+16px)] bg-neutral-950/85 backdrop-blur-md">
       <div className="relative my-auto w-full max-w-lg rounded-3xl bg-neutral-950 border border-cyan-500/40 shadow-2xl p-5 sm:p-7 flex flex-col items-center gap-4 text-center overflow-hidden">
         {/* Top Header Bar */}
         <div className="w-full flex items-center justify-between border-b border-neutral-800 pb-2.5">

@@ -482,6 +482,8 @@ export function useVault() {
 }
 
 export function formatPrice(n: number): string {
-  if (!n || !isFinite(n)) return "—";
+  if (!isFinite(n) || n < 0) return "—";
+  // Show $0.00 for an empty vault — a lone em-dash looked like a broken orange line
+  // under the Bebas Neue stat style.
   return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }

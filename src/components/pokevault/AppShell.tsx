@@ -221,8 +221,7 @@ export function MoreSheet({ open, activeTab, isPro, onClose, onPick }: MoreSheet
             Support
           </a>
           <p className="pv-more-legal-note">
-            Unofficial fan app — not affiliated with Nintendo, The Pokémon Company, or Game
-            Freak.
+            Unofficial fan app — not affiliated with Nintendo, The Pokémon Company, or Game Freak.
           </p>
         </div>
       </div>
@@ -348,7 +347,7 @@ export function AppShell({
   contentKey,
 }: ShellProps) {
   return (
-    <div className="pv-app pv-app-shell">
+    <div className="pv-app pv-app-shell" data-tab={tab}>
       <FoilPointerTracker />
       <div className="pv-lab">
         {header}

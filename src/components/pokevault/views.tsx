@@ -513,6 +513,9 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
                 src={s.images!.symbol || s.images!.logo}
                 alt=""
                 title={s.name}
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = "none";
+                }}
               />
             ))}
         </div>
