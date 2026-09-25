@@ -8488,3 +8488,25 @@ body[data-pv-tab="adventure"] .pv-music-panel,
 .pv-login button.text-muted-foreground {
   color: #3d4a63 !important;
 }
+
+/* Vault toolbar: keep Export JSON visible (not tucked under Import/Add) */
+.pv-app-shell .pv-toolbar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 0 16px 18px;
+}
+.pv-app-shell .pv-toolbar .pv-tool-btn {
+  justify-content: center;
+  width: 100%;
+}
+.pv-app-shell .pv-toolbar .pv-tool-btn:last-child {
+  grid-column: 1 / -1;
+}
+/* Greeting title was navy-on-navy under the dark lab skin */
+.pv-app-shell .pv-greet-hi {
+  color: #f4efe4 !important;
+}
+.pv-app-shell .pv-greet-sub {
+  color: rgba(244, 239, 228, 0.65) !important;
+}
