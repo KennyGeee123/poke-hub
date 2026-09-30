@@ -1,14 +1,7 @@
 // Same-origin image proxy for card art so the Full Art Studio can read pixels
 // from a <canvas> without CORS taint. Allow-listed card CDNs only.
 import { createFileRoute } from "@tanstack/react-router";
-
-const ALLOWED = new Set([
-  "images.pokemontcg.io",
-  "assets.tcgdex.net",
-  "tcgplayer-cdn.tcgplayer.com",
-  "product-images.tcgplayer.com",
-  "images.scrydex.com",
-]);
+import { CARD_IMAGE_HOSTS as ALLOWED } from "@/lib/card-image-hosts";
 
 export const Route = createFileRoute("/api/public/card-image")({
   server: {
