@@ -37,13 +37,16 @@ export function CardDetail({
   cardId,
   onBack,
   onToast,
+  onMakeFullArt,
 }: {
   cardId: string;
   onBack: () => void;
   onToast: (m: string) => void;
+  onMakeFullArt?: (cardId: string) => void;
 }) {
   const [card, setCard] = useState<TCGCard | null>(() => stubCardFromId(cardId));
   const [loaded, setLoaded] = useState(false);
+  const [dataReady, setDataReady] = useState(false);
   const [degraded, setDegraded] = useState(false);
   const [imgSrc, setImgSrc] = useState("");
   const [selectedGrade, setSelectedGrade] = useState<CardGrade>("raw_nm");
@@ -66,6 +69,7 @@ export function CardDetail({
     const stub = stubCardFromId(cardId);
     setCard(stub);
     setLoaded(false);
+    setDataReady(false);
     setDegraded(false);
     setImgSrc(stub.images?.large || stub.images?.small || "");
     setSelectedGrade("raw_nm");
@@ -75,6 +79,7 @@ export function CardDetail({
       .then((c) => {
         if (!live || !c) return;
         setCard(c);
+        setDataReady(true);
         setDegraded(c.name === stub.name && c.name === cardId.replace(/-/g, " "));
       })
       .catch(() => {
@@ -305,6 +310,11 @@ export function CardDetail({
           )}
 
           <CardActions card={card} onAfterAction={onToast} />
+          {onMakeFullArt && (
+            <button type="button" className="pv-fa-make-btn" onClick={() => onMakeFullArt(card.id)}>
+              <span aria-hidden>✨</span> Make Full Art
+            </button>
+          )}
           <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
             <button
               onClick={() => setShowHoloModal(true)}
@@ -1130,8 +1140,8 @@ export function CardDetail({
             </div>
           )}
 
-          <PokedexPanel cardName={card.name} />
-          <BulbapediaPanel cardName={card.name} />
+          {dataReady && <PokedexPanel cardName={card.name} />}
+          {dataReady && <BulbapediaPanel cardName={card.name} />}
           <AltArtworksPanel card={card} />
           <PriceComparePanel
             query={`${card.name} ${card.set.name} ${card.number ?? ""}`.trim()}

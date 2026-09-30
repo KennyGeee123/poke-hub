@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { fallbackCardImages, hdImg } from "@/lib/card-images";
 import type { TCGCard, TCGSet } from "@/lib/pokemon-api";
 import {
@@ -24,6 +24,10 @@ import { EmptyState, ErrorState, SkeletonRows, withTimeout } from "./ui";
 import { searchChips, searchPlaceholder, usePrintLang } from "@/lib/print-lang";
 import { cardSearchScore, parseSearchQuery } from "@/lib/card-search";
 import { hydrateLivePrices, useLivePrice } from "@/lib/live-prices";
+
+const FullArtGallery = lazy(() =>
+  import("./FullArtStudio").then((m) => ({ default: m.FullArtGallery })),
+);
 
 type OnOpen = (id: string) => void;
 
@@ -1153,6 +1157,12 @@ export function VaultView({ onOpen }: { onOpen: OnOpen }) {
         <button className="pv-tool-btn" onClick={() => exportJSON(entries)}>
           ⤒ Export JSON
         </button>
+      </div>
+
+      <div className="pad" style={{ paddingTop: 0 }}>
+        <Suspense fallback={null}>
+          <FullArtGallery compact onToast={() => {}} />
+        </Suspense>
       </div>
 
       {entries.length === 0 ? (

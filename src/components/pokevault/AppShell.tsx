@@ -19,6 +19,7 @@ import {
   Mountain,
   Crown,
   ArrowLeftRight,
+  Sparkles,
   X,
 } from "lucide-react";
 
@@ -39,6 +40,7 @@ export type AppTab =
   | "adventure"
   | "pokedex"
   | "fairtrade"
+  | "fullart"
   | "more";
 
 export type PrimaryTabId = "discover" | "search" | "vault" | "market" | "more";
@@ -64,6 +66,7 @@ export const MORE_ITEMS: {
 }[] = [
   { id: "pokedex", label: "Pokédex", Icon: BookOpen },
   { id: "scan", label: "Scan", Icon: ScanLine },
+  { id: "fullart", label: "Full Art Studio", Icon: Sparkles },
   { id: "fairtrade", label: "Fair Trade", Icon: ArrowLeftRight, cluster: "trade" },
   { id: "sets", label: "Sets", Icon: Layers },
   { id: "wishlist", label: "Wishlist", Icon: Heart },

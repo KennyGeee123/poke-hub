@@ -57,6 +57,9 @@ const GameBoyView = lazy(() =>
 const FriendsView = lazy(() =>
   import("@/components/pokevault/Friends").then((m) => ({ default: m.FriendsView })),
 );
+const FullArtStudio = lazy(() =>
+  import("@/components/pokevault/FullArtStudio").then((m) => ({ default: m.FullArtStudio })),
+);
 const AdventureView = lazy(() =>
   import("@/components/pokevault/Adventure").then((m) => ({ default: m.AdventureView })),
 );
@@ -103,6 +106,7 @@ function Index() {
   const [tab, setTab] = useState<Tab>("discover");
   const [moreOpen, setMoreOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [fullArtCardId, setFullArtCardId] = useState<string | null>(null);
   const [setView, setSetView] = useState<TCGSet | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { totalValue } = useVault();
@@ -242,7 +246,15 @@ function Index() {
 
   const body = detailId ? (
     <LazyTab>
-      <CardDetail cardId={detailId} onBack={() => setDetailId(null)} onToast={show} />
+      <CardDetail
+        cardId={detailId}
+        onBack={() => setDetailId(null)}
+        onToast={show}
+        onMakeFullArt={(id) => {
+          setFullArtCardId(id);
+          goTab("fullart");
+        }}
+      />
     </LazyTab>
   ) : setView ? (
     <LazyTab>
@@ -315,6 +327,15 @@ function Index() {
       {tab === "buy" && (
         <LazyTab>
           <BuyView onOpen={openCard} />
+        </LazyTab>
+      )}
+      {tab === "fullart" && (
+        <LazyTab>
+          <FullArtStudio
+            key={fullArtCardId ?? "pick"}
+            initialCardId={fullArtCardId}
+            onToast={show}
+          />
         </LazyTab>
       )}
       {tab === "pricing" && (
