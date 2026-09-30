@@ -134,6 +134,7 @@ export function AdventureJoystick({
   const [autoWalk, setAutoWalk] = useState(false);
   const [minimized, setMinimized] = useState(false);
   const [hotspotMenuOpen, setHotspotMenuOpen] = useState(false);
+  const [speedOpen, setSpeedOpen] = useState(false);
 
   const thumbRef = useRef<HTMLDivElement>(null);
   const baseRef = useRef<HTMLDivElement>(null);
@@ -365,53 +366,71 @@ export function AdventureJoystick({
   return (
     <div className="absolute bottom-20 left-3 sm:left-6 z-40 flex flex-col items-start gap-2 select-none">
       {/* Mini Bar: Speed Controls & Hotspot Menu */}
-      <div className="flex items-center gap-1.5 p-1.5 rounded-xl bg-neutral-950/85 backdrop-blur-md border border-neutral-800/80 shadow-2xl text-xs font-mono">
-        {/* Speed Selector */}
-        <div className="flex items-center bg-neutral-900 rounded-lg p-0.5 border border-neutral-800">
-          {(["walk", "jog", "bike", "drive"] as MoveSpeed[]).map((s) => {
-            const Icon = SPEED_CONFIG[s].icon;
-            const active = speed === s;
-            return (
-              <button
-                key={s}
-                type="button"
-                onClick={() => handleSpeedSelect(s)}
-                className={`p-1.5 rounded-md transition flex items-center justify-center ${
-                  active
-                    ? "bg-cyan-500 text-neutral-950 font-bold shadow-md shadow-cyan-500/30"
-                    : "text-neutral-400 hover:text-white"
-                }`}
-                title={`${SPEED_CONFIG[s].label} (${SPEED_CONFIG[s].kmh} km/h) [Key ${
-                  s === "walk" ? 1 : s === "jog" ? 2 : s === "bike" ? 3 : 4
-                }]`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Auto Walk Toggle */}
-        <button
-          type="button"
-          onClick={() => setAutoWalk(!autoWalk)}
-          className={`px-2 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1 ${
-            autoWalk
-              ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse"
-              : "bg-neutral-900 text-neutral-400 hover:text-white border border-neutral-800"
-          }`}
-          title="Automatic Wander / Patrol"
-        >
-          <span>AUTO</span>
-        </button>
+      <div className="pv-lw-minibar relative flex items-center gap-1.5 p-1.5 rounded-2xl bg-neutral-950/85 backdrop-blur-md border border-neutral-800/80 shadow-2xl text-xs font-mono">
+        {/* Speed: one compact chip; tap to reveal walk / run / bike / drive + auto */}
+        {(() => {
+          const Cur = SPEED_CONFIG[speed].icon;
+          return (
+            <button
+              type="button"
+              onClick={() => setSpeedOpen((o) => !o)}
+              className={`pv-lw-mini ${speedOpen ? "on" : ""} ${autoWalk ? "auto" : ""}`}
+              aria-expanded={speedOpen}
+              aria-label={`Movement: ${SPEED_CONFIG[speed].label}${autoWalk ? ", auto-walk on" : ""}`}
+              title="Movement mode"
+            >
+              <Cur className="w-4 h-4" />
+              <span className="hidden min-[380px]:inline">{SPEED_CONFIG[speed].label}</span>
+              {autoWalk && <span className="pv-lw-auto-dot" aria-hidden />}
+              <ChevronDown className={`w-3 h-3 transition ${speedOpen ? "rotate-180" : ""}`} />
+            </button>
+          );
+        })()}
+        {speedOpen && (
+          <div className="pv-lw-speed-pop" role="group" aria-label="Movement mode">
+            {(["walk", "jog", "bike", "drive"] as MoveSpeed[]).map((s) => {
+              const Icon = SPEED_CONFIG[s].icon;
+              const active = speed === s;
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => {
+                    handleSpeedSelect(s);
+                    setSpeedOpen(false);
+                  }}
+                  className={active ? "on" : ""}
+                  aria-pressed={active}
+                  title={`${SPEED_CONFIG[s].label} (${SPEED_CONFIG[s].kmh} km/h) [Key ${
+                    s === "walk" ? 1 : s === "jog" ? 2 : s === "bike" ? 3 : 4
+                  }]`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{SPEED_CONFIG[s].label}</span>
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              onClick={() => setAutoWalk(!autoWalk)}
+              className={autoWalk ? "on auto" : ""}
+              aria-pressed={autoWalk}
+              title="Automatic Wander / Patrol"
+            >
+              <span>AUTO</span>
+            </button>
+          </div>
+        )}
 
         {/* Teleport Hotspots Dropdown */}
         <div className="relative">
           <button
             type="button"
             onClick={() => setHotspotMenuOpen(!hotspotMenuOpen)}
-            className="px-2 py-1 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-neutral-800 flex items-center gap-1 text-[11px]"
+            className="pv-lw-mini"
             title="Teleport Hotspots"
+            aria-label="Warp to a hotspot"
+            aria-expanded={hotspotMenuOpen}
           >
             <MapPin className="w-3 h-3 text-amber-400" />
             <span className="hidden sm:inline">WARP</span>
@@ -458,8 +477,9 @@ export function AdventureJoystick({
         <button
           type="button"
           onClick={() => setMinimized(true)}
-          className="p-1 rounded-lg text-neutral-400 hover:text-white"
+          className="pv-lw-mini icon"
           title="Minimize Joystick"
+          aria-label="Minimize joystick"
         >
           <Minimize2 className="w-3.5 h-3.5" />
         </button>

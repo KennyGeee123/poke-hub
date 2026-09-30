@@ -16,6 +16,8 @@ import {
   ShoppingBag,
   Radio,
   Footprints,
+  SlidersHorizontal,
+  X,
 } from "lucide-react";
 import {
   type AdventureState,
@@ -169,6 +171,7 @@ export function AdventureWorldMap({
   const [weather, setWeather] = useState<WeatherType>(adventureState.world.weather);
   const [recentlyPoppedId, setRecentlyPoppedId] = useState<string | null>(null);
   const [godsEyeOpen, setGodsEyeOpen] = useState(false);
+  const [controlsOpen, setControlsOpen] = useState(false);
   const [walkSkin, setWalkSkin] = useState<"go" | "gba">(adventureState.world.walkSkin || "go");
 
   const walkTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -867,171 +870,163 @@ export function AdventureWorldMap({
       </div>
 
       {/* ───────────────────────────────────────────────────────────── */}
-      {/* REAL-WORLD GPS & LOCATION STATUS HUD (TOP LEFT) */}
+      {/* HUD: compact status chip (left) + icon rail (right). Everything else */}
+      {/* (GPS, map style, time of day, weather) lives in one collapsible panel. */}
       {/* ───────────────────────────────────────────────────────────── */}
-      <div className="absolute top-[4.25rem] left-3 sm:left-4 z-30 flex flex-col items-start gap-1 pointer-events-auto max-w-[55%]">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-neutral-950/85 backdrop-blur-md border border-neutral-800 shadow-xl text-xs">
+      <div className="absolute top-[4.25rem] left-3 sm:left-4 z-30 pointer-events-auto max-w-[62%]">
+        <button
+          type="button"
+          onClick={() => setControlsOpen((o) => !o)}
+          className="pv-lw-chip"
+          aria-label="Map status — open map controls"
+        >
           <Radio
-            className={`w-3.5 h-3.5 ${
+            className={`w-3.5 h-3.5 shrink-0 ${
               useLiveGps ? "text-emerald-400 animate-pulse" : "text-cyan-400"
             }`}
           />
-          <div className="flex flex-col">
-            <span className="font-bold text-white text-[11px] leading-tight">
-              {useLiveGps
-                ? "🛰️ LIVE GPS · WALK THE WORLD"
-                : isWalking
-                  ? walkSkin === "gba"
-                    ? "🚶 GBA MAP · CATCH RANGE 45m"
-                    : "🚶 GO MAP · CATCH RANGE 45m"
-                  : walkSkin === "gba"
-                    ? "🎮 GBA OVERWORLD ON MAP"
-                    : "🌍 POKÉMON GO MAP"}
+          <span className="flex flex-col min-w-0 text-left">
+            <span className="pv-lw-chip-title">
+              {useLiveGps ? "LIVE GPS" : walkSkin === "gba" ? "GBA OVERWORLD" : "POKÉMON GO MAP"}
+              {isWalking ? " · 45m range" : ""}
             </span>
-            <span className="text-[9px] text-neutral-400">
-              {playerGeo.lat.toFixed(4)}, {playerGeo.lng.toFixed(4)} ·{" "}
-              {adventureState.world.biome || "Walk plane"}
+            <span className="pv-lw-chip-sub">
+              {adventureState.world.biome || "Walk plane"} · {timeOfDay} · {weather}
             </span>
-          </div>
-        </div>
+          </span>
+        </button>
       </div>
 
-      {/* ───────────────────────────────────────────────────────────── */}
-      {/* MAP CONTROLS & ENVIRONMENT SWITCHERS (TOP RIGHT) */}
-      {/* ───────────────────────────────────────────────────────────── */}
-      <div className="absolute top-[4.25rem] right-3 sm:right-4 z-30 flex flex-col items-end gap-1.5 sm:gap-2">
-        {/* Real GPS Toggle */}
+      <div
+        className={`absolute top-[4.25rem] right-3 sm:right-4 ${controlsOpen ? "z-50" : "z-30"} flex flex-col items-end gap-2`}
+      >
         <button
           type="button"
-          onClick={() => setUseLiveGps(!useLiveGps)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition shadow-xl ${
-            useLiveGps
-              ? "bg-emerald-500 text-neutral-950 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.5)]"
-              : "bg-neutral-950/80 backdrop-blur-md border-neutral-800 text-neutral-300 hover:text-white"
-          }`}
-          title="Toggle Real Device Geolocation"
+          onClick={() => setControlsOpen((o) => !o)}
+          className={`pv-lw-rail-btn ${controlsOpen ? "on" : ""}`}
+          aria-label="Map controls"
+          aria-expanded={controlsOpen}
+          title="Map controls: GPS, map style, time & weather"
         >
-          <Radio className="w-3.5 h-3.5" />
-          <span>{useLiveGps ? "GPS ON" : "USE MY GPS"}</span>
+          {controlsOpen ? <X className="w-5 h-5" /> : <SlidersHorizontal className="w-5 h-5" />}
         </button>
-
-        {/* Map Tile Style Toggle */}
-        <div className="flex items-center p-1 rounded-xl bg-neutral-950/80 backdrop-blur-md border border-neutral-800 text-xs">
-          <button
-            type="button"
-            onClick={() => setMapStyle("dark")}
-            className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
-              mapStyle === "dark"
-                ? "bg-cyan-500 text-neutral-950"
-                : "text-neutral-400 hover:text-white"
-            }`}
-          >
-            DARK TILES
-          </button>
-          <button
-            type="button"
-            onClick={() => setMapStyle("streets")}
-            className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
-              mapStyle === "streets"
-                ? "bg-cyan-500 text-neutral-950"
-                : "text-neutral-400 hover:text-white"
-            }`}
-          >
-            STREETS
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              const next = walkSkin === "gba" ? "go" : "gba";
-              setWalkSkin(next);
-              if (onStateUpdate) {
-                const s = cloneAdventureState(adventureState);
-                s.world.walkSkin = next;
-                saveAdventureState(s);
-                onStateUpdate(s);
-              }
-            }}
-            className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
-              walkSkin === "gba"
-                ? "bg-amber-400 text-neutral-950"
-                : "text-neutral-400 hover:text-white"
-            }`}
-          >
-            GBA MAP
-          </button>
-        </div>
-
-        {/* Time of Day Toggle */}
-        <div className="flex items-center p-1 rounded-xl bg-neutral-950/80 backdrop-blur-md border border-neutral-800 text-xs">
-          {(["day", "sunset", "night"] as TimeOfDay[]).map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTimeOfDay(t)}
-              className={`p-1.5 rounded-lg transition ${
-                timeOfDay === t
-                  ? "bg-cyan-500 text-neutral-950 font-bold shadow"
-                  : "text-neutral-400 hover:text-white"
-              }`}
-              title={t.toUpperCase()}
-            >
-              {t === "day" ? (
-                <Sun className="w-3.5 h-3.5" />
-              ) : t === "sunset" ? (
-                <Sparkles className="w-3.5 h-3.5" />
-              ) : (
-                <Moon className="w-3.5 h-3.5" />
-              )}
-            </button>
-          ))}
-        </div>
-
-        {/* Weather Selector */}
-        <div className="flex items-center p-1 rounded-xl bg-neutral-950/80 backdrop-blur-md border border-neutral-800 text-xs">
-          {(["clear", "rain", "storm"] as WeatherType[]).map((w) => (
-            <button
-              key={w}
-              type="button"
-              onClick={() => setWeather(w)}
-              className={`p-1.5 rounded-lg transition ${
-                weather === w
-                  ? "bg-cyan-500 text-neutral-950 font-bold shadow"
-                  : "text-neutral-400 hover:text-white"
-              }`}
-              title={w.toUpperCase()}
-            >
-              {w === "clear" ? (
-                <Sun className="w-3.5 h-3.5" />
-              ) : w === "rain" ? (
-                <CloudRain className="w-3.5 h-3.5" />
-              ) : (
-                <Zap className="w-3.5 h-3.5" />
-              )}
-            </button>
-          ))}
-        </div>
-
-        {/* God's Eye — huge world atlas */}
         <button
           type="button"
           onClick={() => setGodsEyeOpen(true)}
-          className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-bold transition shadow-xl bg-gradient-to-r from-amber-500 to-orange-600 text-neutral-950 border-amber-300 shadow-[0_0_18px_rgba(245,158,11,0.45)]"
+          className="pv-lw-rail-btn gold"
+          aria-label="God's Eye world atlas"
           title="God's Eye world atlas — teleport across regions"
         >
-          <Eye className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">GOD&apos;S EYE</span>
-          <span className="sm:hidden sr-only">God&apos;s Eye</span>
+          <Eye className="w-5 h-5" />
         </button>
-
-        {/* Recenter on GPS */}
         <button
           type="button"
           onClick={handleRecenterGps}
-          className="p-2 rounded-xl bg-neutral-950/80 backdrop-blur-md border border-neutral-800 text-neutral-300 hover:text-cyan-400 transition shadow"
+          className="pv-lw-rail-btn"
+          aria-label="Recenter map on my location"
           title="Recenter Map on Real Location"
         >
-          <LocateFixed className="w-4 h-4" />
+          <LocateFixed className="w-5 h-5" />
         </button>
+
+        {controlsOpen && (
+          <div className="pv-lw-panel" role="dialog" aria-label="Map controls">
+            <div className="pv-lw-panel-sec">Location</div>
+            <button
+              type="button"
+              onClick={() => setUseLiveGps(!useLiveGps)}
+              className={`pv-lw-toggle ${useLiveGps ? "on" : ""}`}
+              aria-pressed={useLiveGps}
+              title="Toggle Real Device Geolocation"
+            >
+              <Radio className="w-4 h-4" />
+              <span className="flex-1 text-left">{useLiveGps ? "Live GPS on" : "Use my GPS"}</span>
+              <span className="pv-lw-switch" aria-hidden />
+            </button>
+            <div className="pv-lw-coords">
+              {playerGeo.lat.toFixed(4)}, {playerGeo.lng.toFixed(4)}
+            </div>
+
+            <div className="pv-lw-panel-sec">Map style</div>
+            <div className="pv-lw-seg" role="group" aria-label="Map style">
+              <button
+                type="button"
+                onClick={() => setMapStyle("dark")}
+                className={mapStyle === "dark" ? "on" : ""}
+              >
+                Dark
+              </button>
+              <button
+                type="button"
+                onClick={() => setMapStyle("streets")}
+                className={mapStyle === "streets" ? "on" : ""}
+              >
+                Streets
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const next = walkSkin === "gba" ? "go" : "gba";
+                  setWalkSkin(next);
+                  if (onStateUpdate) {
+                    const st = cloneAdventureState(adventureState);
+                    st.world.walkSkin = next;
+                    saveAdventureState(st);
+                    onStateUpdate(st);
+                  }
+                }}
+                className={walkSkin === "gba" ? "on gold" : ""}
+                aria-pressed={walkSkin === "gba"}
+              >
+                GBA
+              </button>
+            </div>
+
+            <div className="pv-lw-panel-sec">Time of day</div>
+            <div className="pv-lw-seg" role="group" aria-label="Time of day">
+              {(["day", "sunset", "night"] as TimeOfDay[]).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTimeOfDay(t)}
+                  className={timeOfDay === t ? "on" : ""}
+                  title={t.toUpperCase()}
+                >
+                  {t === "day" ? (
+                    <Sun className="w-4 h-4" />
+                  ) : t === "sunset" ? (
+                    <Sparkles className="w-4 h-4" />
+                  ) : (
+                    <Moon className="w-4 h-4" />
+                  )}
+                  <span className="capitalize">{t}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="pv-lw-panel-sec">Weather</div>
+            <div className="pv-lw-seg" role="group" aria-label="Weather">
+              {(["clear", "rain", "storm"] as WeatherType[]).map((w) => (
+                <button
+                  key={w}
+                  type="button"
+                  onClick={() => setWeather(w)}
+                  className={weather === w ? "on" : ""}
+                  title={w.toUpperCase()}
+                >
+                  {w === "clear" ? (
+                    <Sun className="w-4 h-4" />
+                  ) : w === "rain" ? (
+                    <CloudRain className="w-4 h-4" />
+                  ) : (
+                    <Zap className="w-4 h-4" />
+                  )}
+                  <span className="capitalize">{w}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Basemap attribution (Esri courtesy) */}
