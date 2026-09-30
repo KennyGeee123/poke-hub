@@ -17,6 +17,7 @@ import { Route as ApiPublicTcgRouteImport } from './routes/api/public/tcg'
 import { Route as ApiPublicPricesRouteImport } from './routes/api/public/prices'
 import { Route as ApiPublicPokeRadioRouteImport } from './routes/api/public/poke-radio'
 import { Route as ApiPublicMcpRouteImport } from './routes/api/public/mcp'
+import { Route as ApiPublicFullartAiRouteImport } from './routes/api/public/fullart-ai'
 import { Route as ApiPublicEbaySoldRouteImport } from './routes/api/public/ebay-sold'
 import { Route as ApiPublicCardPricesRouteImport } from './routes/api/public/card-prices'
 import { Route as ApiPublicCardImageRouteImport } from './routes/api/public/card-image'
@@ -63,6 +64,11 @@ const ApiPublicMcpRoute = ApiPublicMcpRouteImport.update({
   path: '/api/public/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicFullartAiRoute = ApiPublicFullartAiRouteImport.update({
+  id: '/api/public/fullart-ai',
+  path: '/api/public/fullart-ai',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicEbaySoldRoute = ApiPublicEbaySoldRouteImport.update({
   id: '/api/public/ebay-sold',
   path: '/api/public/ebay-sold',
@@ -97,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/api/public/card-image': typeof ApiPublicCardImageRoute
   '/api/public/card-prices': typeof ApiPublicCardPricesRoute
   '/api/public/ebay-sold': typeof ApiPublicEbaySoldRoute
+  '/api/public/fullart-ai': typeof ApiPublicFullartAiRoute
   '/api/public/mcp': typeof ApiPublicMcpRoute
   '/api/public/poke-radio': typeof ApiPublicPokeRadioRoute
   '/api/public/prices': typeof ApiPublicPricesRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/api/public/card-image': typeof ApiPublicCardImageRoute
   '/api/public/card-prices': typeof ApiPublicCardPricesRoute
   '/api/public/ebay-sold': typeof ApiPublicEbaySoldRoute
+  '/api/public/fullart-ai': typeof ApiPublicFullartAiRoute
   '/api/public/mcp': typeof ApiPublicMcpRoute
   '/api/public/poke-radio': typeof ApiPublicPokeRadioRoute
   '/api/public/prices': typeof ApiPublicPricesRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/api/public/card-image': typeof ApiPublicCardImageRoute
   '/api/public/card-prices': typeof ApiPublicCardPricesRoute
   '/api/public/ebay-sold': typeof ApiPublicEbaySoldRoute
+  '/api/public/fullart-ai': typeof ApiPublicFullartAiRoute
   '/api/public/mcp': typeof ApiPublicMcpRoute
   '/api/public/poke-radio': typeof ApiPublicPokeRadioRoute
   '/api/public/prices': typeof ApiPublicPricesRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/api/public/card-image'
     | '/api/public/card-prices'
     | '/api/public/ebay-sold'
+    | '/api/public/fullart-ai'
     | '/api/public/mcp'
     | '/api/public/poke-radio'
     | '/api/public/prices'
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/api/public/card-image'
     | '/api/public/card-prices'
     | '/api/public/ebay-sold'
+    | '/api/public/fullart-ai'
     | '/api/public/mcp'
     | '/api/public/poke-radio'
     | '/api/public/prices'
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/api/public/card-image'
     | '/api/public/card-prices'
     | '/api/public/ebay-sold'
+    | '/api/public/fullart-ai'
     | '/api/public/mcp'
     | '/api/public/poke-radio'
     | '/api/public/prices'
@@ -191,6 +203,7 @@ export interface RootRouteChildren {
   ApiPublicCardImageRoute: typeof ApiPublicCardImageRoute
   ApiPublicCardPricesRoute: typeof ApiPublicCardPricesRoute
   ApiPublicEbaySoldRoute: typeof ApiPublicEbaySoldRoute
+  ApiPublicFullartAiRoute: typeof ApiPublicFullartAiRoute
   ApiPublicMcpRoute: typeof ApiPublicMcpRoute
   ApiPublicPokeRadioRoute: typeof ApiPublicPokeRadioRoute
   ApiPublicPricesRoute: typeof ApiPublicPricesRoute
@@ -257,6 +270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicMcpRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/fullart-ai': {
+      id: '/api/public/fullart-ai'
+      path: '/api/public/fullart-ai'
+      fullPath: '/api/public/fullart-ai'
+      preLoaderRoute: typeof ApiPublicFullartAiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/ebay-sold': {
       id: '/api/public/ebay-sold'
       path: '/api/public/ebay-sold'
@@ -303,6 +323,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCardImageRoute: ApiPublicCardImageRoute,
   ApiPublicCardPricesRoute: ApiPublicCardPricesRoute,
   ApiPublicEbaySoldRoute: ApiPublicEbaySoldRoute,
+  ApiPublicFullartAiRoute: ApiPublicFullartAiRoute,
   ApiPublicMcpRoute: ApiPublicMcpRoute,
   ApiPublicPokeRadioRoute: ApiPublicPokeRadioRoute,
   ApiPublicPricesRoute: ApiPublicPricesRoute,
