@@ -17,9 +17,23 @@ import {
   type FullArtRecord,
   type FullArtStyle,
 } from "@/lib/fullart";
+import {
+  AI_PAINT_NOTES,
+  getAiPaintStatus,
+  paintWithAi,
+  type AiPaintStatus,
+} from "@/lib/fullart-ai";
+import { AI_ART_STYLES, AI_ART_STYLE_LABELS, type AiArtStyle } from "@/lib/fullart-prompt";
 import { EmptyState, SkeletonCards } from "./ui";
 
 const STYLES: FullArtStyle[] = ["holo", "rainbow", "gold", "alt"];
+const AI_PREF = "pv-fa-ai";
+const AI_STYLE_HINTS: Record<AiArtStyle, string> = {
+  faithful: "Same art, painted past the frame",
+  storybook: "Painterly scene, SIR-style",
+  chibi: "Cute, rounded, pastel",
+  neon: "Glowing synthwave night",
+};
 
 export function FullArtStudio({
   initialCardId,
@@ -37,6 +51,78 @@ export function FullArtStudio({
   const [saving, setSaving] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tiltRef = useRef<HTMLDivElement>(null);
+  // AI paint (Nano Banana). Off by default; falls back to the compositor on any failure.
+  const [aiOn, setAiOn] = useState(false);
+  const [aiStyle, setAiStyle] = useState<AiArtStyle>("faithful");
+  const [aiStatus, setAiStatus] = useState<AiPaintStatus | null>(null);
+  const [aiArt, setAiArt] = useState<HTMLImageElement | null>(null);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiNote, setAiNote] = useState<string | null>(null);
+  const aiReq = useRef(0);
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(AI_PREF) === "1") setAiOn(true);
+    } catch {
+      /* private mode */
+    }
+  }, []);
+  useEffect(() => {
+    if (!aiOn) return;
+    let alive = true;
+    getAiPaintStatus().then((st) => {
+      if (!alive) return;
+      setAiStatus(st);
+      if (!st.enabled)
+        setAiNote(st.reason === "no_key" ? AI_PAINT_NOTES.no_key : AI_PAINT_NOTES.offline);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [aiOn]);
+  // AI art is specific to card + finish + art style.
+  useEffect(() => {
+    aiReq.current++;
+    setAiArt(null);
+    setAiBusy(false);
+  }, [card?.id, style, aiStyle]);
+
+  const toggleAi = () => {
+    const next = !aiOn;
+    setAiOn(next);
+    if (!next) setAiNote(null);
+    try {
+      localStorage.setItem(AI_PREF, next ? "1" : "0");
+    } catch {
+      /* private mode */
+    }
+  };
+  const onPaint = async () => {
+    if (!card || !img) return;
+    const st = aiStatus ?? (await getAiPaintStatus());
+    setAiStatus(st);
+    if (!st.enabled) {
+      setAiNote(AI_PAINT_NOTES.no_key);
+      return;
+    }
+    const id = ++aiReq.current;
+    setAiBusy(true);
+    setAiNote(null);
+    const res = await paintWithAi(card, img, style, aiStyle);
+    if (id !== aiReq.current) return;
+    setAiBusy(false);
+    if (res.ok) {
+      setAiArt(res.img);
+      if (!res.cached) void getAiPaintStatus(true).then(setAiStatus);
+      onToast(res.cached ? "AI paint loaded from this device" : "Painted with Nano Banana");
+    } else {
+      setAiArt(null);
+      setAiNote(res.message);
+      if (res.error === "no_key") setAiStatus({ ...st, enabled: false, reason: "no_key" });
+    }
+  };
+  const aiEnabled = !!aiStatus?.enabled;
+  const showAi = aiOn && !!aiArt;
 
   const pick = useCallback(async (c: TCGCard) => {
     setCard(c);
@@ -97,12 +183,16 @@ export function FullArtStudio({
   useEffect(() => {
     if (!img || !card || !canvasRef.current) return;
     try {
-      renderFullArt(canvasRef.current, img, card, { style, frame });
+      renderFullArt(canvasRef.current, img, card, {
+        style,
+        frame,
+        aiArt: showAi ? aiArt : null,
+      });
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Render failed");
       setStatus("error");
     }
-  }, [img, card, style, frame]);
+  }, [img, card, style, frame, showAi, aiArt]);
 
   const onTilt = (e: React.PointerEvent) => {
     const el = tiltRef.current;
@@ -178,6 +268,17 @@ export function FullArtStudio({
                 style={{ opacity: status === "ready" ? 1 : 0 }}
               />
               {status === "ready" && <div className="pv-fa-shine" aria-hidden />}
+              {status === "ready" && showAi && (
+                <span className="pv-fa-aibadge">
+                  ✨ AI painted · {AI_ART_STYLE_LABELS[aiStyle]}
+                </span>
+              )}
+              {status === "ready" && aiBusy && (
+                <div className="pv-fa-aibusy" role="status">
+                  <span className="pv-fa-aispin" aria-hidden />
+                  Painting with Nano Banana…
+                </div>
+              )}
               {status === "loading" && (
                 <div className="pv-fa-loading" role="status">
                   <div className="pv-skel-block" style={{ position: "absolute", inset: 0 }} />
@@ -237,6 +338,61 @@ export function FullArtStudio({
               <span className="pv-lw-switch" aria-hidden />
             </button>
 
+            <button
+              type="button"
+              className={`pv-fa-toggle pv-fa-aitoggle ${aiOn ? "on" : ""}`}
+              aria-pressed={aiOn}
+              onClick={toggleAi}
+            >
+              <span className="flex-1 text-left">
+                <strong>AI paint (Nano Banana)</strong>
+                <em>Google’s image model paints the art past the frame</em>
+              </span>
+              <span className="pv-lw-switch" aria-hidden />
+            </button>
+
+            {aiOn && (
+              <div className="pv-fa-ai">
+                <div className="pv-fa-sec">Art style</div>
+                <div className="pv-fa-aistyles" role="radiogroup" aria-label="AI art style">
+                  {AI_ART_STYLES.map((a) => (
+                    <button
+                      key={a}
+                      type="button"
+                      role="radio"
+                      aria-checked={aiStyle === a}
+                      className={`pv-fa-aistyle a-${a} ${aiStyle === a ? "on" : ""}`}
+                      onClick={() => setAiStyle(a)}
+                    >
+                      <strong>{AI_ART_STYLE_LABELS[a]}</strong>
+                      <em>{AI_STYLE_HINTS[a]}</em>
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className="pv-btn pv-btn-fill pv-fa-paint"
+                  disabled={status !== "ready" || aiBusy || (aiStatus !== null && !aiEnabled)}
+                  onClick={onPaint}
+                >
+                  {aiBusy ? "Painting…" : showAi ? "✨ Repaint with AI" : "✨ Paint with AI"}
+                </button>
+                {aiNote ? (
+                  <p className="pv-fa-ainote" role="status">
+                    {aiNote}
+                  </p>
+                ) : (
+                  aiEnabled &&
+                  typeof aiStatus?.remaining === "number" && (
+                    <p className="pv-fa-ainote soft">
+                      {aiStatus.remaining} of {aiStatus.dailyLimit} AI paints left today · frame,
+                      text and the fan-made label are still added on your device.
+                    </p>
+                  )
+                )}
+              </div>
+            )}
+
             <div className="pv-fa-actions">
               <button
                 type="button"
@@ -256,8 +412,10 @@ export function FullArtStudio({
               </button>
             </div>
             <p className="pv-fa-how">
-              How it works: colour-sampled backdrop, blurred art bleed and mirrored edge extension,
-              blended with feathered seams. It all runs on your device.
+              How it works: by default a colour-sampled backdrop, blurred art bleed and mirrored
+              edge extension are blended on your device. With AI paint on, only the card’s art
+              window is sent to Google’s Gemini image model to paint the scene; the frame, text and
+              fan-made label are still drawn here.
             </p>
           </div>
         </div>

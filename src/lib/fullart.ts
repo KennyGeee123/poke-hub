@@ -3,10 +3,16 @@
 //   1. colour-sampled gradient base  2. stretched + blurred art bleed
 //   3. edge-row smear + short mirrored band with feathered seams  4. sharp art on top
 //   5. holo / rainbow / gold texture  6. optional frame + card text overlay.
+// Optional AI path: opts.aiArt (Nano Banana, via /api/public/fullart-ai) replaces 1-4.
 import type { TCGCard } from "./pokemon-api";
 
 export type FullArtStyle = "holo" | "rainbow" | "gold" | "alt";
-export type FullArtOptions = { style: FullArtStyle; frame: boolean };
+export type FullArtOptions = {
+  style: FullArtStyle;
+  frame: boolean;
+  /** AI-painted full-bleed art (Nano Banana). When set, it replaces the compositor's extension. */
+  aiArt?: HTMLImageElement | null;
+};
 export const FULLART_W = 1000;
 export const FULLART_H = 1400;
 
@@ -68,6 +74,7 @@ export async function loadCardImage(card: TCGCard): Promise<HTMLImageElement> {
         img.onerror = () => rej(new Error("Image decode failed"));
         img.src = url;
       });
+      img.dataset.pvSrc = src; // original CDN URL (AI paint validates the host)
       return img;
     } catch (e) {
       lastErr = e;
@@ -76,10 +83,10 @@ export async function loadCardImage(card: TCGCard): Promise<HTMLImageElement> {
   throw lastErr instanceof Error ? lastErr : new Error("Couldn’t load this card’s art.");
 }
 
-type Box = { x: number; y: number; w: number; h: number };
+export type Box = { x: number; y: number; w: number; h: number };
 
 /** Illustration window on a standard (post-2003) card scan, as fractions of the scan. */
-function artBox(img: HTMLImageElement): Box {
+export function artBox(img: HTMLImageElement): Box {
   const W = img.naturalWidth;
   const H = img.naturalHeight;
   // Inset slightly so the extension never samples the printed art border.
@@ -197,7 +204,7 @@ function roundRect(
   ctx.closePath();
 }
 
-function drawTexture(ctx: CanvasRenderingContext2D, style: FullArtStyle, seed: number) {
+function drawTexture(ctx: CanvasRenderingContext2D, style: FullArtStyle, seed: number, k = 1) {
   const W = FULLART_W;
   const H = FULLART_H;
   const rnd = seeded(seed);
@@ -208,11 +215,11 @@ function drawTexture(ctx: CanvasRenderingContext2D, style: FullArtStyle, seed: n
     ["#ff4d6d", "#ffb703", "#fff275", "#52e5a3", "#4cc9f0", "#7b61ff", "#ff4d6d"].forEach(
       (c, i, a) => g.addColorStop(i / (a.length - 1), c),
     );
-    ctx.globalAlpha = 0.75;
+    ctx.globalAlpha = k * 0.75;
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
     ctx.globalCompositeOperation = "overlay";
-    ctx.globalAlpha = 0.18;
+    ctx.globalAlpha = k * 0.18;
     for (let x = -H; x < W; x += 22) {
       ctx.strokeStyle = x % 44 === 0 ? "#fff" : "#000";
       ctx.lineWidth = 6;
@@ -223,7 +230,7 @@ function drawTexture(ctx: CanvasRenderingContext2D, style: FullArtStyle, seed: n
     }
   } else if (style === "gold") {
     ctx.globalCompositeOperation = "color";
-    ctx.globalAlpha = 0.55;
+    ctx.globalAlpha = k * 0.55;
     const g = ctx.createLinearGradient(0, 0, W, H);
     g.addColorStop(0, "#fff1b8");
     g.addColorStop(0.45, "#e2b53a");
@@ -231,13 +238,13 @@ function drawTexture(ctx: CanvasRenderingContext2D, style: FullArtStyle, seed: n
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
     ctx.globalCompositeOperation = "overlay";
-    ctx.globalAlpha = 0.5;
+    ctx.globalAlpha = k * 0.5;
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
   } else if (style === "alt") {
     // Etched line texture for an "illustration rare" feel.
     ctx.globalCompositeOperation = "overlay";
-    ctx.globalAlpha = 0.16;
+    ctx.globalAlpha = k * 0.16;
     ctx.strokeStyle = "#fff";
     ctx.lineWidth = 1.5;
     for (let r = 40; r < 1700; r += 14) {
@@ -254,7 +261,7 @@ function drawTexture(ctx: CanvasRenderingContext2D, style: FullArtStyle, seed: n
     const y = rnd() * H;
     const r = rnd() < 0.08 ? 3 + rnd() * 4 : 0.6 + rnd() * 1.8;
     const hue = style === "gold" ? 45 : Math.floor(rnd() * 360);
-    ctx.globalAlpha = 0.25 + rnd() * 0.55;
+    ctx.globalAlpha = k * (0.25 + rnd() * 0.55);
     ctx.fillStyle = `hsl(${hue} 100% ${style === "gold" ? 80 : 75}%)`;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
@@ -262,7 +269,7 @@ function drawTexture(ctx: CanvasRenderingContext2D, style: FullArtStyle, seed: n
   }
   if (style === "holo") {
     ctx.globalCompositeOperation = "color-dodge";
-    ctx.globalAlpha = 0.22;
+    ctx.globalAlpha = k * 0.22;
     const g = ctx.createLinearGradient(0, H * 0.1, W, H * 0.9);
     g.addColorStop(0, "rgba(56,189,248,0)");
     g.addColorStop(0.35, "rgba(56,189,248,0.9)");
@@ -444,6 +451,13 @@ export function renderFullArt(
   canvas.height = H;
   const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
   ctx.clearRect(0, 0, W, H);
+  if (opts.aiArt) {
+    renderAiArt(ctx, opts.aiArt);
+    // The model already paints the finish; add a lighter foil pass on top.
+    drawTexture(ctx, opts.style, hash(card.id + opts.style), 0.45);
+    drawOverlay(ctx, card, opts);
+    return;
+  }
   const box = artBox(img);
 
   // Sample edge colours from the illustration.
@@ -548,6 +562,29 @@ export function renderFullArt(
   drawTexture(ctx, opts.style, hash(card.id + opts.style));
 
   // 6. frame + text
+  drawOverlay(ctx, card, opts);
+}
+
+/** Cover-fit the AI art (3:4 from the model) into the 5:7 canvas, then shade for text legibility. */
+function renderAiArt(ctx: CanvasRenderingContext2D, art: HTMLImageElement) {
+  const W = FULLART_W;
+  const H = FULLART_H;
+  const s = Math.max(W / art.naturalWidth, H / art.naturalHeight);
+  const dw = art.naturalWidth * s;
+  const dh = art.naturalHeight * s;
+  ctx.drawImage(art, (W - dw) / 2, (H - dh) / 2, dw, dh);
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, "rgba(0,0,0,0.28)");
+  g.addColorStop(0.14, "rgba(0,0,0,0)");
+  g.addColorStop(0.62, "rgba(0,0,0,0)");
+  g.addColorStop(1, "rgba(0,0,0,0.5)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function drawOverlay(ctx: CanvasRenderingContext2D, card: TCGCard, opts: FullArtOptions) {
+  const W = FULLART_W;
+  const H = FULLART_H;
   if (opts.frame) drawFrame(ctx, card, opts.style);
   else {
     ctx.save();
