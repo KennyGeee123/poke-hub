@@ -19,6 +19,8 @@ import { Route as ApiPublicPokeRadioRouteImport } from './routes/api/public/poke
 import { Route as ApiPublicMcpRouteImport } from './routes/api/public/mcp'
 import { Route as ApiPublicEbaySoldRouteImport } from './routes/api/public/ebay-sold'
 import { Route as ApiPublicCardPricesRouteImport } from './routes/api/public/card-prices'
+import { Route as ApiPublicCardImageRouteImport } from './routes/api/public/card-image'
+import { Route as ApiPublicAuthStatusRouteImport } from './routes/api/public/auth-status'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -70,10 +72,22 @@ const ApiPublicCardPricesRoute = ApiPublicCardPricesRouteImport.update({
   path: '/api/public/card-prices',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCardImageRoute = ApiPublicCardImageRouteImport.update({
+  id: '/api/public/card-image',
+  path: '/api/public/card-image',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAuthStatusRoute = ApiPublicAuthStatusRouteImport.update({
+  id: '/api/public/auth-status',
+  path: '/api/public/auth-status',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/api/public/auth-status': typeof ApiPublicAuthStatusRoute
+  '/api/public/card-image': typeof ApiPublicCardImageRoute
   '/api/public/card-prices': typeof ApiPublicCardPricesRoute
   '/api/public/ebay-sold': typeof ApiPublicEbaySoldRoute
   '/api/public/mcp': typeof ApiPublicMcpRoute
@@ -86,6 +100,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/api/public/auth-status': typeof ApiPublicAuthStatusRoute
+  '/api/public/card-image': typeof ApiPublicCardImageRoute
   '/api/public/card-prices': typeof ApiPublicCardPricesRoute
   '/api/public/ebay-sold': typeof ApiPublicEbaySoldRoute
   '/api/public/mcp': typeof ApiPublicMcpRoute
@@ -99,6 +115,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/api/public/auth-status': typeof ApiPublicAuthStatusRoute
+  '/api/public/card-image': typeof ApiPublicCardImageRoute
   '/api/public/card-prices': typeof ApiPublicCardPricesRoute
   '/api/public/ebay-sold': typeof ApiPublicEbaySoldRoute
   '/api/public/mcp': typeof ApiPublicMcpRoute
@@ -113,6 +131,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/api/public/auth-status'
+    | '/api/public/card-image'
     | '/api/public/card-prices'
     | '/api/public/ebay-sold'
     | '/api/public/mcp'
@@ -125,6 +145,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/api/public/auth-status'
+    | '/api/public/card-image'
     | '/api/public/card-prices'
     | '/api/public/ebay-sold'
     | '/api/public/mcp'
@@ -137,6 +159,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/login'
+    | '/api/public/auth-status'
+    | '/api/public/card-image'
     | '/api/public/card-prices'
     | '/api/public/ebay-sold'
     | '/api/public/mcp'
@@ -150,6 +174,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  ApiPublicAuthStatusRoute: typeof ApiPublicAuthStatusRoute
+  ApiPublicCardImageRoute: typeof ApiPublicCardImageRoute
   ApiPublicCardPricesRoute: typeof ApiPublicCardPricesRoute
   ApiPublicEbaySoldRoute: typeof ApiPublicEbaySoldRoute
   ApiPublicMcpRoute: typeof ApiPublicMcpRoute
@@ -232,12 +258,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCardPricesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/card-image': {
+      id: '/api/public/card-image'
+      path: '/api/public/card-image'
+      fullPath: '/api/public/card-image'
+      preLoaderRoute: typeof ApiPublicCardImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/auth-status': {
+      id: '/api/public/auth-status'
+      path: '/api/public/auth-status'
+      fullPath: '/api/public/auth-status'
+      preLoaderRoute: typeof ApiPublicAuthStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  ApiPublicAuthStatusRoute: ApiPublicAuthStatusRoute,
+  ApiPublicCardImageRoute: ApiPublicCardImageRoute,
   ApiPublicCardPricesRoute: ApiPublicCardPricesRoute,
   ApiPublicEbaySoldRoute: ApiPublicEbaySoldRoute,
   ApiPublicMcpRoute: ApiPublicMcpRoute,
