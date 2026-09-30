@@ -8592,7 +8592,7 @@ body[data-pv-tab="adventure"] .pv-music-panel,
     0 0 0 1px rgba(56, 189, 248, 0.08) inset,
     0 0 60px rgba(226, 181, 58, 0.08);
   color: var(--t1) !important;
-  animation: pv-rise 0.5s var(--pv-ease) both;
+  animation: pv-rise-soft 0.5s var(--pv-ease) both;
 }
 .pv-login-head {
   text-align: center;
@@ -9573,7 +9573,7 @@ body[data-pv-tab="adventure"] .pv-music-panel,
     linear-gradient(165deg, rgba(30, 42, 64, 0.92), rgba(14, 20, 34, 0.95));
   border: 1px solid rgba(226, 181, 58, 0.35);
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.35);
-  animation: pv-rise 0.45s var(--pv-ease) both;
+  animation: pv-rise-soft 0.45s var(--pv-ease) both;
 }
 .pv-welcome-head {
   display: flex;
@@ -10342,4 +10342,14 @@ body[data-pv-tab="adventure"] .pv-music-panel,
   font-weight: 700;
   font-size: 13px;
   cursor: pointer;
+}
+/* Transform-only entrance: never starts at opacity 0, so first paint (FCP/LCP)
+   is reported immediately. */
+@keyframes pv-rise-soft {
+  from {
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    transform: none;
+  }
 }
