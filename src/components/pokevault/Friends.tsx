@@ -23,6 +23,7 @@ import {
 import { computePvPDamage, joinPvP, pvpChannelName, sendPvP, type PvPMessage } from "@/lib/pvp";
 import { formatPrice } from "@/lib/vault";
 import type { RealtimeChannel } from "@supabase/supabase-js";
+import { SkeletonRows } from "./ui";
 
 type View =
   | { kind: "list" }
@@ -108,7 +109,9 @@ export function FriendsView({ onOpenCard }: { onOpenCard: (id: string) => void }
 
   if (loading)
     return (
-      <div style={{ padding: 20, textAlign: "center", color: "var(--t2)" }}>Loading friends…</div>
+      <div className="pad">
+        <SkeletonRows rows={4} label="Loading friends" />
+      </div>
     );
 
   if (!me) {
@@ -385,7 +388,7 @@ function FriendVaultView({
         ) : null}
       </div>
       {loading ? (
-        <div style={{ color: "var(--t2)" }}>Loading…</div>
+        <SkeletonRows rows={3} label="Loading vault" />
       ) : !snap || !snap.cards.length ? (
         <div style={{ color: "var(--t3)", padding: 20, textAlign: "center" }}>
           This trainer's vault is empty (or hasn't synced yet).

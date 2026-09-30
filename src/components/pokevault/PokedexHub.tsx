@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { SkeletonRows } from "./ui";
 
 const BASE = "https://pokeapi.co/api/v2";
 const PAGE = 120;
@@ -311,8 +312,8 @@ export function PokedexHub() {
       )}
 
       {detailLoading && (
-        <div className="mt-8 flex items-center justify-center" style={{ color: "var(--t3)" }}>
-          Loading…
+        <div className="mt-6">
+          <SkeletonRows rows={3} label="Loading Pokémon details" />
         </div>
       )}
 

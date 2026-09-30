@@ -31,6 +31,7 @@ import {
   rawConditionLadder,
   gradedSlabLadder,
 } from "@/lib/card-grades";
+import { SkeletonRows } from "./ui";
 
 export function CardDetail({
   cardId,
@@ -126,7 +127,7 @@ export function CardDetail({
   const displayMarket = ebayAvg || live;
   const priced = card && displayMarket > 0 ? applyLiveQuote(card, displayMarket) : card;
 
-  if (!priced || !card) return <div className="pv-empty">Loading…</div>;
+  if (!priced || !card) return <SkeletonRows rows={4} label="Loading card" />;
 
   const market = displayMarket || getMarketPrice(priced);
   const cmPrices = priced.cardmarket?.prices;

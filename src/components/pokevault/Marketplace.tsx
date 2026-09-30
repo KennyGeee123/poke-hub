@@ -136,6 +136,22 @@ export function SellView() {
         <div className="pv-mp-empty-sub">
           Add cards to your vault, then list them on every major marketplace in one click.
         </div>
+        <div className="pv-state-actions">
+          <button
+            type="button"
+            className="pv-btn pv-btn-fill"
+            onClick={() => window.dispatchEvent(new CustomEvent("pv-goto", { detail: "scan" }))}
+          >
+            📷 Scan a card
+          </button>
+          <button
+            type="button"
+            className="pv-btn"
+            onClick={() => window.dispatchEvent(new CustomEvent("pv-goto", { detail: "search" }))}
+          >
+            Search cards
+          </button>
+        </div>
       </div>
     );
   }

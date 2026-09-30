@@ -20,6 +20,7 @@ import { CollectionInsightsCard } from "./CollectionInsights";
 import { CheapestPill } from "./CheapestPill";
 import { PriceComparePanel } from "./PriceCompare";
 import { PrintLangBar } from "./PrintLangBar";
+import { EmptyState, ErrorState, SkeletonRows, withTimeout } from "./ui";
 import { searchChips, searchPlaceholder, usePrintLang } from "@/lib/print-lang";
 import { cardSearchScore, parseSearchQuery } from "@/lib/card-search";
 import { hydrateLivePrices, useLivePrice } from "@/lib/live-prices";
@@ -195,20 +196,33 @@ export function DiscoverView({ onOpen, onTab }: { onOpen: OnOpen; onTab: (t: str
         </div>
       )}
 
-      <div className="pv-qa-row">
-        <button className="pv-btn pv-btn-out" onClick={() => onTab("market")}>
-          📈 Market Prices
-        </button>
-        <button className="pv-btn pv-btn-out" onClick={() => onTab("sets")}>
-          📦 Browse Sets
-        </button>
-        <button className="pv-btn pv-btn-out" onClick={() => onTab("search")}>
-          🔍 Search Cards
-        </button>
-        <button className="pv-btn pv-btn-fill" onClick={() => onTab("battle")}>
-          ⚔ Battle Mode
-        </button>
-      </div>
+      <WelcomeCard onTab={onTab} />
+
+      <nav className="pv-qa-grid" aria-label="Quick actions">
+        {(
+          [
+            ["market", "📈", "Market", "Live prices"],
+            ["sets", "📦", "Sets", "Every expansion"],
+            ["search", "🔍", "Search", "Any card"],
+            ["battle", "⚔️", "Battle", "Play a match"],
+          ] as const
+        ).map(([t, icon, label, sub]) => (
+          <button
+            key={t}
+            type="button"
+            className={`pv-qa-tile ${t === "battle" ? "gold" : ""}`}
+            onClick={() => onTab(t)}
+          >
+            <span className="pv-qa-ico" aria-hidden>
+              {icon}
+            </span>
+            <span className="pv-qa-txt">
+              <span className="pv-qa-label">{label}</span>
+              <span className="pv-qa-sub">{sub}</span>
+            </span>
+          </button>
+        ))}
+      </nav>
 
       <Rail
         title={`🔥 TRENDING NOW${total ? ` · ${total}` : ""}`}
@@ -216,6 +230,75 @@ export function DiscoverView({ onOpen, onTab }: { onOpen: OnOpen; onTab: (t: str
         onOpen={onOpen}
       />
     </div>
+  );
+}
+
+const WELCOME_KEY = "pv-welcome-dismissed-v1";
+
+function WelcomeCard({ onTab }: { onTab: (t: string) => void }) {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    try {
+      setShow(!localStorage.getItem(WELCOME_KEY));
+    } catch {
+      setShow(false);
+    }
+  }, []);
+  if (!show) return null;
+  const dismiss = () => {
+    try {
+      localStorage.setItem(WELCOME_KEY, "1");
+    } catch {
+      /* private mode */
+    }
+    setShow(false);
+  };
+  return (
+    <section className="pv-welcome" aria-label="Get started">
+      <div className="pv-welcome-head">
+        <div>
+          <div className="pv-welcome-kicker">WELCOME, TRAINER</div>
+          <div className="pv-welcome-title">Start your vault in three taps</div>
+        </div>
+        <button
+          type="button"
+          className="pv-welcome-x"
+          onClick={dismiss}
+          aria-label="Dismiss welcome"
+        >
+          ✕
+        </button>
+      </div>
+      <ol className="pv-welcome-steps">
+        <li>
+          <button type="button" onClick={() => onTab("scan")}>
+            <span className="pv-welcome-n">1</span>
+            <span>
+              <strong>Scan a card</strong>
+              <em>Point your camera — we find the price</em>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button type="button" onClick={() => onTab("vault")}>
+            <span className="pv-welcome-n">2</span>
+            <span>
+              <strong>Build your vault</strong>
+              <em>Track what your collection is worth</em>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button type="button" onClick={() => onTab("adventure")}>
+            <span className="pv-welcome-n">3</span>
+            <span>
+              <strong>Play Adventure</strong>
+              <em>Explore, catch and battle</em>
+            </span>
+          </button>
+        </li>
+      </ol>
+    </section>
   );
 }
 
@@ -336,7 +419,7 @@ export function MarketView({ onOpen }: { onOpen: OnOpen }) {
           </button>
         ))}
       </div>
-      {!cards && !err && <div className="pv-empty">Loading market data…</div>}
+      {!cards && !err && <SkeletonRows rows={6} label="Loading market data" />}
       {err && (!cards || cards.length === 0) && (
         <div className="pv-empty">
           <div className="pv-empty-title">MARKET DIDN’T LOAD</div>
@@ -416,10 +499,13 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
   const load = (blank = false) => {
     setErr(null);
     if (blank) setSets(null);
-    getSets(lang)
-      .then(setSets)
+    withTimeout(getSets(lang), 15000, "The card servers are taking too long.")
+      .then((list) => {
+        if (!list?.length) throw new Error("No sets came back from the card servers.");
+        setSets(list);
+      })
       .catch((e: any) => {
-        setSets((prev) => prev ?? []);
+        setSets((prev) => (prev && prev.length ? prev : null));
         setErr(e?.message || "Could not load sets.");
       });
   };
@@ -477,30 +563,38 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
           </button>
         ))}
       </div>
-      {!sets && !err && <div className="pv-empty">Loading every set…</div>}
-      {err && (
-        <div className="pv-empty">
-          <div className="pv-empty-title">SETS DIDN’T LOAD</div>
-          <div>{err}</div>
-          <button
-            className="pv-btn pv-btn-fill"
-            style={{ marginTop: 12 }}
-            onClick={() => load(true)}
-          >
-            Retry
-          </button>
-        </div>
+      {!sets && !err && <SkeletonRows rows={7} label="Loading every set" />}
+      {err && !sets?.length && (
+        <ErrorState
+          title="SETS DIDN’T LOAD"
+          message={`${err} We also tried the TCGdex backup — tap to try again.`}
+          onRetry={() => load(true)}
+        />
       )}
       {sets && (
         <div style={{ fontSize: 11, color: "var(--t3)", marginBottom: 10 }}>
           {filtered.length} of {sets.length} sets
         </div>
       )}
-      {sets && filtered.length === 0 && (
-        <div className="pv-empty">
-          <div className="pv-empty-title">NO SETS MATCH</div>
-          <div>Try a different name or clear the filter.</div>
-        </div>
+      {sets && sets.length > 0 && filtered.length === 0 && (
+        <EmptyState
+          icon="🔎"
+          title="NO SETS MATCH"
+          actions={
+            <button
+              type="button"
+              className="pv-btn pv-btn-fill"
+              onClick={() => {
+                setFilter("");
+                setChip("all");
+              }}
+            >
+              Clear filters
+            </button>
+          }
+        >
+          Try a different name or series.
+        </EmptyState>
       )}
       {chip === "box" && filtered.length > 0 && (
         <div className="pv-box-tab-edge" aria-hidden>
@@ -801,7 +895,9 @@ export function SetCardsView({
         </div>
       )}
       {!err && !softNote && cards && cards.length === 0 && (
-        <div className="pv-empty">No cards in this set yet.</div>
+        <EmptyState icon="🗂️" title="NO CARDS YET">
+          This set’s card list hasn’t been published yet. Check back soon.
+        </EmptyState>
       )}
       {missingOnly && visible && visible.length === 0 && cards && cards.length > 0 && (
         <div className="pv-empty" style={{ marginBottom: 12 }}>
@@ -1189,11 +1285,34 @@ export function WishlistView({ onOpen }: { onOpen: OnOpen }) {
   if (cards.length === 0) {
     return (
       <div className="pad">
-        <div className="pv-empty">
-          <div className="pv-empty-icon">⭐</div>
-          <div className="pv-empty-title">WISHLIST EMPTY</div>
-          <div>Tap ☆ on any card to wishlist it</div>
-        </div>
+        <EmptyState
+          icon="⭐"
+          title="YOUR WISHLIST IS EMPTY"
+          actions={
+            <>
+              <button
+                type="button"
+                className="pv-btn pv-btn-fill"
+                onClick={() =>
+                  window.dispatchEvent(new CustomEvent("pv-goto", { detail: "search" }))
+                }
+              >
+                Search cards
+              </button>
+              <button
+                type="button"
+                className="pv-btn"
+                onClick={() =>
+                  window.dispatchEvent(new CustomEvent("pv-goto", { detail: "market" }))
+                }
+              >
+                Browse market
+              </button>
+            </>
+          }
+        >
+          Tap ☆ on any card to track it here — you’ll see its live price at a glance.
+        </EmptyState>
       </div>
     );
   }

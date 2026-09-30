@@ -168,10 +168,11 @@ function isUsablePayload(json: unknown): boolean {
 }
 
 function fetchUrls(path: string): string[] {
-  const urls: string[] = [];
-  if (typeof window !== "undefined") urls.push(`/api/public/tcg?path=${encodeURIComponent(path)}`);
-  urls.push(`${BASE}${path}`);
-  return urls;
+  // Browser: always go through our proxy. It already retries upstream server-side, and
+  // pokemontcg.io error responses carry no CORS headers, so a direct fallback only adds
+  // console errors while the upstream is down.
+  if (typeof window !== "undefined") return [`/api/public/tcg?path=${encodeURIComponent(path)}`];
+  return [`${BASE}${path}`];
 }
 
 async function tcgFetch<T>(path: string): Promise<T> {
@@ -191,10 +192,15 @@ async function tcgFetch<T>(path: string): Promise<T> {
 
     let lastErr: Error | null = null;
     const urls = fetchUrls(path);
-    for (let attempt = 0; attempt < 3; attempt++) {
+    const browser = typeof window !== "undefined";
+    const attempts = browser ? 2 : 3;
+    for (let attempt = 0; attempt < attempts; attempt++) {
       const url = urls[Math.min(attempt, urls.length - 1)];
       try {
-        const res = await fetch(url, { headers, signal: AbortSignal.timeout(4500) });
+        const res = await fetch(url, {
+          headers,
+          signal: AbortSignal.timeout(browser ? 9000 : 4500),
+        });
         if (res.status === 429 || res.status >= 500) {
           lastErr = new Error(`Card API ${res.status}`);
           const stale =
@@ -219,7 +225,7 @@ async function tcgFetch<T>(path: string): Promise<T> {
         lastErr = e instanceof Error ? e : new Error(String(e));
         const stale = cacheGet<T>(path, { allowStale: true });
         if (stale) return stale;
-        if (attempt < 2) await new Promise((r) => setTimeout(r, 250 * 2 ** attempt));
+        if (attempt < attempts - 1) await new Promise((r) => setTimeout(r, 250 * 2 ** attempt));
       }
     }
     const stale = cacheGet<T>(path, { allowStale: true });
@@ -595,7 +601,15 @@ async function fetchSetsFromNetwork(lang = "en"): Promise<TCGSet[]> {
     `/sets?orderBy=-releaseDate&pageSize=250&page=1`,
   ).catch(() => null);
   const dxP = tcgdexGetSets(lang).catch(() => [] as TCGSet[]);
-  const [page1, dx] = await Promise.all([page1P, dxP]);
+  // Don't let a stalled pokemontcg.io hold the list hostage: once TCGdex answers,
+  // give pokemontcg.io a short grace period, then render with what we have.
+  const page1 = await Promise.race([
+    page1P,
+    dxP.then((d) =>
+      d.length ? new Promise<null>((r) => setTimeout(() => r(null), 3000)) : page1P,
+    ),
+  ]);
+  const dx = await dxP;
 
   const all: TCGSet[] = [...(page1?.data ?? [])];
   const total = page1?.totalCount ?? all.length;
