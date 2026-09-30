@@ -4,7 +4,7 @@
 // Gemini's answer (sectioned brief, SAR storytelling direction, clean HUD zones)
 // and ChatGPT's answer (explicit preserve list, duplicate/cropped-subject negatives).
 
-export const FULLART_PROMPT_VERSION = "fa-v2";
+export const FULLART_PROMPT_VERSION = "fa-v2.1";
 
 export const AI_FINISHES = ["holo", "rainbow", "gold", "alt"] as const;
 export type AiFinish = (typeof AI_FINISHES)[number];
@@ -115,14 +115,23 @@ export function buildFullArtPrompt(p: FullArtPromptInput): string {
   const scene = p.sceneHint
     ? `the existing scene (${p.sceneHint})`
     : "the existing scene and habitat shown in the reference";
+  const faithful = p.style === "faithful";
+  // "Different art" styles re-imagine the scene, so they get a looser brief than a
+  // pure outpaint, but identity, colours and markings are always locked.
+  const task = faithful
+    ? `TASK: Create a full-art, edge-to-edge vertical portrait (card proportions, about 5:7) by EXTENDING this same artwork outward in every direction. Continue ${scene} naturally above, below and to the sides, matching lighting direction, palette and level of detail so no seam or border shows where the original ends.`
+    : `TASK: Create a full-art, edge-to-edge vertical portrait (card proportions, about 5:7) that RE-IMAGINES this artwork in the art style below. Keep the same creature and a recognisable version of its pose and setting, painted as one continuous scene that fills the whole canvas.`;
+  const preserve = faithful
+    ? `PRESERVE: ${sp}'s identity, silhouette, pose, proportions, colours, markings, eyes and expression, exactly as in the reference. Do not redesign it or add features. You may reveal more of its body or tail where the reference crops it off, consistent with the reference. Exactly one ${sp}.`
+    : `PRESERVE: ${sp}'s identity, colours, markings, eye colour and signature features so it is instantly recognisable as the same creature from the reference. Only the rendering style changes (as described in ART STYLE). Do not add features or accessories. Exactly one ${sp}.`;
   return `ROLE: You are a master trading-card illustrator making a FAN-MADE full-art illustration.
 Strictly no text, letters, numbers, logos, symbols, watermarks, signatures, card frames, borders, energy icons or UI of any kind. Output the artwork only.
 
 REFERENCE: The attached image is the illustration window cropped from a trading card. It shows ${sp}, a ${type}-type creature. It is the exact source artwork.
 
-TASK: Create a full-art, edge-to-edge vertical portrait (card proportions, about 5:7) by EXTENDING this same artwork outward in every direction. Continue ${scene} naturally above, below and to the sides, matching lighting direction, palette and level of detail so no seam or border shows where the original ends.
+${task}
 
-PRESERVE: ${sp}'s identity, silhouette, pose, proportions, colours, markings, eyes and expression, exactly as in the reference. Do not redesign it or add features. You may reveal more of its body or tail where the reference crops it off, consistent with the reference. Exactly one ${sp}.
+${preserve}
 
 COMPOSITION: ${sp} is the clear focal point, centred horizontally in the middle band (about 15%–65% of the height). The top ~12% and bottom ~30% are calmer, lower-detail continuation of the scene (sky, foliage, ground, energy swirls) with no important subject matter, because a name bar and attack panel are overlaid later. Those zones must still be fully painted, never blank.
 
