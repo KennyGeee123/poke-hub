@@ -4,7 +4,7 @@ export function PrintLangBar() {
   const [lang, setLang] = usePrintLang();
   return (
     <div
-      className="pv-lang-row flex flex-wrap mb-3"
+      className="pv-lang-row flex flex-nowrap mb-3"
       role="group"
       aria-label="Card print language"
       style={{ gap: 6 }}

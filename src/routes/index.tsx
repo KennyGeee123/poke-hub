@@ -153,7 +153,14 @@ function Index() {
     <>
       <header className="pv-hdr pv-hdr-glass">
         <div className="pv-hdr-brand">
-          <div className="pv-pokeball" aria-hidden />
+          <img
+            src="/favicon.svg"
+            alt=""
+            width={30}
+            height={30}
+            className="pv-brand-mark"
+            aria-hidden
+          />
           <button
             type="button"
             className="pv-logo-text"
@@ -208,15 +215,28 @@ function Index() {
             {user ? "Sign out" : "Sign in"}
           </button>
           <button
-            className="pv-gear"
+            type="button"
+            className={`pv-gear ${settingsOpen ? "on" : ""}`}
             onClick={() => setSettingsOpen((s) => !s)}
             aria-label="Settings"
+            aria-expanded={settingsOpen}
           >
             ⚙
           </button>
         </div>
       </header>
-      {settingsOpen && <SettingsPanel onToast={show} isSignedIn={!!user} />}
+      {settingsOpen && (
+        <SettingsPanel
+          onToast={show}
+          isSignedIn={!!user}
+          email={user?.email ?? null}
+          onClose={() => setSettingsOpen(false)}
+          onSignIn={() => {
+            setSettingsOpen(false);
+            nav({ to: "/login" });
+          }}
+        />
+      )}
     </>
   );
 
@@ -375,31 +395,89 @@ function MusicPlayerGate() {
 function SettingsPanel({
   onToast,
   isSignedIn,
+  email,
+  onClose,
+  onSignIn,
 }: {
   onToast: (m: string) => void;
   isSignedIn?: boolean;
+  email?: string | null;
+  onClose: () => void;
+  onSignIn: () => void;
 }) {
   const [key, setKey] = useState("");
   useEffect(() => {
     setKey(localStorage.getItem("pokeApiKey") ?? "");
-  }, []);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
   return (
-    <div className="pv-settings">
-      <div className="pv-settings-row">
-        <button
-          type="button"
-          className="pv-settings-action"
-          onClick={async () => {
-            const { refreshAllImageCaches } = await import("@/lib/card-images");
-            const n = refreshAllImageCaches();
-            onToast(`Cleared ${n} cached entries. Reloading for fresh HD art…`);
-            location.reload();
-          }}
-          title="Re-pull all card art in HD"
-        >
-          ↻ Refresh HD Art
-        </button>
-        {isSignedIn ? (
+    <>
+      <div className="pv-settings-scrim" onClick={onClose} aria-hidden />
+      <section className="pv-settings" role="dialog" aria-modal="true" aria-label="Settings">
+        <div className="pv-settings-head">
+          <h2>Settings</h2>
+          <button
+            type="button"
+            className="pv-settings-close"
+            onClick={onClose}
+            aria-label="Close settings"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="pv-settings-sec">Account</div>
+        <div className="pv-settings-card">
+          <div className="pv-settings-acct">
+            <span className="pv-settings-avatar" aria-hidden>
+              {isSignedIn ? "★" : "👤"}
+            </span>
+            <div>
+              <div className="pv-settings-strong">
+                {isSignedIn ? email || "Signed in" : "Guest trainer"}
+              </div>
+              <div className="pv-settings-hint">
+                {isSignedIn
+                  ? "Your vault syncs across devices."
+                  : "Your vault is saved on this device."}
+              </div>
+            </div>
+          </div>
+          {!isSignedIn && (
+            <button type="button" className="pv-settings-action gold" onClick={onSignIn}>
+              Sign in
+            </button>
+          )}
+        </div>
+
+        <div className="pv-settings-sec">Card art</div>
+        <div className="pv-settings-card">
+          <div>
+            <div className="pv-settings-strong">Refresh HD art</div>
+            <div className="pv-settings-hint">
+              Clears cached images and re-pulls high-res scans.
+            </div>
+          </div>
+          <button
+            type="button"
+            className="pv-settings-action"
+            onClick={async () => {
+              const { refreshAllImageCaches } = await import("@/lib/card-images");
+              const n = refreshAllImageCaches();
+              onToast(`Cleared ${n} cached entries. Reloading for fresh HD art…`);
+              location.reload();
+            }}
+            title="Re-pull all card art in HD"
+          >
+            ↻ Refresh
+          </button>
+        </div>
+
+        {isSignedIn && (
           <details className="pv-settings-advanced">
             <summary>Advanced · pokemontcg.io API key</summary>
             <div className="pv-settings-key-row">
@@ -443,26 +521,24 @@ function SettingsPanel({
               .
             </p>
           </details>
-        ) : (
-          <p className="pv-settings-hint" style={{ margin: 0 }}>
-            Sign in to manage Advanced API settings.
-          </p>
         )}
-      </div>
-      <div className="pv-settings-row" style={{ marginTop: 10, flexWrap: "wrap", gap: 8 }}>
-        <a className="pv-settings-action" href="/privacy.html">
-          Privacy
-        </a>
-        <a className="pv-settings-action" href="/terms.html">
-          Terms
-        </a>
-        <a className="pv-settings-action" href="/support.html">
-          Support
-        </a>
-      </div>
-      <p className="pv-settings-hint" style={{ marginTop: 8 }}>
-        Unofficial fan app — not affiliated with Nintendo, The Pokémon Company, or Game Freak.
-      </p>
-    </div>
+
+        <div className="pv-settings-sec">Help &amp; legal</div>
+        <nav className="pv-settings-links" aria-label="Help and legal">
+          <a className="pv-settings-action" href="/support.html">
+            Support
+          </a>
+          <a className="pv-settings-action" href="/privacy.html">
+            Privacy
+          </a>
+          <a className="pv-settings-action" href="/terms.html">
+            Terms
+          </a>
+        </nav>
+        <p className="pv-settings-hint pv-settings-fine">
+          Unofficial fan app — not affiliated with Nintendo, The Pokémon Company, or Game Freak.
+        </p>
+      </section>
+    </>
   );
 }
