@@ -84,6 +84,15 @@ export const Route = createFileRoute("/api/public/tcg")({
             }
           } catch {}
         }
+        // The app's own client asks for a "soft" failure: 200 + a marker it
+        // understands, so a flaky upstream never shows as a console error while
+        // the client falls back to TCGdex / cache.
+        if (request.headers.get("x-pv-soft-fail") === "1") {
+          return Response.json(
+            { __upstreamStatus: lastStatus, error: { message: "Card API unavailable" } },
+            { headers: { "cache-control": "no-store", "x-upstream-status": String(lastStatus) } },
+          );
+        }
         return new Response(body, {
           status: lastStatus,
           headers: { "content-type": "application/json", "cache-control": "no-store" },

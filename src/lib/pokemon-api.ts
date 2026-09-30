@@ -193,6 +193,7 @@ async function tcgFetch<T>(path: string): Promise<T> {
     let lastErr: Error | null = null;
     const urls = fetchUrls(path);
     const browser = typeof window !== "undefined";
+    if (browser) headers["x-pv-soft-fail"] = "1";
     const attempts = browser ? 2 : 3;
     for (let attempt = 0; attempt < attempts; attempt++) {
       const url = urls[Math.min(attempt, urls.length - 1)];
@@ -201,8 +202,10 @@ async function tcgFetch<T>(path: string): Promise<T> {
           headers,
           signal: AbortSignal.timeout(browser ? 9000 : 4500),
         });
-        if (res.status === 429 || res.status >= 500) {
-          lastErr = new Error(`Card API ${res.status}`);
+        const softFail = res.ok && browser && res.headers.get("x-upstream-status") ? res.status : 0;
+        if (softFail) await res.body?.cancel().catch(() => {});
+        if (softFail || res.status === 429 || res.status >= 500) {
+          lastErr = new Error(`Card API ${res.headers.get("x-upstream-status") || res.status}`);
           const stale =
             cacheGet<T>(path, { allowStale: true }) ||
             (await getHttpCache<T>(path, CACHE_TTL_MS, { allowStale: true }));
