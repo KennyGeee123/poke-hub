@@ -20,6 +20,7 @@ import { Route as ApiPublicMcpRouteImport } from './routes/api/public/mcp'
 import { Route as ApiPublicEbaySoldRouteImport } from './routes/api/public/ebay-sold'
 import { Route as ApiPublicCardPricesRouteImport } from './routes/api/public/card-prices'
 import { Route as ApiPublicCardImageRouteImport } from './routes/api/public/card-image'
+import { Route as ApiPublicBulbaRouteImport } from './routes/api/public/bulba'
 import { Route as ApiPublicAuthStatusRouteImport } from './routes/api/public/auth-status'
 
 const LoginRoute = LoginRouteImport.update({
@@ -77,6 +78,11 @@ const ApiPublicCardImageRoute = ApiPublicCardImageRouteImport.update({
   path: '/api/public/card-image',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicBulbaRoute = ApiPublicBulbaRouteImport.update({
+  id: '/api/public/bulba',
+  path: '/api/public/bulba',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicAuthStatusRoute = ApiPublicAuthStatusRouteImport.update({
   id: '/api/public/auth-status',
   path: '/api/public/auth-status',
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/api/public/auth-status': typeof ApiPublicAuthStatusRoute
+  '/api/public/bulba': typeof ApiPublicBulbaRoute
   '/api/public/card-image': typeof ApiPublicCardImageRoute
   '/api/public/card-prices': typeof ApiPublicCardPricesRoute
   '/api/public/ebay-sold': typeof ApiPublicEbaySoldRoute
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/api/public/auth-status': typeof ApiPublicAuthStatusRoute
+  '/api/public/bulba': typeof ApiPublicBulbaRoute
   '/api/public/card-image': typeof ApiPublicCardImageRoute
   '/api/public/card-prices': typeof ApiPublicCardPricesRoute
   '/api/public/ebay-sold': typeof ApiPublicEbaySoldRoute
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/api/public/auth-status': typeof ApiPublicAuthStatusRoute
+  '/api/public/bulba': typeof ApiPublicBulbaRoute
   '/api/public/card-image': typeof ApiPublicCardImageRoute
   '/api/public/card-prices': typeof ApiPublicCardPricesRoute
   '/api/public/ebay-sold': typeof ApiPublicEbaySoldRoute
@@ -132,6 +141,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/api/public/auth-status'
+    | '/api/public/bulba'
     | '/api/public/card-image'
     | '/api/public/card-prices'
     | '/api/public/ebay-sold'
@@ -146,6 +156,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/api/public/auth-status'
+    | '/api/public/bulba'
     | '/api/public/card-image'
     | '/api/public/card-prices'
     | '/api/public/ebay-sold'
@@ -160,6 +171,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/api/public/auth-status'
+    | '/api/public/bulba'
     | '/api/public/card-image'
     | '/api/public/card-prices'
     | '/api/public/ebay-sold'
@@ -175,6 +187,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   ApiPublicAuthStatusRoute: typeof ApiPublicAuthStatusRoute
+  ApiPublicBulbaRoute: typeof ApiPublicBulbaRoute
   ApiPublicCardImageRoute: typeof ApiPublicCardImageRoute
   ApiPublicCardPricesRoute: typeof ApiPublicCardPricesRoute
   ApiPublicEbaySoldRoute: typeof ApiPublicEbaySoldRoute
@@ -265,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCardImageRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/bulba': {
+      id: '/api/public/bulba'
+      path: '/api/public/bulba'
+      fullPath: '/api/public/bulba'
+      preLoaderRoute: typeof ApiPublicBulbaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/auth-status': {
       id: '/api/public/auth-status'
       path: '/api/public/auth-status'
@@ -279,6 +299,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   ApiPublicAuthStatusRoute: ApiPublicAuthStatusRoute,
+  ApiPublicBulbaRoute: ApiPublicBulbaRoute,
   ApiPublicCardImageRoute: ApiPublicCardImageRoute,
   ApiPublicCardPricesRoute: ApiPublicCardPricesRoute,
   ApiPublicEbaySoldRoute: ApiPublicEbaySoldRoute,

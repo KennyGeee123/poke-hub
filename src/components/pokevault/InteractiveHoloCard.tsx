@@ -34,7 +34,7 @@ export interface InteractiveHoloCardProps {
   onExpandModal?: () => void;
 }
 
-const DEFAULT_CARD_BACK = "https://images.pokemontcg.io/base1/back.png";
+const DEFAULT_CARD_BACK = "/card-back.svg";
 
 export function InteractiveHoloCard({
   frontImage,

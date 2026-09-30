@@ -480,6 +480,9 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
     const id = decodeURIComponent(cardOne[1]);
     const c = CAT.cards.find((x) => x.id === id);
     let live: number | null = null;
+    // Gameplay text (attacks/abilities/stage) isn't in the slim catalog; pass it
+    // through from the upstream record when we have it.
+    const gameplay: Record<string, unknown> = {};
     try {
       const up = await fetch(`${UPSTREAM}/${lang}/cards/${encodeURIComponent(id)}`, {
         headers: { Accept: "application/json" },
@@ -489,6 +492,9 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
         const raw: any = await up.json();
         const n = marketFromUpstream(raw);
         if (n > 0) live = n;
+        for (const k of ["attacks", "abilities", "stage", "evolveFrom", "weaknesses", "retreat"]) {
+          if (raw?.[k] != null) gameplay[k] = raw[k];
+        }
       }
     } catch {
       /* catalog still serves */
@@ -505,7 +511,7 @@ async function fromCatalog(lang: string, path: string, catalog: Catalog): Promis
     }
     const prices = await hydratePrices([c], 8, lang);
     const paid = live ?? prices.get(c.id);
-    return json(toTcgdexCard(c, lang, setName(c.setId), paid, CAT));
+    return json({ ...toTcgdexCard(c, lang, setName(c.setId), paid, CAT), ...gameplay });
   }
 
   if (pathname === "/sets") {

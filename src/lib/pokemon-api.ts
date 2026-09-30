@@ -540,6 +540,11 @@ function firstHit<T>(promises: Promise<T | null>[]): Promise<T | null> {
   });
 }
 
+/** Dotted set ids (e.g. sv10.5b-003) exist only on TCGdex; pokemontcg would 404. */
+function tcgdexOnlyId(id: string): boolean {
+  return (id.split("-")[0] || "").includes(".");
+}
+
 export async function getCard(id: string, lang?: string): Promise<TCGCard> {
   const special = getSpecialCard(id);
   if (special) {
@@ -550,7 +555,7 @@ export async function getCard(id: string, lang?: string): Promise<TCGCard> {
   const useLang = lang || memo?.lang || (/^[A-Z]/.test(id) ? "ja" : "en");
   if (memo && (memo.images?.small || memo.tcgplayer || memo.cardmarket)) {
     firstHit<TCGCard>([
-      useLang === "en"
+      useLang === "en" && !tcgdexOnlyId(id)
         ? tcgFetch<{ data: TCGCard }>(`/cards/${encodeURIComponent(id)}`)
             .then((res) => (res?.data?.id ? res.data : null))
             .catch(() => null)
@@ -564,7 +569,7 @@ export async function getCard(id: string, lang?: string): Promise<TCGCard> {
     return memo;
   }
   const hit = await firstHit<TCGCard>([
-    useLang === "en"
+    useLang === "en" && !tcgdexOnlyId(id)
       ? tcgFetch<{ data: TCGCard }>(`/cards/${encodeURIComponent(id)}`)
           .then((res) => (res?.data?.id ? res.data : null))
           .catch(() => null)

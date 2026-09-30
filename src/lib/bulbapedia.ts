@@ -1,4 +1,5 @@
-// Bulbapedia (MediaWiki API) — public, CORS-enabled with origin=*
+// Bulbapedia (MediaWiki API) — the browser goes through /api/public/bulba
+// because Bulbapedia no longer sends CORS headers.
 const API = "https://bulbapedia.bulbagarden.net/w/api.php";
 
 export type BulbaInfo = {
@@ -22,21 +23,12 @@ export async function fetchBulbapedia(cardName: string): Promise<BulbaInfo | nul
   const species = cleanName(cardName);
   if (!species) return null;
   const title = `${species}_(Pokémon)`;
-  const params = new URLSearchParams({
-    action: "query",
-    format: "json",
-    prop: "extracts|pageimages",
-    exintro: "1",
-    explaintext: "1",
-    exchars: "600",
-    piprop: "original",
-    pithumbsize: "400",
-    redirects: "1",
-    titles: title,
-    origin: "*",
-  });
   try {
-    const r = await fetch(`${API}?${params}`);
+    const r = await fetch(
+      typeof window === "undefined"
+        ? `${API}?${new URLSearchParams({ action: "query", format: "json", prop: "extracts|pageimages", exintro: "1", explaintext: "1", exchars: "600", piprop: "original", redirects: "1", titles: title })}`
+        : `/api/public/bulba?title=${encodeURIComponent(title)}`,
+    );
     if (!r.ok) return null;
     const j = await r.json();
     const pages = j?.query?.pages;

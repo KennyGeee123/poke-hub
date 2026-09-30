@@ -35,7 +35,7 @@ export type VisualScanResult = {
 };
 
 // Default high-res Pokemon card back texture
-const DEFAULT_CARD_BACK = "https://images.pokemontcg.io/back.png";
+const DEFAULT_CARD_BACK = "/card-back.svg";
 
 export function VisualGradeScannerModal({
   card,

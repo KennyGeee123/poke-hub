@@ -133,14 +133,23 @@ export function stubCardFromId(id: string): TCGCard {
   const parts = String(id || "").split("-");
   const setId = parts[0] || "base1";
   const number = parts.slice(1).join("-") || "1";
+  // Dotted set ids (e.g. sv10.5b) only exist on TCGdex, so don't guess a
+  // pokemontcg URL that is guaranteed to 404.
+  const tcgdexOnly = setId.includes(".");
+  const serie = setId.match(/^[a-z]+/i)?.[0]?.toLowerCase() || "sv";
   return {
     id,
     name: id.replace(/-/g, " "),
     number,
     set: { id: setId, name: setId, series: "", printedTotal: 0, total: 0, releaseDate: "" },
-    images: {
-      small: `https://images.pokemontcg.io/${setId}/${number}.png`,
-      large: `https://images.pokemontcg.io/${setId}/${number}_hires.png`,
-    },
+    images: tcgdexOnly
+      ? {
+          small: `https://assets.tcgdex.net/en/${serie}/${setId}/${number}/low.webp`,
+          large: `https://assets.tcgdex.net/en/${serie}/${setId}/${number}/high.webp`,
+        }
+      : {
+          small: `https://images.pokemontcg.io/${setId}/${number}.png`,
+          large: `https://images.pokemontcg.io/${setId}/${number}_hires.png`,
+        },
   };
 }

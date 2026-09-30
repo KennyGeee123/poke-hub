@@ -205,6 +205,13 @@ export function mapTcgdexCard(card: any, setOverride?: any, lang = "en"): TCGCar
     },
     images,
     attacks,
+    abilities: Array.isArray(card?.abilities)
+      ? card.abilities.map((a: any) => ({
+          name: String(a?.name ?? ""),
+          text: String(a?.effect ?? a?.text ?? ""),
+          type: String(a?.type ?? "Ability"),
+        }))
+      : undefined,
     weaknesses: card?.weaknesses,
     resistances: card?.resistances,
   };
