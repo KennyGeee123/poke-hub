@@ -1,10 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import type { TCGCard } from "./pokemon-api";
 import { getMarketPrice, getCard } from "./pokemon-api";
-import { pushVaultSnapshot } from "./friends";
-import { supabase } from "@/integrations/supabase/client";
-import { addToParty, saveMonStats } from "./gbgame";
-import { movesAtLevel } from "./pokeapi-moves";
+import { loadSupabase } from "@/integrations/supabase/lazy";
 
 /** Historical localStorage key — still used for one-time migration + meta stub. */
 const VAULT_KEY = "pokevault.v1";
@@ -284,7 +281,7 @@ async function persistVault(value: Record<string, VaultEntry>) {
     lsWriteRaw(VAULT_KEY, JSON.stringify(value));
   }
   emitChange(VAULT_KEY);
-  pushVaultSnapshot(value).catch(() => {});
+  void import("./friends").then((m) => m.pushVaultSnapshot(value)).catch(() => {});
 }
 
 async function persistWish(value: Record<string, TCGCard>) {
@@ -371,6 +368,7 @@ async function autoEnlistInParty(card: TCGCard) {
   if (card.supertype !== "Pokémon") return;
   if (!card.attacks?.length && !(parseInt(card.hp || "") > 0)) return;
   try {
+    const supabase = await loadSupabase();
     const { data: u } = await supabase.auth.getUser();
     const uid = u.user?.id;
     if (!uid) return;
@@ -382,6 +380,10 @@ async function autoEnlistInParty(card: TCGCard) {
       .eq("card_id", card.id)
       .maybeSingle();
     if (existing) return;
+    const [{ addToParty, saveMonStats }, { movesAtLevel }] = await Promise.all([
+      import("./gbgame"),
+      import("./pokeapi-moves"),
+    ]);
     const mon = await addToParty(card, VAULT_START_LEVEL);
     try {
       const real = await movesAtLevel(mon.name, mon.level, mon.attacks);

@@ -15,9 +15,10 @@ export type EbayResponse = {
   error?: string;
 };
 
-import { supabase } from "@/integrations/supabase/client";
+import { loadSupabase } from "@/integrations/supabase/lazy";
 
 export async function getEbaySold(query: string): Promise<EbayResponse> {
+  const supabase = await loadSupabase();
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
   if (!token) throw new Error("Sign in required to look up eBay sold prices");
