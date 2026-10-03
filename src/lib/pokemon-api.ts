@@ -9,6 +9,7 @@ import {
   tcgdexSearchGold,
   tcgdexSearchName,
 } from "@/lib/tcgdex";
+import { addBoxSetExtras } from "@/lib/box-set-extras";
 import { FALLBACK_CARDS, FALLBACK_SETS, fallbackSearch, stubCardFromId } from "@/lib/tcg-fallback";
 import { isGoldCard, parseSearchQuery } from "@/lib/card-search";
 import {
@@ -243,15 +244,21 @@ async function tcgFetch<T>(path: string): Promise<T> {
 
 const EUR_USD = 1.08;
 
+// Base print first: a common's price is its normal print, not the reverse holo.
+// Unlimited before 1st Edition (the everyday copy). Hyphenated = TCGdex keys.
 const PRINT_PREF = [
-  "holofoil",
-  "1stEditionHolofoil",
-  "unlimitedHolofoil",
-  "reverseHolofoil",
-  "shadowless",
-  "1stEdition",
-  "unlimited",
   "normal",
+  "holofoil",
+  "unlimitedHolofoil",
+  "unlimited-holofoil",
+  "unlimited",
+  "shadowless",
+  "1stEditionHolofoil",
+  "1st-edition-holofoil",
+  "1stEdition",
+  "1st-edition",
+  "reverseHolofoil",
+  "reverse-holofoil",
 ];
 
 function pickTpField(
@@ -295,14 +302,14 @@ function cardmarketSoldUsd(cm: NonNullable<TCGCard["cardmarket"]>["prices"] | un
 /** Real sold-average / TCGPlayer market quote. Does not invent a hash estimate. */
 export function getMarketPrice(c: TCGCard, opts?: { allowEstimate?: boolean }): number {
   if (!c) return 0;
-  // Prefer Cardmarket sold averages (avg7/avg30/avg/trend) when present.
-  const sold = cardmarketSoldUsd(c.cardmarket?.prices);
-  if (sold > 0) return sold;
-  // Then TCGPlayer market (recent sales), then mid/low listings.
+  // TCGPlayer market (US recent sales) first, then mid/low listings.
   const marketOnly = pickTpField(c.tcgplayer?.prices, "market");
   if (marketOnly > 0) return marketOnly;
   const quoted = quotedFromTcgplayer(c.tcgplayer?.prices);
   if (quoted > 0) return quoted;
+  // Cardmarket (EU) sold averages only when TCGPlayer has nothing.
+  const sold = cardmarketSoldUsd(c.cardmarket?.prices);
+  if (sold > 0) return sold;
   const low = Number(c.cardmarket?.prices?.lowPrice);
   if (Number.isFinite(low) && low > 0) return Math.round(low * EUR_USD * 100) / 100;
   if (opts?.allowEstimate) return estimatePrice(c);
@@ -801,7 +808,9 @@ export async function getAllCardsBySet(
       paint(instant, Math.max(instant.length, need));
       // Only skip the network when we already have the full printed box.
       if (cached?.length && expectedCount > 0 && cached.length >= expectedCount) {
-        return { data: cached, totalCount: Math.max(cached.length, expectedCount) };
+        const full = sortSetCards(addBoxSetExtras(setId, cached));
+        if (full.length > cached.length) paint(full, full.length);
+        return { data: full, totalCount: Math.max(full.length, expectedCount) };
       }
     }
   }
@@ -819,7 +828,8 @@ export async function getAllCardsBySet(
   try {
     const dx = await tcgdexGetSetCards(setId, lang);
     if (dx.length) {
-      all = mergeSetCardsByLocalId(dx, []);
+      // Official prints TCGdex lacks ship with the app (no pokemontcg.io needed).
+      all = sortSetCards(addBoxSetExtras(setId, mergeSetCardsByLocalId(dx, [])));
       total = Math.max(total, dx.length, all.length, expectedSetTotal(all));
       paint(all, total);
     } else if (cached?.length) {
@@ -871,7 +881,7 @@ export async function getAllCardsBySet(
     return { data: staleCards, totalCount: staleCards.length };
   }
 
-  all = sortSetCards(mergeSetCardsByLocalId(all, []));
+  all = sortSetCards(addBoxSetExtras(setId, mergeSetCardsByLocalId(all, [])));
   const result = { data: all, totalCount: Math.max(total, all.length, expectedCount) };
   if (result.data.length) writeCachedSetCards(setId, result.data);
   return result;

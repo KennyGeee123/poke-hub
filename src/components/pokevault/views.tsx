@@ -715,7 +715,8 @@ export function SetCardsView({
   const [softNote, setSoftNote] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
   const [missingOnly, setMissingOnly] = useState(false);
-  const [showAlts, setShowAlts] = useState(false);
+  // Official checklists include secret / illustration rares, so show every print by default.
+  const [showAlts, setShowAlts] = useState(true);
   const { inVault } = useVault();
 
   const load = (blank = true) => {

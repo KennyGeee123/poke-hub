@@ -290,8 +290,10 @@ export function uniqueBoxPrints<T extends SetCardLike>(cards: T[], printedTotal 
 
 export function sortSetCards<T extends SetCardLike>(cards: T[]): T[] {
   return cards.slice().sort((a, b) => {
-    const na = Number(String(a.number || "").replace(/[^\d]/g, ""));
-    const nb = Number(String(b.number || "").replace(/[^\d]/g, ""));
+    // Letter-only prints (Unown A-Z, !, ?) sort after the numbered checklist.
+    const digits = (c: SetCardLike) => String(c.number || "").replace(/[^\d]/g, "");
+    const na = digits(a) ? Number(digits(a)) : Number.MAX_SAFE_INTEGER;
+    const nb = digits(b) ? Number(digits(b)) : Number.MAX_SAFE_INTEGER;
     if (Number.isFinite(na) && Number.isFinite(nb) && na !== nb) return na - nb;
     return String(a.number || a.id).localeCompare(String(b.number || b.id), undefined, {
       numeric: true,

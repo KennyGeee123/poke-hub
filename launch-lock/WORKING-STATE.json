@@ -33,10 +33,10 @@
     "loopAction": "pokedex-launch-lock",
     "intervalMs": 300000
   },
-  "id": "pokedex-hub-2026-10-03-set-loading-retries",
-  "frozenAt": "2026-10-03T18:43:40Z",
-  "rootSha256": "c43bfc8115ebf23ef4e91519708e29117e0c78fdedc5eecf86876ac849b3bc50",
-  "fileCount": 220,
+  "id": "pokedex-hub-2026-10-03-box-sets-missing-cards-prices",
+  "frozenAt": "2026-10-03T20:46:25Z",
+  "rootSha256": "ff4a2fb21d492dfed4e4c507a67729958f396aff2860b423c0b7ab2199a5dcc5",
+  "fileCount": 222,
   "files": [
     {
       "path": ".npmrc",
@@ -455,8 +455,8 @@
     },
     {
       "path": "src/components/pokevault/CardTile.tsx",
-      "sha256": "61450060df0f1107e74f38bef3cc0e667dd1651d8255c3aa0cb789431ee89ba0",
-      "bytes": 12791
+      "sha256": "f484a2624b732244cfe8a1d06a7dfc6c433f84ccbc00a1026a1c2c4adc06ba04",
+      "bytes": 13054
     },
     {
       "path": "src/components/pokevault/CatchFx.tsx",
@@ -555,8 +555,8 @@
     },
     {
       "path": "src/components/pokevault/views.tsx",
-      "sha256": "75dfa0c3f9c4226f73c7e1b2fc512845e65a5538676d9fbf31b9aa8996391fa2",
-      "bytes": 43922
+      "sha256": "b6decfc8c86b6def70d08cc1aeeff5838596447a06eed0edcdf3c71d51604ea5",
+      "bytes": 44015
     },
     {
       "path": "src/components/ui/accordion.tsx",
@@ -834,6 +834,16 @@
       "bytes": 9853
     },
     {
+      "path": "src/lib/box-set-extras.json",
+      "sha256": "1ebe6e7da10969d5c8dda15563a064663ae90d52ab22f96ac3a8c37a2d30a9ac",
+      "bytes": 40457
+    },
+    {
+      "path": "src/lib/box-set-extras.ts",
+      "sha256": "bf8543c1ee132c01808e2d5ce2cf45d3fdea548e879737cc822bb2214e03a879",
+      "bytes": 1936
+    },
+    {
       "path": "src/lib/bulbapedia.ts",
       "sha256": "81c127801602b6158240fbc79bcfe4364d746c0b17ded94e51761923934bca16",
       "bytes": 1716
@@ -905,8 +915,8 @@
     },
     {
       "path": "src/lib/live-prices.ts",
-      "sha256": "618b144732318f65898513f48071ed3ad5bfd93543f0a7d8b86eb8e26a240f51",
-      "bytes": 11781
+      "sha256": "41cb4a213255177a712a9c72a3faa92247fd18f3c102fc30e7f3e816f0deda6a",
+      "bytes": 11975
     },
     {
       "path": "src/lib/mcp/tools/cards.ts",
@@ -940,8 +950,8 @@
     },
     {
       "path": "src/lib/pokemon-api.ts",
-      "sha256": "239a0a6f24fd9412a619921a9582a7ca354d2f40f9565c209e550ce7b9915631",
-      "bytes": 30465
+      "sha256": "641a82801284a4558d86ecdeed88daa7ce4490b1fa6318b9c7727d99ccfe8cc4",
+      "bytes": 31043
     },
     {
       "path": "src/lib/premium.ts",
@@ -1025,8 +1035,8 @@
     },
     {
       "path": "src/routes/api/public/prices.ts",
-      "sha256": "10e390cf2392a2f0c7f9b548c59ae82512df5758eff1600deed93d426754c66b",
-      "bytes": 16383
+      "sha256": "8b114c2add29a35d3883ef71a353eff0e308a17d83c7b4a1c62bb7a8bfd05248",
+      "bytes": 18979
     },
     {
       "path": "src/routes/api/public/tcg.ts",
@@ -1139,5 +1149,5 @@
       "bytes": 202
     }
   ],
-  "thawNote": "Rebaselined from pokedex-hub-2026-10-03-box-sets-white-flare: 3 files changed by 0c8f7c0 (set-loading retries, 30th Classic merge, aliases)"
+  "thawNote": "Rebaselined from pokedex-hub-2026-10-03-set-loading-retries: box sets: 84 official prints TCGdex lacks shipped as data, all prints shown by default; prices TCGPlayer market first with base-print variant"
 }
