@@ -9,10 +9,22 @@ const SET_ID_GROUPS: string[][] = [
   ["me5", "me05"],
   ["me55", "30th", "me55c", "30th-c"],
   ["zsv10pt5", "sv10.5b"],
-  ["wsv10pt5", "sv10.5w"],
+  // pokemontcg.io ships White Flare as rsv10pt5 (not wsv10pt5); keep both.
+  ["rsv10pt5", "wsv10pt5", "sv10.5w"],
   ["sv8", "sv08"],
   ["sv3", "sv03"],
   ["sv3pt5", "sv03.5"],
+  // pokemontcg ids with no dot/pad rule to reach the TCGdex box (these sets
+  // went blank whenever pokemontcg.io 500'd).
+  ["sm35", "sm3.5"],
+  ["sm75", "sm7.5"],
+  ["swsh35", "swsh3.5"],
+  ["swsh45", "swsh4.5"],
+  ["swsh45sv", "swsh4.5sv"],
+  ["swsh12pt5gg", "swsh12.5gg"],
+  ["cel25c", "cel25cc"],
+  ["pgo", "swsh10.5"],
+  ["base6", "lc"],
 ];
 
 export type SetCardLike = {
@@ -55,7 +67,9 @@ export function canonicalSetId(id: string): string {
     const hit = lower.get(pref.toLowerCase());
     if (hit) return hit;
   }
-  return aliases[0];
+  // Keep the id a real API served. aliases[0] is often a synthetic pad
+  // (swsh1 → "swsh01", base1 → "base01") that neither pokemontcg nor TCGdex has.
+  return (id || "").trim();
 }
 
 /** Every known id for a box set, TCGdex-native forms first. */

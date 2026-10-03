@@ -1,12 +1,13 @@
-FROZEN — launch-ready working state 2026-09-24 (prices + 30th set dedupe)
+FROZEN — working state 2026-10-03 (box sets + White Flare + verify rebaseline)
 Live: https://pokedex-hub-lime.vercel.app/
 Lock: launch-lock/WORKING-STATE.json
-Id:   pokedex-hub-launch-ready-2026-09-24-prices-set-dedupe
+Id:   pokedex-hub-2026-10-03-box-sets-white-flare
 
-Card tiles refetch soft pending quotes (ttl) so sold-avg/tcgcsv can land;
-exhausted pending shows — not infinite Pending. Sets list collapses
-me55/30th and me55c/30th-c alias pairs to one box each (canonical TCGdex ids).
-Classic never cross-maps by number. Geek Squad grid/chrome unchanged.
+Every Box set opens from TCGdex (White Flare rsv10pt5 -> sv10.5w, plus
+sm3.5/sm7.5/swsh3.5/swsh4.5/swsh4.5sv/swsh12.5gg/cel25cc/swsh10.5/lc aliases).
+Set ids stay real API ids. Box sets chip = isBoxSet(): Celebrations and small
+special expansions in, TCG Pocket out. 30th Celebration + Classic = one box (191).
+Rebaselined after 28 post-2026-09-24 commits left verify failing (41 files).
 
 Do not apply drive-by / "hack" edits to hashed files.
 To thaw for a real change: update files, rebuild WORKING-STATE.json from a

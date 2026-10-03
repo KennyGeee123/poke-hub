@@ -143,7 +143,9 @@ export function mapTcgdexSet(s: any, lang = "en"): TCGSet {
   return {
     id: String(s?.id ?? ""),
     name: String(s?.name ?? ""),
-    series: String(s?.serie?.name ?? s?.series ?? ""),
+    series:
+      String(s?.serie?.name ?? s?.series ?? "") ||
+      (/^(?:[ab]\d+[a-z]?|p-[ab])$/i.test(String(s?.id ?? "")) ? "Pokémon TCG Pocket" : ""),
     printedTotal: printed,
     total,
     releaseDate: String(s?.releaseDate ?? ""),
