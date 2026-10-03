@@ -33,9 +33,9 @@
     "loopAction": "pokedex-launch-lock",
     "intervalMs": 300000
   },
-  "id": "pokedex-hub-2026-10-03-box-sets-white-flare",
-  "frozenAt": "2026-10-03T16:51:16Z",
-  "rootSha256": "798e6e622d25eeea45289340410ff1e37d09277f36f6cf772592faa28b286955",
+  "id": "pokedex-hub-2026-10-03-set-loading-retries",
+  "frozenAt": "2026-10-03T18:43:40Z",
+  "rootSha256": "c43bfc8115ebf23ef4e91519708e29117e0c78fdedc5eecf86876ac849b3bc50",
   "fileCount": 220,
   "files": [
     {
@@ -940,8 +940,8 @@
     },
     {
       "path": "src/lib/pokemon-api.ts",
-      "sha256": "971862d841196179992f28eb2ba9f1a71cdd2466900b81a70ef7a7cdccf647ff",
-      "bytes": 30026
+      "sha256": "239a0a6f24fd9412a619921a9582a7ca354d2f40f9565c209e550ce7b9915631",
+      "bytes": 30465
     },
     {
       "path": "src/lib/premium.ts",
@@ -975,8 +975,8 @@
     },
     {
       "path": "src/lib/tcgdex.ts",
-      "sha256": "f0e4c11840204e7b9524cbcd4a2dbb4f069bd3de3de249fa9d1a21ee4b55cd3c",
-      "bytes": 14354
+      "sha256": "5f020d20af94680657657b3a74b2247a7969060d1a254774bc0004340968dcb7",
+      "bytes": 16235
     },
     {
       "path": "src/lib/utils.ts",
@@ -1035,8 +1035,8 @@
     },
     {
       "path": "src/routes/api/public/tcgdex.ts",
-      "sha256": "89f3fe8dec4e9242cfba9ba615efe3537e4c2a0b83b6c9585fcb9961dff23179",
-      "bytes": 20589
+      "sha256": "fbbe6e66c167e5d1c015d096ce9589088d60d962bdb9d4cbe9f6a1b9e9207a65",
+      "bytes": 21404
     },
     {
       "path": "src/routes/index.tsx",
@@ -1139,5 +1139,5 @@
       "bytes": 202
     }
   ],
-  "thawNote": "Rebaselined from pokedex-hub-launch-ready-2026-09-24-prices-set-dedupe: 28 commits after 2026-09-24 (30th one-box merge, Apple Sign In, Full Art Studio, perf, etc.) changed 41 hashed files without a rebuild, so verify failed. Plus box-set fixes (White Flare + 9 TCGdex aliases, real set ids, Box sets chip, 30th total). launchChecks carried over from the 2026-09-24 launch; re-run them on the live deploy after merge."
+  "thawNote": "Rebaselined from pokedex-hub-2026-10-03-box-sets-white-flare: 3 files changed by 0c8f7c0 (set-loading retries, 30th Classic merge, aliases)"
 }

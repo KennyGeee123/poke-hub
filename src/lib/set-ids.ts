@@ -25,6 +25,26 @@ const SET_ID_GROUPS: string[][] = [
   ["cel25c", "cel25cc"],
   ["pgo", "swsh10.5"],
   ["base6", "lc"],
+  // pokemontcg ids whose TCGdex box has a different id (checked 2026-10-03:
+  // same name and card count on both). Without these the proxy 502'd and the
+  // box only loaded while pokemontcg.io was up.
+  ["fut20", "fut2020"],
+  ["bp", "bog"],
+  ["hsp", "hgssp"],
+  ["tk1a", "tk-ex-latia"],
+  ["tk1b", "tk-ex-latio"],
+  ["tk2a", "tk-ex-p"],
+  ["tk2b", "tk-ex-m"],
+  ["mcd11", "2011bw"],
+  ["mcd12", "2012bw"],
+  ["mcd14", "2014xy"],
+  ["mcd15", "2015xy"],
+  ["mcd16", "2016xy"],
+  ["mcd17", "2017sm"],
+  ["mcd18", "2018sm"],
+  ["mcd19", "2019sm"],
+  ["mcd21", "2021swsh"],
+  ["mcd22", "2022swsh"],
 ];
 
 export type SetCardLike = {
@@ -115,6 +135,17 @@ export function setIdAliases(id: string): string[] {
   return [...out].sort((a, b) => aliasRank(a) - aliasRank(b) || a.localeCompare(b));
 }
 
+/**
+ * Ids to try for one /sets/{id} lookup: the exact id first, then its aliases.
+ * setIdAliases() sorts the family, so "30th-c" alone would try "30th" first
+ * and answer Classic Collection with the Celebration box.
+ */
+export function setIdLookupOrder(id: string): string[] {
+  const want = (id || "").trim();
+  if (!want) return [];
+  return [want, ...setIdAliases(want).filter((a) => a !== want)];
+}
+
 export function localCardNumber(card: SetCardLike): string {
   const fromNum = String(card.number || "").trim();
   const fromId = String(card.id || "")
@@ -177,6 +208,36 @@ export function overlaySetPrices<T extends SetCardLike>(box: T[], quotes: T[]): 
     if (!hit.cardmarket && q.cardmarket) hit.cardmarket = q.cardmarket;
   }
   return box;
+}
+
+/** Print number that ignores zero padding inside it ("SV001" = "SV1", "007" = "7"). */
+function printNumberKey(card: SetCardLike): string {
+  return localCardNumber(card).replace(/\d+/g, (d) => String(Number(d)));
+}
+
+/**
+ * Add pokemontcg prints the TCGdex box is missing (SM "a" reprints like 172a,
+ * 30th Celebration Mew B/G/R, Unseen Forces Unown A-Z). Matched by print number
+ * only, so a name spelled differently never duplicates a card, and never past
+ * the box total the grid already shows.
+ */
+export function fillMissingPrints<T extends SetCardLike>(
+  box: T[],
+  extra: T[],
+  boxTotal: number,
+): T[] {
+  if (!(boxTotal > box.length) || !extra.length) return box;
+  const have = new Set(box.map(printNumberKey));
+  const out = box.slice();
+  for (const c of extra) {
+    if (out.length >= boxTotal) break;
+    if (!c?.id) continue;
+    const key = printNumberKey(c);
+    if (have.has(key)) continue;
+    have.add(key);
+    out.push(c);
+  }
+  return out;
 }
 
 export function expectedSetTotal(cards: SetCardLike[], fallback = 0): number {

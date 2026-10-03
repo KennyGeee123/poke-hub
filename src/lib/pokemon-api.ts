@@ -28,6 +28,7 @@ import {
 } from "./catalog-cache";
 import {
   expectedSetTotal,
+  fillMissingPrints,
   mergeSetCardsByLocalId,
   overlaySetPrices,
   setCardsLookComplete,
@@ -521,7 +522,10 @@ export async function searchCards(opts: {
     };
   }
 
-  const fb = fallbackSearch(corrected || text);
+  // Never answer a set/lucene query with the 16 seed cards: a set TCGdex and
+  // pokemontcg both have no cards for (Jumbo, Sample, W Promotional) opened
+  // showing Base Set Charizard & co. as if they were its cards.
+  const fb = luceneOnly ? [] : fallbackSearch(corrected || text);
   if (fb.length) return { data: fb, totalCount: fb.length, page, pageSize };
   return res ?? { data: [], totalCount: 0, page, pageSize };
 }
@@ -830,13 +834,16 @@ export async function getAllCardsBySet(
     }
   }
 
-  // Pokémon TCG API is for live prices only. Do not append extra rows — that
-  // duplicates the same print (sv03.5-006 + sv3pt5-6).
+  // Pokémon TCG API is for live prices, plus prints TCGdex lacks (matched by
+  // number only, capped at the box total) — never the same print twice
+  // (sv03.5-006 + sv3pt5-6).
   if (all.length) {
     void fetchPokemonTcgSetPages(setId)
       .then((ptcg) => {
         if (!ptcg.cards.length) return;
         overlaySetPrices(all, ptcg.cards);
+        const filled = fillMissingPrints(all, ptcg.cards, total);
+        if (filled.length > all.length) all = sortSetCards(filled);
         paint(all, Math.max(total, all.length));
         if (all.length) writeCachedSetCards(setId, all);
       })
