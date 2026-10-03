@@ -113,6 +113,11 @@ export function cachedLivePrice(id: string): number | null {
   return n > 0 ? n : null;
 }
 
+/** Where the cached live quote came from ("tcgplayer-market", "sold-avg", …). */
+export function cachedLivePriceSource(id: string): string | null {
+  return cache.get(id)?.source ?? null;
+}
+
 /** True only while we still owe the user a short "Pending" wait — not after retries exhaust. */
 export function cachedPricePending(id: string): boolean {
   const q = cache.get(id);

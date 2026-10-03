@@ -3,6 +3,13 @@
 import type { TCGCard, TCGPrice, TCGSet } from "@/lib/pokemon-api";
 import { mergeSetCardsByLocalId, setIdAliases } from "@/lib/set-ids";
 
+/**
+ * TCGdex set shells with no cards on TCGdex or pokemontcg (checked 2026-10-03:
+ * /sets/{id} returns 0 cards). They can never open, so the grid skips them.
+ * Radiant Collection's 25 cards already load inside Legendary Treasures (RC1-RC25).
+ */
+export const EMPTY_TCGDEX_SETS = new Set(["wp", "jumbo", "sp", "rc"]);
+
 const BASE = "https://api.tcgdex.net/v2";
 
 function tcgdexUrl(lang: string, path: string): string {
@@ -35,19 +42,24 @@ export type TCGdexCard = {
   retreat?: number;
 };
 
+/** HTTP statuses worth one more try: the proxy/upstream was busy, not "no such set". */
+const RETRYABLE = new Set([500, 502, 503, 504]);
+
 async function j<T>(url: string): Promise<T | null> {
-  try {
-    let r = await fetch(url, { signal: AbortSignal.timeout(12000) });
-    // Soften transient catalog/proxy failures: retry set (and other) fetches once on HTTP 500.
-    if (r.status === 500) {
-      await new Promise((res) => setTimeout(res, 250));
-      r = await fetch(url, { signal: AbortSignal.timeout(12000) });
+  // One retry on a busy (5xx) answer or a dropped connection: api.tcgdex.net and
+  // the /api/public/tcgdex proxy blip for a few seconds at a time, and a single
+  // miss used to leave a box empty ("Catalog returned no cards") or at 16 seeds.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const r = await fetch(url, { signal: AbortSignal.timeout(12000) });
+      if (r.ok) return (await r.json()) as T;
+      if (!RETRYABLE.has(r.status)) return null;
+    } catch {
+      /* network error / CORS-less error page / timeout: retry once */
     }
-    if (!r.ok) return null;
-    return r.json();
-  } catch {
-    return null;
+    if (attempt === 0) await new Promise((res) => setTimeout(res, 400));
   }
+  return null;
 }
 
 export type AltArt = { lang: string; url: string };
@@ -151,7 +163,11 @@ export function mapTcgdexSet(s: any, lang = "en"): TCGSet {
     releaseDate: String(s?.releaseDate ?? ""),
     lang,
     images: {
-      symbol: assetUrl(s?.symbol ?? s?.images?.symbol),
+      // assets.tcgdex.net set symbols 404 as .webp and .png (checked 2026-10-03),
+      // so they only fired failed requests; merged sets keep pokemontcg's symbol.
+      symbol: /assets\.tcgdex\.net/.test(String(s?.symbol ?? s?.images?.symbol ?? ""))
+        ? ""
+        : assetUrl(s?.symbol ?? s?.images?.symbol),
       logo: assetUrl(s?.logo ?? s?.images?.logo),
     },
   };
@@ -310,7 +326,9 @@ export async function tcgdexSearchCards(name: string, limit = 50, lang = "en"): 
 export async function tcgdexGetSets(lang = "en"): Promise<TCGSet[]> {
   const raw = await j<any[]>(tcgdexUrl(lang, `/sets`));
   if (!Array.isArray(raw)) return [];
-  return raw.map((s) => mapTcgdexSet(s, lang)).filter((s) => s.id);
+  return raw
+    .map((s) => mapTcgdexSet(s, lang))
+    .filter((s) => s.id && !(lang === "en" && EMPTY_TCGDEX_SETS.has(s.id)));
 }
 
 async function fetchTcgdexSetPayload(setId: string, lang: string): Promise<any | null> {
@@ -329,8 +347,22 @@ export async function tcgdexGetSetCards(setId: string, lang = "en"): Promise<TCG
   let best: TCGCard[] = [];
   const aliases = setIdAliases(setId);
   const mergeFamilies = aliases.some((a) => /^(30th|me55)/i.test(a));
+  const merged = new Set<string>();
   for (const id of aliases) {
-    const raw = await fetchTcgdexSetPayload(id, lang);
+    let raw = await fetchTcgdexSetPayload(id, lang);
+    if (mergeFamilies) {
+      // The proxy falls back across the alias family, so /sets/30th-c can come
+      // back as the 30th Celebration box. Ask TCGdex for the exact id instead
+      // so Classic Collection is merged in, and never merge one box twice.
+      const gotId = String(raw?.id ?? "").toLowerCase();
+      if (gotId && gotId !== id.toLowerCase() && typeof window !== "undefined") {
+        const exact = await j<any>(`${BASE}/${lang}/sets/${encodeURIComponent(id)}`);
+        if (Array.isArray(exact?.cards) && exact.cards.length) raw = exact;
+      }
+      const boxId = String(raw?.id ?? id).toLowerCase();
+      if (merged.has(boxId)) continue;
+      merged.add(boxId);
+    }
     const cards = Array.isArray(raw?.cards) ? raw.cards : Array.isArray(raw) ? raw : [];
     if (!cards.length) continue;
     const mapped = cards.map((c: any) => mapTcgdexCard(c, raw, lang)).filter((c: TCGCard) => c?.id);
@@ -385,14 +417,15 @@ export async function getAltArtworks(card: {
         tcgdexUrl(lang, `/cards/${encodeURIComponent(candidateId)}`),
       );
       if (direct?.image) {
-        results.push({ lang, url: `${direct.image}/high.webp` });
+        results.push({ lang, url: cardImages({ image: direct.image }).large });
         return;
       }
       const search = await j<TCGdexCard[]>(
         tcgdexUrl(lang, `/cards?name=${encodeURIComponent(card.name)}`),
       );
       const hit = search?.find((c) => c.image);
-      if (hit?.image) results.push({ lang, url: `${hit.image}/high.webp` });
+      // Proxy hits can already be full URLs (…/high.webp, TCGplayer .jpg): no double suffix.
+      if (hit?.image) results.push({ lang, url: cardImages({ image: hit.image }).large });
     }),
   );
 
