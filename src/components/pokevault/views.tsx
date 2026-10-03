@@ -14,6 +14,7 @@ import {
 } from "@/lib/pokemon-api";
 import { formatPrice, useVault } from "@/lib/vault";
 import { uniqueBoxPrints } from "@/lib/set-ids";
+import { isBoxSet } from "@/lib/special-sets";
 import { CardTile, CardSkeleton } from "./CardTile";
 import { VirtualCardGrid } from "./VirtualCardGrid";
 import { CollectionInsightsCard } from "./CollectionInsights";
@@ -523,11 +524,7 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
     if (chip === "shadowless")
       return id === "base1sl" || id === "bss" || name.includes("shadowless");
     if (chip === "error") return id === "error" || /\b(error|misprint)/.test(name);
-    if (chip === "box") {
-      if (id === "error") return false;
-      const n = Number(s.total || s.printedTotal || 0);
-      return n >= 30 && !/promo|mcdonald|jumbo|ko|zh/i.test(id + name);
-    }
+    if (chip === "box") return isBoxSet(s);
     if (
       filter &&
       !name.includes(filter.toLowerCase()) &&

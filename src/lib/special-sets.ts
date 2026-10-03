@@ -216,20 +216,17 @@ function normName(s: string): string {
     .trim();
 }
 
-/** Celebration + Classic are one 30th box; sum their card counts, don't max. */
+/** 30th Celebration family: Celebration and Classic Collection are one box. */
+function thirtiethPart(s: TCGSet): "celeb" | "classic" | null {
+  const ids = new Set(setIdAliases(s.id).map((x) => x.toLowerCase()));
+  if (!ids.has("30th") && !ids.has("me55") && !ids.has("30th-c") && !ids.has("me55c")) return null;
+  return /classic/i.test(s.name || "") || /^(30th-c|me55c)$/i.test(s.id) ? "classic" : "celeb";
+}
+
+/** Max of the two totals. 30th family sums are handled in mergeSetLists. */
 function mergeSetTotals(a: TCGSet, b: TCGSet): number {
-  const ids = new Set(
-    [...setIdAliases(a.id), ...setIdAliases(b.id)].map((x) => x.toLowerCase()),
-  );
-  const celeb = ids.has("30th") || ids.has("me55");
-  const classic = ids.has("30th-c") || ids.has("me55c");
   const ta = Number(a.total) || 0;
   const tb = Number(b.total) || 0;
-  if (celeb && classic) {
-    const aClassic = /classic/i.test(a.name || "") || /30th-c|me55c/i.test(a.id);
-    const bClassic = /classic/i.test(b.name || "") || /30th-c|me55c/i.test(b.id);
-    if (aClassic !== bClassic) return ta + tb;
-  }
   return Math.max(ta, tb) || ta || tb;
 }
 
@@ -273,6 +270,17 @@ export function mergeSetLists(primary: TCGSet[], extra: TCGSet[]): TCGSet[] {
   const out: TCGSet[] = [];
   const canonIndex = new Map<string, number>();
   const names = new Set<string>();
+  // Celebration + Classic sum once per part (pokemontcg and TCGdex both list
+  // each part, so summing every merge double-counted Classic: 221 not 191).
+  const parts = new Map<number, { celeb: number; classic: number }>();
+  const tally = (idx: number, s: TCGSet) => {
+    const part = thirtiethPart(s);
+    if (!part) return;
+    const cur = parts.get(idx) || { celeb: 0, classic: 0 };
+    cur[part] = Math.max(cur[part], Number(s.total) || 0);
+    parts.set(idx, cur);
+    out[idx] = { ...out[idx], total: cur.celeb + cur.classic };
+  };
 
   const take = (s: TCGSet) => {
     if (!s?.id) return;
@@ -282,6 +290,7 @@ export function mergeSetLists(primary: TCGSet[], extra: TCGSet[]): TCGSet[] {
     const idx = canonIndex.get(canonKey);
     if (idx != null) {
       out[idx] = preferRicherSet(out[idx], s, canon);
+      tally(idx, s);
       if (name) names.add(name);
       return;
     }
@@ -289,15 +298,18 @@ export function mergeSetLists(primary: TCGSet[], extra: TCGSet[]): TCGSet[] {
       const hit = canonIndex.get(alias.toLowerCase());
       if (hit != null) {
         out[hit] = preferRicherSet(out[hit], s, out[hit].id);
+        tally(hit, s);
         if (name) names.add(name);
         return;
       }
     }
     if (name && names.has(name)) return;
     const entry = preferRicherSet(s, s, canon);
-    canonIndex.set(canonKey, out.length);
-    for (const alias of setIdAliases(canon)) canonIndex.set(alias.toLowerCase(), out.length);
+    const at = out.length;
+    canonIndex.set(canonKey, at);
+    for (const alias of setIdAliases(canon)) canonIndex.set(alias.toLowerCase(), at);
     out.push(entry);
+    tally(at, s);
     if (name) names.add(name);
   };
 
@@ -324,4 +336,24 @@ export function parentSetIdForSpecial(setId: string, number?: string): string | 
     return "base1";
   }
   return null;
+}
+
+/** Pokémon TCG Pocket (digital-only) sets that TCGdex mixes into the English list. */
+export function isTcgPocketSet(s: Pick<TCGSet, "id" | "series">): boolean {
+  if (/pocket/i.test(s.series || "")) return true;
+  return /^(?:[ab]\d+[a-z]?|p-[ab])$/i.test((s.id || "").trim());
+}
+
+/** Small real expansions sold in boxes/ETBs that the 30-card rule used to hide. */
+const SMALL_BOX_SETS = new Set(["cel25", "cel25c", "det1", "dv1", "si1", "ru1"]);
+
+/** "Box sets" chip: physical expansions, not promos, McDonald's, jumbo or Pocket. */
+export function isBoxSet(s: TCGSet): boolean {
+  const id = (s.id || "").toLowerCase();
+  const name = (s.name || "").toLowerCase();
+  if (id === ERROR_SET_ID) return false;
+  if (isTcgPocketSet(s)) return false;
+  if (/promo|mcdonald|jumbo|ko|zh/i.test(id + name)) return false;
+  if (setIdAliases(id).some((a) => SMALL_BOX_SETS.has(a.toLowerCase()))) return true;
+  return Number(s.total || s.printedTotal || 0) >= 30;
 }
