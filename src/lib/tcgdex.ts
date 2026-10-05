@@ -93,12 +93,70 @@ function cardImages(card: {
   // path that matches the TCGdex localId (Magikarp is me55c-203, not 30th-c/030).
   // Leave blank so addBoxSetExtras / fallbackCardImages can fill a real scan.
   if (setId && num && !/^(30th-c|me55c)$/i.test(String(setId))) {
+    const ptcg = pokemontcgImagePath(String(setId), num);
+    if (!ptcg) return { small: "", large: "" };
     return {
-      small: `https://images.pokemontcg.io/${setId}/${num}.png`,
-      large: `https://images.pokemontcg.io/${setId}/${num}_hires.png`,
+      small: `https://images.pokemontcg.io/${ptcg}.png`,
+      large: `https://images.pokemontcg.io/${ptcg}_hires.png`,
     };
   }
   return { small: "", large: "" };
+}
+
+/**
+ * Celebrations Classic Collection: TCGdex CC001-CC025 → pokemontcg.io scan
+ * file (cel25c/2_A …). Checked against PokemonTCG/pokemon-tcg-data 2026-10-05.
+ */
+const CEL25C_SCANS: Record<string, string> = {
+  CC001: "2_A",
+  CC002: "4_A",
+  CC003: "15_A",
+  CC004: "73_A",
+  CC005: "8_A",
+  CC006: "15_B",
+  CC007: "15_C",
+  CC008: "24_A",
+  CC009: "20_A",
+  CC010: "66_A",
+  CC011: "9_A",
+  CC012: "86_A",
+  CC013: "88_A",
+  CC014: "93_A",
+  CC015: "17_A",
+  CC016: "15_D",
+  CC017: "109_A",
+  CC018: "145_A",
+  CC019: "107_A",
+  CC020: "113_A",
+  CC021: "114_A",
+  CC022: "54_A",
+  CC023: "97_A",
+  CC024: "76_A",
+  CC025: "60_A",
+};
+
+/**
+ * TCGdex has image:null for whole boxes (Dragon Majesty sm7.5, Shining Legends
+ * sm3.5, Shiny Vault swsh4.5sv, Galarian Gallery swsh12.5gg, Celebrations
+ * Classic cel25cc). Inventing images.pokemontcg.io/sm7.5/1.png 404'd into a
+ * card-back for every tile. pokemontcg.io keeps those scans under its own id
+ * (sm75/1, swsh45sv/SV001, swsh12pt5gg/GG01), so map to that id.
+ */
+export function pokemontcgImagePath(setId: string, num: string): string | null {
+  const id = (setId || "").trim();
+  if (!id || !num) return null;
+  if (/^cel25cc$/i.test(id)) {
+    const file = CEL25C_SCANS[num.toUpperCase()];
+    return file ? `cel25c/${file}` : null;
+  }
+  let ptcgSet = id;
+  if (id.includes(".")) {
+    ptcgSet = setIdAliases(id).find((a) => !a.includes(".") && a !== id.toLowerCase()) || "";
+    if (!ptcgSet) return null;
+  }
+  // pokemontcg numbers are unpadded for plain numerics (sv3pt5/1, not /001).
+  const n = /^\d+$/.test(num) ? String(Number(num)) : num;
+  return `${ptcgSet}/${n}`;
 }
 
 const TP_VARIANT: Record<string, string> = {

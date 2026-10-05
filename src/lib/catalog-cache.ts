@@ -52,7 +52,8 @@ type Envelope<T> = { at: number; data: T };
 
 // v7: set totals include shipped box extras (30th = 191, Unseen Forces = 145).
 const SETS_KEY = "sets:all:v7";
-const setKey = (id: string) => `set:${id}:cards`;
+// v2: image-less TCGdex boxes now carry pokemontcg scans (sm75/1, cel25c/2_A).
+const setKey = (id: string) => `set:${id}:cards:v2`;
 
 export async function getCachedSets<T>(maxAgeMs = 24 * 60 * 60 * 1000): Promise<T | null> {
   const env = await idbGet<Envelope<T>>(SETS_KEY);
