@@ -1,27 +1,27 @@
-import { cpSync, mkdirSync, existsSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { cpSync, mkdirSync, existsSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
-const root = process.cwd()
-const www = join(root, 'www')
-mkdirSync(www, { recursive: true })
+const root = process.cwd();
+const www = join(root, "www");
+mkdirSync(www, { recursive: true });
 
 const files = [
-  'favicon.svg',
-  'apple-touch-icon.png',
-  'icon-512.png',
-  'icon-192.png',
-  'manifest.webmanifest',
-  'privacy.html',
-  'terms.html',
-  'support.html',
-]
+  "favicon.svg",
+  "apple-touch-icon.png",
+  "icon-512.png",
+  "icon-192.png",
+  "manifest.webmanifest",
+  "privacy.html",
+  "terms.html",
+  "support.html",
+];
 for (const f of files) {
-  const src = join(root, 'public', f)
-  if (existsSync(src)) cpSync(src, join(www, f))
+  const src = join(root, "public", f);
+  if (existsSync(src)) cpSync(src, join(www, f));
 }
 
 writeFileSync(
-  join(www, 'index.html'),
+  join(www, "index.html"),
   `<!doctype html>
 <html lang="en">
   <head>
@@ -44,5 +44,5 @@ writeFileSync(
   </body>
 </html>
 `,
-)
-console.log('prepared www/ for cap sync')
+);
+console.log("prepared www/ for cap sync");

@@ -205,7 +205,9 @@ function ScanSlot({
             onChange={(e) => setQ(e.target.value)}
             autoComplete="off"
           />
-          <span className="ft-find-status">{busy ? "…" : q.trim().length >= 2 ? `${hits.length}` : "Find"}</span>
+          <span className="ft-find-status">
+            {busy ? "…" : q.trim().length >= 2 ? `${hits.length}` : "Find"}
+          </span>
         </form>
         {hits.length > 0 && (
           <div className="ft-hits" role="listbox">

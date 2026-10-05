@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { looksLikePlaceholderScan } from "@/lib/card-images";
 import { Sparkles, Eye, RotateCw, X, Maximize2 } from "lucide-react";
 import {
   type FoilStyle,
@@ -32,6 +33,8 @@ export interface InteractiveHoloCardProps {
   width?: number | string;
   defaultStyle?: HoloStyle | FoilStyle;
   onExpandModal?: () => void;
+  /** Called when the front scan fails so the parent can move to the next source. */
+  onFrontError?: () => void;
 }
 
 const DEFAULT_CARD_BACK = "/card-back.svg";
@@ -55,6 +58,7 @@ export function InteractiveHoloCard({
   width,
   defaultStyle,
   onExpandModal,
+  onFrontError,
 }: InteractiveHoloCardProps) {
   const foilCard: FoilCardInput = useMemo(
     () =>
@@ -364,6 +368,10 @@ export function InteractiveHoloCard({
               alt={name}
               className="w-full h-full object-fill pointer-events-none"
               draggable={false}
+              onError={onFrontError}
+              onLoad={(e) => {
+                if (onFrontError && looksLikePlaceholderScan(e.currentTarget)) onFrontError();
+              }}
             />
 
             {renderHoloLayer()}

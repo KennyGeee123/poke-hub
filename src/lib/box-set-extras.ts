@@ -61,6 +61,18 @@ export function boxSetExtraCount(setId: string): number {
   return extraSetsFor(setId).reduce((n, s) => n + s.cards.length, 0);
 }
 
+/**
+ * Prints these extras add on top of the TCGdex count for a set. Classic
+ * Collection is excluded: TCGdex already lists it as 30th-c (30 cards) and the
+ * 30th family sums Celebration + Classic once, so counting it here would make
+ * the 30th tile say 221 instead of 191.
+ */
+export function boxSetNetExtraCount(setId: string): number {
+  return extraSetsFor(setId)
+    .filter((s) => !s.keys.some((k) => /^(30th-c|me55c)$/i.test(k)))
+    .reduce((n, s) => n + s.cards.length, 0);
+}
+
 /** Box cards plus any official prints the box is missing, set info copied from the box. */
 export function addBoxSetExtras(setId: string, box: TCGCard[]): TCGCard[] {
   const lists = extraSetsFor(setId);

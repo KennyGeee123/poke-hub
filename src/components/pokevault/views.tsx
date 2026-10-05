@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from "react";
-import { fallbackCardImages, hdImg } from "@/lib/card-images";
+import { hdImg } from "@/lib/card-images";
+import { useCardImageChain } from "@/lib/use-card-image";
 import type { TCGCard, TCGSet } from "@/lib/pokemon-api";
 import {
   getMarketPrice,
@@ -38,18 +39,18 @@ function LiveAskPrice({ card }: { card: TCGCard }) {
 }
 
 function LbImg({ card }: { card: TCGCard }) {
-  const urls = fallbackCardImages(card, { tile: true });
-  const [i, setI] = useState(0);
-  const src = urls[i] || hdImg(card, { tile: true }).src;
-  if (!src) return <div className="pv-lb-img" aria-hidden />;
+  const art = useCardImageChain(card, { tile: true });
+  if (!art.src) return <div className="pv-lb-img" aria-hidden />;
   return (
     <img
+      ref={art.ref}
       className="pv-lb-img"
-      src={src}
+      src={art.src}
       alt=""
       loading="lazy"
       decoding="async"
-      onError={() => setI((n) => n + 1)}
+      onLoad={art.onLoad}
+      onError={art.onError}
     />
   );
 }

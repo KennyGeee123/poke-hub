@@ -33,10 +33,10 @@
     "loopAction": "pokedex-launch-lock",
     "intervalMs": 300000
   },
-  "id": "pokedex-hub-2026-10-05-magikarp-classic-images",
-  "frozenAt": "2026-10-05T14:45:14Z",
-  "rootSha256": "101815f5015bbff1bd30f79e5e77a1fc3d3798a14ae073950996a9b1f1e77eb1",
-  "fileCount": 222,
+  "id": "pokedex-hub-2026-10-05-never-black-tiles",
+  "frozenAt": "2026-10-05T15:25:08Z",
+  "rootSha256": "0678a9f328866599cf560bf0f706cd91765b29211626a4ee7fc2101ac5b38343",
+  "fileCount": 224,
   "files": [
     {
       "path": ".npmrc",
@@ -65,12 +65,12 @@
     },
     {
       "path": "eslint.config.js",
-      "sha256": "46e4ae55cccc4fe37fa54ecf03a5194c1398c109a0f0ee0287f60662fbb789e1",
-      "bytes": 1390
+      "sha256": "22109493c39b522e1c3b7b7c8daafe113c9ed4e27fc7693299bef98c5ff8e5ce",
+      "bytes": 1452
     },
     {
       "path": "package.json",
-      "sha256": "417a9ec5c91b91c62acbd818d8b7721b1e48b5c473f2f760325d824df421f373",
+      "sha256": "7f73f2ff0b65c5ba749d91fc43d936378dd92b49a97c1cc4c184c478c356b0f6",
       "bytes": 3736
     },
     {
@@ -435,8 +435,8 @@
     },
     {
       "path": "scripts/build-print-catalog.mjs",
-      "sha256": "9f19653070e49c89475127c42de7951005cc45ce93419fc7324f5ab81491b03d",
-      "bytes": 6379
+      "sha256": "6c5a0ea3c0bc752c8c5bd2efd7d88d7823e32fddebe2882344268d61ad279990",
+      "bytes": 6585
     },
     {
       "path": "src/components/pokevault/Adventure.tsx",
@@ -450,13 +450,13 @@
     },
     {
       "path": "src/components/pokevault/CardDetail.tsx",
-      "sha256": "60720ba19cd0dc0e8192c46683be2a4afd4f31721029363f8755698aa5e55cd1",
-      "bytes": 55065
+      "sha256": "ce3fbac6a2faca14557ecdfc2bbad4e208f2703636aea897961e7a4627e89014",
+      "bytes": 55842
     },
     {
       "path": "src/components/pokevault/CardTile.tsx",
-      "sha256": "f484a2624b732244cfe8a1d06a7dfc6c433f84ccbc00a1026a1c2c4adc06ba04",
-      "bytes": 13054
+      "sha256": "272caacf9183e752382b0b7d68edbecc6808015c6b694b579fdc9a4b8e3ecaa4",
+      "bytes": 12915
     },
     {
       "path": "src/components/pokevault/CatchFx.tsx",
@@ -490,8 +490,8 @@
     },
     {
       "path": "src/components/pokevault/InteractiveHoloCard.tsx",
-      "sha256": "6372eb5905a9fb70f80b0893fcdc8fa91b653ce1a00d9898c34d59c621f72431",
-      "bytes": 21360
+      "sha256": "56ac0cf2a52d15398ebcc7b03f32036bff0bc8f35d5af536bd857461a4f5d908",
+      "bytes": 21732
     },
     {
       "path": "src/components/pokevault/Marketplace.tsx",
@@ -555,8 +555,8 @@
     },
     {
       "path": "src/components/pokevault/views.tsx",
-      "sha256": "b6decfc8c86b6def70d08cc1aeeff5838596447a06eed0edcdf3c71d51604ea5",
-      "bytes": 44015
+      "sha256": "fcf36a6b69f2b1c6343fe68cb80abc2f6f437234994f74728dc6a16c7a33b994",
+      "bytes": 44001
     },
     {
       "path": "src/components/ui/accordion.tsx",
@@ -840,8 +840,8 @@
     },
     {
       "path": "src/lib/box-set-extras.ts",
-      "sha256": "6cccbae30e6f149c8f177964a3d31c5400aa1a68b8404159797bf40a4ad25076",
-      "bytes": 3279
+      "sha256": "731cf0c16207b2219def0c04408e165215aa79a19c938b7d4af06a41a73b39db",
+      "bytes": 3768
     },
     {
       "path": "src/lib/bulbapedia.ts",
@@ -849,9 +849,14 @@
       "bytes": 1716
     },
     {
+      "path": "src/lib/card-images.test.ts",
+      "sha256": "181462fc3cfccee5b92d0d758fc104a8e2f4e549768caabc427f25724677883d",
+      "bytes": 2620
+    },
+    {
       "path": "src/lib/card-images.ts",
-      "sha256": "8d458b935f6c08d2007c6073d3c73fa9abec27224912c04e72377caeb757b4d5",
-      "bytes": 9209
+      "sha256": "e4816a32b4bf606f7b91fea27272abb3b74b0eaae2b0822bb849b6aeb3a803ef",
+      "bytes": 10635
     },
     {
       "path": "src/lib/card-prices.ts",
@@ -985,8 +990,13 @@
     },
     {
       "path": "src/lib/tcgdex.ts",
-      "sha256": "aef1cef6f55d35cf2691fc9d787129aeb9e6f4521efe25b6e7cff8828687f412",
-      "bytes": 16858
+      "sha256": "abf39d87deee3ab6556c9189f24a862c563d8eeb486b282c2714c6d0738bc8e5",
+      "bytes": 17177
+    },
+    {
+      "path": "src/lib/use-card-image.ts",
+      "sha256": "9383b99c98c2a0b12ca9518ca9488b15dd28f86a15ea33ab6487f21db1bd2e8d",
+      "bytes": 3106
     },
     {
       "path": "src/lib/utils.ts",
@@ -1000,7 +1010,7 @@
     },
     {
       "path": "src/routeTree.gen.ts",
-      "sha256": "b254d9eda2b13c63288e4cc0584f38878fde93b5b8649bcd382b1fbfe4368139",
+      "sha256": "4286ca43c7caa5ed0f605d68d944fb3165e8ffc6404bcad34835d0730735255b",
       "bytes": 12751
     },
     {
@@ -1010,13 +1020,13 @@
     },
     {
       "path": "src/routes/__root.tsx",
-      "sha256": "022dce005ed9294f46bc0308ece32daaec01ecbdc255bbd9922b55c1d3062a59",
-      "bytes": 5778
+      "sha256": "8f0a629a15637bc6b9005bcec3f4bcb58b148706a587d2a22ce67e1b921cdb1a",
+      "bytes": 5780
     },
     {
       "path": "src/routes/api/public/card-prices.ts",
-      "sha256": "f3d81ab5dc736bb78274aed40ac565d20f89ff4818d8b676fba7fd01b11815d4",
-      "bytes": 45109
+      "sha256": "c9cca0b56636d17782943c725ccaa4ea46056d49c0dace526726b5cb1bbd9e35",
+      "bytes": 45266
     },
     {
       "path": "src/routes/api/public/ebay-sold.ts",
@@ -1149,5 +1159,5 @@
       "bytes": 202
     }
   ],
-  "thawNote": "Rebaselined from pokedex-hub-2026-10-03-box-sets-missing-cards-prices: 30th Classic Collection (Magikarp) shipped with TCGPlayer scans; image overlay; hardened Classic fetch"
+  "thawNote": "Rebaselined from pokedex-hub-2026-10-05-magikarp-classic-images: PR #5 TanStack CVE bump merged; card image pipeline (proxy retry, stall watchdog, Art pending tile) fixes black 30th tiles; 30th set tile 191; lint/tsc clean."
 }

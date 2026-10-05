@@ -17,23 +17,36 @@ export const Route = createFileRoute("/api/public/card-image")({
         if (target.protocol !== "https:" || !ALLOWED.has(target.hostname)) {
           return Response.json({ error: "Host not allowed" }, { status: 400 });
         }
-        try {
-          const r = await fetch(target.toString(), { signal: AbortSignal.timeout(10000) });
-          const type = r.headers.get("content-type") || "";
-          if (!r.ok || !type.startsWith("image/")) {
-            return Response.json({ error: "Image unavailable" }, { status: 502 });
+        // Card CDNs (TCGdex especially) answer bursts with 503s. Retry busy
+        // answers server-side so the tile gets real art instead of a black box.
+        // pokemontcg.io serves a card-back PNG with HTTP 404 — r.ok rejects it.
+        for (let attempt = 0; attempt < 3; attempt++) {
+          if (attempt) await new Promise((res) => setTimeout(res, 250 * 3 ** (attempt - 1)));
+          try {
+            const r = await fetch(target.toString(), {
+              signal: AbortSignal.timeout(8000),
+              headers: { accept: "image/avif,image/webp,image/png,image/*;q=0.8" },
+            });
+            const type = r.headers.get("content-type") || "";
+            if (r.ok && type.startsWith("image/")) {
+              return new Response(r.body, {
+                status: 200,
+                headers: {
+                  "content-type": type,
+                  "cache-control": "public, max-age=86400, s-maxage=604800, immutable",
+                  "access-control-allow-origin": "*",
+                },
+              });
+            }
+            if (r.status < 500 && r.status !== 429) break; // 404 etc: not transient
+          } catch {
+            /* timeout / network — retry */
           }
-          return new Response(r.body, {
-            status: 200,
-            headers: {
-              "content-type": type,
-              "cache-control": "public, max-age=86400, s-maxage=604800, immutable",
-              "access-control-allow-origin": "*",
-            },
-          });
-        } catch {
-          return Response.json({ error: "Image unavailable" }, { status: 502 });
         }
+        return Response.json(
+          { error: "Image unavailable" },
+          { status: 502, headers: { "cache-control": "no-store" } },
+        );
       },
     },
   },

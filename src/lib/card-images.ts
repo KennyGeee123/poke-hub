@@ -1,34 +1,70 @@
 // Card image helpers — promote every TCG card to HD art with TCGdex & SVG fallbacks.
 // Tile grids prefer small/low assets; detail/fullscreen keep high/hires.
 import type { TCGCard } from "@/lib/pokemon-api";
+import { isAllowedCardImageUrl } from "@/lib/card-image-hosts";
 
+/**
+ * Branded "Art pending" tile: silhouette + name + set code. Never a blank or
+ * black box, and never mistaken for real scan art.
+ */
 export function generateCardSvgFallback(name: string, number?: string, setName?: string): string {
-  const safeName = (name || "Pokémon Card").replace(/[<>&"]/g, "");
-  const safeNum = (number || "001").replace(/[<>&"]/g, "");
-  const safeSet = (setName || "Vault").replace(/[<>&"]/g, "");
+  const esc = (v: string) => v.replace(/[<>&"']/g, "");
+  const safeName = esc(name || "Pokémon Card").slice(0, 26);
+  const safeNum = esc(number || "—").slice(0, 12);
+  const safeSet = esc(setName || "PokéVault").slice(0, 28);
 
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 420" width="100%" height="100%">
+  const svg = `<svg data-pv-art-pending="1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 420" width="100%" height="100%">
     <defs>
       <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" stop-color="#1e1b4b"/>
-        <stop offset="50%" stop-color="#0f172a"/>
-        <stop offset="100%" stop-color="#020617"/>
+        <stop offset="55%" stop-color="#111827"/>
+        <stop offset="100%" stop-color="#0b1020"/>
       </linearGradient>
       <linearGradient id="b" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#38bdf8"/>
-        <stop offset="100%" stop-color="#c084fc"/>
+        <stop offset="0%" stop-color="#fbbf24"/>
+        <stop offset="100%" stop-color="#f87171"/>
       </linearGradient>
     </defs>
-    <rect width="300" height="420" rx="16" fill="url(#g)" stroke="url(#b)" stroke-width="4"/>
-    <circle cx="150" cy="180" r="60" fill="none" stroke="rgba(56,189,248,0.2)" stroke-width="8"/>
-    <circle cx="150" cy="180" r="30" fill="rgba(56,189,248,0.1)"/>
-    <path d="M 90 180 L 210 180" stroke="rgba(56,189,248,0.4)" stroke-width="4"/>
-    <text x="150" y="270" fill="#f8fafc" font-size="16" font-family="system-ui, sans-serif" font-weight="bold" text-anchor="middle">${safeName}</text>
-    <text x="150" y="295" fill="#94a3b8" font-size="12" font-family="monospace" text-anchor="middle">${safeSet} · #${safeNum}</text>
-    <text x="150" y="380" fill="#38bdf8" font-size="10" font-family="monospace" text-anchor="middle">POKEVAULT HD SYNC</text>
+    <rect x="2" y="2" width="296" height="416" rx="16" fill="url(#g)" stroke="url(#b)" stroke-width="4"/>
+    <circle cx="150" cy="165" r="62" fill="none" stroke="rgba(251,191,36,0.35)" stroke-width="8"/>
+    <path d="M 88 165 L 212 165" stroke="rgba(251,191,36,0.35)" stroke-width="8"/>
+    <circle cx="150" cy="165" r="18" fill="#111827" stroke="rgba(251,191,36,0.55)" stroke-width="6"/>
+    <text x="150" y="265" fill="#f8fafc" font-size="18" font-family="system-ui, sans-serif" font-weight="700" text-anchor="middle">${safeName}</text>
+    <text x="150" y="292" fill="#94a3b8" font-size="12" font-family="monospace" text-anchor="middle">${safeSet} · #${safeNum}</text>
+    <rect x="90" y="352" width="120" height="26" rx="13" fill="rgba(251,191,36,0.12)" stroke="rgba(251,191,36,0.5)"/>
+    <text x="150" y="369" fill="#fbbf24" font-size="11" font-family="monospace" font-weight="700" text-anchor="middle" letter-spacing="1.5">ART PENDING</text>
   </svg>`;
 
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+export function isArtPending(url?: string | null): boolean {
+  return !!url && url.startsWith("data:image/svg+xml") && url.includes("data-pv-art-pending");
+}
+
+/**
+ * Same-origin proxy for an allow-listed card CDN URL. The server retries
+ * busy (5xx) answers and caches at the edge, so a TCGdex 503 burst or a
+ * pokemontcg 404 card-back never reaches the tile.
+ */
+export function proxiedCardImage(url?: string | null): string {
+  if (!url || !isAllowedCardImageUrl(url)) return "";
+  return `/api/public/card-image?url=${encodeURIComponent(url)}`;
+}
+
+/**
+ * pokemontcg.io answers a missing scan with HTTP 404 *and* a 640×892 card-back
+ * PNG, so <img> fires onLoad. Treat that (and tiny broken bitmaps) as a miss.
+ */
+export function looksLikePlaceholderScan(
+  img: Pick<HTMLImageElement, "naturalWidth" | "naturalHeight" | "currentSrc" | "src">,
+): boolean {
+  const w = img.naturalWidth || 0;
+  const h = img.naturalHeight || 0;
+  const src = img.currentSrc || img.src || "";
+  if (src.startsWith("data:")) return false;
+  if (w < 40 || h < 40) return true;
+  return /images\.pokemontcg\.io/i.test(src) && w === 640 && h === 892;
 }
 
 /** Rewrite tcgdex .../high.webp → .../low.webp for ~140px tiles. */
@@ -76,21 +112,14 @@ export function hdImg(
   const small = card.images?.small ?? "";
   const large = card.images?.large ?? small;
   if (opts?.tile) {
-    // Prefer low.webp / small; never lead with hires/high for ~140px tiles.
+    // Tiles take the 245px low.webp only. A 600w high.webp in srcset made every
+    // retina tile pull ~100KB from TCGdex, and 191-card boxes tripped its 503s.
     const tileSrc = tileImageUrl(small) || tileImageUrl(large) || small || large;
     const low =
       (small && isTcgdex(small) ? tcgdexHighToLow(small) : "") ||
       (large && isTcgdex(large) ? tcgdexHighToLow(large) : "") ||
       tileSrc;
-    const high =
-      (large && isTcgdex(large) && /\/high\./i.test(large) ? large : "") ||
-      (small && isTcgdex(small) ? small.replace(/\/low\.(webp|png|jpg)$/i, "/high.$1") : "");
-    return {
-      src: low || tileSrc,
-      srcSet:
-        low && high && low !== high ? `${low} 245w, ${high} 600w` : low ? `${low} 245w` : undefined,
-      sizes: "140px",
-    };
+    return { src: low || tileSrc, sizes: "140px" };
   }
   return {
     src: large || small,
@@ -118,9 +147,13 @@ function parentSetId(setId: string, cardId?: string): string | null {
   return null;
 }
 
-/** Ordered list of image URLs to try when the primary scan 404s.
+/** Ordered list of image URLs to try when the primary scan fails.
  *  `{ tile: true }` → small/low first (never hires/high early).
  *  Default / detail → high/hires preference preserved.
+ *
+ *  Order: real CDN art → same CDN alternate size → same-origin proxy (server
+ *  retries 5xx, edge-cached) → constructed URLs (proxy only, so a 404 card-back
+ *  can never paint) → branded "Art pending" placeholder. Never blank.
  */
 export function fallbackCardImages(card: ImgCard, opts?: { tile?: boolean }): string[] {
   const tile = !!opts?.tile;
@@ -132,46 +165,36 @@ export function fallbackCardImages(card: ImgCard, opts?: { tile?: boolean }): st
     urls.push(v);
   };
 
-  const small = card.images?.small || "";
-  const large = card.images?.large || "";
+  const small = (card.images?.small || "").trim();
+  const large = (card.images?.large || "").trim();
   const setId = card.set?.id || (card.id || "").split("-")[0];
   const num = card.number || (card.id || "").split("-").slice(1).join("-");
   const parentSet = setId ? parentSetId(setId, card.id) : null;
-  const id = card.id || (setId && num ? `${setId}-${num}` : "");
-  const serie =
-    setId && /^[a-z0-9.]+$/.test(setId)
-      ? setId.replace(/[0-9].*$/, "").replace(/\.$/, "") || setId
-      : "";
+  const safeSet = !!setId && /^[a-z0-9.]+$/.test(setId);
+  const serie = safeSet ? setId.replace(/[0-9].*$/, "").replace(/\.$/, "") : "";
+  const tcgBase = tcgdexBase(small) || tcgdexBase(large);
+  // TCGdex-only boxes (30th, 30th-c, dotted ids) have no pokemontcg.io scans.
+  const ptcgOk = safeSet && !setId.includes(".") && !/^(30th|30th-c|me55c)$/i.test(setId);
 
   if (tile) {
-    // 1) Prefer existing small / rewritten low
-    add(tileImageUrl(small) || small);
+    const first = tileImageUrl(small) || tileImageUrl(large) || small || large;
+    add(first);
     add(tileImageUrl(large));
-
-    // 2) Explicit tcgdex low variants from any known tcgdex URL
-    for (const u of [small, large]) {
-      const base = tcgdexBase(u);
-      if (base) {
-        add(`${base}/low.webp`);
-        add(`${base}/low.png`);
-      }
+    if (tcgBase) add(`${tcgBase}/low.webp`);
+    // Busy CDN (TCGdex 503 bursts): same art through our proxy, which retries.
+    add(proxiedCardImage(first));
+    if (tcgBase) {
+      add(`${tcgBase}/high.webp`);
+      add(proxiedCardImage(`${tcgBase}/low.png`));
     }
-
-    // 3) Constructed tcgdex low (never high first)
-    if (serie && setId && num && /^[a-z0-9.]+$/.test(setId)) {
-      add(`https://assets.tcgdex.net/en/${serie}/${setId}/${num}/low.webp`);
-      add(`https://assets.tcgdex.net/en/${serie}/${setId}/${num}/low.png`);
+    if (large && large !== first) add(proxiedCardImage(large));
+    if (!tcgBase && serie && num) {
+      add(proxiedCardImage(`https://assets.tcgdex.net/en/${serie}/${setId}/${num}/low.webp`));
     }
-
-    // 4) pokemontcg small PNG only (not _hires)
-    if (setId && num && /^[a-z0-9.]+$/.test(setId)) {
-      add(`https://images.pokemontcg.io/${setId}/${num}.png`);
-    }
+    if (ptcgOk && num) add(proxiedCardImage(`https://images.pokemontcg.io/${setId}/${num}.png`));
     if (parentSet && num) {
-      add(`https://images.pokemontcg.io/${parentSet}/${num}.png`);
+      add(proxiedCardImage(`https://images.pokemontcg.io/${parentSet}/${num}.png`));
     }
-
-    // 5) SVG — skip hires/high entirely for tiles (~845KB PNGs for 140px)
     add(generateCardSvgFallback(card.name || "Pokémon Card", card.number, card.set?.name));
     return urls;
   }
@@ -179,33 +202,23 @@ export function fallbackCardImages(card: ImgCard, opts?: { tile?: boolean }): st
   // Detail / fullscreen — keep high/hires preference
   add(large);
   add(small);
-
-  if (isTcgdex(large) || isTcgdex(small)) {
-    const base = tcgdexBase(large) || tcgdexBase(small);
-    if (base) {
-      add(`${base}/high.webp`);
-      add(`${base}/low.webp`);
-      add(`${base}/high.png`);
-      add(`${base}/low.png`);
-    }
+  if (tcgBase) {
+    add(`${tcgBase}/high.webp`);
+    add(`${tcgBase}/low.webp`);
   }
-
-  if (setId && num && /^[a-z0-9.]+$/.test(setId)) {
-    add(`https://images.pokemontcg.io/${setId}/${num}_hires.png`);
-    add(`https://images.pokemontcg.io/${setId}/${num}.png`);
+  add(proxiedCardImage(large || small));
+  if (tcgBase) add(proxiedCardImage(`${tcgBase}/high.png`));
+  if (ptcgOk && num) {
+    add(proxiedCardImage(`https://images.pokemontcg.io/${setId}/${num}_hires.png`));
+    add(proxiedCardImage(`https://images.pokemontcg.io/${setId}/${num}.png`));
   }
   if (parentSet && num) {
-    add(`https://images.pokemontcg.io/${parentSet}/${num}_hires.png`);
-    add(`https://images.pokemontcg.io/${parentSet}/${num}.png`);
+    add(proxiedCardImage(`https://images.pokemontcg.io/${parentSet}/${num}_hires.png`));
   }
-
-  if (id && /^[a-z0-9.]+-[a-z0-9]+$/i.test(id) && setId && num && serie) {
-    add(`https://assets.tcgdex.net/en/${serie}/${setId}/${num}/high.webp`);
-    add(`https://assets.tcgdex.net/en/${serie}/${setId}/${num}/low.webp`);
+  if (!tcgBase && serie && num) {
+    add(proxiedCardImage(`https://assets.tcgdex.net/en/${serie}/${setId}/${num}/high.webp`));
   }
-
   add(generateCardSvgFallback(card.name || "Pokémon Card", card.number, card.set?.name));
-
   return urls;
 }
 

@@ -6,19 +6,34 @@ import path from "node:path";
 
 const SRC = process.env.TCGDEX_DATA || "/tmp/tcgdex-cards";
 const OUT = path.resolve("public/asia-catalog.json");
-const NAME_LANGS = new Set(["en", "fr", "es", "de", "it", "pt", "ja", "ko", "zh-tw", "zh-cn", "th", "id"]);
+const NAME_LANGS = new Set([
+  "en",
+  "fr",
+  "es",
+  "de",
+  "it",
+  "pt",
+  "ja",
+  "ko",
+  "zh-tw",
+  "zh-cn",
+  "th",
+  "id",
+]);
 
 const ASIA_SERIES = [
   ["data-asia/SV", "SV", "asia"],
   ["data-asia/S", "S", "asia"],
   ["data-asia/SM", "SM", "asia"],
 ];
-const INTL_SERIES = [
-  ["data/Scarlet & Violet", "Scarlet & Violet", "intl"],
-];
+const INTL_SERIES = [["data/Scarlet & Violet", "Scarlet & Violet", "intl"]];
 
 function read(p) {
-  try { return fs.readFileSync(p, "utf8"); } catch { return ""; }
+  try {
+    return fs.readFileSync(p, "utf8");
+  } catch {
+    return "";
+  }
 }
 
 function parseObj(block) {
@@ -74,7 +89,10 @@ function parseCard(ts) {
   const rarity = (ts.match(/rarity:\s*['"]([^'"]+)['"]/) || [])[1] || "";
   const hpM = ts.match(/\bhp:\s*(\d+)/);
   const dex = [...ts.matchAll(/dexId:\s*\[([^\]]+)\]/g)].flatMap((m) =>
-    m[1].split(",").map((x) => Number(x.trim())).filter((n) => Number.isFinite(n) && n > 0),
+    m[1]
+      .split(",")
+      .map((x) => Number(x.trim()))
+      .filter((n) => Number.isFinite(n) && n > 0),
   );
   const typesM = ts.match(/types:\s*\[([^\]]+)\]/);
   const types = typesM ? [...typesM[1].matchAll(/['"]([^'"]+)['"]/g)].map((m) => m[1]) : [];
@@ -131,7 +149,13 @@ const cards = [];
 for (const [rel, serie, region] of [...ASIA_SERIES, ...INTL_SERIES]) {
   const before = cards.length;
   walkSeries(rel, serie, region, sets, cards);
-  console.log(rel, "sets", sets.filter((s) => s.serie === serie && s.region === region).length, "cards", cards.length - before);
+  console.log(
+    rel,
+    "sets",
+    sets.filter((s) => s.serie === serie && s.region === region).length,
+    "cards",
+    cards.length - before,
+  );
 }
 
 const vote = new Map();
@@ -139,11 +163,23 @@ for (const c of cards) {
   const d = c.dex?.[0];
   if (!d) continue;
   let langs = vote.get(d);
-  if (!langs) { langs = new Map(); vote.set(d, langs); }
+  if (!langs) {
+    langs = new Map();
+    vote.set(d, langs);
+  }
   for (const [k, v] of Object.entries(c.names || {})) {
-    if (!v || /ex$/i.test(String(v).replace(/\s/g, "")) || /[&+]/.test(v) || /(?:^|\s)(V|GX|VMAX|VSTAR|ex)\b/i.test(v)) continue;
+    if (
+      !v ||
+      /ex$/i.test(String(v).replace(/\s/g, "")) ||
+      /[&+]/.test(v) ||
+      /(?:^|\s)(V|GX|VMAX|VSTAR|ex)\b/i.test(v)
+    )
+      continue;
     let counts = langs.get(k);
-    if (!counts) { counts = new Map(); langs.set(k, counts); }
+    if (!counts) {
+      counts = new Map();
+      langs.set(k, counts);
+    }
     counts.set(v, (counts.get(v) || 0) + 1);
   }
 }
@@ -151,9 +187,13 @@ const dexNames = {};
 for (const [d, langs] of vote) {
   const names = {};
   for (const [lang, counts] of langs) {
-    let best = "", n = 0;
+    let best = "",
+      n = 0;
     for (const [name, c] of counts) {
-      if (c > n) { best = name; n = c; }
+      if (c > n) {
+        best = name;
+        n = c;
+      }
     }
     if (best) names[lang] = best;
   }
@@ -181,14 +221,26 @@ const compact = cards.map((c) => {
 });
 
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
-fs.writeFileSync(OUT, JSON.stringify({
-  generatedAt: new Date().toISOString(),
-  sets,
-  dexNames,
-  cards: compact,
-}));
+fs.writeFileSync(
+  OUT,
+  JSON.stringify({
+    generatedAt: new Date().toISOString(),
+    sets,
+    dexNames,
+    cards: compact,
+  }),
+);
 const bytes = fs.statSync(OUT).size;
 const withTp = compact.filter((c) => c.tcgplayer).length;
 console.log("WROTE", OUT);
-console.log("sets", sets.length, "cards", compact.length, "with tcgplayer", withTp, "dex", Object.keys(dexNames).length);
+console.log(
+  "sets",
+  sets.length,
+  "cards",
+  compact.length,
+  "with tcgplayer",
+  withTp,
+  "dex",
+  Object.keys(dexNames).length,
+);
 console.log("bytes", bytes, "mb", (bytes / 1024 / 1024).toFixed(2));
