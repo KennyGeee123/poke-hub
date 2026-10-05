@@ -3,12 +3,17 @@ import type { TCGCard } from "@/lib/pokemon-api";
 import { addBoxSetExtras, boxSetExtraCount } from "./box-set-extras";
 import { sortSetCards } from "./set-ids";
 
-const card = (setId: string, n: string, name = `Card ${n}`): TCGCard => ({
+const card = (
+  setId: string,
+  n: string,
+  name = `Card ${n}`,
+  images?: TCGCard["images"],
+): TCGCard => ({
   id: `${setId}-${n}`,
   name,
   number: n,
   set: { id: setId, name: "Box", total: 180, printedTotal: 145 },
-  images: { small: "", large: "" },
+  images: images || { small: "https://example.com/ok.png", large: "https://example.com/ok.png" },
 });
 
 describe("box set extras", () => {
@@ -36,11 +41,38 @@ describe("box set extras", () => {
     expect(out.slice(117).every((c) => c.name === "Unown")).toBe(true);
   });
 
-  it("adds 30th Celebration Mew R/G/B but never to Classic Collection", () => {
-    expect(boxSetExtraCount("30th")).toBe(3);
-    expect(boxSetExtraCount("me55")).toBe(3);
-    expect(boxSetExtraCount("30th-c")).toBe(0);
-    expect(boxSetExtraCount("me55c")).toBe(0);
+  it("adds 30th Celebration Mews AND Classic Magikarp without dropping Pikachu #030", () => {
+    // 3 Mews + 30 Classic = 33 shipped extras for the 30th family
+    expect(boxSetExtraCount("30th")).toBe(33);
+    expect(boxSetExtraCount("me55")).toBe(33);
+    expect(boxSetExtraCount("30th-c")).toBe(30);
+    expect(boxSetExtraCount("me55c")).toBe(30);
+
+    const box = [
+      card("30th", "030", "Pikachu"),
+      ...Array.from({ length: 157 }, (_, i) => card("30th", String(i + 1).padStart(3, "0"))),
+    ];
+    // dedupe the padded 030 we already added
+    const uniq = new Map(box.map((c) => [`${c.name}::${c.number}`, c]));
+    const seed = [...uniq.values()];
+    const out = addBoxSetExtras("30th", seed);
+    expect(out.some((c) => c.name === "Pikachu" && /0?30/.test(c.number))).toBe(true);
+    const mag = out.find((c) => c.name === "Magikarp");
+    expect(mag).toBeTruthy();
+    expect(mag!.number).toMatch(/0?30/);
+    expect(mag!.images.small).toMatch(/tcgplayer\.com\/product\/716210/);
+    expect(out.some((c) => c.number === "R" && c.name === "Mew")).toBe(true);
+  });
+
+  it("overlays a real scan onto Classic cards that only have a broken pokemontcg URL", () => {
+    const broken = card("30th-c", "030", "Magikarp", {
+      small: "https://images.pokemontcg.io/30th-c/030.png",
+      large: "https://images.pokemontcg.io/30th-c/030_hires.png",
+    });
+    const out = addBoxSetExtras("30th-c", [broken]);
+    expect(out).toHaveLength(30); // Magikarp kept + 29 other classic cards added
+    const mag = out.find((c) => c.name === "Magikarp")!;
+    expect(mag.images.small).toMatch(/tcgplayer\.com\/product\/716210/);
   });
 
   it("leaves sets with nothing missing alone", () => {

@@ -1,5 +1,5 @@
 {
-  "_source": "PokemonTCG/pokemon-tcg-data (github.com/PokemonTCG/pokemon-tcg-data, data commit 2026-09-16): prints the TCGdex box list lacks. Generated 2026-10-03 by comparing every Box set to that official dump.",
+  "_source": "PokemonTCG/pokemon-tcg-data (github.com/PokemonTCG/pokemon-tcg-data, data commit 2026-09-16): prints the TCGdex box list lacks. Generated 2026-10-03 by comparing every Box set to that official dump. Classic Collection (30 cards incl. Magikarp #030) from TCGdex id 30th-c + images/prices from TCGPlayer group 24837 / pokemontcg me55c (2026-10-05).",
   "sets": [
     {
       "keys": ["30th", "me55"],
@@ -1327,6 +1327,403 @@
         }
       ],
       "tcgplayerGroupId": 1398
+    },
+    {
+      "keys": ["30th", "30th-c", "me55c", "me55"],
+      "name": "30th Celebration: Classic Collection",
+      "tcgplayerGroupId": 24837,
+      "cards": [
+        {
+          "id": "30th-c-001",
+          "name": "Charizard",
+          "number": "001",
+          "rarity": "Rare Holo",
+          "supertype": "Pokémon",
+          "subtypes": ["Stage 2"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/714372_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/714372_400w.jpg"
+          },
+          "tcgplayerProductId": 714372
+        },
+        {
+          "id": "30th-c-002",
+          "name": "Delcatty",
+          "number": "002",
+          "rarity": "Rare Holo",
+          "supertype": "Pokémon",
+          "subtypes": ["Stage 1"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716156_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716156_400w.jpg"
+          },
+          "tcgplayerProductId": 716156
+        },
+        {
+          "id": "30th-c-003",
+          "name": "Metagross",
+          "number": "003",
+          "rarity": "Rare Holo",
+          "supertype": "Pokémon",
+          "subtypes": ["Stage 2"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716157_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716157_400w.jpg"
+          },
+          "tcgplayerProductId": 716157
+        },
+        {
+          "id": "30th-c-004",
+          "name": "Genesect EX",
+          "number": "004",
+          "rarity": "Rare Holo EX",
+          "supertype": "Pokémon",
+          "subtypes": ["Basic", "EX"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716158_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716158_400w.jpg"
+          },
+          "tcgplayerProductId": 716158
+        },
+        {
+          "id": "30th-c-005",
+          "name": "Misty",
+          "number": "005",
+          "rarity": "Rare Holo",
+          "supertype": "Trainer",
+          "subtypes": ["Basic"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716159_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716159_400w.jpg"
+          },
+          "tcgplayerProductId": 716159
+        },
+        {
+          "id": "30th-c-006",
+          "name": "Dark Tyranitar",
+          "number": "006",
+          "rarity": "Rare",
+          "supertype": "Pokémon",
+          "subtypes": ["Stage 2"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716160_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716160_400w.jpg"
+          },
+          "tcgplayerProductId": 716160
+        },
+        {
+          "id": "30th-c-007",
+          "name": "Sneasel",
+          "number": "007",
+          "rarity": "Rare",
+          "supertype": "Pokémon",
+          "subtypes": ["Basic"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716161_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716161_400w.jpg"
+          },
+          "tcgplayerProductId": 716161
+        },
+        {
+          "id": "30th-c-008",
+          "name": "Pikachu & Zekrom GX",
+          "number": "008",
+          "rarity": "Rare Holo GX",
+          "supertype": "Pokémon",
+          "subtypes": ["Basic", "GX", "TAG TEAM"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/714373_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/714373_400w.jpg"
+          },
+          "tcgplayerProductId": 714373
+        },
+        {
+          "id": "30th-c-009",
+          "name": "Greninja BREAK",
+          "number": "009",
+          "rarity": "Rare BREAK",
+          "supertype": "Pokémon",
+          "subtypes": ["BREAK"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716162_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716162_400w.jpg"
+          },
+          "tcgplayerProductId": 716162
+        },
+        {
+          "id": "30th-c-010",
+          "name": "Uxie",
+          "number": "010",
+          "rarity": "Rare",
+          "supertype": "Pokémon",
+          "subtypes": ["Basic"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716163_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716163_400w.jpg"
+          },
+          "tcgplayerProductId": 716163
+        },
+        {
+          "id": "30th-c-011",
+          "name": "Crobat G",
+          "number": "011",
+          "rarity": "Uncommon",
+          "supertype": "Pokémon",
+          "subtypes": ["Basic"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716191_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716191_400w.jpg"
+          },
+          "tcgplayerProductId": 716191
+        },
+        {
+          "id": "30th-c-012",
+          "name": "Raikou",
+          "number": "012",
+          "rarity": "Amazing Rare",
+          "supertype": "Pokémon",
+          "subtypes": ["Basic"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716192_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716192_400w.jpg"
+          },
+          "tcgplayerProductId": 716192
+        },
+        {
+          "id": "30th-c-013",
+          "name": "Buzzwole GX",
+          "number": "013",
+          "rarity": "Rare Holo GX",
+          "supertype": "Pokémon",
+          "subtypes": ["Basic", "GX"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716193_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716193_400w.jpg"
+          },
+          "tcgplayerProductId": 716193
+        },
+        {
+          "id": "30th-c-014",
+          "name": "Pikachu",
+          "number": "014",
+          "rarity": "Common",
+          "supertype": "Pokémon",
+          "subtypes": ["Basic"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716194_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716194_400w.jpg"
+          },
+          "tcgplayerProductId": 716194
+        },
+        {
+          "id": "30th-c-015",
+          "name": "Erika's Jigglypuff",
+          "number": "015",
+          "rarity": "Common",
+          "supertype": "Trainer",
+          "subtypes": ["Basic"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716195_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716195_400w.jpg"
+          },
+          "tcgplayerProductId": 716195
+        },
+        {
+          "id": "30th-c-016",
+          "name": "Rayquaza EX",
+          "number": "016",
+          "rarity": "Rare Holo EX",
+          "supertype": "Pokémon",
+          "subtypes": ["Basic", "EX"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716196_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716196_400w.jpg"
+          },
+          "tcgplayerProductId": 716196
+        },
+        {
+          "id": "30th-c-017",
+          "name": "Solgaleo GX",
+          "number": "017",
+          "rarity": "Rare Holo GX",
+          "supertype": "Pokémon",
+          "subtypes": ["Stage 2", "GX"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716197_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716197_400w.jpg"
+          },
+          "tcgplayerProductId": 716197
+        },
+        {
+          "id": "30th-c-018",
+          "name": "Gengar",
+          "number": "018",
+          "rarity": "Rare Prime",
+          "supertype": "Pokémon",
+          "subtypes": ["Stage 2"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716198_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716198_400w.jpg"
+          },
+          "tcgplayerProductId": 716198
+        },
+        {
+          "id": "30th-c-019",
+          "name": "Darkrai & Cresselia LEGEND",
+          "number": "019",
+          "rarity": "LEGEND",
+          "supertype": "Pokémon",
+          "subtypes": ["LEGEND"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716199_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716199_400w.jpg"
+          },
+          "tcgplayerProductId": 716199
+        },
+        {
+          "id": "30th-c-020",
+          "name": "Darkrai & Cresselia LEGEND",
+          "number": "020",
+          "rarity": "LEGEND",
+          "supertype": "Pokémon",
+          "subtypes": ["LEGEND"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716200_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716200_400w.jpg"
+          },
+          "tcgplayerProductId": 716200
+        },
+        {
+          "id": "30th-c-021",
+          "name": "N",
+          "number": "021",
+          "rarity": "Rare Ultra",
+          "supertype": "Trainer",
+          "subtypes": ["Supporter"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716202_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716202_400w.jpg"
+          },
+          "tcgplayerProductId": 716202
+        },
+        {
+          "id": "30th-c-022",
+          "name": "Palkia",
+          "number": "022",
+          "rarity": "Rare Holo LV.X",
+          "supertype": "Pokémon",
+          "subtypes": ["LEVEL-UP"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716203_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716203_400w.jpg"
+          },
+          "tcgplayerProductId": 716203
+        },
+        {
+          "id": "30th-c-023",
+          "name": "M Gardevoir EX",
+          "number": "023",
+          "rarity": "Rare Holo EX",
+          "supertype": "Pokémon",
+          "subtypes": ["MEGA", "EX"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716204_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716204_400w.jpg"
+          },
+          "tcgplayerProductId": 716204
+        },
+        {
+          "id": "30th-c-024",
+          "name": "Shining Celebi",
+          "number": "024",
+          "rarity": "Rare Secret",
+          "supertype": "Pokémon",
+          "subtypes": ["Basic"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716205_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716205_400w.jpg"
+          },
+          "tcgplayerProductId": 716205
+        },
+        {
+          "id": "30th-c-025",
+          "name": "Scizor ex",
+          "number": "025",
+          "rarity": "Rare Holo ex",
+          "supertype": "Pokémon",
+          "subtypes": ["Stage 1", "ex"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716206_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716206_400w.jpg"
+          },
+          "tcgplayerProductId": 716206
+        },
+        {
+          "id": "30th-c-026",
+          "name": "Mew VMAX",
+          "number": "026",
+          "rarity": "Holo Rare VMAX",
+          "supertype": "Pokémon",
+          "subtypes": ["VMAX"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716207_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716207_400w.jpg"
+          },
+          "tcgplayerProductId": 716207
+        },
+        {
+          "id": "30th-c-027",
+          "name": "Arceus VSTAR",
+          "number": "027",
+          "rarity": "Holo Rare VSTAR",
+          "supertype": "Pokémon",
+          "subtypes": ["VSTAR"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716208_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716208_400w.jpg"
+          },
+          "tcgplayerProductId": 716208
+        },
+        {
+          "id": "30th-c-028",
+          "name": "Zacian V",
+          "number": "028",
+          "rarity": "Holo Rare V",
+          "supertype": "Pokémon",
+          "subtypes": ["Basic", "V"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716209_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716209_400w.jpg"
+          },
+          "tcgplayerProductId": 716209
+        },
+        {
+          "id": "30th-c-029",
+          "name": "Lugia",
+          "number": "029",
+          "rarity": "Rare Secret",
+          "supertype": "Pokémon",
+          "subtypes": ["Basic"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/714386_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/714386_400w.jpg"
+          },
+          "tcgplayerProductId": 714386
+        },
+        {
+          "id": "30th-c-030",
+          "name": "Magikarp",
+          "number": "030",
+          "rarity": "Illustration Rare",
+          "supertype": "Pokémon",
+          "subtypes": ["Basic"],
+          "images": {
+            "small": "https://tcgplayer-cdn.tcgplayer.com/product/716210_200w.jpg",
+            "large": "https://tcgplayer-cdn.tcgplayer.com/product/716210_400w.jpg"
+          },
+          "tcgplayerProductId": 716210
+        }
+      ]
     }
   ]
 }

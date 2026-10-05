@@ -1,7 +1,7 @@
-FROZEN — working state 2026-10-03 (missing box-set cards + TCGPlayer prices)
+FROZEN — working state 2026-10-05 (Magikarp + Classic Collection images)
 Live: https://pokedex-hub-lime.vercel.app/
 Lock: launch-lock/WORKING-STATE.json
-Id:   pokedex-hub-2026-10-03-box-sets-missing-cards-prices
+Id:   pokedex-hub-2026-10-05-magikarp-classic-images
 
 Every Box set opens from TCGdex (White Flare rsv10pt5 -> sv10.5w, plus
 sm3.5/sm7.5/swsh3.5/swsh4.5/swsh4.5sv/swsh12.5gg/cel25cc/swsh10.5/lc aliases).

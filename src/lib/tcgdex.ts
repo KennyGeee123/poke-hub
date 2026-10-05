@@ -88,7 +88,10 @@ function cardImages(card: {
   const num = String(
     card.localId ?? card.number ?? (card.id || "").split("-").slice(1).join("-") ?? "",
   );
-  if (setId && num) {
+  // Classic Collection (30th-c / me55c) and letter prints have no pokemontcg.io
+  // path that matches the TCGdex localId (Magikarp is me55c-203, not 30th-c/030).
+  // Leave blank so addBoxSetExtras / fallbackCardImages can fill a real scan.
+  if (setId && num && !/^(30th-c|me55c)$/i.test(String(setId))) {
     return {
       small: `https://images.pokemontcg.io/${setId}/${num}.png`,
       large: `https://images.pokemontcg.io/${setId}/${num}_hires.png`,
@@ -351,17 +354,27 @@ export async function tcgdexGetSetCards(setId: string, lang = "en"): Promise<TCG
   for (const id of aliases) {
     let raw = await fetchTcgdexSetPayload(id, lang);
     if (mergeFamilies) {
-      // The proxy falls back across the alias family, so /sets/30th-c can come
-      // back as the 30th Celebration box. Ask TCGdex for the exact id instead
-      // so Classic Collection is merged in, and never merge one box twice.
+      // The proxy used to fall back across the alias family, so /sets/30th-c
+      // came back as the Celebration box and Magikarp never appeared. Always
+      // ask TCGdex for the exact id (browser OR server) when the payload's id
+      // does not match, and never merge one box twice.
       const gotId = String(raw?.id ?? "").toLowerCase();
-      if (gotId && gotId !== id.toLowerCase() && typeof window !== "undefined") {
+      if (gotId && gotId !== id.toLowerCase()) {
         const exact = await j<any>(`${BASE}/${lang}/sets/${encodeURIComponent(id)}`);
         if (Array.isArray(exact?.cards) && exact.cards.length) raw = exact;
       }
       const boxId = String(raw?.id ?? id).toLowerCase();
-      if (merged.has(boxId)) continue;
-      merged.add(boxId);
+      // Still the wrong box (stale CDN / alias) — skip rather than double-count.
+      if (
+        boxId &&
+        boxId !== id.toLowerCase() &&
+        !boxId.includes(id.toLowerCase()) &&
+        !id.toLowerCase().includes(boxId)
+      ) {
+        continue;
+      }
+      if (merged.has(boxId || id.toLowerCase())) continue;
+      merged.add(boxId || id.toLowerCase());
     }
     const cards = Array.isArray(raw?.cards) ? raw.cards : Array.isArray(raw) ? raw : [];
     if (!cards.length) continue;

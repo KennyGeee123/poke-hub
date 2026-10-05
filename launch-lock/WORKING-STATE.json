@@ -33,9 +33,9 @@
     "loopAction": "pokedex-launch-lock",
     "intervalMs": 300000
   },
-  "id": "pokedex-hub-2026-10-03-box-sets-missing-cards-prices",
-  "frozenAt": "2026-10-03T20:46:25Z",
-  "rootSha256": "ff4a2fb21d492dfed4e4c507a67729958f396aff2860b423c0b7ab2199a5dcc5",
+  "id": "pokedex-hub-2026-10-05-magikarp-classic-images",
+  "frozenAt": "2026-10-05T14:45:14Z",
+  "rootSha256": "101815f5015bbff1bd30f79e5e77a1fc3d3798a14ae073950996a9b1f1e77eb1",
   "fileCount": 222,
   "files": [
     {
@@ -835,13 +835,13 @@
     },
     {
       "path": "src/lib/box-set-extras.json",
-      "sha256": "1ebe6e7da10969d5c8dda15563a064663ae90d52ab22f96ac3a8c37a2d30a9ac",
-      "bytes": 40457
+      "sha256": "195873694adb7e35ff43c3f803598739a074b5606f3b35a5a38981680bb0e633",
+      "bytes": 54461
     },
     {
       "path": "src/lib/box-set-extras.ts",
-      "sha256": "bf8543c1ee132c01808e2d5ce2cf45d3fdea548e879737cc822bb2214e03a879",
-      "bytes": 1936
+      "sha256": "6cccbae30e6f149c8f177964a3d31c5400aa1a68b8404159797bf40a4ad25076",
+      "bytes": 3279
     },
     {
       "path": "src/lib/bulbapedia.ts",
@@ -985,8 +985,8 @@
     },
     {
       "path": "src/lib/tcgdex.ts",
-      "sha256": "5f020d20af94680657657b3a74b2247a7969060d1a254774bc0004340968dcb7",
-      "bytes": 16235
+      "sha256": "aef1cef6f55d35cf2691fc9d787129aeb9e6f4521efe25b6e7cff8828687f412",
+      "bytes": 16858
     },
     {
       "path": "src/lib/utils.ts",
@@ -1149,5 +1149,5 @@
       "bytes": 202
     }
   ],
-  "thawNote": "Rebaselined from pokedex-hub-2026-10-03-set-loading-retries: box sets: 84 official prints TCGdex lacks shipped as data, all prints shown by default; prices TCGPlayer market first with base-print variant"
+  "thawNote": "Rebaselined from pokedex-hub-2026-10-03-box-sets-missing-cards-prices: 30th Classic Collection (Magikarp) shipped with TCGPlayer scans; image overlay; hardened Classic fetch"
 }
