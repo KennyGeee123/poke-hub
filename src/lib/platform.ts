@@ -37,7 +37,6 @@ export function authRedirectUrl(path = "/login"): string {
 
 export function supportEmail(): string {
   return (
-    (import.meta.env.VITE_SUPPORT_EMAIL as string | undefined)?.trim() ||
-    "kmitchjr7@gmail.com"
+    (import.meta.env.VITE_SUPPORT_EMAIL as string | undefined)?.trim() || "kmitchjr7@gmail.com"
   );
 }

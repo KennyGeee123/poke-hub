@@ -737,7 +737,7 @@ const DIRECT_GROUPS: Record<string, number> = {
   "scarlet & violet": 22873,
   "151": 23237,
   "crown zenith": 17688,
-  "celebrations": 2867,
+  celebrations: 2867,
   "base set": 604,
 };
 
@@ -749,7 +749,10 @@ async function tcgcsvSealed(q: string): Promise<Listing[]> {
     const ua = "PokeVault/1.0.0";
     const qClean = q
       .toLowerCase()
-      .replace(/booster\s*box|booster\s*bundle|booster\s*pack|booster|sealed|pokemon|display|bundle|etb|elite\s*trainer/g, "")
+      .replace(
+        /booster\s*box|booster\s*bundle|booster\s*pack|booster|sealed|pokemon|display|bundle|etb|elite\s*trainer/g,
+        "",
+      )
       .trim();
 
     let groupId: number | null = null;
@@ -813,7 +816,12 @@ async function tcgcsvSealed(q: string): Promise<Listing[]> {
     const out: Listing[] = [];
     for (const prod of prodsJson?.results || []) {
       const name = String(prod.name || "");
-      if (!/booster\s*box|elite\s*trainer|booster\s*bundle|booster\s*pack|blister|tin|collection\s*box/i.test(name)) continue;
+      if (
+        !/booster\s*box|elite\s*trainer|booster\s*bundle|booster\s*pack|blister|tin|collection\s*box/i.test(
+          name,
+        )
+      )
+        continue;
       if (/code\s*card/i.test(name)) continue;
       const pr = priceMap.get(Number(prod.productId));
       if (!pr || !(pr.market > 0)) continue;
@@ -1118,7 +1126,13 @@ export const Route = createFileRoute("/api/public/card-prices")({
               !/played|damaged|hp|mp|lp/i.test(blob)
             );
           if (condition === "raw_nm" || condition === "nm") {
-            if (!slab && /booster\s*box|booster\s*bundle|booster\s*pack|sealed|display|elite\s*trainer/i.test(blob)) return true;
+            if (
+              !slab &&
+              /booster\s*box|booster\s*bundle|booster\s*pack|sealed|display|elite\s*trainer/i.test(
+                blob,
+              )
+            )
+              return true;
             return (
               !slab &&
               /near\s*mint|\bnm\b|normal|holofoil|mint/i.test(blob) &&

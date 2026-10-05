@@ -1,4 +1,4 @@
-import type { CapacitorConfig } from '@capacitor/cli'
+import type { CapacitorConfig } from "@capacitor/cli";
 
 /**
  * PokéVault native shells (iOS / Android).
@@ -8,50 +8,50 @@ import type { CapacitorConfig } from '@capacitor/cli'
  * static assets used by `cap sync`. OAuth returns via the custom URL scheme
  * com.kennygeee.pokevault://auth/callback (see src/lib/platform.ts).
  */
-const LIVE_URL = 'https://pokedex-hub-lime.vercel.app'
+const LIVE_URL = "https://pokedex-hub-lime.vercel.app";
 
 const config: CapacitorConfig = {
-  appId: 'com.kennygeee.pokevault',
-  appName: 'PokéVault',
-  webDir: 'www',
-  backgroundColor: '#0b1020',
+  appId: "com.kennygeee.pokevault",
+  appName: "PokéVault",
+  webDir: "www",
+  backgroundColor: "#0b1020",
   ios: {
-    contentInset: 'never',
-    backgroundColor: '#0b1020',
-    preferredContentMode: 'mobile',
+    contentInset: "never",
+    backgroundColor: "#0b1020",
+    preferredContentMode: "mobile",
   },
   android: {
-    backgroundColor: '#0b1020',
+    backgroundColor: "#0b1020",
   },
   server: {
     url: LIVE_URL,
     cleartext: true,
-    androidScheme: 'https',
-    iosScheme: 'https',
+    androidScheme: "https",
+    iosScheme: "https",
     allowNavigation: [
-      'pokedex-hub-lime.vercel.app',
-      '*.supabase.co',
-      'accounts.google.com',
-      '*.google.com',
-      'appleid.apple.com',
+      "pokedex-hub-lime.vercel.app",
+      "*.supabase.co",
+      "accounts.google.com",
+      "*.google.com",
+      "appleid.apple.com",
     ],
   },
   plugins: {
     SplashScreen: {
       launchShowDuration: 1400,
       launchAutoHide: true,
-      backgroundColor: '#0b1020',
+      backgroundColor: "#0b1020",
       showSpinner: false,
     },
     StatusBar: {
-      style: 'DARK',
-      backgroundColor: '#0b1020',
+      style: "DARK",
+      backgroundColor: "#0b1020",
     },
     Keyboard: {
-      resize: 'body',
-      style: 'DARK',
+      resize: "body",
+      style: "DARK",
     },
   },
-}
+};
 
-export default config
+export default config;

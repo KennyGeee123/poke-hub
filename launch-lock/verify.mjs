@@ -29,7 +29,9 @@ for (const f of state.files) {
 }
 
 if (rebaseline) {
-  console.error("Refusing silent rebaseline. Rebuild WORKING-STATE.json from a verified live launch, then git tag.");
+  console.error(
+    "Refusing silent rebaseline. Rebuild WORKING-STATE.json from a verified live launch, then git tag.",
+  );
   process.exit(3);
 }
 
