@@ -50,7 +50,8 @@ async function idbPut(key: string, value: unknown): Promise<void> {
 
 type Envelope<T> = { at: number; data: T };
 
-const SETS_KEY = "sets:all:v6";
+// v7: set totals include shipped box extras (30th = 191, Unseen Forces = 145).
+const SETS_KEY = "sets:all:v7";
 const setKey = (id: string) => `set:${id}:cards`;
 
 export async function getCachedSets<T>(maxAgeMs = 24 * 60 * 60 * 1000): Promise<T | null> {

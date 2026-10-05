@@ -17,7 +17,7 @@ import { getEbaySold, type EbayResponse } from "@/lib/ebay";
 import { fetchBulbapedia, type BulbaInfo } from "@/lib/bulbapedia";
 import { PriceComparePanel } from "./PriceCompare";
 import { QuickStrike } from "./QuickStrike";
-import { fallbackCardImages, resolveHDImage } from "@/lib/card-images";
+import { fallbackCardImages, looksLikePlaceholderScan, resolveHDImage } from "@/lib/card-images";
 import {
   calculateGradedValue,
   type CardGrade,
@@ -227,6 +227,13 @@ export function CardDetail({
             >
               <InteractiveHoloCard
                 frontImage={imgSrc || card.images.large}
+                onFrontError={() => {
+                  failedImgs.current.add(imgSrc);
+                  const next = fallbackCardImages(card).find(
+                    (u) => u && !failedImgs.current.has(u),
+                  );
+                  if (next) setImgSrc(next);
+                }}
                 name={card.name}
                 setName={card.set?.name}
                 setId={card.set?.id}
@@ -253,14 +260,26 @@ export function CardDetail({
                 className={`pv-detail-img ${loaded ? "loaded" : ""}`}
                 src={imgSrc || card.images.large}
                 alt={card.name}
-                onLoad={() => setLoaded(true)}
+                onLoad={(e) => {
+                  if (looksLikePlaceholderScan(e.currentTarget)) {
+                    failedImgs.current.add(imgSrc);
+                    const next = fallbackCardImages(card).find(
+                      (u) => u && !failedImgs.current.has(u),
+                    );
+                    if (next) {
+                      setImgSrc(next);
+                      return;
+                    }
+                  }
+                  setLoaded(true);
+                }}
                 onError={() => {
                   failedImgs.current.add(imgSrc);
-                  setLoaded(true);
                   const next = fallbackCardImages(card).find(
                     (u) => u && !failedImgs.current.has(u),
                   );
                   if (next) setImgSrc(next);
+                  else setLoaded(true);
                 }}
               />
               {/* Visual Scanner Prompt Badge */}

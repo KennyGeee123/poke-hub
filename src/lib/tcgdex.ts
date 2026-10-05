@@ -1,6 +1,7 @@
 // TCGdex API — free, no key. Multi-language alt artworks + catalog fallback.
 // https://api.tcgdex.net/v2/<lang>/cards/<id>  (id format: <set-id>-<number>)
 import type { TCGCard, TCGPrice, TCGSet } from "@/lib/pokemon-api";
+import { boxSetNetExtraCount } from "@/lib/box-set-extras";
 import { mergeSetCardsByLocalId, setIdAliases } from "@/lib/set-ids";
 
 /**
@@ -153,7 +154,11 @@ function toUsd(value: number, unit?: string): number {
 }
 
 export function mapTcgdexSet(s: any, lang = "en"): TCGSet {
-  const total = Number(s?.cardCount?.total ?? s?.total ?? s?.cardCount?.official ?? 0) || 0;
+  const listed = Number(s?.cardCount?.total ?? s?.total ?? s?.cardCount?.official ?? 0) || 0;
+  // Set tiles must match the opened box: add the official prints we ship
+  // (30th Mew R/G/B, Unown A-Z, SM "a" prints). 30th tile: 158+3 + 30 = 191.
+  const total =
+    listed && lang === "en" ? listed + boxSetNetExtraCount(String(s?.id ?? "")) : listed;
   const printed = Number(s?.cardCount?.official ?? s?.printedTotal ?? total) || 0;
   return {
     id: String(s?.id ?? ""),

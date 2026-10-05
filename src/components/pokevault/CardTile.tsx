@@ -6,7 +6,7 @@ import { getMarketPrice, rememberCard } from "@/lib/pokemon-api";
 import { printLangMeta } from "@/lib/print-lang";
 import { formatPrice, useVault } from "@/lib/vault";
 import { fallbackSpriteUrls, spriteSlug } from "@/lib/sprites";
-import { fallbackCardImages, hdImg } from "@/lib/card-images";
+import { useCardImageChain } from "@/lib/use-card-image";
 import {
   calculateGradedValue,
   type CardGrade,
@@ -107,9 +107,7 @@ export function CardSpriteOverlay({
 }
 
 function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "raw_nm" }: Props) {
-  const [loaded, setLoaded] = useState(false);
   const [hovered, setHovered] = useState(false);
-  const [srcIdx, setSrcIdx] = useState(0);
   const [grade, setGrade] = useState<CardGrade>(defaultGrade);
   const [showScanModal, setShowScanModal] = useState(false);
   const [showTradeModal, setShowTradeModal] = useState(false);
@@ -127,14 +125,8 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
       : gradedVal.estimatedGradedPrice || (live > 0 ? live : null);
   const stats = getCardLevelAndStats(card, grade);
 
-  const fallbacks = fallbackCardImages(card, { tile: true });
-  const hd = hdImg(card, { tile: true });
-  const src = fallbacks[srcIdx] || hd.src;
-
-  useEffect(() => {
-    setSrcIdx(0);
-    setLoaded(false);
-  }, [card.id]);
+  const art = useCardImageChain(card, { tile: true });
+  const loaded = art.loaded;
 
   const isGold =
     /\b(hyper\s*rare|mega\s*hyper|rare\s*holo\s*star|gold\s*star|secret\s*rare|rare\s*secret)\b/i.test(
@@ -184,19 +176,16 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
       <div className="pv-card-img-wrap" style={{ position: "relative" }}>
         {!loaded && <div className="pv-card-skel" />}
         <img
+          ref={art.ref}
           className={`pv-card-img ${loaded ? "loaded" : ""}`}
-          src={src}
-          srcSet={srcIdx === 0 ? hd.srcSet : undefined}
-          sizes={hd.sizes}
-          alt={card.name}
+          src={art.src}
+          alt={art.pending ? `${card.name} — art pending` : card.name}
           loading={eager ? "eager" : "lazy"}
           fetchPriority={eager ? "high" : "auto"}
           decoding="async"
-          onLoad={() => setLoaded(true)}
-          onError={() => {
-            if (srcIdx + 1 < fallbacks.length) setSrcIdx(srcIdx + 1);
-            setLoaded(true);
-          }}
+          data-art-pending={art.pending ? "1" : undefined}
+          onLoad={art.onLoad}
+          onError={art.onError}
         />
         {hovered ? <CardSpriteOverlay card={card} size={112} show eager={false} /> : null}
         {card.lang && card.lang !== "en" && (
@@ -327,10 +316,11 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
             <optgroup label="📋 UNGRADED CONDITIONS">
               {UNGRADED_QUALITIES.map((g) => {
                 const gm = getGradeMeta(g);
-                const gVal = calculateGradedValue(card, g);
+                const gVal = calculateGradedValue(priced, g);
                 return (
                   <option key={g} value={g}>
-                    {gm.shortLabel} · {formatPrice(gVal.estimatedGradedPrice)}
+                    {gm.shortLabel} ·{" "}
+                    {gVal.estimatedGradedPrice > 0 ? formatPrice(gVal.estimatedGradedPrice) : "—"}
                   </option>
                 );
               })}
@@ -338,10 +328,11 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
             <optgroup label="🏆 GRADED SLABS">
               {GRADED_SLABS.map((g) => {
                 const gm = getGradeMeta(g);
-                const gVal = calculateGradedValue(card, g);
+                const gVal = calculateGradedValue(priced, g);
                 return (
                   <option key={g} value={g}>
-                    {gm.shortLabel} · {formatPrice(gVal.estimatedGradedPrice)}
+                    {gm.shortLabel} ·{" "}
+                    {gVal.estimatedGradedPrice > 0 ? formatPrice(gVal.estimatedGradedPrice) : "—"}
                   </option>
                 );
               })}
@@ -352,7 +343,7 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
       {showScanModal && (
         <VisualGradeScannerModal
           card={card}
-          initialImageUrl={src}
+          initialImageUrl={art.pending ? undefined : art.src}
           onClose={() => setShowScanModal(false)}
         />
       )}
