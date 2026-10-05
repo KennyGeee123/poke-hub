@@ -33,9 +33,9 @@
     "loopAction": "pokedex-launch-lock",
     "intervalMs": 300000
   },
-  "id": "pokedex-hub-2026-10-05-never-black-tiles",
-  "frozenAt": "2026-10-05T15:25:08Z",
-  "rootSha256": "0678a9f328866599cf560bf0f706cd91765b29211626a4ee7fc2101ac5b38343",
+  "id": "pokedex-hub-2026-10-05-dotted-box-images",
+  "frozenAt": "2026-10-05T15:46:56Z",
+  "rootSha256": "c50590de5040a8f0afbead3e12b1ea5e538af2e53b821c1ef57e265b3d5b69bf",
   "fileCount": 224,
   "files": [
     {
@@ -850,13 +850,13 @@
     },
     {
       "path": "src/lib/card-images.test.ts",
-      "sha256": "181462fc3cfccee5b92d0d758fc104a8e2f4e549768caabc427f25724677883d",
-      "bytes": 2620
+      "sha256": "d5a3a93fca1e95f441dda819dbb0787910817d2caeb0208989a34d467cc49c31",
+      "bytes": 3296
     },
     {
       "path": "src/lib/card-images.ts",
-      "sha256": "e4816a32b4bf606f7b91fea27272abb3b74b0eaae2b0822bb849b6aeb3a803ef",
-      "bytes": 10635
+      "sha256": "c38d3b5286ddc659a537a61cb3779891facdc73577eda40dc3a4d144e0b87cc6",
+      "bytes": 11209
     },
     {
       "path": "src/lib/card-prices.ts",
@@ -990,8 +990,8 @@
     },
     {
       "path": "src/lib/tcgdex.ts",
-      "sha256": "abf39d87deee3ab6556c9189f24a862c563d8eeb486b282c2714c6d0738bc8e5",
-      "bytes": 17177
+      "sha256": "69d96fef1a1cb52770c33d5bc885b0bd0eb097ba27896446ac258096136f2505",
+      "bytes": 18915
     },
     {
       "path": "src/lib/use-card-image.ts",
@@ -1159,5 +1159,5 @@
       "bytes": 202
     }
   ],
-  "thawNote": "Rebaselined from pokedex-hub-2026-10-05-magikarp-classic-images: PR #5 TanStack CVE bump merged; card image pipeline (proxy retry, stall watchdog, Art pending tile) fixes black 30th tiles; 30th set tile 191; lint/tsc clean."
+  "thawNote": "Rebaselined from pokedex-hub-2026-10-05-never-black-tiles: Dragon Majesty, Shining Legends, Shiny Vault, Galarian Gallery, Celebrations Classic use pokemontcg scans (TCGdex image:null)."
 }

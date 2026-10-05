@@ -2,6 +2,7 @@
 // Tile grids prefer small/low assets; detail/fullscreen keep high/hires.
 import type { TCGCard } from "@/lib/pokemon-api";
 import { isAllowedCardImageUrl } from "@/lib/card-image-hosts";
+import { pokemontcgImagePath } from "@/lib/tcgdex";
 
 /**
  * Branded "Art pending" tile: silhouette + name + set code. Never a blank or
@@ -175,6 +176,12 @@ export function fallbackCardImages(card: ImgCard, opts?: { tile?: boolean }): st
   const tcgBase = tcgdexBase(small) || tcgdexBase(large);
   // TCGdex-only boxes (30th, 30th-c, dotted ids) have no pokemontcg.io scans.
   const ptcgOk = safeSet && !setId.includes(".") && !/^(30th|30th-c|me55c)$/i.test(setId);
+  // Dotted TCGdex ids (sm7.5, swsh4.5sv, cel25cc…) keep their scans under
+  // pokemontcg's own id — reach them even when a cached card has the old URL.
+  const ptcgAlias =
+    safeSet && num && (setId.includes(".") || /^cel25cc$/i.test(setId))
+      ? pokemontcgImagePath(setId, num)
+      : null;
 
   if (tile) {
     const first = tileImageUrl(small) || tileImageUrl(large) || small || large;
@@ -191,6 +198,7 @@ export function fallbackCardImages(card: ImgCard, opts?: { tile?: boolean }): st
     if (!tcgBase && serie && num) {
       add(proxiedCardImage(`https://assets.tcgdex.net/en/${serie}/${setId}/${num}/low.webp`));
     }
+    if (ptcgAlias) add(`https://images.pokemontcg.io/${ptcgAlias}.png`);
     if (ptcgOk && num) add(proxiedCardImage(`https://images.pokemontcg.io/${setId}/${num}.png`));
     if (parentSet && num) {
       add(proxiedCardImage(`https://images.pokemontcg.io/${parentSet}/${num}.png`));
@@ -208,6 +216,10 @@ export function fallbackCardImages(card: ImgCard, opts?: { tile?: boolean }): st
   }
   add(proxiedCardImage(large || small));
   if (tcgBase) add(proxiedCardImage(`${tcgBase}/high.png`));
+  if (ptcgAlias) {
+    add(`https://images.pokemontcg.io/${ptcgAlias}_hires.png`);
+    add(`https://images.pokemontcg.io/${ptcgAlias}.png`);
+  }
   if (ptcgOk && num) {
     add(proxiedCardImage(`https://images.pokemontcg.io/${setId}/${num}_hires.png`));
     add(proxiedCardImage(`https://images.pokemontcg.io/${setId}/${num}.png`));

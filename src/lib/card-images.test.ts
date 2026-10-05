@@ -80,3 +80,17 @@ describe("card image chain", () => {
     expect(looksLikePlaceholderScan(real)).toBe(false);
   });
 });
+
+import { pokemontcgImagePath } from "./tcgdex";
+
+describe("image-less TCGdex boxes map to pokemontcg scans", () => {
+  it("uses pokemontcg's own set id and number", () => {
+    expect(pokemontcgImagePath("sm7.5", "1")).toBe("sm75/1");
+    expect(pokemontcgImagePath("sm3.5", "1")).toBe("sm35/1");
+    expect(pokemontcgImagePath("swsh4.5sv", "SV001")).toBe("swsh45sv/SV001");
+    expect(pokemontcgImagePath("swsh12.5gg", "GG01")).toBe("swsh12pt5gg/GG01");
+    expect(pokemontcgImagePath("cel25cc", "CC001")).toBe("cel25c/2_A");
+    expect(pokemontcgImagePath("cel25cc", "CC016")).toBe("cel25c/15_D");
+    expect(pokemontcgImagePath("base1", "004")).toBe("base1/4");
+  });
+});
