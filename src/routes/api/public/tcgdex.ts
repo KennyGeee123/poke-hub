@@ -2,7 +2,7 @@
 // (JP/CN/KO/TH + EN/EU SV) plus live TCGPlayer market prices.
 import { createFileRoute } from "@tanstack/react-router";
 import { cardSearchScore, parseSearchQuery, type SearchableCard } from "../../../lib/card-search";
-import { setIdAliases } from "../../../lib/set-ids";
+import { setIdAliases, setIdLookupOrder } from "../../../lib/set-ids";
 
 const UPSTREAM = "https://api.tcgdex.net/v2";
 const LANGS = new Set([
@@ -594,29 +594,42 @@ export const Route = createFileRoute("/api/public/tcgdex")({
         const cacheHeaders = {
           "cache-control": "public, s-maxage=180, stale-while-revalidate=900",
         };
+        // Exact id first: alias families share members (30th ↔ 30th-c), and the
+        // sorted alias list put "30th" first, so /sets/30th-c answered with the
+        // Celebration box and Classic Collection never loaded.
         const upstreamPaths = setOne
-          ? setIdAliases(decodeURIComponent(setOne[1]))
+          ? setIdLookupOrder(decodeURIComponent(setOne[1]))
               .slice(0, 6)
               .map((id) => `/sets/${encodeURIComponent(id)}`)
           : [path];
         for (const upPath of upstreamPaths) {
-          try {
-            const r = await fetch(`${UPSTREAM}/${lang}${upPath}`, {
-              headers: { Accept: "application/json" },
-              signal: AbortSignal.timeout(preferUpstream ? 8000 : 1200),
-            });
-            if (r.ok) {
-              const body = await r.text();
-              return new Response(body, {
-                status: 200,
-                headers: {
-                  "content-type": r.headers.get("content-type") || "application/json",
-                  ...cacheHeaders,
-                },
+          // 404 = this alias is not a TCGdex id, try the next one. 5xx / network
+          // error / timeout = TCGdex blipped: retry the same id once before
+          // moving on, so a busy upstream doesn't turn into a 502 for the box.
+          for (let attempt = 0; attempt < 2; attempt++) {
+            let retry = false;
+            try {
+              const r = await fetch(`${UPSTREAM}/${lang}${upPath}`, {
+                headers: { Accept: "application/json" },
+                signal: AbortSignal.timeout(preferUpstream ? 8000 : 1200),
               });
+              if (r.ok) {
+                const body = await r.text();
+                return new Response(body, {
+                  status: 200,
+                  headers: {
+                    "content-type": r.headers.get("content-type") || "application/json",
+                    ...cacheHeaders,
+                  },
+                });
+              }
+              retry = r.status >= 500;
+            } catch {
+              /* api.tcgdex.net is often unreachable from cloud IPs */
+              retry = preferUpstream;
             }
-          } catch {
-            /* api.tcgdex.net is often unreachable from cloud IPs */
+            if (!retry) break;
+            if (attempt === 0) await new Promise((res) => setTimeout(res, 300));
           }
         }
 

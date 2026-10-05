@@ -1,13 +1,18 @@
-FROZEN — working state 2026-10-03 (box sets + White Flare + verify rebaseline)
+FROZEN — working state 2026-10-05 (Magikarp + Classic Collection images)
 Live: https://pokedex-hub-lime.vercel.app/
 Lock: launch-lock/WORKING-STATE.json
-Id:   pokedex-hub-2026-10-03-box-sets-white-flare
+Id:   pokedex-hub-2026-10-05-magikarp-classic-images
 
 Every Box set opens from TCGdex (White Flare rsv10pt5 -> sv10.5w, plus
 sm3.5/sm7.5/swsh3.5/swsh4.5/swsh4.5sv/swsh12.5gg/cel25cc/swsh10.5/lc aliases).
 Set ids stay real API ids. Box sets chip = isBoxSet(): Celebrations and small
 special expansions in, TCG Pocket out. 30th Celebration + Classic = one box (191).
 Rebaselined after 28 post-2026-09-24 commits left verify failing (41 files).
+Then: proxy + client retry busy TCGdex answers once (no 502 boxes), 30th
+Classic merged by exact id, prints TCGdex lacks filled from pokemontcg.
+Then: 84 official prints TCGdex lacks ship in src/lib/box-set-extras.json
+(no pokemontcg.io needed), every print shown by default, prices = TCGPlayer
+market for the base print first (Cardmarket EUR only as fallback).
 
 Do not apply drive-by / "hack" edits to hashed files.
 To thaw for a real change: update files, rebuild WORKING-STATE.json from a

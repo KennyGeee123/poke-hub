@@ -33,10 +33,10 @@
     "loopAction": "pokedex-launch-lock",
     "intervalMs": 300000
   },
-  "id": "pokedex-hub-2026-10-03-box-sets-white-flare",
-  "frozenAt": "2026-10-03T16:51:16Z",
-  "rootSha256": "798e6e622d25eeea45289340410ff1e37d09277f36f6cf772592faa28b286955",
-  "fileCount": 220,
+  "id": "pokedex-hub-2026-10-05-magikarp-classic-images",
+  "frozenAt": "2026-10-05T14:45:14Z",
+  "rootSha256": "101815f5015bbff1bd30f79e5e77a1fc3d3798a14ae073950996a9b1f1e77eb1",
+  "fileCount": 222,
   "files": [
     {
       "path": ".npmrc",
@@ -455,8 +455,8 @@
     },
     {
       "path": "src/components/pokevault/CardTile.tsx",
-      "sha256": "61450060df0f1107e74f38bef3cc0e667dd1651d8255c3aa0cb789431ee89ba0",
-      "bytes": 12791
+      "sha256": "f484a2624b732244cfe8a1d06a7dfc6c433f84ccbc00a1026a1c2c4adc06ba04",
+      "bytes": 13054
     },
     {
       "path": "src/components/pokevault/CatchFx.tsx",
@@ -555,8 +555,8 @@
     },
     {
       "path": "src/components/pokevault/views.tsx",
-      "sha256": "75dfa0c3f9c4226f73c7e1b2fc512845e65a5538676d9fbf31b9aa8996391fa2",
-      "bytes": 43922
+      "sha256": "b6decfc8c86b6def70d08cc1aeeff5838596447a06eed0edcdf3c71d51604ea5",
+      "bytes": 44015
     },
     {
       "path": "src/components/ui/accordion.tsx",
@@ -834,6 +834,16 @@
       "bytes": 9853
     },
     {
+      "path": "src/lib/box-set-extras.json",
+      "sha256": "195873694adb7e35ff43c3f803598739a074b5606f3b35a5a38981680bb0e633",
+      "bytes": 54461
+    },
+    {
+      "path": "src/lib/box-set-extras.ts",
+      "sha256": "6cccbae30e6f149c8f177964a3d31c5400aa1a68b8404159797bf40a4ad25076",
+      "bytes": 3279
+    },
+    {
       "path": "src/lib/bulbapedia.ts",
       "sha256": "81c127801602b6158240fbc79bcfe4364d746c0b17ded94e51761923934bca16",
       "bytes": 1716
@@ -905,8 +915,8 @@
     },
     {
       "path": "src/lib/live-prices.ts",
-      "sha256": "618b144732318f65898513f48071ed3ad5bfd93543f0a7d8b86eb8e26a240f51",
-      "bytes": 11781
+      "sha256": "41cb4a213255177a712a9c72a3faa92247fd18f3c102fc30e7f3e816f0deda6a",
+      "bytes": 11975
     },
     {
       "path": "src/lib/mcp/tools/cards.ts",
@@ -940,8 +950,8 @@
     },
     {
       "path": "src/lib/pokemon-api.ts",
-      "sha256": "971862d841196179992f28eb2ba9f1a71cdd2466900b81a70ef7a7cdccf647ff",
-      "bytes": 30026
+      "sha256": "641a82801284a4558d86ecdeed88daa7ce4490b1fa6318b9c7727d99ccfe8cc4",
+      "bytes": 31043
     },
     {
       "path": "src/lib/premium.ts",
@@ -975,8 +985,8 @@
     },
     {
       "path": "src/lib/tcgdex.ts",
-      "sha256": "f0e4c11840204e7b9524cbcd4a2dbb4f069bd3de3de249fa9d1a21ee4b55cd3c",
-      "bytes": 14354
+      "sha256": "aef1cef6f55d35cf2691fc9d787129aeb9e6f4521efe25b6e7cff8828687f412",
+      "bytes": 16858
     },
     {
       "path": "src/lib/utils.ts",
@@ -1025,8 +1035,8 @@
     },
     {
       "path": "src/routes/api/public/prices.ts",
-      "sha256": "10e390cf2392a2f0c7f9b548c59ae82512df5758eff1600deed93d426754c66b",
-      "bytes": 16383
+      "sha256": "8b114c2add29a35d3883ef71a353eff0e308a17d83c7b4a1c62bb7a8bfd05248",
+      "bytes": 18979
     },
     {
       "path": "src/routes/api/public/tcg.ts",
@@ -1035,8 +1045,8 @@
     },
     {
       "path": "src/routes/api/public/tcgdex.ts",
-      "sha256": "89f3fe8dec4e9242cfba9ba615efe3537e4c2a0b83b6c9585fcb9961dff23179",
-      "bytes": 20589
+      "sha256": "fbbe6e66c167e5d1c015d096ce9589088d60d962bdb9d4cbe9f6a1b9e9207a65",
+      "bytes": 21404
     },
     {
       "path": "src/routes/index.tsx",
@@ -1139,5 +1149,5 @@
       "bytes": 202
     }
   ],
-  "thawNote": "Rebaselined from pokedex-hub-launch-ready-2026-09-24-prices-set-dedupe: 28 commits after 2026-09-24 (30th one-box merge, Apple Sign In, Full Art Studio, perf, etc.) changed 41 hashed files without a rebuild, so verify failed. Plus box-set fixes (White Flare + 9 TCGdex aliases, real set ids, Box sets chip, 30th total). launchChecks carried over from the 2026-09-24 launch; re-run them on the live deploy after merge."
+  "thawNote": "Rebaselined from pokedex-hub-2026-10-03-box-sets-missing-cards-prices: 30th Classic Collection (Magikarp) shipped with TCGPlayer scans; image overlay; hardened Classic fetch"
 }

@@ -15,7 +15,12 @@ import {
   getGradeMeta,
 } from "@/lib/card-grades";
 import { getCardLevelAndStats } from "@/lib/card-stats";
-import { applyLiveQuote, useLivePrice, usePricePending } from "@/lib/live-prices";
+import {
+  applyLiveQuote,
+  cachedLivePriceSource,
+  useLivePrice,
+  usePricePending,
+} from "@/lib/live-prices";
 
 type Props = {
   card: TCGCard;
@@ -142,7 +147,17 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
   const setLine = [card.set?.name, card.number ? `#${card.number}` : null]
     .filter(Boolean)
     .join(" · ");
-  const priceLabel = pricePending ? null : live > 0 ? "sold avg" : displayPrice ? "market" : null;
+  // Only Cardmarket / eBay sold averages are "sold avg"; TCGPlayer quotes are market.
+  const liveSource = cachedLivePriceSource(card.id);
+  const priceLabel = pricePending
+    ? null
+    : live > 0
+      ? liveSource === "sold-avg"
+        ? "sold avg"
+        : "market"
+      : displayPrice
+        ? "market"
+        : null;
 
   return (
     <div

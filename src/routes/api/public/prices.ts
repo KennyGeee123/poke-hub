@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import boxSetExtras from "@/lib/box-set-extras.json";
 
 const UPSTREAM = "https://api.tcgdex.net/v2";
 const FX: Record<string, number> = {
@@ -44,13 +45,24 @@ function usd(n: number, unit?: string): number {
   return Math.round(n * (FX[(unit || "USD").toUpperCase()] ?? 1) * 100) / 100;
 }
 
+/**
+ * TCGPlayer print rows, base print first. TCGdex uses hyphenated keys
+ * ("reverse-holofoil"), pokemontcg.io camelCase ("reverseHolofoil"). The old
+ * list only had camelCase, so TCGdex commons fell through to whichever row
+ * came first — usually reverse holo — and showed the wrong variant's price.
+ */
 const TP_PRINTS = [
-  "holofoil",
-  "1stEditionHolofoil",
-  "reverseHolofoil",
-  "unlimitedHolofoil",
   "normal",
+  "holofoil",
+  "unlimited-holofoil",
+  "unlimitedHolofoil",
   "unlimited",
+  "1st-edition-holofoil",
+  "1stEditionHolofoil",
+  "1st-edition",
+  "1stEdition",
+  "reverse-holofoil",
+  "reverseHolofoil",
 ];
 
 function pickTpField(tp: any, field: "marketPrice" | "midPrice" | "lowPrice"): number {
@@ -68,8 +80,28 @@ function pickTpField(tp: any, field: "marketPrice" | "midPrice" | "lowPrice"): n
   return 0;
 }
 
-/** Prefer Cardmarket sold averages, then TCGPlayer market/mid/low. */
+/**
+ * TCGPlayer market (US sales) first, for the card's base print. Cardmarket
+ * (EU, EUR) is only a fallback: on 2026-10-03 its avg7 was >15% / $1 off
+ * TCGPlayer for 35% of a 1,179-card sample, and TCGdex often maps secret
+ * rares to the regular print's Cardmarket product (Dialga EX 122/119 quoted
+ * $9 vs $1,022 market).
+ */
 function marketFromTcgdex(raw: any): PriceQuote | null {
+  const tpMarket = pickTpField(raw?.pricing?.tcgplayer, "marketPrice");
+  const tpMid = pickTpField(raw?.pricing?.tcgplayer, "midPrice");
+  const tpLow = pickTpField(raw?.pricing?.tcgplayer, "lowPrice");
+  if (tpMarket > 0) {
+    return {
+      market: tpMarket,
+      source: "tcgplayer-market",
+      listingMarket: tpMid && tpMid !== tpMarket ? tpMid : undefined,
+    };
+  }
+  if (tpMid > 0) {
+    return { market: tpMid, source: "tcgplayer-mid", listingMarket: tpLow || undefined };
+  }
+
   const cm = raw?.pricing?.cardmarket;
   let soldAvg = 0;
   let cmLow = 0;
@@ -84,39 +116,14 @@ function marketFromTcgdex(raw: any): PriceQuote | null {
     }
     cmLow = usd(Number(cm.low), unit);
   }
-
-  const tpMarket = pickTpField(raw?.pricing?.tcgplayer, "marketPrice");
-  const tpMid = pickTpField(raw?.pricing?.tcgplayer, "midPrice");
-  const tpLow = pickTpField(raw?.pricing?.tcgplayer, "lowPrice");
-  const listingMarket = tpMarket || tpMid || tpLow || cmLow || undefined;
-
   if (soldAvg > 0) {
-    return {
-      market: soldAvg,
-      source: "sold-avg",
-      soldAvg,
-      listingMarket: listingMarket && listingMarket !== soldAvg ? listingMarket : undefined,
-    };
-  }
-  if (cmLow > 0) {
-    return {
-      market: cmLow,
-      source: "cardmarket-low",
-      listingMarket: listingMarket !== cmLow ? listingMarket : undefined,
-    };
-  }
-  if (tpMarket > 0) {
-    return {
-      market: tpMarket,
-      source: "tcgplayer-market",
-      listingMarket: tpMid || tpLow || undefined,
-    };
-  }
-  if (tpMid > 0) {
-    return { market: tpMid, source: "tcgplayer-mid", listingMarket: tpLow || undefined };
+    return { market: soldAvg, source: "sold-avg", soldAvg, listingMarket: tpLow || undefined };
   }
   if (tpLow > 0) {
     return { market: tpLow, source: "tcgplayer-low" };
+  }
+  if (cmLow > 0) {
+    return { market: cmLow, source: "cardmarket-low" };
   }
   return null;
 }
@@ -288,6 +295,54 @@ async function quoteTcgcsv(
   return { market: Math.round(row.market * 100) / 100, source: "tcgcsv-market" };
 }
 
+/** Shipped box-set extras (Unown A-Z, 30th Mew R/G/B) with their TCGPlayer product. */
+const EXTRA_PRODUCTS = new Map<string, { groupId: number; productId: number }>();
+for (const s of (boxSetExtras as any).sets || []) {
+  if (!s.tcgplayerGroupId) continue;
+  for (const c of s.cards || []) {
+    if (c.tcgplayerProductId) {
+      EXTRA_PRODUCTS.set(String(c.id).toLowerCase(), {
+        groupId: Number(s.tcgplayerGroupId),
+        productId: Number(c.tcgplayerProductId),
+      });
+    }
+  }
+}
+
+const groupPriceCache = new Map<number, { at: number; byPid: Map<number, number> }>();
+
+/** TCGPlayer market for one product via tcgcsv (daily TCGPlayer mirror). */
+async function quoteTcgcsvProduct(groupId: number, productId: number): Promise<PriceQuote | null> {
+  let hit = groupPriceCache.get(groupId);
+  if (!hit || Date.now() - hit.at > CSV_TTL_MS) {
+    try {
+      const r = await fetch(`https://tcgcsv.com/tcgplayer/3/${groupId}/prices`, {
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "PokeVault/1.0 (https://pokedex-hub-lime.vercel.app; prices-fallback)",
+        },
+        signal: AbortSignal.timeout(8000),
+      });
+      if (r.ok) {
+        const j: any = await r.json();
+        const byPid = new Map<number, number>();
+        for (const p of j?.results || []) {
+          const pid = Number(p.productId);
+          const m = Number(p.marketPrice) || Number(p.midPrice) || 0;
+          const prev = byPid.get(pid);
+          if (pid > 0 && m > 0 && (prev === undefined || m < prev)) byPid.set(pid, m);
+        }
+        hit = { at: Date.now(), byPid };
+        groupPriceCache.set(groupId, hit);
+      }
+    } catch {
+      /* keep stale */
+    }
+  }
+  const m = hit?.byPid.get(productId) || 0;
+  return m > 0 ? { market: Math.round(m * 100) / 100, source: "tcgcsv-market" } : null;
+}
+
 function isClassicSet(setKey: string): boolean {
   return setKey === "30th-c" || setKey === "me55c";
 }
@@ -346,7 +401,15 @@ function priceCacheAliases(id: string): string[] {
 function quoteFromPokemonPrices(prices: any): PriceQuote | null {
   if (!prices || typeof prices !== "object") return null;
   for (const field of ["market", "mid", "low"] as const) {
-    for (const k of ["holofoil", "1stEditionHolofoil", "reverseHolofoil", "normal", "unlimited"]) {
+    for (const k of [
+      "normal",
+      "holofoil",
+      "unlimitedHolofoil",
+      "unlimited",
+      "1stEditionHolofoil",
+      "1stEdition",
+      "reverseHolofoil",
+    ]) {
       const n = Number(prices[k]?.[field]);
       if (Number.isFinite(n) && n > 0) {
         const source =
@@ -421,6 +484,11 @@ async function tryTcgdexCard(
 }
 
 async function quoteOne(id: string): Promise<PriceQuote | null> {
+  const extra = EXTRA_PRODUCTS.get(id.toLowerCase());
+  if (extra) {
+    const q = await quoteTcgcsvProduct(extra.groupId, extra.productId);
+    if (q) return q;
+  }
   const parsed = parseCardId(id);
   const setKey = parsed?.setKey || "";
   let cardName: string | undefined;
