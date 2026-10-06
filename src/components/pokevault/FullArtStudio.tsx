@@ -31,9 +31,9 @@ const STYLES: FullArtStyle[] = ["holo", "rainbow", "gold", "alt"];
 const AI_PREF = "pv-fa-ai";
 const AI_STYLE_HINTS: Record<AiArtStyle, string> = {
   faithful: "Continue background to full art",
-  storybook: "Painterly scene, full-art",
-  chibi: "Cute, rounded, pastel",
-  neon: "Glowing synthwave night",
+  storybook: "Same habitat, storybook brush",
+  chibi: "Chibi hero — same habitat continued",
+  neon: "Neon light on continued habitat",
 };
 
 export function FullArtStudio({
