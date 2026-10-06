@@ -1,12 +1,14 @@
-// Client side of "AI paint (Nano Banana)": crops the card's art box, asks our
-// server route (/api/public/fullart-ai) to paint a full-bleed version with the
-// Gemini image model, and caches the result on-device. Every failure resolves to
-// a friendly reason so the Studio can fall back to the canvas compositor.
+// Client side of AI paint: crops the card art box, tries Gemini Nano Banana
+// (/api/public/fullart-ai) then free Hugging Face outpaint (/api/public/fullart-hf),
+// and caches on-device. Canvas compositor is layout-preview only — never claimed as Full Art paint.
+// DeepSeek hosted API = text-only. OpenCode image plugins = Gemini/GPT wrappers.
 import type { TCGCard } from "./pokemon-api";
 import { artBox } from "./fullart";
 import { FULLART_PROMPT_VERSION, type AiArtStyle, type AiFinish } from "./fullart-prompt";
 
 const ROUTE = "/api/public/fullart-ai";
+
+export type AiPaintProvider = "gemini" | "huggingface" | "auto";
 
 export type AiPaintStatus = {
   enabled: boolean;
@@ -14,6 +16,14 @@ export type AiPaintStatus = {
   model?: string;
   dailyLimit?: number;
   remaining?: number;
+  /** Preferred painter when AI paint is on. */
+  provider?: AiPaintProvider;
+  /** Honest capability notes for non-painters we researched. */
+  notes?: {
+    deepseek?: string;
+    opencode?: string;
+    huggingface?: string;
+  };
 };
 
 export type AiPaintError =
@@ -34,10 +44,34 @@ let statusP: Promise<AiPaintStatus> | null = null;
 /** Is AI paint switched on for this deployment? (cached for the session) */
 export function getAiPaintStatus(force = false): Promise<AiPaintStatus> {
   if (!statusP || force)
-    statusP = fetch(ROUTE, { headers: { accept: "application/json" } })
-      .then((r) => (r.ok ? r.json() : { enabled: false, reason: "offline" }))
-      .then((j) => ({ ...j, enabled: !!j?.enabled }) as AiPaintStatus)
-      .catch(() => ({ enabled: false, reason: "offline" }));
+    statusP = Promise.all([
+      fetch(ROUTE, { headers: { accept: "application/json" } })
+        .then((r) => (r.ok ? r.json() : { enabled: false, reason: "offline" }))
+        .catch(() => ({ enabled: false, reason: "offline" })),
+      fetch("/api/public/fullart-hf", { headers: { accept: "application/json" } })
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null),
+    ]).then(([gemini, hf]) => {
+      const geminiOn = !!gemini?.enabled;
+      const hfOn = !!hf?.enabled;
+      return {
+        ...gemini,
+        enabled: geminiOn || hfOn,
+        reason: geminiOn ? gemini?.reason : hfOn ? undefined : gemini?.reason || "offline",
+        provider: (geminiOn ? "gemini" : hfOn ? "huggingface" : "auto") as AiPaintProvider,
+        model: geminiOn ? gemini?.model : hfOn ? `hf:${hf?.space || "outpaint"}` : gemini?.model,
+        notes: {
+          deepseek:
+            "Hosted DeepSeek API is vision→text only — it cannot paint Full Art pixels.",
+          opencode:
+            "OpenCode image plugins wrap Gemini / GPT Image — not a separate free Full Art model.",
+          huggingface: hfOn
+            ? `Free HF Space painter ready (${hf?.space || "outpaint"}).`
+            : "HF outpaint route offline.",
+          ...(hf?.notes || {}),
+        },
+      } as AiPaintStatus;
+    });
   return statusP;
 }
 
@@ -156,19 +190,21 @@ export async function paintWithAi(
   } catch {
     return { ok: false, error: "bad_request", message: AI_PAINT_NOTES.bad_request };
   }
-  try {
-    const r = await fetch(ROUTE, {
+  const payload = {
+    cardId: card.id,
+    sourceUrl,
+    name: card.name,
+    type: card.types?.[0] || "",
+    finish,
+    style,
+    art,
+  };
+
+  async function post(route: string): Promise<AiPaintResult> {
+    const r = await fetch(route, {
       method: "POST",
       headers: { "content-type": "application/json", "x-pv-soft-fail": "1" },
-      body: JSON.stringify({
-        cardId: card.id,
-        sourceUrl,
-        name: card.name,
-        type: card.types?.[0] || "",
-        finish,
-        style,
-        art,
-      }),
+      body: JSON.stringify(payload),
     });
     const ct = r.headers.get("content-type") || "";
     if (!r.ok || ct.includes("json")) {
@@ -180,7 +216,24 @@ export async function paintWithAi(
     const out = await blobToImage(blob);
     void cachePut(key, blob);
     return { ok: true, img: out, cached: false };
+  }
+
+  try {
+    // 1) Gemini Nano Banana (best when key + quota available)
+    const gemini = await post(ROUTE);
+    if (gemini.ok) return gemini;
+    // 2) Free HF outpaint when Gemini is off / busy / quota
+    if (["no_key", "rate_limited", "upstream", "offline"].includes(gemini.error)) {
+      const hf = await post("/api/public/fullart-hf");
+      if (hf.ok) return hf;
+      return gemini.error === "no_key" ? hf : gemini;
+    }
+    return gemini;
   } catch {
-    return { ok: false, error: "offline", message: AI_PAINT_NOTES.offline };
+    try {
+      return await post("/api/public/fullart-hf");
+    } catch {
+      return { ok: false, error: "offline", message: AI_PAINT_NOTES.offline };
+    }
   }
 }

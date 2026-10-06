@@ -77,6 +77,8 @@ export function FullArtStudio({
       setAiStatus(st);
       if (!st.enabled)
         setAiNote(st.reason === "no_key" ? AI_PAINT_NOTES.no_key : AI_PAINT_NOTES.offline);
+      else if (st.notes?.huggingface)
+        setAiNote(st.notes.huggingface);
     });
     return () => {
       alive = false;
@@ -116,7 +118,11 @@ export function FullArtStudio({
     if (res.ok) {
       setAiArt(res.img);
       if (!res.cached) void getAiPaintStatus(true).then(setAiStatus);
-      onToast(res.cached ? "AI paint loaded from this device" : "Painted with Nano Banana");
+      onToast(
+        res.cached
+          ? "AI paint loaded from this device"
+          : `Painted with ${aiStatus?.provider === "huggingface" ? "HF outpaint" : "Nano Banana / AI"}`,
+      );
     } else {
       setAiArt(null);
       setAiNote(res.message);
@@ -280,7 +286,7 @@ export function FullArtStudio({
               {status === "ready" && aiBusy && (
                 <div className="pv-fa-aibusy" role="status">
                   <span className="pv-fa-aispin" aria-hidden />
-                  Painting with Nano Banana…
+                  Painting with real image model…
                 </div>
               )}
               {status === "loading" && (
@@ -372,8 +378,8 @@ export function FullArtStudio({
               onClick={toggleAi}
             >
               <span className="flex-1 text-left">
-                <strong>AI paint (Nano Banana)</strong>
-                <em>Google’s image model paints the art past the frame</em>
+                <strong>AI paint (real model)</strong>
+                <em>Nano Banana → free HF outpaint — not canvas stretch</em>
               </span>
               <span className="pv-lw-switch" aria-hidden />
             </button>
@@ -402,7 +408,11 @@ export function FullArtStudio({
                   disabled={status !== "ready" || aiBusy || (aiStatus !== null && !aiEnabled)}
                   onClick={onPaint}
                 >
-                  {aiBusy ? "Painting…" : showAi ? "✨ Repaint with AI" : "✨ Paint with AI"}
+                  {aiBusy
+                    ? "Painting with real model…"
+                    : showAi
+                      ? "✨ Repaint with AI"
+                      : "✨ Paint with AI (Nano Banana / HF)"}
                 </button>
                 {aiNote ? (
                   <p className="pv-fa-ainote" role="status">
@@ -439,10 +449,11 @@ export function FullArtStudio({
               </button>
             </div>
             <p className="pv-fa-how">
-              How it works: by default a colour-sampled backdrop, blurred art bleed and mirrored
-              edge extension are blended on your device. With AI paint on, only the card’s art
-              window is sent to Google’s Gemini image model to paint the scene; the frame, text and
-              fan-made label are still drawn here.
+              How it works: the on-device view is a <strong>layout preview only</strong> (not Full
+              Art paint). With AI paint on we try Google Gemini Nano Banana first, then free Hugging
+              Face outpaint to continue the card’s own habitat edge-to-edge. DeepSeek’s hosted API is
+              vision→text only (no pixels). OpenCode image plugins wrap Gemini/GPT — same family, not
+              a separate free painter. Frame, attack text and the fan-made label are still drawn here.
             </p>
           </div>
         </div>

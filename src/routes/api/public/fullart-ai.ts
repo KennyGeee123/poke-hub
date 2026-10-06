@@ -95,6 +95,77 @@ function b64ToBytes(s: string): Uint8Array<ArrayBuffer> {
   return Uint8Array.from(Buffer.from(s, "base64"));
 }
 
+
+async function callGeminiImage(
+  key: string,
+  modelName: string,
+  prompt: string,
+  mime: string,
+  b64: string,
+): Promise<{ data: string; mime: string } | null> {
+  // Prefer Interactions API (Nano Banana path), then generateContent.
+  try {
+    const r = await fetch(API, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-goog-api-key": key },
+      body: JSON.stringify({
+        model: modelName,
+        input: [
+          { type: "text", text: prompt },
+          { type: "image", mime_type: mime, data: b64 },
+        ],
+        response_format: {
+          type: "image",
+          mime_type: "image/png",
+          aspect_ratio: "3:4",
+          image_size: "1K",
+        },
+      }),
+      signal: AbortSignal.timeout(90_000),
+    });
+    if (r.ok) {
+      const img = extractImage(await r.json());
+      if (img) return img;
+    }
+  } catch {
+    /* fall through */
+  }
+  try {
+    const r = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-goog-api-key": key },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [
+                { text: prompt },
+                { inline_data: { mime_type: mime, data: b64 } },
+              ],
+            },
+          ],
+          generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
+        }),
+        signal: AbortSignal.timeout(90_000),
+      },
+    );
+    if (!r.ok) return null;
+    const j: any = await r.json();
+    for (const c of Array.isArray(j?.candidates) ? j.candidates : []) {
+      for (const part of Array.isArray(c?.content?.parts) ? c.content.parts : []) {
+        const inline = part?.inlineData || part?.inline_data;
+        if (inline?.data)
+          return { data: inline.data, mime: inline.mimeType || inline.mime_type || "image/png" };
+      }
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
 /** Pull the final image block out of an Interactions API response. */
 function extractImage(j: any): { data: string; mime: string } | null {
   let found: { data: string; mime: string } | null = null;
@@ -223,47 +294,18 @@ export const Route = createFileRoute("/api/public/fullart-ai")({
           finish,
           style,
         });
-        let j: any;
+        let img: { data: string; mime: string } | null = null;
         try {
-          const r = await fetch(API, {
-            method: "POST",
-            headers: { "content-type": "application/json", "x-goog-api-key": key },
-            body: JSON.stringify({
-              model: model(),
-              input: [
-                { type: "text", text: prompt },
-                { type: "image", mime_type: mime, data: m[2] },
-              ],
-              // 5:7 isn't offered; 3:4 is closest and the client centre-crops to 5:7.
-              response_format: {
-                type: "image",
-                mime_type: "image/png",
-                aspect_ratio: "3:4",
-                image_size: "1K",
-              },
-            }),
-            signal: AbortSignal.timeout(90_000),
-          });
-          if (!r.ok) {
-            console.warn(`[fullart-ai] upstream ${r.status}`);
-            return fail(
-              request,
-              502,
-              r.status === 429 ? "upstream_busy" : "upstream_error",
-              "The image model couldn't paint this card right now.",
-            );
-          }
-          j = await r.json();
+          img = await callGeminiImage(key, model(), prompt, mime, m[2]);
         } catch {
           return fail(request, 504, "upstream_timeout", "The image model took too long.");
         }
-        const img = extractImage(j);
         if (!img)
           return fail(
             request,
             502,
             "no_image",
-            "The image model returned no picture (it may have declined this card).",
+            "The image model returned no picture (quota, decline, or upstream error).",
           );
         const out = b64ToBytes(img.data);
         cache.set(ck, { bytes: out, mime: img.mime, t: Date.now() });
