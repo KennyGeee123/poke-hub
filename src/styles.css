@@ -10330,6 +10330,162 @@ body[data-pv-tab="adventure"] .pv-music-panel,
   font-size: 11px;
   color: var(--pv-t3-aa);
 }
+.pogo-card-hit {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+.pogo-our-price {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-weight: 900;
+  font-size: 16px;
+}
+.pogo-our-price em {
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--pv-t3-aa);
+}
+.pogo-ebay-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 10px 10px;
+}
+.pogo-ebay-chip {
+  flex: 1 1 110px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  text-decoration: none;
+  background: rgba(8, 12, 22, 0.75);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  color: #e2e8f0;
+  min-height: 44px;
+}
+.pogo-ebay-chip span {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: #93c5fd;
+}
+.pogo-ebay-chip strong {
+  font-size: 14px;
+  font-weight: 900;
+  color: #fff;
+}
+.pogo-ebay-chip.sold.est {
+  border-color: rgba(252, 211, 77, 0.4);
+}
+.pogo-ebay-chip.sold.est span {
+  color: #fcd34d;
+}
+.pogo-ebay-chip.sold.live {
+  border-color: rgba(52, 211, 153, 0.45);
+}
+.pogo-ebay-chip.sold.live span {
+  color: #6ee7b7;
+}
+.pogo-ebay-chip.ask {
+  border-color: rgba(147, 197, 253, 0.35);
+}
+.pogo-ebay-chip.muted {
+  opacity: 0.6;
+  justify-content: center;
+}
+.pogo-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pv-t3-aa);
+  margin: 0 0 10px;
+}
+.pogo-toast {
+  position: sticky;
+  top: 8px;
+  z-index: 20;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.18);
+  border: 1px solid rgba(52, 211, 153, 0.45);
+  color: #d1fae5;
+  font-size: 13px;
+  font-weight: 700;
+}
+.pogo-ask-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pv-t3-aa);
+}
+.pogo-value-copy {
+  flex: 1;
+  min-width: 0;
+}
+.pogo-modal-note {
+  font-size: 13px;
+  color: var(--pv-t3-aa);
+}
+.pogo-modal-prices {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+}
+.pogo-modal-prices > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(52, 211, 153, 0.1);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+.pogo-modal-prices em {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 800;
+  color: #6ee7b7;
+  text-transform: uppercase;
+}
+.pogo-modal-prices b {
+  font-size: 20px;
+}
+.pogo-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+  justify-content: center;
+}
+.pogo-modal-actions .pv-btn {
+  flex: 1 1 140px;
+  min-height: 44px;
+}
+.pogo-trade-side {
+  flex-wrap: wrap;
+}
+.pogo-trade-side .pogo-ebay-panel {
+  padding: 0;
+  width: 100%;
+}
 .pogo-empty {
   color: var(--pv-t3-aa);
   font-size: 14px;

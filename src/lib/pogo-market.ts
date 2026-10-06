@@ -226,3 +226,50 @@ export function findSpecies(q: string): PoGoSpecies[] {
     (s) => s.name.toLowerCase().includes(n) || s.types.some((t) => t.toLowerCase().includes(n)),
   );
 }
+
+/** Typical eBay asking sits above sold median; used when live asking scrape isn't available. */
+export function estimateEbayAsking(soldUsd: number): number {
+  return Math.round(soldUsd * 1.18 * 100) / 100;
+}
+
+export type PoGoEbayPanel = {
+  soldUsd: number;
+  askingUsd: number;
+  source: PoGoValueSource;
+  soldUrl: string;
+  askingUrl: string;
+};
+
+export function ebayPanelFromValue(v: PoGoValue): PoGoEbayPanel {
+  return {
+    soldUsd: v.usd,
+    askingUsd: estimateEbayAsking(v.usd),
+    source: v.source,
+    soldUrl: v.ebaySoldUrl,
+    askingUrl: `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(v.query)}&_sacat=0`,
+  };
+}
+
+const LS_KEY = "pv-pogo-listings-v1";
+
+export function loadUserListings(): PoGoListing[] {
+  if (typeof localStorage === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveUserListing(listing: PoGoListing): void {
+  const cur = loadUserListings().filter((l) => l.id !== listing.id);
+  cur.unshift(listing);
+  localStorage.setItem(LS_KEY, JSON.stringify(cur.slice(0, 40)));
+}
+
+export function removeUserListing(id: string): void {
+  localStorage.setItem(LS_KEY, JSON.stringify(loadUserListings().filter((l) => l.id !== id)));
+}
