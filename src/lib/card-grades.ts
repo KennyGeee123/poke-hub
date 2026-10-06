@@ -457,10 +457,13 @@ export function calculateGradedValue(card: TCGCard, grade: CardGrade): GradedVal
     effectiveMultiplier = meta.baseMultiplier;
   }
 
-  const estimatedGradedPrice = Math.max(
-    rawPrice * effectiveMultiplier,
-    rawPrice + (meta.isSlab ? 18.0 : 0),
-  );
+  // Only floor above raw when the grade is a premium (multiplier >= 1).
+  // Lower slabs (PSA 7 etc.) must be allowed below raw NM.
+  const rawEstimate = rawPrice * effectiveMultiplier;
+  const estimatedGradedPrice =
+    effectiveMultiplier >= 1 && meta.isSlab
+      ? Math.max(rawEstimate, rawPrice + 18.0)
+      : rawEstimate;
 
   const rounded = Math.round(estimatedGradedPrice * 100) / 100;
   const totalCostBasis = rawPrice + GRADING_FEE_ESTIMATE;

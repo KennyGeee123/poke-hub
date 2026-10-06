@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import type { TCGCard } from "@/lib/pokemon-api";
-import { type CardGrade, GRADE_DEFINITIONS } from "@/lib/card-grades";
-import { getCardLevelAndStats } from "@/lib/card-stats";
+import { type CardGrade, ALL_GRADES, getGradeMeta } from "@/lib/card-grades";
 import {
   MOCK_TRAINERS,
   createTradeItem,
@@ -11,6 +10,8 @@ import {
   type TradeParty,
   type TradeOffer,
 } from "@/lib/p2p-trading";
+import { findSpecies, pogoSpriteUrl } from "@/lib/pogo-market";
+import { goAssetValue, gradeMockImg } from "@/lib/fair-trade-assets";
 import { P2PTradeBeamTransfer } from "./QuantumTransferAnimation";
 
 export function P2PTradingHubModal({
@@ -30,19 +31,46 @@ export function P2PTradingHubModal({
   const [partnerCardName, setPartnerCardName] = useState<string>("Charizard VMAX (Shiny Secret)");
   const [partnerGrade, setPartnerGrade] = useState<CardGrade>("psa9");
   const [partnerCash, setPartnerCash] = useState<number>(0);
+  const [partnerKind, setPartnerKind] = useState<"card" | "go">("card");
+  const [partnerGoName, setPartnerGoName] = useState<string>("Mewtwo");
+  const [partnerGoShiny, setPartnerGoShiny] = useState(true);
 
   const [isTransferring, setIsTransferring] = useState<boolean>(false);
   const [tradeSuccess, setTradeSuccess] = useState<boolean>(false);
 
-  // Synthesize partner item
+  // Synthesize partner item (TCG card or Pokémon GO creature)
+  const goSpecies = findSpecies(partnerGoName)[0] || findSpecies("Mewtwo")[0];
   const partnerMockCard: TCGCard = {
     ...initialCard,
-    id: "partner-mock-01",
-    name: partnerCardName,
-    hp: "330",
-    rarity: "Secret Rare",
+    id: partnerKind === "go" ? `go-mock-${goSpecies?.id || 150}` : "partner-mock-01",
+    name: partnerKind === "go" ? (goSpecies?.name || partnerGoName) : partnerCardName,
+    hp: partnerKind === "go" ? String(goSpecies?.id || 150) : "330",
+    rarity: partnerKind === "go" ? "Pokémon GO" : "Secret Rare",
+    images: {
+      small:
+        partnerKind === "go" && goSpecies
+          ? pogoSpriteUrl(goSpecies.id)
+          : initialCard.images?.small || gradeMockImg(partnerGrade),
+      large:
+        partnerKind === "go" && goSpecies
+          ? pogoSpriteUrl(goSpecies.id)
+          : initialCard.images?.large || gradeMockImg(partnerGrade),
+    },
   };
-  const receiverItem = createTradeItem(partnerMockCard, partnerGrade, "card");
+  const receiverItem = createTradeItem(
+    partnerMockCard,
+    partnerKind === "go" ? "raw" : partnerGrade,
+    partnerKind === "go" ? "game_pokemon" : "card",
+  );
+  if (partnerKind === "go" && goSpecies) {
+    // Override market with name-keyed GO / eBay value (shiny bonus).
+    receiverItem.marketPrice = goAssetValue(goSpecies, {
+      shiny: partnerGoShiny,
+      lucky: false,
+      ivPct: 98,
+    });
+    receiverItem.grade = "raw";
+  }
 
   const senderParty: TradeParty = {
     id: "user-party",
@@ -112,7 +140,7 @@ export function P2PTradingHubModal({
                 </span>
               </div>
               <p className="text-xs text-neutral-400 font-mono">
-                Trade Physical/Digital TCG Cards &amp; In-Game Pokémon with Condition Stat Boosts
+                Card ↔ card, GO ↔ GO, or mixed — grade ladders + name-keyed GO/eBay values
               </p>
             </div>
           </div>
@@ -202,8 +230,17 @@ export function P2PTradingHubModal({
                     />
                     <div className="flex-1">
                       <div className="font-bold text-white text-base">{senderItem.card.name}</div>
-                      <div className="text-xs text-neutral-400 font-mono mt-0.5">
-                        {senderItem.grade.toUpperCase()} · #{senderItem.card.number}
+                      <div className="text-xs text-neutral-400 font-mono mt-0.5 flex items-center gap-2">
+                        <span
+                          className="px-1.5 py-0.5 rounded"
+                          style={{
+                            background: getGradeMeta(senderItem.grade).badgeBg,
+                            color: getGradeMeta(senderItem.grade).badgeText,
+                          }}
+                        >
+                          {getGradeMeta(senderItem.grade).shortLabel}
+                        </span>
+                        <span>#{senderItem.card.number}</span>
                       </div>
 
                       {/* Level & Boost Badges */}
@@ -261,18 +298,62 @@ export function P2PTradingHubModal({
                         className="font-bold text-white text-sm bg-neutral-900 px-2 py-1 rounded border border-neutral-700 w-full mb-1"
                       />
 
-                      <div className="flex items-center gap-2 mt-1">
-                        <select
-                          value={partnerGrade}
-                          onChange={(e) => setPartnerGrade(e.target.value as CardGrade)}
-                          className="text-xs font-mono bg-neutral-900 border border-neutral-700 rounded px-2 py-0.5 text-neutral-300"
-                        >
-                          <option value="psa10">PSA 10 Gem Mint</option>
-                          <option value="psa9">PSA 9 Mint</option>
-                          <option value="bgs10_black">BGS 10 Black</option>
-                          <option value="raw_mint">Raw Gem-Mint</option>
-                          <option value="raw_nm">Raw Near Mint</option>
-                        </select>
+                      <div className="flex flex-col gap-2 mt-1">
+                        <div className="flex gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setPartnerKind("card")}
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                              partnerKind === "card"
+                                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
+                                : "bg-neutral-900 text-neutral-500"
+                            }`}
+                          >
+                            TCG Card
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPartnerKind("go")}
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                              partnerKind === "go"
+                                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                                : "bg-neutral-900 text-neutral-500"
+                            }`}
+                          >
+                            Pokémon GO
+                          </button>
+                        </div>
+                        {partnerKind === "card" ? (
+                          <select
+                            value={partnerGrade}
+                            onChange={(e) => setPartnerGrade(e.target.value as CardGrade)}
+                            className="text-xs font-mono bg-neutral-900 border border-neutral-700 rounded px-2 py-0.5 text-neutral-300"
+                          >
+                            {ALL_GRADES.map((g) => (
+                              <option key={g} value={g}>
+                                {getGradeMeta(g).shortLabel}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <div className="flex flex-wrap items-center gap-2">
+                            <input
+                              type="text"
+                              value={partnerGoName}
+                              onChange={(e) => setPartnerGoName(e.target.value)}
+                              className="text-xs font-mono bg-neutral-900 border border-neutral-700 rounded px-2 py-0.5 text-neutral-300 w-28"
+                              placeholder="Species"
+                            />
+                            <label className="text-[10px] text-neutral-400 flex items-center gap-1">
+                              <input
+                                type="checkbox"
+                                checked={partnerGoShiny}
+                                onChange={(e) => setPartnerGoShiny(e.target.checked)}
+                              />
+                              Shiny
+                            </label>
+                          </div>
+                        )}
                       </div>
 
                       {/* Level & Boost Badges */}
@@ -323,10 +404,23 @@ export function P2PTradingHubModal({
                   />
                 </div>
 
-                <div className="text-[11px] text-neutral-300 flex items-center justify-between pt-1">
+                <div className="text-[11px] text-neutral-300 flex items-center justify-between pt-1 gap-2">
                   <span>{evaluation.suggestion}</span>
-                  <span className="text-neutral-400">
-                    Value Delta: {evaluation.delta >= 0 ? "+" : ""}${evaluation.delta.toFixed(2)}
+                  <span
+                    className={`font-bold ${
+                      Math.abs(evaluation.delta) < 5
+                        ? "text-emerald-400"
+                        : evaluation.delta > 0
+                          ? "text-cyan-300"
+                          : "text-amber-300"
+                    }`}
+                  >
+                    {Math.abs(evaluation.delta) < 5
+                      ? "FAIR"
+                      : evaluation.delta > 0
+                        ? "YOU WIN"
+                        : "YOU LOSE"}{" "}
+                    · {evaluation.delta >= 0 ? "+" : ""}${evaluation.delta.toFixed(2)}
                   </span>
                 </div>
               </div>
