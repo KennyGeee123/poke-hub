@@ -10,6 +10,7 @@ import { getCard, getMarketPrice, getRarityColor, stubCardFromId } from "@/lib/p
 import { applyLiveQuote, useLivePrice } from "@/lib/live-prices";
 import { getPrintLang, printLangMeta } from "@/lib/print-lang";
 import { formatPrice } from "@/lib/vault";
+import { formatCardNumber } from "@/lib/card-identity";
 import { CardActions } from "./CardTile";
 import { getPokedex, type Pokedex } from "@/lib/pokeapi";
 import { getAltArtworks, type AltArt } from "@/lib/tcgdex";
@@ -32,6 +33,11 @@ import {
   gradedSlabLadder,
 } from "@/lib/card-grades";
 import { SkeletonRows } from "./ui";
+
+/** Unknown price → dash. Never $0.00, never a stand-in from another card. */
+function priceOrDash(n: number | undefined): string {
+  return n && n > 0 ? formatPrice(n) : "—";
+}
 
 export function CardDetail({
   cardId,
@@ -512,7 +518,7 @@ export function CardDetail({
                         : { fontSize: 14, letterSpacing: 0.02 }
                   }
                 >
-                  {formatPrice(
+                  {priceOrDash(
                     gradeMeta.isSlab
                       ? gradedVal.estimatedGradedPrice
                       : market || gradedVal.estimatedGradedPrice,
@@ -654,7 +660,8 @@ export function CardDetail({
           <div className="pv-detail-name">{card.name.toUpperCase()}</div>
           <div style={{ color: "var(--t3)", fontSize: 11, marginBottom: 10 }}>
             {card.lang && card.lang !== "en" ? `${printLangMeta(card.lang).name} print • ` : ""}
-            {card.set.name} • #{card.number}/{card.set.printedTotal}{" "}
+            {card.set.name} • #{formatCardNumber(card)}
+            {card.printedNumber ? ` (card reads ${card.printedNumber})` : ""}{" "}
             {card.artist && `• Illus. ${card.artist}`}
           </div>
 
@@ -1272,7 +1279,7 @@ function CardVariantPriceMatrix({
             >
               <td>{row.meta.shortLabel}</td>
               <td style={{ color: "var(--gold)", fontWeight: 700 }}>
-                {formatPrice(row.estimatedGradedPrice)}
+                {priceOrDash(row.estimatedGradedPrice)}
               </td>
               <td>{row.multiplier.toFixed(2)}×</td>
             </tr>
@@ -1303,7 +1310,7 @@ function CardVariantPriceMatrix({
             >
               <td>{row.meta.shortLabel}</td>
               <td style={{ color: "#fbbf24", fontWeight: 700 }}>
-                {formatPrice(row.estimatedGradedPrice)}
+                {priceOrDash(row.estimatedGradedPrice)}
               </td>
               <td>{row.multiplier.toFixed(2)}×</td>
             </tr>

@@ -155,8 +155,9 @@ export function priceIdAliases(id: string): string[] {
   if (!m) return [id];
   const setKey = m[1].toLowerCase();
   const raw = m[2];
-  const unpadded = raw.replace(/^0+/, "") || "0";
-  const padded = raw.replace(/\D/g, "").padStart(3, "0") || raw;
+  const unpadded = raw.replace(/^0+(?=\d)/, "") || "0";
+  // Pad digits but KEEP the letter suffix: sm2-172a must never alias sm2-172.
+  const padded = raw.replace(/^0*(\d+)/, (_, d: string) => d.padStart(3, "0"));
   const locals = [...new Set([raw, unpadded, padded])];
   const classic = setKey === "30th-c" || setKey === "me55c";
   const sets = classic

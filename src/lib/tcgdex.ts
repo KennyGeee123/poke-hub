@@ -1,7 +1,8 @@
 // TCGdex API — free, no key. Multi-language alt artworks + catalog fallback.
 // https://api.tcgdex.net/v2/<lang>/cards/<id>  (id format: <set-id>-<number>)
 import type { TCGCard, TCGPrice, TCGSet } from "@/lib/pokemon-api";
-import { boxSetNetExtraCount } from "@/lib/box-set-extras";
+import { boxSetNetExtraCount, shippedPrint } from "@/lib/box-set-extras";
+import { parseCardId } from "@/lib/card-identity";
 import { mergeSetCardsByLocalId, setIdAliases } from "@/lib/set-ids";
 
 /**
@@ -85,10 +86,10 @@ function cardImages(card: {
     }
     return { small: img, large: img };
   }
-  const setId = card.set?.id || (card.id || "").split("-")[0];
-  const num = String(
-    card.localId ?? card.number ?? (card.id || "").split("-").slice(1).join("-") ?? "",
-  );
+  // Set id = everything before the LAST hyphen (30th-c-001 → 30th-c, not 30th).
+  const parsed = parseCardId(card.id || "", card.set?.id);
+  const setId = card.set?.id || parsed.setId;
+  const num = String(card.localId ?? card.number ?? parsed.localId ?? "");
   // Classic Collection (30th-c / me55c) and letter prints have no pokemontcg.io
   // path that matches the TCGdex localId (Magikarp is me55c-203, not 30th-c/030).
   // Leave blank so addBoxSetExtras / fallbackCardImages can fill a real scan.
@@ -256,7 +257,11 @@ export function mapTcgdexCard(card: any, setOverride?: any, lang = "en"): TCGCar
     }
   }
   const cm = card?.pricing?.cardmarket;
-  const images = cardImages({ ...card, set: setSrc, number });
+  let images = cardImages({ ...card, set: setSrc, number });
+  // TCGdex has image:null for the whole 30th Classic Collection. Use the scan
+  // shipped for THIS card id + name; never a number-based guess from another set.
+  const shipped = shippedPrint(String(card?.id ?? ""), String(card?.name ?? ""));
+  if (shipped && !images.small && !images.large) images = shipped.images;
   const attacks = Array.isArray(card?.attacks)
     ? card.attacks.map((a: any) => ({
         name: String(a?.name ?? ""),
@@ -276,10 +281,11 @@ export function mapTcgdexCard(card: any, setOverride?: any, lang = "en"): TCGCar
     evolvesFrom: card?.evolveFrom,
     rarity: card?.rarity,
     number,
+    printedNumber: shipped?.printedNumber,
     artist: card?.illustrator ?? card?.artist,
     flavorText: card?.description,
     set: {
-      id: setMapped.id || String(setSrc?.id ?? (card?.id || "").split("-")[0] ?? ""),
+      id: setMapped.id || String(setSrc?.id ?? parseCardId(String(card?.id ?? "")).setId),
       name: setMapped.name || String(setSrc?.name ?? ""),
       series: setMapped.series || setSrc?.serie?.name,
       printedTotal: setMapped.printedTotal,
@@ -485,7 +491,9 @@ export async function getAltArtworks(card: {
   const langs = ["en", "ja", "zh-tw", "zh-cn", "ko", "th", "fr", "de", "es", "it", "pt-br"];
   const results: AltArt[] = [];
 
-  const candidateId = card.number ? `${card.id.split("-")[0]}-${card.number}` : card.id;
+  // Same set as the card (30th-c-001 stays 30th-c-001, never 30th-001 = Exeggcute).
+  const { setId } = parseCardId(card.id, card.set?.id);
+  const candidateId = card.number && setId ? `${setId}-${card.number}` : card.id;
 
   await Promise.all(
     langs.map(async (lang) => {

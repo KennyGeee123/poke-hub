@@ -1,5 +1,6 @@
 import type { TCGCard } from "@/lib/pokemon-api";
 import { localCardNumber } from "@/lib/set-ids";
+import { sameCardName } from "@/lib/card-identity";
 import extras from "./box-set-extras.json";
 
 /**
@@ -12,6 +13,8 @@ import extras from "./box-set-extras.json";
  */
 type ExtraCard = Omit<TCGCard, "set"> & {
   number: string;
+  /** Number printed on the physical card (Classic Charizard reads 4/102). */
+  printedNumber?: string;
   tcgplayerProductId?: number;
 };
 type ExtraSet = {
@@ -56,6 +59,27 @@ function imageBroken(c: TCGCard): boolean {
   return false;
 }
 
+const byCardId = new Map<string, ExtraCard>();
+for (const s of SETS) for (const c of s.cards) byCardId.set(String(c.id).toLowerCase(), c);
+
+/**
+ * The shipped print for this exact card id (and name, when given). Used to
+ * give TCGdex cards with image:null (all 30 Classic Collection cards) their
+ * own TCGPlayer scan instead of guessing a URL from the number.
+ */
+export function shippedPrint(
+  id: string,
+  name?: string,
+): { images: { small: string; large: string }; printedNumber?: string } | null {
+  const hit = byCardId.get(String(id || "").toLowerCase());
+  if (!hit) return null;
+  if (name && !sameCardName(name, hit.name)) return null;
+  const small = hit.images?.small || "";
+  const large = hit.images?.large || small;
+  if (!small && !large) return null;
+  return { images: { small, large }, printedNumber: hit.printedNumber };
+}
+
 /** How many shipped extras exist for a set (0 when none). */
 export function boxSetExtraCount(setId: string): number {
   return extraSetsFor(setId).reduce((n, s) => n + s.cards.length, 0);
@@ -95,6 +119,7 @@ export function addBoxSetExtras(setId: string, box: TCGCard[]): TCGCard[] {
             large: c.images.large || c.images.small || hit.images.large,
           };
         }
+        if (c.printedNumber && !hit.printedNumber) hit.printedNumber = c.printedNumber;
         continue;
       }
       const added: TCGCard = { ...c, set, images: { ...c.images } };

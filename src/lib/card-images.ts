@@ -3,6 +3,7 @@
 import type { TCGCard } from "@/lib/pokemon-api";
 import { isAllowedCardImageUrl } from "@/lib/card-image-hosts";
 import { pokemontcgImagePath } from "@/lib/tcgdex";
+import { cardLocalId, cardSetId, isSameCard, parseCardId } from "@/lib/card-identity";
 
 /**
  * Branded "Art pending" tile: silhouette + name + set code. Never a blank or
@@ -168,8 +169,8 @@ export function fallbackCardImages(card: ImgCard, opts?: { tile?: boolean }): st
 
   const small = (card.images?.small || "").trim();
   const large = (card.images?.large || "").trim();
-  const setId = card.set?.id || (card.id || "").split("-")[0];
-  const num = card.number || (card.id || "").split("-").slice(1).join("-");
+  const setId = cardSetId(card);
+  const num = cardLocalId(card);
   const parentSet = setId ? parentSetId(setId, card.id) : null;
   const safeSet = !!setId && /^[a-z0-9.]+$/.test(setId);
   const serie = safeSet ? setId.replace(/[0-9].*$/, "").replace(/\.$/, "") : "";
@@ -234,24 +235,44 @@ export function fallbackCardImages(card: ImgCard, opts?: { tile?: boolean }): st
   return urls;
 }
 
-const HD_CACHE_KEY = "pv-hd-img:";
+/**
+ * v2: v1 ("pv-hd-img:") resolved 30th-c-001 as 30th-001 and cached
+ * Exeggcute's scan for Classic Charizard (and the other 29 Classic cards).
+ * Those poisoned entries are ignored and dropped.
+ */
+const HD_CACHE_KEY = "pv-hd-img2:";
+const HD_CACHE_KEY_V1 = "pv-hd-img:";
 
 export async function resolveHDImage(
   card: Pick<TCGCard, "id" | "name" | "number" | "set" | "images">,
 ): Promise<string> {
   if (typeof localStorage !== "undefined") {
+    try {
+      localStorage.removeItem(HD_CACHE_KEY_V1 + card.id);
+    } catch {}
     const cached = localStorage.getItem(HD_CACHE_KEY + card.id);
     if (cached) return cached;
   }
   const fallback = hdLarge(card);
   try {
-    const setId = card.id?.split("-")[0];
-    const num = card.number ?? card.id?.split("-")[1];
+    // Set id = everything before the LAST hyphen; never `id.split("-")[0]`.
+    const setId = cardSetId(card) || parseCardId(card.id || "").setId;
+    const num = cardLocalId(card);
     if (setId && num) {
-      const r = await fetch(`https://api.tcgdex.net/v2/en/cards/${setId}-${num}`);
+      const r = await fetch(
+        `https://api.tcgdex.net/v2/en/cards/${encodeURIComponent(`${setId}-${num}`)}`,
+      );
       if (r.ok) {
-        const j = (await r.json()) as { image?: string };
-        if (j.image) {
+        const j = (await r.json()) as {
+          id?: string;
+          localId?: string;
+          name?: string;
+          image?: string;
+          set?: { id?: string };
+        };
+        // Only take the scan when TCGdex answered with THIS card (same set,
+        // number and name); otherwise keep the card's own image.
+        if (j.image && isSameCard({ ...card, set: { id: setId } }, j)) {
           const url = `${j.image}/high.webp`;
           try {
             localStorage.setItem(HD_CACHE_KEY + card.id, url);
@@ -268,7 +289,11 @@ export function refreshAllImageCaches() {
   if (typeof localStorage === "undefined") return 0;
   let n = 0;
   for (const k of Object.keys(localStorage)) {
-    if (k.startsWith(HD_CACHE_KEY) || k.startsWith("pv-tcg-cache:")) {
+    if (
+      k.startsWith(HD_CACHE_KEY) ||
+      k.startsWith(HD_CACHE_KEY_V1) ||
+      k.startsWith("pv-tcg-cache:")
+    ) {
       localStorage.removeItem(k);
       n++;
     }

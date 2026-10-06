@@ -12,6 +12,7 @@ import {
 import { addBoxSetExtras } from "@/lib/box-set-extras";
 import { FALLBACK_CARDS, FALLBACK_SETS, fallbackSearch, stubCardFromId } from "@/lib/tcg-fallback";
 import { isGoldCard, parseSearchQuery } from "@/lib/card-search";
+import { parseCardId } from "@/lib/card-identity";
 import {
   getSpecialCard,
   getSpecialSetCards,
@@ -57,6 +58,8 @@ export type TCGCard = {
   evolvesFrom?: string;
   rarity?: string;
   number?: string;
+  /** Number printed on the physical card when it differs from the set slot (Classic reprints: "4/102"). */
+  printedNumber?: string;
   artist?: string;
   flavorText?: string;
   set: {
@@ -554,9 +557,13 @@ function firstHit<T>(promises: Promise<T | null>[]): Promise<T | null> {
   });
 }
 
-/** Dotted set ids (e.g. sv10.5b-003) exist only on TCGdex; pokemontcg would 404. */
+/**
+ * Dotted (sv10.5b-003) and hyphenated (30th-c-001, tk-ex-latia-1) set ids
+ * exist only on TCGdex; pokemontcg set ids have neither, so it would 404.
+ */
 function tcgdexOnlyId(id: string): boolean {
-  return (id.split("-")[0] || "").includes(".");
+  const { setId } = parseCardId(id);
+  return setId.includes(".") || setId.includes("-");
 }
 
 export async function getCard(id: string, lang?: string): Promise<TCGCard> {

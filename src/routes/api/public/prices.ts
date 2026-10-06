@@ -134,17 +134,36 @@ function parseCardId(id: string): { setKey: string; localId: string; rawLocal: s
   return { setKey: m[1].toLowerCase(), localId: m[2].replace(/^0+/, "") || "0", rawLocal: m[2] };
 }
 
+/**
+ * Zero-pad the numeric part, KEEP any letter suffix: "1" → "001", "172a" →
+ * "172a". Dropping the suffix made sm2-172a an alias of sm2-172 and
+ * me55c-106m (M Gardevoir EX) an alias of me55c-106 (Shining Celebi), so one
+ * card could be quoted with another card's price.
+ */
 function padLocal(n: string): string {
-  const digits = n.replace(/\D/g, "");
-  if (!digits) return n.toLowerCase();
-  return digits.padStart(3, "0");
+  const m = String(n || "")
+    .trim()
+    .match(/^0*(\d+)([a-z]*)$/i);
+  if (!m) return String(n || "").toLowerCase();
+  return `${m[1].padStart(3, "0")}${m[2].toLowerCase()}`;
 }
 
 function normName(s: string): string {
+  // Accent-blind so TCGdex "Poké Pad" and TCGPlayer "Poke Pad" are one name.
   return s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "")
     .trim();
+}
+
+/** A TCGPlayer product name belongs to this card ("Gengar (Prime)" ↔ "Gengar"). */
+function productNameAgrees(productName: string, cardName?: string): boolean {
+  if (!cardName) return true;
+  const a = normName(productName);
+  const b = normName(cardName);
+  return !!a && !!b && (a === b || a.startsWith(b) || b.startsWith(a));
 }
 
 async function quoteTcgplayerProduct(productId: number): Promise<number | null> {
@@ -249,19 +268,36 @@ async function loadTcgcsvGroup(groupId: number): Promise<CsvCache | null> {
   }
 }
 
+/**
+ * Name lookup that only answers when exactly ONE product carries that name.
+ * The old "shortest prefix" pick handed Darkrai & Cresselia LEGEND (Bottom)
+ * the (Top) half's price, and a name shared by several prints picked the
+ * cheapest. Ambiguous → no quote (the UI shows a dash), never another card's.
+ */
 function matchByName(cache: CsvCache, name: string): CsvRow | undefined {
   const nk = normName(name);
   if (!nk) return undefined;
-  const exact = cache.byName.get(nk);
-  if (exact) return exact;
+  const exact = cache.rows.filter((r) => normName(r.name) === nk);
+  if (exact.length === 1) return exact[0];
+  if (exact.length > 1) return undefined;
   // Classic reprints often add parenthetical suffixes ("Genesect EX (Team Plasma)")
-  let best: CsvRow | undefined;
-  for (const [k, v] of cache.byName) {
-    if (k === nk || k.startsWith(nk)) {
-      if (!best || k.length < normName(best.name).length) best = v;
-    }
-  }
-  return best;
+  const prefixed = cache.rows.filter((r) => normName(r.name).startsWith(nk));
+  return prefixed.length === 1 ? prefixed[0] : undefined;
+}
+
+/**
+ * Rows printed with this number (zero-padding ignored) that also carry this
+ * card's name. Several Classic reprints share an original number (106/106
+ * Palkia, 106/160 M Gardevoir, 106/105 Shining Celebi), so a bare number is
+ * not an identity: more than one candidate → no match.
+ */
+function matchByNumber(cache: CsvCache, localId: string, name?: string): CsvRow | undefined {
+  if (!localId) return undefined;
+  const want = padLocal(localId);
+  const hits = cache.rows.filter(
+    (r) => r.number && padLocal(r.number) === want && productNameAgrees(r.name, name),
+  );
+  return hits.length === 1 ? hits[0] : undefined;
 }
 
 async function quoteTcgcsv(
@@ -276,20 +312,16 @@ async function quoteTcgcsv(
 
   // 30th-c (TCGdex): sequential 001..030 — MUST match by name (001=Charizard, 004=Genesect).
   // me55c (pokemontcg): original print numbers — match by number (4=Charizard) then name.
+  // Every hit must be ONE product that is this card (name + set + number);
+  // anything ambiguous returns no quote so the UI shows a dash.
   let row: CsvRow | undefined;
   if (setKey === "30th-c") {
     if (name) row = matchByName(cache, name);
-  } else if (setKey === "me55c") {
-    const padded = padLocal(localId);
-    row =
-      cache.byNum.get(padded) ||
-      cache.byNum.get(localId) ||
-      cache.byNum.get(localId.replace(/^0+/, "") || localId);
-    if (!row && name) row = matchByName(cache, name);
   } else {
-    const padded = padLocal(localId);
-    row = cache.byNum.get(padded) || cache.byNum.get(localId);
-    if (!row && name) row = matchByName(cache, name);
+    row = matchByNumber(cache, localId, name);
+    // Name-only lookup is allowed only when we have no number to key on.
+    if (!row && name && !localId) row = matchByName(cache, name);
+    if (!row && name && setKey === "me55c") row = matchByName(cache, name);
   }
   if (!row || !(row.market > 0)) return null;
   return { market: Math.round(row.market * 100) / 100, source: "tcgcsv-market" };
@@ -486,8 +518,15 @@ async function tryTcgdexCard(
 async function quoteOne(id: string): Promise<PriceQuote | null> {
   const extra = EXTRA_PRODUCTS.get(id.toLowerCase());
   if (extra) {
+    // Shipped prints are keyed to their own TCGPlayer product. Never fall
+    // through to a name lookup that could land on a different card.
     const q = await quoteTcgcsvProduct(extra.groupId, extra.productId);
     if (q) return q;
+    const group = await loadTcgcsvGroup(extra.groupId);
+    const row = group?.rows.find((r) => r.productId === extra.productId);
+    if (row && row.market > 0) {
+      return { market: Math.round(row.market * 100) / 100, source: "tcgcsv-market" };
+    }
   }
   const parsed = parseCardId(id);
   const setKey = parsed?.setKey || "";
@@ -511,8 +550,9 @@ async function quoteOne(id: string): Promise<PriceQuote | null> {
     pkmnQuote = meta.quote;
   }
 
-  // 3) tcgcsv (TCGPlayer mirror) — Classic 30th-c by name; me55c by number then name
-  if (setKey && TCGCSV_GROUP[setKey]) {
+  // 3) tcgcsv (TCGPlayer mirror) — Classic 30th-c by name; me55c by number then name.
+  // Skipped for shipped prints: their product id above is the only safe key.
+  if (!extra && setKey && TCGCSV_GROUP[setKey]) {
     const csv = await quoteTcgcsv(setKey, cardLocal || parsed?.rawLocal || "", cardName);
     if (csv) return csv;
     // Aliased set keys share a TCGCSV group. Classic alts: NAME only (never number cross-map).

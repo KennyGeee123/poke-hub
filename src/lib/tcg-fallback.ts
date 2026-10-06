@@ -1,4 +1,6 @@
 import type { TCGCard, TCGSet } from "@/lib/pokemon-api";
+import { parseCardId } from "@/lib/card-identity";
+import { shippedPrint } from "@/lib/box-set-extras";
 
 function card(
   id: string,
@@ -130,26 +132,30 @@ export function fallbackSearch(q: string): TCGCard[] {
 export function stubCardFromId(id: string): TCGCard {
   const hit = FALLBACK_CARDS.find((c) => c.id === id);
   if (hit) return hit;
-  const parts = String(id || "").split("-");
-  const setId = parts[0] || "base1";
-  const number = parts.slice(1).join("-") || "1";
-  // Dotted set ids (e.g. sv10.5b) only exist on TCGdex, so don't guess a
-  // pokemontcg URL that is guaranteed to 404.
-  const tcgdexOnly = setId.includes(".");
+  // Set id = everything before the LAST hyphen (30th-c-001 → 30th-c / 001).
+  const parsed = parseCardId(String(id || ""));
+  const setId = parsed.setId || "base1";
+  const number = parsed.localId || "1";
+  // Dotted / hyphenated set ids (sv10.5b, 30th-c) only exist on TCGdex, so
+  // don't guess a pokemontcg URL that is guaranteed to 404.
+  const tcgdexOnly = setId.includes(".") || setId.includes("-");
   const serie = setId.match(/^[a-z]+/i)?.[0]?.toLowerCase() || "sv";
+  const shipped = shippedPrint(id);
   return {
     id,
     name: id.replace(/-/g, " "),
     number,
     set: { id: setId, name: setId, series: "", printedTotal: 0, total: 0, releaseDate: "" },
-    images: tcgdexOnly
-      ? {
-          small: `https://assets.tcgdex.net/en/${serie}/${setId}/${number}/low.webp`,
-          large: `https://assets.tcgdex.net/en/${serie}/${setId}/${number}/high.webp`,
-        }
-      : {
-          small: `https://images.pokemontcg.io/${setId}/${number}.png`,
-          large: `https://images.pokemontcg.io/${setId}/${number}_hires.png`,
-        },
+    images: shipped
+      ? shipped.images
+      : tcgdexOnly
+        ? {
+            small: `https://assets.tcgdex.net/en/${serie}/${setId}/${number}/low.webp`,
+            large: `https://assets.tcgdex.net/en/${serie}/${setId}/${number}/high.webp`,
+          }
+        : {
+            small: `https://images.pokemontcg.io/${setId}/${number}.png`,
+            large: `https://images.pokemontcg.io/${setId}/${number}_hires.png`,
+          },
   };
 }

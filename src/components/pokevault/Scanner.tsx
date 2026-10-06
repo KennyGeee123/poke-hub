@@ -5,6 +5,7 @@ import { searchCards, getMarketPrice, type TCGCard } from "@/lib/pokemon-api";
 import { useVault, formatPrice } from "@/lib/vault";
 import { identifyCard } from "@/lib/scanner.functions";
 import { usePremium } from "@/lib/premium";
+import { formatCardNumber } from "@/lib/card-identity";
 import { Paywall, TrialBanner } from "./Paywall";
 
 type Phase = "idle" | "live" | "captured" | "identifying" | "searching" | "results";
@@ -361,11 +362,11 @@ function ScannerInner({
                     <div className="pv-scan-match-info">
                       <div className="pv-scan-match-name">{c.name}</div>
                       <div className="pv-scan-match-set">
-                        {c.set.name} · {c.number}/{c.set.printedTotal ?? "?"}
+                        {c.set.name} · {formatCardNumber(c)}
                       </div>
                       <div className="pv-scan-match-foot">
                         <span className="pv-scan-match-price">
-                          {formatPrice(getMarketPrice(c))}
+                          {getMarketPrice(c) > 0 ? formatPrice(getMarketPrice(c)) : "—"}
                         </span>
                         <button
                           className="pv-scan-add"

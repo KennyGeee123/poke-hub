@@ -1,6 +1,7 @@
 // MCP tools exposing Pokémon TCG card data + HD image resolution.
 import { defineTool } from "mcp-tanstack-start";
 import { z } from "zod";
+import { isSameCard, parseCardId } from "@/lib/card-identity";
 
 const TCG_BASE = "https://api.pokemontcg.io/v2";
 
@@ -66,12 +67,22 @@ async function tcgdexCard(id: string): Promise<Record<string, unknown> | null> {
 
 async function tcgdexHD(id: string, number?: string): Promise<string | null> {
   try {
-    const setId = id.split("-")[0];
-    const num = number ?? id.split("-")[1];
+    // Set id = everything before the LAST hyphen (30th-c-001 → 30th-c, not 30th).
+    const parsed = parseCardId(id);
+    const setId = parsed.setId;
+    const num = number ?? parsed.localId;
     if (!setId || !num) return null;
-    const r = await fetch(`https://api.tcgdex.net/v2/en/cards/${setId}-${num}`);
+    const r = await fetch(
+      `https://api.tcgdex.net/v2/en/cards/${encodeURIComponent(`${setId}-${num}`)}`,
+    );
     if (!r.ok) return null;
-    const j = (await r.json()) as { image?: string };
+    const j = (await r.json()) as {
+      id?: string;
+      localId?: string;
+      image?: string;
+      set?: { id?: string };
+    };
+    if (!isSameCard({ id, number: num, set: { id: setId } }, j)) return null;
     return j.image ? `${j.image}/high.webp` : null;
   } catch {
     return null;
