@@ -4,7 +4,7 @@
 // Gemini's answer (sectioned brief, SAR storytelling direction, clean HUD zones)
 // and ChatGPT's answer (explicit preserve list, duplicate/cropped-subject negatives).
 
-export const FULLART_PROMPT_VERSION = "fa-v3.0";
+export const FULLART_PROMPT_VERSION = "fa-v3.2";
 
 export const AI_FINISHES = ["holo", "rainbow", "gold", "alt"] as const;
 export type AiFinish = (typeof AI_FINISHES)[number];
@@ -91,6 +91,7 @@ export const FULLART_AVOID = [
   "an opaque solid text box",
   "subject face in the bottom third",
   "JPEG artefacts",
+  "a mirrored reflection",
 ];
 
 export type FullArtPromptInput = {
@@ -136,7 +137,7 @@ ${task}
 
 ${preserve}
 
-COMPOSITION (Special Illustration Rare / full-art layout): Edge-to-edge full-bleed artwork that reaches every border — no card frame, no solid border, no text box painted into the image. ${sp} is the clear focal point, centred horizontally, with its face and upper body in the upper half (about 8%–52% of the height) so later overlays never crush the face. Keep the top ~10% a little calmer for a name/HP corner overlay. Keep the bottom ~35% a calmer, lower-detail continuation of the same scene (ground, foliage, energy, sky) with no second subject — a translucent glass attack panel will sit there and the art must still show through it. Every zone is fully painted.
+COMPOSITION (Special Illustration Rare / full-art layout): Edge-to-edge full-bleed artwork that reaches every border — no card frame, no solid border, no text box painted into the image. ${sp} is the clear heroic focal point, centred horizontally, large in the frame, with its face and upper body in the upper-middle band (about 10%–58% of the height) so later overlays never crush the face. Keep the top ~10% a little calmer for a name/HP corner overlay. The bottom ~32% MUST be a fully painted continuation of the same habitat (ground, foliage, water, rock, energy wisps, atmospheric depth) — never blank, never mirrored, never a stretched smear. A light translucent attack panel will sit there; art must still read clearly through it. Every zone is fully painted at the same fidelity.
 
 DEPTH & LIGHT: Clear foreground/midground/background separation, soft atmospheric perspective, a gentle rim light on ${sp}, and ${type}-themed ambient effects (${TYPE_FX[type]}) flowing toward the edges.
 
