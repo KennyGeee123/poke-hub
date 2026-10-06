@@ -31,7 +31,7 @@ const STYLES: FullArtStyle[] = ["holo", "rainbow", "gold", "alt"];
 const AI_PREF = "pv-fa-ai";
 const AI_STYLE_HINTS: Record<AiArtStyle, string> = {
   faithful: "Same art, painted past the frame",
-  storybook: "Painterly scene, SIR-style",
+  storybook: "Painterly scene, full-art",
   chibi: "Cute, rounded, pastel",
   neon: "Glowing synthwave night",
 };
@@ -241,8 +241,8 @@ export function FullArtStudio({
           <div className="pv-fa-kicker">FULL ART STUDIO</div>
           <h1 className="pv-fa-title">Make any card a full art</h1>
           <p className="pv-fa-sub">
-            We extend regular card art edge-to-edge (Special Illustration Rare style), then add a
-            thin rim, glass attack panel, and card text.
+            We extend regular card art edge-to-edge, then add a thin rim, floating attack chips over
+            a soft fade, and card text — art keeps bleeding through the bottom.
           </p>
         </div>
       </header>
@@ -336,8 +336,8 @@ export function FullArtStudio({
               onClick={() => setFrame((f) => !f)}
             >
               <span className="flex-1 text-left">
-                <strong>SIR overlay (name · HP · glass attacks)</strong>
-                <em>Full-bleed art with translucent panels — fan-made label always on</em>
+                <strong>Full-art overlay (name · HP · floating chips)</strong>
+                <em>Full-bleed art with soft fade + attack chips — fan-made label always on</em>
               </span>
               <span className="pv-lw-switch" aria-hidden />
             </button>
