@@ -19,6 +19,7 @@ import {
   Mountain,
   Crown,
   ArrowLeftRight,
+  Globe2,
   Sparkles,
   X,
 } from "lucide-react";
@@ -40,6 +41,7 @@ export type AppTab =
   | "adventure"
   | "pokedex"
   | "fairtrade"
+  | "pogomarket"
   | "fullart"
   | "more";
 
@@ -68,6 +70,7 @@ export const MORE_ITEMS: {
   { id: "scan", label: "Scan", Icon: ScanLine },
   { id: "fullart", label: "Full Art Studio", Icon: Sparkles },
   { id: "fairtrade", label: "Fair Trade", Icon: ArrowLeftRight, cluster: "trade" },
+  { id: "pogomarket", label: "GO Market", Icon: Globe2, cluster: "trade" },
   { id: "sets", label: "Sets", Icon: Layers },
   { id: "wishlist", label: "Wishlist", Icon: Heart },
   { id: "buy", label: "Buy", Icon: ShoppingBag, pro: true, cluster: "trade" },

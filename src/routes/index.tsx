@@ -42,6 +42,9 @@ const ScannerView = lazy(() =>
 const FairTradeView = lazy(() =>
   import("@/components/pokevault/FairTrade").then((m) => ({ default: m.FairTradeView })),
 );
+const PoGoMarketView = lazy(() =>
+  import("@/components/pokevault/PoGoMarket").then((m) => ({ default: m.PoGoMarketView })),
+);
 const SellView = lazy(() =>
   import("@/components/pokevault/Marketplace").then((m) => ({ default: m.SellView })),
 );
@@ -312,6 +315,11 @@ function Index() {
       {tab === "fairtrade" && (
         <LazyTab>
           <FairTradeView />
+        </LazyTab>
+      )}
+      {tab === "pogomarket" && (
+        <LazyTab>
+          <PoGoMarketView />
         </LazyTab>
       )}
       {tab === "pokedex" && (
