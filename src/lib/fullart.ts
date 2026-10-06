@@ -4,12 +4,16 @@
 //   3. edge-row smear + short mirrored band with feathered seams  4. sharp art on top
 //   5. holo / rainbow / gold texture  6. optional frame + card text overlay.
 // Optional AI path: opts.aiArt (Nano Banana, via /api/public/fullart-ai) replaces 1-4.
+// Overlay (fa-v3): SIR-style full-bleed, thin rim, glass attack panel, name/HP corners.
 import type { TCGCard } from "./pokemon-api";
 
 export type FullArtStyle = "holo" | "rainbow" | "gold" | "alt";
+export type FullArtRim = "none" | "silver" | "gold";
 export type FullArtOptions = {
   style: FullArtStyle;
   frame: boolean;
+  /** Thin decorative rim (SIR-style). Ignored when frame is off. */
+  rim?: FullArtRim;
   /** AI-painted full-bleed art (Nano Banana). When set, it replaces the compositor's extension. */
   aiArt?: HTMLImageElement | null;
 };
@@ -282,158 +286,189 @@ function drawTexture(ctx: CanvasRenderingContext2D, style: FullArtStyle, seed: n
   ctx.restore();
 }
 
-function frameStroke(ctx: CanvasRenderingContext2D, style: FullArtStyle): string | CanvasGradient {
+function rimStroke(ctx: CanvasRenderingContext2D, rim: FullArtRim): string | CanvasGradient {
   const W = FULLART_W;
   const H = FULLART_H;
-  if (style === "rainbow") {
+  if (rim === "gold") {
     const g = ctx.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, "#fff1b8");
+    g.addColorStop(0.45, "#e2b53a");
+    g.addColorStop(1, "#9a6a12");
+    return g;
+  }
+  if (rim === "silver") {
+    const g = ctx.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, "#f5f7fa");
+    g.addColorStop(0.35, "#c5c9d1");
+    g.addColorStop(0.7, "#8b929e");
+    g.addColorStop(1, "#e8ebf0");
+    return g;
+  }
+  return "transparent";
+}
+
+function frameStroke(ctx: CanvasRenderingContext2D, style: FullArtStyle): string | CanvasGradient {
+  if (style === "rainbow") {
+    const g = ctx.createLinearGradient(0, 0, FULLART_W, FULLART_H);
     ["#ff4d6d", "#ffb703", "#52e5a3", "#4cc9f0", "#7b61ff"].forEach((c, i, a) =>
       g.addColorStop(i / (a.length - 1), c),
     );
     return g;
   }
-  if (style === "gold" || style === "holo") {
-    const g = ctx.createLinearGradient(0, 0, W, H);
-    g.addColorStop(0, "#fff1b8");
-    g.addColorStop(0.5, "#e2b53a");
-    g.addColorStop(1, "#9a6a12");
-    return g;
-  }
-  return "#0b0c10";
+  if (style === "gold") return rimStroke(ctx, "gold");
+  if (style === "holo" || style === "alt") return rimStroke(ctx, "silver");
+  return rimStroke(ctx, "silver");
 }
 
-function drawFrame(ctx: CanvasRenderingContext2D, card: TCGCard, style: FullArtStyle) {
+function drawFrame(ctx: CanvasRenderingContext2D, card: TCGCard, opts: FullArtOptions) {
   const W = FULLART_W;
   const H = FULLART_H;
-  const inset = style === "alt" ? 26 : 20;
+  const style = opts.style;
+  const rim: FullArtRim =
+    opts.rim ?? (style === "gold" ? "gold" : style === "alt" ? "silver" : "silver");
   ctx.save();
-  // Outer border
-  ctx.lineWidth = style === "alt" ? 30 : 22;
-  ctx.strokeStyle = frameStroke(ctx, style);
-  roundRect(ctx, inset / 2, inset / 2, W - inset, H - inset, 38);
-  ctx.stroke();
-  if (style === "alt") {
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = "#38bdf8";
-    roundRect(ctx, inset + 8, inset + 8, W - (inset + 8) * 2, H - (inset + 8) * 2, 28);
+
+  // Thin SIR rim (full-bleed art goes to the card edge; only a slim decorative line).
+  if (rim !== "none") {
+    const inset = 8;
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = rimStroke(ctx, rim);
+    roundRect(ctx, inset, inset, W - inset * 2, H - inset * 2, 28);
+    ctx.stroke();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = "rgba(255,255,255,0.35)";
+    roundRect(ctx, inset + 5, inset + 5, W - (inset + 5) * 2, H - (inset + 5) * 2, 24);
     ctx.stroke();
   }
 
-  // Name + HP band (glass)
-  const top = 48;
-  const band = ctx.createLinearGradient(0, top, 0, top + 110);
-  band.addColorStop(0, "rgba(8,10,16,0.72)");
-  band.addColorStop(1, "rgba(8,10,16,0)");
-  ctx.fillStyle = band;
-  ctx.fillRect(inset, top - 10, W - inset * 2, 130);
-  ctx.shadowColor = "rgba(0,0,0,0.7)";
-  ctx.shadowBlur = 12;
-  ctx.fillStyle = "#fff";
+  // Name (top-left) + HP (top-right) — soft drop shadow, no solid band (art shows through).
+  const top = 54;
+  ctx.shadowColor = "rgba(0,0,0,0.85)";
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 2;
   ctx.textBaseline = "alphabetic";
-  const stage = card.subtypes?.find((s) => /basic|stage/i.test(s)) || card.supertype || "";
-  ctx.font = "700 26px Barlow, system-ui, sans-serif";
-  ctx.fillStyle = "rgba(255,255,255,0.85)";
-  if (stage) ctx.fillText(stage.toUpperCase(), 64, top + 24);
+  const stage = card.subtypes?.find((s) => /basic|stage/i.test(s)) || "";
+  if (stage) {
+    ctx.font = "800 20px Barlow, system-ui, sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    ctx.fillText(stage.toUpperCase(), 48, top);
+  }
   ctx.fillStyle = "#fff";
-  let nameSize = 66;
+  let nameSize = 58;
   ctx.font = `800 ${nameSize}px "Bebas Neue", Barlow, Impact, sans-serif`;
-  const maxName = W - 64 - 300;
-  while (ctx.measureText(card.name).width > maxName && nameSize > 36) {
+  const maxName = W - 48 - 280;
+  while (ctx.measureText(card.name).width > maxName && nameSize > 32) {
     nameSize -= 2;
     ctx.font = `800 ${nameSize}px "Bebas Neue", Barlow, Impact, sans-serif`;
   }
-  ctx.fillText(card.name, 64, top + 84);
+  ctx.fillText(card.name, 48, top + (stage ? 52 : 42));
   if (card.hp) {
     ctx.textAlign = "right";
-    const hpX = W - 64 - (card.types?.length ? 62 : 0);
-    ctx.font = '800 64px "Bebas Neue", Barlow, Impact, sans-serif';
+    const hpX = W - 48 - (card.types?.length ? 56 : 0);
+    ctx.font = '800 56px "Bebas Neue", Barlow, Impact, sans-serif';
     const numW = ctx.measureText(card.hp).width;
-    ctx.fillText(card.hp, hpX, top + 84);
-    ctx.font = "800 28px Barlow, system-ui, sans-serif";
-    ctx.fillText("HP", hpX - numW - 8, top + 84);
+    ctx.fillText(card.hp, hpX, top + (stage ? 52 : 42));
+    ctx.font = "800 24px Barlow, system-ui, sans-serif";
+    ctx.fillText("HP", hpX - numW - 8, top + (stage ? 52 : 42));
     ctx.textAlign = "left";
   }
   ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
   const t0 = card.types?.[0];
   if (t0) {
     ctx.beginPath();
-    ctx.arc(W - 88, top + 62, 26, 0, Math.PI * 2);
+    ctx.arc(W - 72, top + (stage ? 34 : 24), 22, 0, Math.PI * 2);
     ctx.fillStyle = TYPE_COLORS[t0] || "#ccc";
     ctx.fill();
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 3;
     ctx.strokeStyle = "rgba(255,255,255,0.9)";
     ctx.stroke();
     ctx.fillStyle = "#111";
-    ctx.font = "800 26px Barlow, system-ui, sans-serif";
+    ctx.font = "800 22px Barlow, system-ui, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText(t0[0], W - 88, top + 71);
+    ctx.fillText(t0[0], W - 72, top + (stage ? 41 : 31));
     ctx.textAlign = "left";
   }
 
-  // Attacks panel (glass) at the bottom
+  // Glass / frosted attack panel — light frost so full-bleed art clearly shows through (SIR).
   const attacks = (card.attacks || []).slice(0, 2);
-  const abilities = (card.abilities || []).slice(0, attacks.length ? 0 : 1);
+  const abilities = (card.abilities || []).slice(0, 1);
   const rows = attacks.length + abilities.length;
-  const panelH = rows ? 70 + rows * 96 : 0;
-  const panelY = H - 118 - panelH;
+  const panelH = rows ? 52 + rows * 84 : 0;
+  const panelY = H - 88 - panelH;
   if (rows) {
-    ctx.fillStyle = "rgba(8,10,16,0.55)";
-    roundRect(ctx, 44, panelY, W - 88, panelH, 26);
+    // Frosted glass: bright translucent fill (matches sponsored SIR refs).
+    const glass = ctx.createLinearGradient(0, panelY, 0, panelY + panelH);
+    glass.addColorStop(0, "rgba(255,255,255,0.42)");
+    glass.addColorStop(0.45, "rgba(230,236,248,0.30)");
+    glass.addColorStop(1, "rgba(20,24,36,0.34)");
+    ctx.fillStyle = glass;
+    roundRect(ctx, 34, panelY, W - 68, panelH, 20);
     ctx.fill();
+    // Soft white rim like real glass panels
     ctx.lineWidth = 2;
-    ctx.strokeStyle = "rgba(255,255,255,0.18)";
+    ctx.strokeStyle = "rgba(255,255,255,0.55)";
     ctx.stroke();
-    let y = panelY + 64;
+    ctx.strokeStyle = "rgba(255,255,255,0.18)";
+    ctx.lineWidth = 1;
+    roundRect(ctx, 38, panelY + 4, W - 76, panelH - 8, 16);
+    ctx.stroke();
+
+    let y = panelY + 50;
+    ctx.shadowColor = "rgba(0,0,0,0.75)";
+    ctx.shadowBlur = 6;
     for (const ab of abilities) {
       ctx.fillStyle = "#f87171";
-      ctx.font = "800 24px Barlow, system-ui, sans-serif";
-      ctx.fillText("ABILITY", 76, y);
+      ctx.font = "800 20px Barlow, system-ui, sans-serif";
+      ctx.fillText("ABILITY", 64, y);
       ctx.fillStyle = "#fff";
-      ctx.font = "800 38px Barlow, system-ui, sans-serif";
-      ctx.fillText(ab.name, 76 + 120, y + 2);
-      y += 96;
+      ctx.font = "800 34px Barlow, system-ui, sans-serif";
+      ctx.fillText(ab.name, 64 + 110, y + 2);
+      y += 84;
     }
     for (const a of attacks) {
-      let x = 76;
+      let x = 64;
       for (const c of (a.cost || []).slice(0, 5)) {
         ctx.beginPath();
-        ctx.arc(x + 17, y - 12, 17, 0, Math.PI * 2);
+        ctx.arc(x + 15, y - 10, 15, 0, Math.PI * 2);
         ctx.fillStyle = TYPE_COLORS[c] || "#ddd";
         ctx.fill();
         ctx.lineWidth = 2;
         ctx.strokeStyle = "rgba(255,255,255,0.85)";
         ctx.stroke();
-        x += 40;
+        x += 36;
       }
       ctx.fillStyle = "#fff";
-      ctx.font = "800 40px Barlow, system-ui, sans-serif";
-      const nameX = x + 12;
-      const dmgW = a.damage ? 120 : 0;
+      ctx.font = "800 36px Barlow, system-ui, sans-serif";
+      const nameX = x + 10;
+      const dmgW = a.damage ? 110 : 0;
       let label = a.name;
-      while (ctx.measureText(label).width > W - 76 - nameX - dmgW && label.length > 4)
+      while (ctx.measureText(label).width > W - 64 - nameX - dmgW && label.length > 4)
         label = label.slice(0, -2) + "…";
       ctx.fillText(label, nameX, y);
       if (a.damage) {
         ctx.textAlign = "right";
-        ctx.font = '800 58px "Bebas Neue", Barlow, Impact, sans-serif';
-        ctx.fillText(a.damage, W - 76, y + 4);
+        ctx.font = '800 52px "Bebas Neue", Barlow, Impact, sans-serif';
+        ctx.fillText(a.damage, W - 64, y + 4);
         ctx.textAlign = "left";
       }
-      y += 96;
+      y += 88;
     }
+    ctx.shadowBlur = 0;
   }
 
-  // Footer: set · number · illustrator + fan-made label
-  ctx.fillStyle = "rgba(8,10,16,0.6)";
-  roundRect(ctx, 44, H - 100, W - 88, 56, 18);
+  // Footer strip — set · # and mandatory fan-made label (always).
+  ctx.fillStyle = "rgba(8,10,16,0.45)";
+  roundRect(ctx, 36, H - 78, W - 72, 44, 14);
   ctx.fill();
-  ctx.fillStyle = "rgba(255,255,255,0.9)";
-  ctx.font = "700 22px Barlow, system-ui, sans-serif";
+  ctx.fillStyle = "rgba(255,255,255,0.92)";
+  ctx.font = "700 18px Barlow, system-ui, sans-serif";
   const left = [card.set?.name, card.number ? `#${card.number}` : ""].filter(Boolean).join(" · ");
-  ctx.fillText(left, 70, H - 64);
+  ctx.fillText(left, 56, H - 50);
   ctx.textAlign = "right";
   ctx.fillStyle = "#f6d57a";
-  ctx.fillText("FAN-MADE CUSTOM · NOT OFFICIAL", W - 70, H - 64);
+  ctx.font = "800 16px Barlow, system-ui, sans-serif";
+  ctx.fillText("FAN-MADE CUSTOM · NOT OFFICIAL", W - 56, H - 50);
   ctx.textAlign = "left";
   ctx.restore();
 }
@@ -488,12 +523,13 @@ export function renderFullArt(
   ctx.drawImage(img, box.x, box.y, box.w, box.h, (W - cw) / 2, (H - ch) / 2, cw, ch);
   ctx.restore();
 
-  // Place the sharp art full-width, slightly zoomed, in the upper-middle of the card.
-  const scale = (W / box.w) * 1.04;
+  // Place the sharp art full-width in the upper half so the face stays clear of the glass panel.
+  // SIR refs keep the subject ~8–55% down the card; bottom ~35% is calmer for attacks.
+  const scale = (W / box.w) * 1.08;
   const aw = box.w * scale;
   const ah = box.h * scale;
   const ax = (W - aw) / 2;
-  const ay = 150;
+  const ay = 72;
 
   // 3. edge extension: (a) smear the outermost pixel rows outward like a
   // cheap outpaint, then (b) lay a short, blurred mirror of the edge band over
@@ -540,18 +576,18 @@ export function renderFullArt(
   );
   ctx.restore();
 
-  // Ground shade so card text stays legible over the extension.
+  // Soft ground shade — keep art readable through the glass attack panel (SIR).
   const gs = ctx.createLinearGradient(0, botY, 0, H);
   gs.addColorStop(0, "rgba(0,0,0,0)");
-  gs.addColorStop(0.35, `rgba(${botC.map((v) => Math.round(v * 0.35)).join(",")},0.35)`);
-  gs.addColorStop(1, "rgba(0,0,0,0.6)");
+  gs.addColorStop(0.45, `rgba(${botC.map((v) => Math.round(v * 0.4)).join(",")},0.22)`);
+  gs.addColorStop(1, "rgba(0,0,0,0.38)");
   ctx.fillStyle = gs;
   ctx.fillRect(0, botY, W, botSpace);
 
   // Soft vignette to settle the extension
   const vg = ctx.createRadialGradient(W / 2, H * 0.42, W * 0.3, W / 2, H * 0.5, H * 0.75);
   vg.addColorStop(0, "rgba(0,0,0,0)");
-  vg.addColorStop(1, "rgba(0,0,0,0.45)");
+  vg.addColorStop(1, "rgba(0,0,0,0.28)");
   ctx.fillStyle = vg;
   ctx.fillRect(0, 0, W, H);
 
@@ -574,10 +610,10 @@ function renderAiArt(ctx: CanvasRenderingContext2D, art: HTMLImageElement) {
   const dh = art.naturalHeight * s;
   ctx.drawImage(art, (W - dw) / 2, (H - dh) / 2, dw, dh);
   const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, "rgba(0,0,0,0.28)");
-  g.addColorStop(0.14, "rgba(0,0,0,0)");
-  g.addColorStop(0.62, "rgba(0,0,0,0)");
-  g.addColorStop(1, "rgba(0,0,0,0.5)");
+  g.addColorStop(0, "rgba(0,0,0,0.22)");
+  g.addColorStop(0.12, "rgba(0,0,0,0)");
+  g.addColorStop(0.55, "rgba(0,0,0,0)");
+  g.addColorStop(1, "rgba(0,0,0,0.32)");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
 }
@@ -585,7 +621,7 @@ function renderAiArt(ctx: CanvasRenderingContext2D, art: HTMLImageElement) {
 function drawOverlay(ctx: CanvasRenderingContext2D, card: TCGCard, opts: FullArtOptions) {
   const W = FULLART_W;
   const H = FULLART_H;
-  if (opts.frame) drawFrame(ctx, card, opts.style);
+  if (opts.frame) drawFrame(ctx, card, opts);
   else {
     ctx.save();
     ctx.font = "700 20px Barlow, system-ui, sans-serif";

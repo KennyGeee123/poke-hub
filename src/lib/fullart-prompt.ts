@@ -4,7 +4,7 @@
 // Gemini's answer (sectioned brief, SAR storytelling direction, clean HUD zones)
 // and ChatGPT's answer (explicit preserve list, duplicate/cropped-subject negatives).
 
-export const FULLART_PROMPT_VERSION = "fa-v2.1";
+export const FULLART_PROMPT_VERSION = "fa-v3.0";
 
 export const AI_FINISHES = ["holo", "rainbow", "gold", "alt"] as const;
 export type AiFinish = (typeof AI_FINISHES)[number];
@@ -31,7 +31,7 @@ const ART_STYLE_BLOCKS: Record<AiArtStyle, string> = {
   faithful:
     "Match the reference's own art style exactly (brushwork, line quality, shading and palette), as if the original illustrator had painted a larger canvas.",
   storybook:
-    "Special-illustration-rare storybook look: soft gouache/watercolour textures, gentle naturalistic light, a cosy narrative setting and rich background storytelling. Keep the creature's design exact.",
+    "Special Illustration Rare (SIR) storybook look: soft gouache/watercolour textures, gentle naturalistic light, a cinematic full-bleed scene and rich background storytelling that fills the entire canvas. Keep the creature's design exact.",
   chibi:
     "Cute chibi re-interpretation: slightly larger head and rounder, softer proportions, big expressive eyes, clean cel shading and a playful pastel setting. Keep its colours, markings and signature features instantly recognisable.",
   neon: "Neon synthwave re-interpretation: a night scene with glowing rim lights, magenta/cyan neon haze, light trails and reflective wet surfaces in the environment. Keep the creature's true colours readable under the glow.",
@@ -87,6 +87,9 @@ export const FULLART_AVOID = [
   "heavy vignette",
   "blur",
   "low resolution",
+  "a thick card border",
+  "an opaque solid text box",
+  "subject face in the bottom third",
   "JPEG artefacts",
 ];
 
@@ -119,7 +122,7 @@ export function buildFullArtPrompt(p: FullArtPromptInput): string {
   // "Different art" styles re-imagine the scene, so they get a looser brief than a
   // pure outpaint, but identity, colours and markings are always locked.
   const task = faithful
-    ? `TASK: Create a full-art, edge-to-edge vertical portrait (card proportions, about 5:7) by EXTENDING this same artwork outward in every direction. Continue ${scene} naturally above, below and to the sides, matching lighting direction, palette and level of detail so no seam or border shows where the original ends.`
+    ? `TASK: Create a full-art, edge-to-edge vertical portrait (card proportions, about 5:7) by EXTENDING this same artwork outward in every direction into a full-bleed vertical portrait. Continue ${scene} naturally above, below and to the sides until it reaches every edge, matching lighting direction, palette and level of detail so no seam, border or empty margin shows where the original ends.`
     : `TASK: Create a full-art, edge-to-edge vertical portrait (card proportions, about 5:7) that RE-IMAGINES this artwork in the art style below. Keep the same creature and a recognisable version of its pose and setting, painted as one continuous scene that fills the whole canvas.`;
   const preserve = faithful
     ? `PRESERVE: ${sp}'s identity, silhouette, pose, proportions, colours, markings, eyes and expression, exactly as in the reference. Do not redesign it or add features. You may reveal more of its body or tail where the reference crops it off, consistent with the reference. Exactly one ${sp}.`
@@ -133,7 +136,7 @@ ${task}
 
 ${preserve}
 
-COMPOSITION: ${sp} is the clear focal point, centred horizontally in the middle band (about 15%–65% of the height). The top ~12% and bottom ~30% are calmer, lower-detail continuation of the scene (sky, foliage, ground, energy swirls) with no important subject matter, because a name bar and attack panel are overlaid later. Those zones must still be fully painted, never blank.
+COMPOSITION (Special Illustration Rare / full-art layout): Edge-to-edge full-bleed artwork that reaches every border — no card frame, no solid border, no text box painted into the image. ${sp} is the clear focal point, centred horizontally, with its face and upper body in the upper half (about 8%–52% of the height) so later overlays never crush the face. Keep the top ~10% a little calmer for a name/HP corner overlay. Keep the bottom ~35% a calmer, lower-detail continuation of the same scene (ground, foliage, energy, sky) with no second subject — a translucent glass attack panel will sit there and the art must still show through it. Every zone is fully painted.
 
 DEPTH & LIGHT: Clear foreground/midground/background separation, soft atmospheric perspective, a gentle rim light on ${sp}, and ${type}-themed ambient effects (${TYPE_FX[type]}) flowing toward the edges.
 

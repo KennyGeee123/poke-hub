@@ -15,6 +15,7 @@ import {
   renderFullArt,
   saveFullArt,
   type FullArtRecord,
+  type FullArtRim,
   type FullArtStyle,
 } from "@/lib/fullart";
 import {
@@ -46,6 +47,7 @@ export function FullArtStudio({
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const [style, setStyle] = useState<FullArtStyle>("holo");
   const [frame, setFrame] = useState(true);
+  const [rim, setRim] = useState<FullArtRim>("silver");
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [err, setErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -186,13 +188,14 @@ export function FullArtStudio({
       renderFullArt(canvasRef.current, img, card, {
         style,
         frame,
+        rim,
         aiArt: showAi ? aiArt : null,
       });
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Render failed");
       setStatus("error");
     }
-  }, [img, card, style, frame, showAi, aiArt]);
+  }, [img, card, style, frame, rim, showAi, aiArt]);
 
   const onTilt = (e: React.PointerEvent) => {
     const el = tiltRef.current;
@@ -222,7 +225,7 @@ export function FullArtStudio({
     if (!canvasRef.current || !card) return;
     setSaving(true);
     try {
-      await saveFullArt(card, canvasRef.current, { style, frame });
+      await saveFullArt(card, canvasRef.current, { style, frame, rim });
       onToast("Saved to My Full Arts in your Vault");
     } catch {
       onToast("Couldn’t save on this device — try Download instead");
@@ -238,7 +241,8 @@ export function FullArtStudio({
           <div className="pv-fa-kicker">FULL ART STUDIO</div>
           <h1 className="pv-fa-title">Make any card a full art</h1>
           <p className="pv-fa-sub">
-            We stretch the illustration edge-to-edge behind the frame, then add foil and card text.
+            We extend regular card art edge-to-edge (Special Illustration Rare style), then add a
+            thin rim, glass attack panel, and card text.
           </p>
         </div>
       </header>
@@ -332,11 +336,34 @@ export function FullArtStudio({
               onClick={() => setFrame((f) => !f)}
             >
               <span className="flex-1 text-left">
-                <strong>Frame &amp; card text</strong>
-                <em>Name, HP and attacks from the card’s data</em>
+                <strong>SIR overlay (name · HP · glass attacks)</strong>
+                <em>Full-bleed art with translucent panels — fan-made label always on</em>
               </span>
               <span className="pv-lw-switch" aria-hidden />
             </button>
+
+            {frame && (
+              <div className="pv-fa-rim" role="radiogroup" aria-label="Rim">
+                {(
+                  [
+                    ["silver", "Silver rim"],
+                    ["gold", "Gold rim"],
+                    ["none", "No rim"],
+                  ] as const
+                ).map(([k, l]) => (
+                  <button
+                    key={k}
+                    type="button"
+                    role="radio"
+                    aria-checked={rim === k}
+                    className={`pv-fa-rim-btn ${rim === k ? "on" : ""}`}
+                    onClick={() => setRim(k)}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+            )}
 
             <button
               type="button"
