@@ -30,7 +30,7 @@ import { EmptyState, SkeletonCards } from "./ui";
 const STYLES: FullArtStyle[] = ["holo", "rainbow", "gold", "alt"];
 const AI_PREF = "pv-fa-ai";
 const AI_STYLE_HINTS: Record<AiArtStyle, string> = {
-  faithful: "Same art, painted past the frame",
+  faithful: "Continue background to full art",
   storybook: "Painterly scene, full-art",
   chibi: "Cute, rounded, pastel",
   neon: "Glowing synthwave night",

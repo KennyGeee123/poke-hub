@@ -1,11 +1,11 @@
 // Full Art Studio engine: turns a card scan into a fan-made full-bleed / extended-art design.
 // Pure client-side canvas compositor (no paid AI key needed):
 //   1. colour-sampled gradient base  2. stretched + blurred art bleed (atmosphere)
-//   3. directional edge stretch + painted habitat (NO mirror reflection)  4. large sharp art
-//   5. light holo / rainbow / gold texture (edge-biased)  6. thin rim + frosted attack panel.
+//   3. CONTINUATION of source habitat from art edges (NO mirror, NO new biome)  4. large sharp art
+//   5. light holo / rainbow / gold texture (edge-biased)  6. thin rim + floating stroked text.
 // Optional AI path: opts.aiArt (Nano Banana, via /api/public/fullart-ai) replaces 1-4.
-// Overlay (fa-v3.3): full-bleed, thin rim, floating stroked attack text (NO chips/panels), name/HP corners.
-// Extension: layered art bands + scenic habitat (no mirror, no single-row smear).
+// Overlay (fa-v3.4): full-bleed, thin rim, floating stroked attack text (NO chips/panels), name/HP corners.
+// Extension DEFAULT: finish/continue the source art's own plants/grass/sky to every edge.
 // SIR-COHERENCE: subject peakY≈0.54, painted bottoms (edge≥0.63×mid), floating stroke overlay.
 import type { TCGCard } from "./pokemon-api";
 
@@ -22,9 +22,9 @@ export type FullArtOptions = {
 export const FULLART_W = 1000;
 export const FULLART_H = 1400;
 
-/** Layout bands from SIR-COHERENCE pass over sponsored SIR row + repo full-arts (fa-v3.3). */
+/** Layout bands from SIR-COHERENCE; fa-v3.4 defaults to habitat CONTINUATION from source edges. */
 export const FULLART_LAYOUT = {
-  version: "fa-v3.3-coherence",
+  version: "fa-v3.4-continuation",
   nameHpBand: [0, 0.1],
   subjectBand: [0.1, 0.65],
   /** Real SIR detail peak ~0.54 of height — keep hero centred mid-card, not crushed at top. */
@@ -218,9 +218,10 @@ function stretchEdge(
 }
 
 /**
- * Layered bottom fill (fa-v3.3): several bands from the lower art, placed with
- * progressive blur/opacity — reads as atmospheric depth, not a stretched smear
- * or mirrored reflection. Inspired by scenic SIR bottoms (Charizard ex canyon).
+ * Layered bottom CONTINUATION (fa-v3.4): sample the LOWER art window (grass /
+ * plants / ground at the bottom edge of the illustration) and extend that same
+ * habitat downward. Near bands stay sharp so foliage reads as finished art,
+ * not a muddy smear or mirrored reflection.
  */
 function fillBottomLayers(
   ctx: CanvasRenderingContext2D,
@@ -232,28 +233,123 @@ function fillBottomLayers(
   botSpace: number,
 ) {
   if (botSpace < 8) return;
-  const bands = 9;
-  for (let i = 0; i < bands; i++) {
-    const t = i / (bands - 1);
-    const srcY = box.y + box.h * (0.42 + t * 0.52);
-    const srcH = Math.max(4, box.h * (0.14 - t * 0.05));
-    const dstY = botY + botSpace * (t * 0.82);
-    const dstH = botSpace * (0.34 - t * 0.12);
-    const jx = (i % 2 === 0 ? -1 : 1) * aw * 0.025 * t;
+  // Anchor strip: bottom ~28% of the art box — where grass/plants usually live.
+  const anchorY = box.y + box.h * 0.72;
+  const anchorH = Math.max(6, box.h * 0.26);
+  // 1) Strong near-field continuation: repeat the bottom plant strip downward
+  //    with light perspective scale (wider / slightly softer as it goes).
+  const nearBands = 7;
+  for (let i = 0; i < nearBands; i++) {
+    const t = i / (nearBands - 1);
+    const dstY = botY + botSpace * (t * 0.55);
+    const dstH = botSpace * (0.28 - t * 0.03);
+    const grow = 1 + t * 0.12;
     ctx.save();
-    // Keep nearer bands sharper so bottom habitat retains edge energy (≥0.63 of mid).
-    ctx.filter = `blur(${2 + t * 11}px) saturate(${1.25 - t * 0.2})`;
-    ctx.globalAlpha = 0.72 * (1 - t * 0.45);
+    ctx.filter = `blur(${0.5 + t * 4}px) saturate(${1.35 - t * 0.15})`;
+    ctx.globalAlpha = 0.92 * (1 - t * 0.35);
+    ctx.drawImage(
+      img,
+      box.x,
+      anchorY,
+      box.w,
+      anchorH,
+      ax - aw * (grow - 1) * 0.5 - aw * 0.02,
+      dstY,
+      aw * grow + aw * 0.04,
+      Math.max(10, dstH),
+    );
+    ctx.restore();
+  }
+  // 2) Deeper atmospheric bands from mid-lower art (keeps colour continuity).
+  const deepBands = 6;
+  for (let i = 0; i < deepBands; i++) {
+    const t = i / (deepBands - 1);
+    const srcY = box.y + box.h * (0.48 + t * 0.42);
+    const srcH = Math.max(4, box.h * (0.16 - t * 0.05));
+    const dstY = botY + botSpace * (0.35 + t * 0.58);
+    const dstH = botSpace * (0.32 - t * 0.1);
+    const jx = (i % 2 === 0 ? -1 : 1) * aw * 0.03 * t;
+    ctx.save();
+    ctx.filter = `blur(${3 + t * 12}px) saturate(${1.2 - t * 0.2})`;
+    ctx.globalAlpha = 0.55 * (1 - t * 0.4);
     ctx.drawImage(
       img,
       box.x,
       srcY,
       box.w,
       srcH,
-      ax + jx - aw * 0.04,
+      ax + jx - aw * 0.05,
       dstY,
-      aw * 1.08,
+      aw * 1.1,
       Math.max(8, dstH),
+    );
+    ctx.restore();
+  }
+}
+
+/**
+ * Top + side CONTINUATION (fa-v3.4): finish canopy / sky / edge foliage from the
+ * art window outward so the card is one continuous habitat, not a vignette.
+ */
+function fillEdgeContinuation(
+  ctx: CanvasRenderingContext2D,
+  img: CanvasImageSource,
+  box: Box,
+  ax: number,
+  ay: number,
+  aw: number,
+  ah: number,
+  W: number,
+  H: number,
+) {
+  const topSpace = Math.max(0, ay);
+  // Top canopy / sky from the upper art strip
+  if (topSpace > 4) {
+    for (let i = 0; i < 5; i++) {
+      const t = i / 4;
+      const srcH = Math.max(3, box.h * (0.1 - t * 0.015));
+      const dstH = topSpace * (0.55 - t * 0.05) + 24;
+      ctx.save();
+      ctx.filter = `blur(${1 + t * 8}px) saturate(1.2)`;
+      ctx.globalAlpha = 0.88 * (1 - t * 0.25);
+      ctx.drawImage(
+        img,
+        box.x,
+        box.y + box.h * (0.02 + t * 0.04),
+        box.w,
+        srcH,
+        ax - aw * 0.03,
+        Math.max(0, topSpace - dstH + t * 12),
+        aw * 1.06,
+        dstH,
+      );
+      ctx.restore();
+    }
+  }
+  // Left / right plant walls from the art edges
+  const sideW = Math.max(ax + 20, 40);
+  for (const side of ["left", "right"] as const) {
+    const srcX = side === "left" ? box.x : box.x + box.w * 0.9;
+    const dstX = side === "left" ? 0 : W - sideW;
+    ctx.save();
+    ctx.filter = "blur(6px) saturate(1.25)";
+    ctx.globalAlpha = 0.75;
+    ctx.drawImage(img, srcX, box.y, Math.max(3, box.w * 0.1), box.h, dstX, ay - 20, sideW, ah + 40);
+    ctx.restore();
+    // Extra lower-side foliage into the habitat band
+    ctx.save();
+    ctx.filter = "blur(4px) saturate(1.3)";
+    ctx.globalAlpha = 0.7;
+    ctx.drawImage(
+      img,
+      srcX,
+      box.y + box.h * 0.55,
+      Math.max(3, box.w * 0.12),
+      box.h * 0.4,
+      dstX,
+      Math.min(ay + ah * 0.55, H * 0.55),
+      sideW + 10,
+      Math.max(80, H - (ay + ah * 0.55)),
     );
     ctx.restore();
   }
@@ -723,40 +819,13 @@ export function renderFullArt(
   const botY = ay + ah;
   const botSpace = Math.max(0, H - botY);
 
-  // 3a. Short top seam only (no big smear)
-  ctx.save();
-  ctx.filter = "blur(14px) saturate(1.15)";
-  ctx.globalAlpha = 0.85;
-  ctx.drawImage(
-    img,
-    box.x,
-    box.y,
-    box.w,
-    Math.max(3, box.h * 0.05),
-    ax,
-    0,
-    aw,
-    topSpace + 36,
-  );
-  // Soft side bleeds
-  ctx.drawImage(img, box.x, box.y, Math.max(3, box.w * 0.05), box.h, 0, ay, Math.max(ax + 30, 50), ah);
-  ctx.drawImage(
-    img,
-    box.x + box.w * 0.95,
-    box.y,
-    Math.max(3, box.w * 0.05),
-    box.h,
-    W - Math.max(W - (ax + aw) + 30, 50),
-    ay,
-    Math.max(W - (ax + aw) + 30, 50),
-    ah,
-  );
-  ctx.restore();
+  // 3a. Edge CONTINUATION — finish canopy / side foliage from the source art
+  fillEdgeContinuation(ctx, img, box, ax, ay, aw, ah, W, H);
 
-  // 3b. Layered bottom fill (atmospheric bands — not mirror, not single-row stretch)
+  // 3b. Bottom habitat CONTINUATION from the art window's grass/plant strip
   fillBottomLayers(ctx, img, box, ax, aw, Math.min(botY, H * 0.55), H - Math.min(botY, H * 0.55));
 
-  // 3c. Scenic habitat paint
+  // 3c. Soft scenic wash (colour-matched; must not invent a new biome)
   paintHabitat(
     ctx,
     topC,
@@ -774,7 +843,7 @@ export function renderFullArt(
   // Soft vignette
   const vg = ctx.createRadialGradient(W / 2, H * 0.36, W * 0.25, W / 2, H * 0.46, H * 0.8);
   vg.addColorStop(0, "rgba(0,0,0,0)");
-  vg.addColorStop(1, "rgba(0,0,0,0.18)");
+  vg.addColorStop(1, "rgba(0,0,0,0.12)");
   ctx.fillStyle = vg;
   ctx.fillRect(0, 0, W, H);
 
