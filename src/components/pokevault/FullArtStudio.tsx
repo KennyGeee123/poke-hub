@@ -241,7 +241,7 @@ export function FullArtStudio({
           <div className="pv-fa-kicker">FULL ART STUDIO</div>
           <h1 className="pv-fa-title">Make any card a full art</h1>
           <p className="pv-fa-sub">
-            We extend regular card art edge-to-edge, then add a thin rim, a light frosted attack panel over
+            We extend regular card art edge-to-edge into a scenic habitat, then add a thin rim and floating attack text over
             a soft fade, and card text — art keeps bleeding through the bottom.
           </p>
         </div>

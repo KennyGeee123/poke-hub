@@ -4,7 +4,9 @@
 //   3. directional edge stretch + painted habitat (NO mirror reflection)  4. large sharp art
 //   5. light holo / rainbow / gold texture (edge-biased)  6. thin rim + frosted attack panel.
 // Optional AI path: opts.aiArt (Nano Banana, via /api/public/fullart-ai) replaces 1-4.
-// Overlay (fa-v3.2): full-bleed, thin rim, light frosted attack rows (high art bleed), name/HP corners.
+// Overlay (fa-v3.3): full-bleed, thin rim, floating stroked attack text (NO chips/panels), name/HP corners.
+// Extension: layered art bands + scenic habitat (no mirror, no single-row smear).
+// SIR-COHERENCE: subject peakY≈0.54, painted bottoms (edge≥0.63×mid), floating stroke overlay.
 import type { TCGCard } from "./pokemon-api";
 
 export type FullArtStyle = "holo" | "rainbow" | "gold" | "alt";
@@ -19,6 +21,21 @@ export type FullArtOptions = {
 };
 export const FULLART_W = 1000;
 export const FULLART_H = 1400;
+
+/** Layout bands from SIR-COHERENCE pass over sponsored SIR row + repo full-arts (fa-v3.3). */
+export const FULLART_LAYOUT = {
+  version: "fa-v3.3-coherence",
+  nameHpBand: [0, 0.1],
+  subjectBand: [0.1, 0.65],
+  /** Real SIR detail peak ~0.54 of height — keep hero centred mid-card, not crushed at top. */
+  subjectPeakY: 0.54,
+  habitatBand: [0.65, 0.92],
+  footerBand: [0.92, 1],
+  /** Bottom habitat must keep ≥ this fraction of mid-band edge energy (painted, not mud). */
+  minBottomEdgeRatio: 0.63,
+  overlay: "floating-stroke", // no chips / glass panels
+} as const;
+
 
 export const STYLE_LABELS: Record<FullArtStyle, string> = {
   holo: "Textured holo",
@@ -89,11 +106,16 @@ export async function loadCardImage(card: TCGCard): Promise<HTMLImageElement> {
 
 export type Box = { x: number; y: number; w: number; h: number };
 
-/** Illustration window on a standard (post-2003) card scan, as fractions of the scan. */
+/** Illustration window on a card scan, as fractions of the scan.
+ *  Pre-cropped art windows (wider than a card, aspect > ~1.15) use nearly the full image. */
 export function artBox(img: HTMLImageElement): Box {
   const W = img.naturalWidth;
   const H = img.naturalHeight;
-  // Inset slightly so the extension never samples the printed art border.
+  if (W / Math.max(1, H) > 1.15) {
+    // Already an illustration crop (e.g. sources/art-*.png) — keep a tiny inset only.
+    return { x: W * 0.01, y: H * 0.01, w: W * 0.98, h: H * 0.98 };
+  }
+  // Standard (post-2003) portrait card scan — inset past the printed art border.
   return { x: W * 0.095, y: H * 0.12, w: W * 0.81, h: H * 0.36 };
 }
 
@@ -163,8 +185,8 @@ function drawFeathered(
 }
 
 /**
- * Stretch an edge band into dest WITHOUT mirroring (avoids muddy reflection bottoms).
- * dir "up" = seam at bottom of dst (extending above art); "down" = seam at top of dst.
+ * Stretch an edge band into dest WITHOUT mirroring (seam fade only).
+ * Prefer fillBottomLayers for large bottom fills — this is for short seams.
  */
 function stretchEdge(
   ctx: CanvasRenderingContext2D,
@@ -178,30 +200,73 @@ function stretchEdge(
   tmp.width = Math.round(dst.w);
   tmp.height = Math.round(dst.h);
   const t = tmp.getContext("2d")!;
-  // Draw the thin source band stretched to fill dest (same orientation — no flip).
   t.drawImage(img, src.x, src.y, src.w, src.h, 0, 0, tmp.width, tmp.height);
   t.globalCompositeOperation = "destination-in";
   const g = t.createLinearGradient(0, 0, 0, tmp.height);
   if (dir === "down") {
-    g.addColorStop(0, "rgba(0,0,0,0.85)");
-    g.addColorStop(0.35, "rgba(0,0,0,0.4)");
+    g.addColorStop(0, "rgba(0,0,0,0.8)");
+    g.addColorStop(0.4, "rgba(0,0,0,0.35)");
     g.addColorStop(1, "rgba(0,0,0,0)");
   } else {
     g.addColorStop(0, "rgba(0,0,0,0)");
-    g.addColorStop(0.65, "rgba(0,0,0,0.4)");
-    g.addColorStop(1, "rgba(0,0,0,0.85)");
+    g.addColorStop(0.6, "rgba(0,0,0,0.35)");
+    g.addColorStop(1, "rgba(0,0,0,0.8)");
   }
   t.fillStyle = g;
   t.fillRect(0, 0, tmp.width, tmp.height);
   ctx.drawImage(tmp, dst.x, dst.y);
 }
 
-/** Soft habitat continuation under the subject — painted colour fields, not a mirrored smear. */
+/**
+ * Layered bottom fill (fa-v3.3): several bands from the lower art, placed with
+ * progressive blur/opacity — reads as atmospheric depth, not a stretched smear
+ * or mirrored reflection. Inspired by scenic SIR bottoms (Charizard ex canyon).
+ */
+function fillBottomLayers(
+  ctx: CanvasRenderingContext2D,
+  img: CanvasImageSource,
+  box: Box,
+  ax: number,
+  aw: number,
+  botY: number,
+  botSpace: number,
+) {
+  if (botSpace < 8) return;
+  const bands = 9;
+  for (let i = 0; i < bands; i++) {
+    const t = i / (bands - 1);
+    const srcY = box.y + box.h * (0.42 + t * 0.52);
+    const srcH = Math.max(4, box.h * (0.14 - t * 0.05));
+    const dstY = botY + botSpace * (t * 0.82);
+    const dstH = botSpace * (0.34 - t * 0.12);
+    const jx = (i % 2 === 0 ? -1 : 1) * aw * 0.025 * t;
+    ctx.save();
+    // Keep nearer bands sharper so bottom habitat retains edge energy (≥0.63 of mid).
+    ctx.filter = `blur(${2 + t * 11}px) saturate(${1.25 - t * 0.2})`;
+    ctx.globalAlpha = 0.72 * (1 - t * 0.45);
+    ctx.drawImage(
+      img,
+      box.x,
+      srcY,
+      box.w,
+      srcH,
+      ax + jx - aw * 0.04,
+      dstY,
+      aw * 1.08,
+      Math.max(8, dstH),
+    );
+    ctx.restore();
+  }
+}
+
+/** Scenic habitat under the subject — soft terrain / sky bands from sampled colours. */
 function paintHabitat(
   ctx: CanvasRenderingContext2D,
   topC: [number, number, number],
   midC: [number, number, number],
   botC: [number, number, number],
+  leftC: [number, number, number],
+  rightC: [number, number, number],
   typeColor: string,
   seed: number,
   y0: number,
@@ -212,54 +277,91 @@ function paintHabitat(
   const h = H - y0;
   if (h < 8) return;
   ctx.save();
-  // Soft colour wash — keep it quiet so frosted text stays readable and art isn't muddy
+
+  // Deep scenic wash (darker toward footer, like canyon/forest floor)
   const wash = ctx.createLinearGradient(0, y0, 0, H);
   wash.addColorStop(0, rgb(botC, 0));
-  wash.addColorStop(0.35, rgb(botC.map((v) => v * 0.9) as [number, number, number], 0.22));
-  wash.addColorStop(0.75, rgb(midC.map((v) => v * 0.5) as [number, number, number], 0.38));
-  wash.addColorStop(1, rgb(botC.map((v) => v * 0.3) as [number, number, number], 0.55));
+  wash.addColorStop(0.2, rgb(botC, 0.18));
+  wash.addColorStop(0.55, rgb(midC.map((v) => v * 0.55) as [number, number, number], 0.42));
+  wash.addColorStop(1, rgb(botC.map((v) => v * 0.22) as [number, number, number], 0.72));
   ctx.fillStyle = wash;
   ctx.fillRect(0, y0, W, h);
 
-  // Soft radial blooms (subtle depth, not UI ovals)
-  for (let i = 0; i < 3; i++) {
-    const cx = W * (0.2 + rnd() * 0.6);
-    const cy = y0 + h * (0.35 + rnd() * 0.5);
-    const r = 120 + rnd() * 200;
+  // Soft "terrain" ridges — silhouettes from left/right edge colours (SIR scenic feel)
+  for (let i = 0; i < 4; i++) {
+    const baseY = y0 + h * (0.35 + i * 0.14);
+    const amp = 28 + rnd() * 50;
+    const c = i % 2 === 0 ? leftC : rightC;
+    ctx.beginPath();
+    ctx.moveTo(0, H);
+    ctx.lineTo(0, baseY);
+    for (let x = 0; x <= W; x += 40) {
+      const y = baseY + Math.sin(x * 0.01 + i + rnd() * 0.5) * amp * (0.4 + rnd() * 0.6);
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(W, H);
+    ctx.closePath();
+    ctx.fillStyle = rgb(
+      c.map((v) => Math.max(0, v * (0.35 + i * 0.08))) as [number, number, number],
+      0.22 - i * 0.03,
+    );
+    ctx.fill();
+  }
+
+  // Ambient light pools
+  for (let i = 0; i < 4; i++) {
+    const cx = W * (0.15 + rnd() * 0.7);
+    const cy = y0 + h * (0.2 + rnd() * 0.55);
+    const r = 100 + rnd() * 220;
     const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-    const c = i % 2 === 0 ? botC : midC;
-    g.addColorStop(0, rgb(c, 0.16));
-    g.addColorStop(0.6, rgb(c, 0.05));
+    const c = i % 2 === 0 ? midC : topC;
+    g.addColorStop(0, rgb(c, 0.2));
+    g.addColorStop(0.55, rgb(c, 0.06));
     g.addColorStop(1, rgb(c, 0));
     ctx.fillStyle = g;
     ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
   }
 
-  // Sparse type-tinted dust (no big ellipses — those read as UI)
+  // Type-tinted atmosphere veil
   ctx.globalCompositeOperation = "screen";
-  for (let i = 0; i < 40; i++) {
-    const x = rnd() * W;
-    const y = y0 + rnd() * h;
-    const r = 1 + rnd() * 3.5;
-    ctx.globalAlpha = 0.1 + rnd() * 0.18;
-    ctx.fillStyle = typeColor;
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  const mist2 = ctx.createRadialGradient(W * 0.5, y0 + h * 0.3, 20, W * 0.5, y0 + h * 0.5, h * 0.7);
+  mist2.addColorStop(0, typeColor);
+  mist2.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.globalAlpha = 0.14;
+  ctx.fillStyle = mist2;
+  ctx.fillRect(0, y0, W, h);
 
-  // Fine atmospheric motes
+  // Fine dust / energy motes
   ctx.globalCompositeOperation = "lighter";
-  for (let i = 0; i < 70; i++) {
+  for (let i = 0; i < 90; i++) {
     const x = rnd() * W;
     const y = y0 + rnd() * h;
-    const r = 0.5 + rnd() * 1.8;
-    ctx.globalAlpha = 0.1 + rnd() * 0.2;
-    ctx.fillStyle = rgb(botC.map((v) => Math.min(255, v + 50)) as [number, number, number]);
+    const r = 0.5 + rnd() * 2;
+    ctx.globalAlpha = 0.08 + rnd() * 0.18;
+    ctx.fillStyle = rgb(botC.map((v) => Math.min(255, v + 70)) as [number, number, number]);
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
   }
+  ctx.restore();
+}
+
+function strokeFillText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  fill: string,
+  strokeW = 5,
+) {
+  ctx.save();
+  ctx.lineWidth = strokeW;
+  ctx.strokeStyle = "rgba(0,0,0,0.78)";
+  ctx.lineJoin = "round";
+  ctx.miterLimit = 2;
+  ctx.strokeText(text, x, y);
+  ctx.fillStyle = fill;
+  ctx.fillText(text, x, y);
   ctx.restore();
 }
 
@@ -430,7 +532,6 @@ function drawFrame(ctx: CanvasRenderingContext2D, card: TCGCard, opts: FullArtOp
     ctx.fillStyle = "rgba(255,255,255,0.9)";
     ctx.fillText(stage.toUpperCase(), 48, top);
   }
-  ctx.fillStyle = "#fff";
   let nameSize = 58;
   ctx.font = `800 ${nameSize}px "Bebas Neue", Barlow, Impact, sans-serif`;
   const maxName = W - 48 - 280;
@@ -438,15 +539,16 @@ function drawFrame(ctx: CanvasRenderingContext2D, card: TCGCard, opts: FullArtOp
     nameSize -= 2;
     ctx.font = `800 ${nameSize}px "Bebas Neue", Barlow, Impact, sans-serif`;
   }
-  ctx.fillText(card.name, 48, top + (stage ? 52 : 42));
+  const nameY = top + (stage ? 52 : 42);
+  strokeFillText(ctx, card.name, 48, nameY, "#fff", 6);
   if (card.hp) {
     ctx.textAlign = "right";
     const hpX = W - 48 - (card.types?.length ? 56 : 0);
     ctx.font = '800 56px "Bebas Neue", Barlow, Impact, sans-serif';
     const numW = ctx.measureText(card.hp).width;
-    ctx.fillText(card.hp, hpX, top + (stage ? 52 : 42));
+    strokeFillText(ctx, card.hp, hpX, nameY, "#fff", 6);
     ctx.font = "800 24px Barlow, system-ui, sans-serif";
-    ctx.fillText("HP", hpX - numW - 8, top + (stage ? 52 : 42));
+    strokeFillText(ctx, "HP", hpX - numW - 8, nameY, "#fff", 4);
     ctx.textAlign = "left";
   }
   ctx.shadowBlur = 0;
@@ -467,148 +569,86 @@ function drawFrame(ctx: CanvasRenderingContext2D, card: TCGCard, opts: FullArtOp
     ctx.textAlign = "left";
   }
 
-  // Bottom zone (fa-v3.2): light frosted attack panel — high art bleed, premium SIR feel
-  // (not dark app chips, not a heavy opaque glass slab clone of the screenshot).
+  // Bottom zone (fa-v3.3): floating stroked attack text — NO chips / panels / glass slabs.
+  // Matches SIR refs (Mega Gengar / Armarouge): text sits on art with shadow+stroke only.
   const attacks = (card.attacks || []).slice(0, 2);
   const abilities = (card.abilities || []).slice(0, 1);
-  const rowH = 64;
-  const rowGap = 2;
+  const rowH = 58;
+  const rowGap = 8;
   const rows = attacks.length + abilities.length;
-  const padY = 14;
-  const padX = 32;
-  const footerH = 44;
+  const footerH = 36;
   const stackH = rows ? rows * rowH + Math.max(0, rows - 1) * rowGap : 0;
-  const panelH = rows ? stackH + padY * 2 : 0;
-  const panelBottom = H - 22 - footerH;
-  const panelTop = rows ? panelBottom - panelH : panelBottom;
-  const panelX = 28;
-  const panelW = W - 56;
+  const stackBottom = H - 24 - footerH;
+  const stackTop = rows ? stackBottom - stackH : stackBottom;
+  const contentX = 48;
+  const contentW = W - 96;
 
-  // Soft legibility fade only — art stays the hero
-  const fadeTop = Math.min(panelTop - 100, H * 0.52);
+  // Very light legibility veil — art remains the hero (SIR scenic bottoms)
+  const fadeTop = Math.min(stackTop - 80, H * 0.58);
   const fade = ctx.createLinearGradient(0, fadeTop, 0, H);
-  fade.addColorStop(0, "rgba(4,6,12,0)");
-  fade.addColorStop(0.45, "rgba(4,6,12,0.12)");
-  fade.addColorStop(0.8, "rgba(4,6,12,0.28)");
-  fade.addColorStop(1, "rgba(4,6,12,0.4)");
+  fade.addColorStop(0, "rgba(0,0,0,0)");
+  fade.addColorStop(0.5, "rgba(0,0,0,0.05)");
+  fade.addColorStop(1, "rgba(0,0,0,0.22)");
   ctx.fillStyle = fade;
   ctx.fillRect(0, fadeTop, W, H - fadeTop);
 
   if (rows) {
-    // Frosted panel: dual-pass translucent fill so art shows through clearly
-    ctx.save();
-    ctx.shadowColor = "rgba(0,0,0,0.35)";
-    ctx.shadowBlur = 18;
-    ctx.shadowOffsetY = 6;
-    roundRect(ctx, panelX, panelTop, panelW, panelH, 20);
-    ctx.fillStyle = "rgba(255,255,255,0.14)";
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetY = 0;
-    // Dark veil for text contrast (still see-through)
-    roundRect(ctx, panelX, panelTop, panelW, panelH, 20);
-    ctx.fillStyle = "rgba(6,8,14,0.2)";
-    ctx.fill();
-    // Hairline rim
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = "rgba(255,255,255,0.28)";
-    ctx.stroke();
-    // Soft top specular
-    const spec = ctx.createLinearGradient(panelX, panelTop, panelX, panelTop + 28);
-    spec.addColorStop(0, "rgba(255,255,255,0.18)");
-    spec.addColorStop(1, "rgba(255,255,255,0)");
-    roundRect(ctx, panelX + 1, panelTop + 1, panelW - 2, 26, 18);
-    ctx.fillStyle = spec;
-    ctx.fill();
-    ctx.restore();
-
-    let y = panelTop + padY;
-    const contentX = panelX + padX;
-    const contentW = panelW - padX * 2;
-
-    const drawRow = (fn: (cy: number) => void, isLast: boolean) => {
-      fn(y + rowH / 2 + 6);
-      if (!isLast) {
-        ctx.beginPath();
-        ctx.strokeStyle = "rgba(255,255,255,0.12)";
-        ctx.lineWidth = 1;
-        ctx.moveTo(contentX, y + rowH + rowGap / 2);
-        ctx.lineTo(contentX + contentW, y + rowH + rowGap / 2);
-        ctx.stroke();
-      }
-      y += rowH + rowGap;
-    };
-
+    let y = stackTop;
     let left = abilities.length + attacks.length;
     for (const ab of abilities) {
       left--;
-      drawRow((cy) => {
-        ctx.fillStyle = "#7dd3fc";
-        ctx.font = "800 14px Barlow, system-ui, sans-serif";
-        ctx.shadowColor = "rgba(0,0,0,0.75)";
-        ctx.shadowBlur = 5;
-        ctx.fillText("ABILITY", contentX, cy - 12);
-        ctx.fillStyle = "#fff";
-        ctx.font = "800 30px Barlow, system-ui, sans-serif";
-        let abName = ab.name;
-        while (ctx.measureText(abName).width > contentW && abName.length > 4)
-          abName = abName.slice(0, -2) + "…";
-        ctx.fillText(abName, contentX, cy + 18);
-        ctx.shadowBlur = 0;
-      }, left === 0);
+      const cy = y + rowH / 2 + 4;
+      ctx.font = "800 13px Barlow, system-ui, sans-serif";
+      strokeFillText(ctx, "ABILITY", contentX, cy - 14, "#7dd3fc", 4);
+      ctx.font = "800 28px Barlow, system-ui, sans-serif";
+      let abName = ab.name;
+      while (ctx.measureText(abName).width > contentW && abName.length > 4)
+        abName = abName.slice(0, -2) + "…";
+      strokeFillText(ctx, abName, contentX, cy + 16, "#fff", 5);
+      y += rowH + rowGap;
     }
     for (const a of attacks) {
       left--;
-      drawRow((cy) => {
-        let x = contentX;
-        ctx.shadowColor = "rgba(0,0,0,0.55)";
-        ctx.shadowBlur = 4;
-        for (const c of (a.cost || []).slice(0, 5)) {
-          ctx.beginPath();
-          ctx.arc(x + 14, cy - 2, 14, 0, Math.PI * 2);
-          ctx.fillStyle = TYPE_COLORS[c] || "#ddd";
-          ctx.fill();
-          ctx.lineWidth = 1.75;
-          ctx.strokeStyle = "rgba(255,255,255,0.85)";
-          ctx.stroke();
-          x += 32;
-        }
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = "#fff";
-        ctx.font = "800 30px Barlow, system-ui, sans-serif";
-        ctx.shadowColor = "rgba(0,0,0,0.8)";
-        ctx.shadowBlur = 5;
-        const nameX = x + 10;
-        const dmgW = a.damage ? 110 : 0;
-        let label = a.name;
-        while (ctx.measureText(label).width > contentW - (nameX - contentX) - dmgW && label.length > 4)
-          label = label.slice(0, -2) + "…";
-        ctx.fillText(label, nameX, cy + 8);
-        if (a.damage) {
-          ctx.textAlign = "right";
-          ctx.fillStyle = "#ffe08a";
-          ctx.font = '800 44px "Bebas Neue", Barlow, Impact, sans-serif';
-          ctx.fillText(a.damage, panelX + panelW - padX, cy + 12);
-          ctx.textAlign = "left";
-        }
-        ctx.shadowBlur = 0;
-      }, left === 0);
+      const cy = y + rowH / 2 + 4;
+      let x = contentX;
+      for (const c of (a.cost || []).slice(0, 5)) {
+        ctx.beginPath();
+        ctx.arc(x + 13, cy - 2, 13, 0, Math.PI * 2);
+        ctx.fillStyle = TYPE_COLORS[c] || "#ddd";
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "rgba(0,0,0,0.55)";
+        ctx.stroke();
+        ctx.lineWidth = 1.25;
+        ctx.strokeStyle = "rgba(255,255,255,0.85)";
+        ctx.stroke();
+        x += 30;
+      }
+      ctx.font = "800 28px Barlow, system-ui, sans-serif";
+      const nameX = x + 8;
+      const dmgW = a.damage ? 110 : 0;
+      let label = a.name;
+      while (ctx.measureText(label).width > contentW - (nameX - contentX) - dmgW && label.length > 4)
+        label = label.slice(0, -2) + "…";
+      strokeFillText(ctx, label, nameX, cy + 8, "#fff", 5);
+      if (a.damage) {
+        ctx.textAlign = "right";
+        ctx.font = '800 42px "Bebas Neue", Barlow, Impact, sans-serif';
+        strokeFillText(ctx, a.damage, W - 48, cy + 12, "#ffe08a", 5);
+        ctx.textAlign = "left";
+      }
+      y += rowH + rowGap;
     }
   }
 
-  // Footer — floating set · # + FAN-MADE (no heavy slab)
-  ctx.fillStyle = "rgba(255,255,255,0.88)";
-  ctx.font = "700 15px Barlow, system-ui, sans-serif";
-  ctx.shadowColor = "rgba(0,0,0,0.85)";
-  ctx.shadowBlur = 6;
+  // Footer floating meta
+  ctx.font = "700 14px Barlow, system-ui, sans-serif";
   const leftMeta = [card.set?.name, card.number ? `#${card.number}` : ""].filter(Boolean).join(" · ");
-  ctx.fillText(leftMeta, 40, H - 28);
+  strokeFillText(ctx, leftMeta, 40, H - 26, "rgba(255,255,255,0.9)", 3);
   ctx.textAlign = "right";
-  ctx.fillStyle = "#f6d57a";
-  ctx.font = "800 14px Barlow, system-ui, sans-serif";
-  ctx.fillText("FAN-MADE CUSTOM · NOT OFFICIAL", W - 40, H - 28);
+  ctx.font = "800 13px Barlow, system-ui, sans-serif";
+  strokeFillText(ctx, "FAN-MADE CUSTOM · NOT OFFICIAL", W - 40, H - 26, "#f6d57a", 3);
   ctx.textAlign = "left";
-  ctx.shadowBlur = 0;
   ctx.restore();
 }
 
@@ -634,152 +674,140 @@ export function renderFullArt(
   }
   const box = artBox(img);
 
-  // Sample edge colours from the illustration (corners + mid for richer habitat).
+  // Sample edge / corner colours for scenic habitat (SIR canyon/forest feel).
   const probe = document.createElement("canvas");
-  probe.width = 200;
-  probe.height = Math.round((200 * box.h) / box.w);
+  probe.width = 240;
+  probe.height = Math.round((240 * box.h) / box.w);
   const pc = probe.getContext("2d", { willReadFrequently: true })!;
   pc.drawImage(img, box.x, box.y, box.w, box.h, 0, 0, probe.width, probe.height);
-  const topC = avgColor(pc, 0, 0, probe.width, 8);
+  const topC = avgColor(pc, 0, 0, probe.width, 10);
   const midC = avgColor(pc, 0, probe.height * 0.4, probe.width, probe.height * 0.2);
-  const botC = avgColor(pc, 0, probe.height - 8, probe.width, 8);
+  const botC = avgColor(pc, 0, probe.height - 10, probe.width, 10);
+  const leftC = avgColor(pc, 0, probe.height * 0.35, 12, probe.height * 0.35);
+  const rightC = avgColor(pc, probe.width - 12, probe.height * 0.35, 12, probe.height * 0.35);
   const typeKey = card.types?.[0] || "Colorless";
   const typeHex = TYPE_COLORS[typeKey] || "#e0e0e0";
 
   // 1. colour-sampled gradient base
   const base = ctx.createLinearGradient(0, 0, 0, H);
   base.addColorStop(0, rgb(topC));
-  base.addColorStop(0.4, rgb(midC));
-  base.addColorStop(0.72, rgb(botC));
-  base.addColorStop(1, rgb(botC.map((v) => v * 0.45) as [number, number, number]));
+  base.addColorStop(0.35, rgb(midC));
+  base.addColorStop(0.7, rgb(botC));
+  base.addColorStop(1, rgb(botC.map((v) => v * 0.4) as [number, number, number]));
   ctx.fillStyle = base;
   ctx.fillRect(0, 0, W, H);
 
-  // 2. stretched + blurred art bleed (atmosphere — keep it soft, not muddy)
+  // 2. soft atmospheric bleed of the whole art (low alpha — avoid muddy wash)
   ctx.save();
-  ctx.filter = "blur(32px) saturate(1.35)";
-  ctx.globalAlpha = 0.72;
-  const coverScale = Math.max(W / box.w, H / box.h) * 1.12;
+  ctx.filter = "blur(28px) saturate(1.4)";
+  ctx.globalAlpha = 0.55;
+  const coverScale = Math.max(W / box.w, H / box.h) * 1.15;
   const cw = box.w * coverScale;
   const ch = box.h * coverScale;
-  ctx.drawImage(img, box.x, box.y, box.w, box.h, (W - cw) / 2, (H - ch) / 2 - H * 0.04, cw, ch);
+  ctx.drawImage(img, box.x, box.y, box.w, box.h, (W - cw) / 2, (H - ch) / 2 - H * 0.06, cw, ch);
   ctx.restore();
 
-  // Subject: large full-art hero — fills ~70% of height and overlaps the attack panel.
+  // Subject (SIR-COHERENCE): place art so its visual centre sits near mid-card (peakY≈0.54).
+  // Face lives in the upper third of the art box → bias that third toward ~42% of card height.
   const targetH = H * 0.7;
   const scale = Math.max((W / box.w) * 1.22, targetH / box.h);
   const aw = box.w * scale;
   const ah = box.h * scale;
   const ax = (W - aw) / 2;
-  const ay = Math.max(44, Math.round(H * 0.045));
+  const faceY = H * 0.42; // where the face / densest art should land
+  let ay = Math.round(faceY - ah * 0.32);
+  // Keep name band readable and leave room for floating attack text.
+  ay = Math.max(Math.round(H * 0.06), Math.min(ay, Math.round(H * 0.18)));
 
   const topSpace = ay;
   const botY = ay + ah;
-  const botSpace = H - botY;
+  const botSpace = Math.max(0, H - botY);
 
-  // 3a. Directional edge stretch (NO mirror) — cheap outpaint into empty margins
+  // 3a. Short top seam only (no big smear)
   ctx.save();
-  ctx.filter = "blur(18px) saturate(1.2)";
-  ctx.globalAlpha = 0.95;
-  // Top: stretch top edge row upward
+  ctx.filter = "blur(14px) saturate(1.15)";
+  ctx.globalAlpha = 0.85;
   ctx.drawImage(
     img,
     box.x,
     box.y,
     box.w,
-    Math.max(3, box.h * 0.04),
+    Math.max(3, box.h * 0.05),
     ax,
     0,
     aw,
-    topSpace + 48,
+    topSpace + 36,
   );
-  // Bottom: stretch bottom edge row downward (same orientation — not flipped)
+  // Soft side bleeds
+  ctx.drawImage(img, box.x, box.y, Math.max(3, box.w * 0.05), box.h, 0, ay, Math.max(ax + 30, 50), ah);
   ctx.drawImage(
     img,
-    box.x,
-    box.y + box.h * 0.94,
-    box.w,
-    Math.max(3, box.h * 0.06),
-    ax,
-    botY - 24,
-    aw,
-    botSpace + 48,
-  );
-  // Sides: stretch left/right columns
-  ctx.drawImage(
-    img,
-    box.x,
+    box.x + box.w * 0.95,
     box.y,
-    Math.max(3, box.w * 0.04),
+    Math.max(3, box.w * 0.05),
     box.h,
-    0,
+    W - Math.max(W - (ax + aw) + 30, 50),
     ay,
-    Math.max(ax + 40, 60),
-    ah,
-  );
-  ctx.drawImage(
-    img,
-    box.x + box.w * 0.96,
-    box.y,
-    Math.max(3, box.w * 0.04),
-    box.h,
-    W - Math.max(W - (ax + aw) + 40, 60),
-    ay,
-    Math.max(W - (ax + aw) + 40, 60),
+    Math.max(W - (ax + aw) + 30, 50),
     ah,
   );
   ctx.restore();
 
-  // 3b. Short feathered edge bands (still no flip) to hide the seam
-  ctx.save();
-  ctx.filter = "blur(7px)";
-  ctx.globalAlpha = 0.75;
-  const mTop = Math.min(topSpace + 24, ah * 0.22);
-  stretchEdge(
-    ctx,
-    img,
-    { x: box.x, y: box.y, w: box.w, h: Math.max(4, box.h * 0.12) },
-    { x: ax, y: ay - mTop, w: aw, h: mTop },
-    "up",
-  );
-  const mBot = Math.min(Math.max(botSpace * 0.28, 48), ah * 0.18);
-  stretchEdge(
-    ctx,
-    img,
-    { x: box.x, y: box.y + box.h * 0.82, w: box.w, h: Math.max(4, box.h * 0.18) },
-    { x: ax, y: botY, w: aw, h: mBot },
-    "down",
-  );
-  ctx.restore();
+  // 3b. Layered bottom fill (atmospheric bands — not mirror, not single-row stretch)
+  fillBottomLayers(ctx, img, box, ax, aw, Math.min(botY, H * 0.55), H - Math.min(botY, H * 0.55));
 
-  // 3c. Painted habitat under the subject (replaces muddy mirrored reflection)
-  paintHabitat(ctx, topC, midC, botC, typeHex, hash(card.id + "hab"), botY - 20, W, H);
+  // 3c. Scenic habitat paint
+  paintHabitat(
+    ctx,
+    topC,
+    midC,
+    botC,
+    leftC,
+    rightC,
+    typeHex,
+    hash(card.id + "hab"),
+    Math.min(botY - 40, H * 0.52),
+    W,
+    H,
+  );
 
-  // Soft vignette (lighter than before — keep scene open)
-  const vg = ctx.createRadialGradient(W / 2, H * 0.38, W * 0.28, W / 2, H * 0.48, H * 0.78);
+  // Soft vignette
+  const vg = ctx.createRadialGradient(W / 2, H * 0.36, W * 0.25, W / 2, H * 0.46, H * 0.8);
   vg.addColorStop(0, "rgba(0,0,0,0)");
-  vg.addColorStop(1, "rgba(0,0,0,0.2)");
+  vg.addColorStop(1, "rgba(0,0,0,0.18)");
   ctx.fillStyle = vg;
   ctx.fillRect(0, 0, W, H);
 
-  // 4. sharp art with lighter feather so the creature isn't crushed into a soft blob
-  drawFeathered(ctx, img, box, { x: ax, y: ay, w: aw, h: ah }, 22);
+  // 4. Sharp hero art — light feather only at top; bottom stays crisp into habitat
+  drawFeathered(ctx, img, box, { x: ax, y: ay, w: aw, h: ah }, 18);
 
-  // Soft contact shadow under subject so it sits in the scene
+  // Contact shadow so the subject sits in the scene
   ctx.save();
-  const shY = Math.min(botY - 8, H * 0.72);
-  const sh = ctx.createRadialGradient(W / 2, shY, 10, W / 2, shY, aw * 0.42);
-  sh.addColorStop(0, "rgba(0,0,0,0.28)");
+  const shY = Math.min(ay + ah * 0.92, H * 0.78);
+  const sh = ctx.createRadialGradient(W / 2, shY, 8, W / 2, shY, aw * 0.4);
+  sh.addColorStop(0, "rgba(0,0,0,0.32)");
   sh.addColorStop(1, "rgba(0,0,0,0)");
   ctx.globalCompositeOperation = "multiply";
   ctx.fillStyle = sh;
-  ctx.fillRect(0, shY - 40, W, 120);
+  ctx.fillRect(0, shY - 50, W, 140);
   ctx.restore();
 
-  // 5. texture (edge-biased)
-  drawTexture(ctx, opts.style, hash(card.id + opts.style));
+  // Soft rim light suggestion around subject (premium pop)
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  ctx.globalAlpha = 0.12;
+  const rim = ctx.createRadialGradient(W / 2, ay + ah * 0.45, ah * 0.15, W / 2, ay + ah * 0.45, ah * 0.55);
+  rim.addColorStop(0, "rgba(0,0,0,0)");
+  rim.addColorStop(0.7, typeHex);
+  rim.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = rim;
+  ctx.fillRect(0, ay, W, ah);
+  ctx.restore();
 
-  // 6. frame + text
+  // 5. Edge-biased foil (keep face clean)
+  drawTexture(ctx, opts.style, hash(card.id + opts.style), 0.65);
+
+  // 6. Overlay
   drawOverlay(ctx, card, opts);
 
 }
