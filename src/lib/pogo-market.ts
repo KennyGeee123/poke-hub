@@ -63,6 +63,7 @@ export const POGO_SPECIES: PoGoSpecies[] = [
   { id: 250, name: "Ho-Oh", types: ["Fire", "Flying"], rarity: "legendary" },
   { id: 282, name: "Gardevoir", types: ["Psychic", "Fairy"], rarity: "rare" },
   { id: 373, name: "Salamence", types: ["Dragon", "Flying"], rarity: "rare" },
+  { id: 376, name: "Metagross", types: ["Steel", "Psychic"], rarity: "rare" },
   { id: 384, name: "Rayquaza", types: ["Dragon", "Flying"], rarity: "legendary" },
   { id: 445, name: "Garchomp", types: ["Dragon", "Ground"], rarity: "rare" },
   { id: 448, name: "Lucario", types: ["Fighting", "Steel"], rarity: "shiny_popular" },

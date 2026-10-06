@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import type { TCGCard } from "@/lib/pokemon-api";
 import { type CardGrade, ALL_GRADES, getGradeMeta } from "@/lib/card-grades";
 import {
@@ -6,13 +7,37 @@ import {
   createTradeItem,
   evaluateTradeFairness,
   saveTradeToLedger,
+  getTrainerDefaultOffer,
+  splitTrainerDisplayName,
   type TradeItem,
   type TradeParty,
   type TradeOffer,
+  type MockTrainer,
+  type TrainerDefaultOffer,
 } from "@/lib/p2p-trading";
 import { findSpecies, pogoSpriteUrl } from "@/lib/pogo-market";
 import { goAssetValue, gradeMockImg } from "@/lib/fair-trade-assets";
 import { P2PTradeBeamTransfer } from "./QuantumTransferAnimation";
+
+function applyOfferState(offer: TrainerDefaultOffer) {
+  return {
+    partnerCardName: offer.cardName,
+    partnerGrade: offer.grade,
+    partnerCash: offer.cash,
+    partnerKind: offer.kind,
+    partnerGoName: offer.goName || "Mewtwo",
+    partnerGoShiny: offer.goShiny ?? false,
+    partnerImageUrl: offer.imageUrl,
+    partnerPriceOverride: offer.marketPriceOverride,
+  };
+}
+
+/** Fallback chip avatar when remote trainer sprite fails to load. */
+function trainerAvatarFallback(name: string): string {
+  const letter = (name.trim()[0] || "?").toUpperCase();
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" rx="32" fill="#164e63"/><text x="32" y="40" text-anchor="middle" font-size="28" font-family="system-ui,sans-serif" fill="#67e8f9">${letter}</text></svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
 
 export function P2PTradingHubModal({
   initialCard,
@@ -23,38 +48,56 @@ export function P2PTradingHubModal({
   initialGrade?: CardGrade;
   onClose: () => void;
 }) {
-  const [selectedTrainer, setSelectedTrainer] = useState(MOCK_TRAINERS[0]);
+  const [selectedTrainer, setSelectedTrainer] = useState<MockTrainer>(MOCK_TRAINERS[0]);
   const [senderItem] = useState<TradeItem>(createTradeItem(initialCard, initialGrade, "card"));
   const [senderCash, setSenderCash] = useState<number>(0);
 
-  // Partner's counter card (mocking an exciting comparable card trade)
-  const [partnerCardName, setPartnerCardName] = useState<string>("Charizard VMAX (Shiny Secret)");
-  const [partnerGrade, setPartnerGrade] = useState<CardGrade>("psa9");
-  const [partnerCash, setPartnerCash] = useState<number>(0);
-  const [partnerKind, setPartnerKind] = useState<"card" | "go">("card");
-  const [partnerGoName, setPartnerGoName] = useState<string>("Mewtwo");
-  const [partnerGoShiny, setPartnerGoShiny] = useState(true);
+  const initialOffer = applyOfferState(MOCK_TRAINERS[0].defaultOffer);
+  const [partnerCardName, setPartnerCardName] = useState<string>(initialOffer.partnerCardName);
+  const [partnerGrade, setPartnerGrade] = useState<CardGrade>(initialOffer.partnerGrade);
+  const [partnerCash, setPartnerCash] = useState<number>(initialOffer.partnerCash);
+  const [partnerKind, setPartnerKind] = useState<"card" | "go">(initialOffer.partnerKind);
+  const [partnerGoName, setPartnerGoName] = useState<string>(initialOffer.partnerGoName);
+  const [partnerGoShiny, setPartnerGoShiny] = useState(initialOffer.partnerGoShiny);
+  const [partnerImageUrl, setPartnerImageUrl] = useState<string>(initialOffer.partnerImageUrl);
+  const [partnerPriceOverride, setPartnerPriceOverride] = useState<number | null>(
+    initialOffer.partnerPriceOverride,
+  );
 
   const [isTransferring, setIsTransferring] = useState<boolean>(false);
   const [tradeSuccess, setTradeSuccess] = useState<boolean>(false);
 
+  function selectTrainer(trainer: MockTrainer) {
+    setSelectedTrainer(trainer);
+    const next = applyOfferState(getTrainerDefaultOffer(trainer.id));
+    setPartnerCardName(next.partnerCardName);
+    setPartnerGrade(next.partnerGrade);
+    setPartnerCash(next.partnerCash);
+    setPartnerKind(next.partnerKind);
+    setPartnerGoName(next.partnerGoName);
+    setPartnerGoShiny(next.partnerGoShiny);
+    setPartnerImageUrl(next.partnerImageUrl);
+    setPartnerPriceOverride(next.partnerPriceOverride);
+  }
+
   // Synthesize partner item (TCG card or Pokémon GO creature)
+  // Prefer offer.imageUrl so switching trainers always remounts distinct artwork
+  // (seed initialCard art must not stick across Red → Cynthia → Blue → Steven).
   const goSpecies = findSpecies(partnerGoName)[0] || findSpecies("Mewtwo")[0];
+  const partnerArt =
+    partnerImageUrl ||
+    (partnerKind === "go" && goSpecies
+      ? pogoSpriteUrl(goSpecies.id)
+      : gradeMockImg(partnerGrade));
   const partnerMockCard: TCGCard = {
     ...initialCard,
-    id: partnerKind === "go" ? `go-mock-${goSpecies?.id || 150}` : "partner-mock-01",
-    name: partnerKind === "go" ? (goSpecies?.name || partnerGoName) : partnerCardName,
+    id: partnerKind === "go" ? `go-mock-${goSpecies?.id || 150}` : `partner-mock-${selectedTrainer.id}`,
+    name: partnerKind === "go" ? goSpecies?.name || partnerGoName : partnerCardName,
     hp: partnerKind === "go" ? String(goSpecies?.id || 150) : "330",
     rarity: partnerKind === "go" ? "Pokémon GO" : "Secret Rare",
     images: {
-      small:
-        partnerKind === "go" && goSpecies
-          ? pogoSpriteUrl(goSpecies.id)
-          : initialCard.images?.small || gradeMockImg(partnerGrade),
-      large:
-        partnerKind === "go" && goSpecies
-          ? pogoSpriteUrl(goSpecies.id)
-          : initialCard.images?.large || gradeMockImg(partnerGrade),
+      small: partnerArt,
+      large: partnerArt,
     },
   };
   const receiverItem = createTradeItem(
@@ -63,7 +106,6 @@ export function P2PTradingHubModal({
     partnerKind === "go" ? "game_pokemon" : "card",
   );
   if (partnerKind === "go" && goSpecies) {
-    // Override market with name-keyed GO / eBay value (shiny bonus).
     receiverItem.marketPrice = goAssetValue(goSpecies, {
       shiny: partnerGoShiny,
       lucky: false,
@@ -71,11 +113,14 @@ export function P2PTradingHubModal({
     });
     receiverItem.grade = "raw";
   }
+  if (partnerPriceOverride != null && partnerPriceOverride > 0) {
+    receiverItem.marketPrice = partnerPriceOverride;
+  }
 
   const senderParty: TradeParty = {
     id: "user-party",
     name: "You (Vault Master)",
-    avatar: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/101.png",
+    avatar: "https://play.pokemonshowdown.com/sprites/trainers/youngster-gen4dp.png",
     reputation: 100.0,
     completedTrades: 84,
     items: [senderItem],
@@ -84,7 +129,11 @@ export function P2PTradingHubModal({
   };
 
   const receiverParty: TradeParty = {
-    ...selectedTrainer,
+    id: selectedTrainer.id,
+    name: selectedTrainer.name,
+    avatar: selectedTrainer.avatar,
+    reputation: selectedTrainer.reputation,
+    completedTrades: selectedTrainer.completedTrades,
     items: [receiverItem],
     cashSweetener: partnerCash,
     isReady: true,
@@ -113,9 +162,21 @@ export function P2PTradingHubModal({
     saveTradeToLedger(completedTrade);
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-6 overflow-y-auto animate-fade-in">
-      {/* Visual P2P Quantum Beam Animation */}
+  const selectedDisplay = splitTrainerDisplayName(selectedTrainer.name);
+
+  const modal = (
+    <div
+      className="fixed inset-0 z-[130] flex items-start sm:items-center justify-center bg-black/85 backdrop-blur-md overflow-y-auto animate-fade-in"
+      style={{
+        paddingTop: "max(12px, env(safe-area-inset-top, 0px))",
+        paddingBottom: "calc(var(--pv-tabbar-h, 84px) + var(--pv-safe-b, 0px) + 16px)",
+        paddingLeft: 12,
+        paddingRight: 12,
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Peer-to-Peer Pokémon Trading Hub"
+    >
       <P2PTradeBeamTransfer
         isActive={isTransferring}
         onComplete={handleTransferFinished}
@@ -123,23 +184,23 @@ export function P2PTradingHubModal({
         receiverCardName={`${receiverItem.card.name} (${receiverItem.grade.toUpperCase()})`}
       />
 
-      <div className="relative w-full max-w-4xl rounded-2xl bg-neutral-900 border border-neutral-700/80 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="relative w-full max-w-4xl my-2 sm:my-4 rounded-2xl bg-neutral-900 border border-neutral-700/80 shadow-2xl overflow-hidden flex flex-col max-h-[min(92vh,calc(100dvh-var(--pv-tabbar-h,84px)-48px))]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-800 bg-neutral-950/70">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-neutral-800 bg-neutral-950/70 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 shrink-0">
               🔄
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-white tracking-wide">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-base sm:text-lg font-bold text-white tracking-wide truncate">
                   Peer-to-Peer (P2P) Pokémon Trading Hub
                 </h2>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
                   ATOMIC ZERO-COLLISION
                 </span>
               </div>
-              <p className="text-xs text-neutral-400 font-mono">
+              <p className="text-xs text-neutral-400 font-mono truncate">
                 Card ↔ card, GO ↔ GO, or mixed — grade ladders + name-keyed GO/eBay values
               </p>
             </div>
@@ -148,14 +209,15 @@ export function P2PTradingHubModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition"
+            className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition shrink-0"
+            aria-label="Close"
           >
             ✕
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto flex-1 flex flex-col gap-6">
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 flex flex-col gap-6 min-h-0">
           {tradeSuccess ? (
             <div className="p-8 rounded-2xl bg-emerald-950/30 border border-emerald-500/40 text-center flex flex-col items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-3xl">
@@ -180,31 +242,79 @@ export function P2PTradingHubModal({
           ) : (
             <>
               {/* Partner Select Bar */}
-              <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800 flex flex-wrap items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
+              <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800 flex flex-col gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <span className="text-xs font-mono text-neutral-400">Select Peer Partner:</span>
-                  <div className="flex gap-2">
-                    {MOCK_TRAINERS.map((trainer) => (
+                  <div className="text-xs font-mono text-neutral-400">
+                    Reputation:{" "}
+                    <span className="text-emerald-400 font-bold">{selectedTrainer.reputation}%</span>{" "}
+                    ({selectedTrainer.completedTrades} trades)
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {MOCK_TRAINERS.map((trainer) => {
+                    const d = splitTrainerDisplayName(trainer.name);
+                    const on = selectedTrainer.id === trainer.id;
+                    return (
                       <button
                         key={trainer.id}
                         type="button"
-                        onClick={() => setSelectedTrainer(trainer)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                          selectedTrainer.id === trainer.id
+                        onClick={() => selectTrainer(trainer)}
+                        className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left transition max-w-full ${
+                          on
                             ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
-                            : "bg-neutral-900 text-neutral-400 hover:bg-neutral-800"
+                            : "bg-neutral-900 text-neutral-400 hover:bg-neutral-800 border border-transparent"
                         }`}
+                        title={trainer.name}
                       >
-                        {trainer.name.split(" ")[0]}
+                        <img
+                          src={trainer.avatar}
+                          alt=""
+                          width={28}
+                          height={28}
+                          className="w-7 h-7 rounded-full bg-neutral-800 object-contain border border-neutral-700 shrink-0"
+                          data-trainer-avatar={trainer.id}
+                          onError={(e) => {
+                            const el = e.currentTarget as HTMLImageElement;
+                            if (el.dataset.fallbackApplied) return;
+                            el.dataset.fallbackApplied = "1";
+                            el.src = trainerAvatarFallback(trainer.name);
+                          }}
+                        />
+                        <span className="min-w-0">
+                          <span className="block text-xs font-semibold leading-tight truncate">
+                            {d.primary}
+                          </span>
+                          {d.subtitle ? (
+                            <span className="block text-[10px] text-neutral-500 leading-tight truncate">
+                              {d.subtitle}
+                            </span>
+                          ) : null}
+                        </span>
                       </button>
-                    ))}
-                  </div>
+                    );
+                  })}
                 </div>
-
-                <div className="text-xs font-mono text-neutral-400">
-                  Reputation:{" "}
-                  <span className="text-emerald-400 font-bold">{selectedTrainer.reputation}%</span>{" "}
-                  ({selectedTrainer.completedTrades} trades)
+                <div className="flex items-center gap-2 text-[11px] font-mono text-neutral-500">
+                  <img
+                    src={selectedTrainer.avatar}
+                    alt=""
+                    width={20}
+                    height={20}
+                    className="w-5 h-5 rounded-full bg-neutral-800 object-contain"
+                    key={`sel-av-${selectedTrainer.id}`}
+                    onError={(e) => {
+                      const el = e.currentTarget as HTMLImageElement;
+                      if (el.dataset.fallbackApplied) return;
+                      el.dataset.fallbackApplied = "1";
+                      el.src = trainerAvatarFallback(selectedTrainer.name);
+                    }}
+                  />
+                  Trading with{" "}
+                  <span className="text-neutral-300 font-semibold">{selectedDisplay.primary}</span>
+                  {selectedDisplay.subtitle ? (
+                    <span className="text-neutral-500">· {selectedDisplay.subtitle}</span>
+                  ) : null}
                 </div>
               </div>
 
@@ -221,7 +331,6 @@ export function P2PTradingHubModal({
                     </span>
                   </div>
 
-                  {/* Card Details & Stats */}
                   <div className="flex gap-4 items-center">
                     <img
                       src={senderItem.card.images.small}
@@ -243,7 +352,6 @@ export function P2PTradingHubModal({
                         <span>#{senderItem.card.number}</span>
                       </div>
 
-                      {/* Level & Boost Badges */}
                       <div className="flex items-center gap-2 mt-2">
                         <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500 text-white font-mono">
                           Lv. {senderItem.stats.level}
@@ -258,7 +366,6 @@ export function P2PTradingHubModal({
                     </div>
                   </div>
 
-                  {/* Cash Sweetener Input */}
                   <div className="pt-3 border-t border-neutral-800 flex items-center justify-between text-xs font-mono">
                     <span className="text-neutral-400">Cash Sweetener ($ USD):</span>
                     <input
@@ -283,9 +390,9 @@ export function P2PTradingHubModal({
                     </span>
                   </div>
 
-                  {/* Partner Card Select / Customize */}
                   <div className="flex gap-4 items-center">
                     <img
+                      key={`partner-art-${selectedTrainer.id}-${partnerKind}-${partnerCardName}-${partnerGoName}`}
                       src={receiverItem.card.images.small}
                       alt={receiverItem.card.name}
                       className="w-20 h-28 object-contain rounded-lg border border-neutral-700 bg-black shadow"
@@ -293,8 +400,12 @@ export function P2PTradingHubModal({
                     <div className="flex-1">
                       <input
                         type="text"
-                        value={partnerCardName}
-                        onChange={(e) => setPartnerCardName(e.target.value)}
+                        value={partnerKind === "go" ? partnerGoName : partnerCardName}
+                        onChange={(e) => {
+                          setPartnerPriceOverride(null);
+                          if (partnerKind === "go") setPartnerGoName(e.target.value);
+                          else setPartnerCardName(e.target.value);
+                        }}
                         className="font-bold text-white text-sm bg-neutral-900 px-2 py-1 rounded border border-neutral-700 w-full mb-1"
                       />
 
@@ -302,7 +413,10 @@ export function P2PTradingHubModal({
                         <div className="flex gap-1">
                           <button
                             type="button"
-                            onClick={() => setPartnerKind("card")}
+                            onClick={() => {
+                              setPartnerKind("card");
+                              setPartnerPriceOverride(null);
+                            }}
                             className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                               partnerKind === "card"
                                 ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
@@ -313,7 +427,10 @@ export function P2PTradingHubModal({
                           </button>
                           <button
                             type="button"
-                            onClick={() => setPartnerKind("go")}
+                            onClick={() => {
+                              setPartnerKind("go");
+                              setPartnerPriceOverride(null);
+                            }}
                             className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                               partnerKind === "go"
                                 ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
@@ -326,7 +443,10 @@ export function P2PTradingHubModal({
                         {partnerKind === "card" ? (
                           <select
                             value={partnerGrade}
-                            onChange={(e) => setPartnerGrade(e.target.value as CardGrade)}
+                            onChange={(e) => {
+                              setPartnerGrade(e.target.value as CardGrade);
+                              setPartnerPriceOverride(null);
+                            }}
                             className="text-xs font-mono bg-neutral-900 border border-neutral-700 rounded px-2 py-0.5 text-neutral-300"
                           >
                             {ALL_GRADES.map((g) => (
@@ -340,7 +460,10 @@ export function P2PTradingHubModal({
                             <input
                               type="text"
                               value={partnerGoName}
-                              onChange={(e) => setPartnerGoName(e.target.value)}
+                              onChange={(e) => {
+                                setPartnerGoName(e.target.value);
+                                setPartnerPriceOverride(null);
+                              }}
                               className="text-xs font-mono bg-neutral-900 border border-neutral-700 rounded px-2 py-0.5 text-neutral-300 w-28"
                               placeholder="Species"
                             />
@@ -348,7 +471,10 @@ export function P2PTradingHubModal({
                               <input
                                 type="checkbox"
                                 checked={partnerGoShiny}
-                                onChange={(e) => setPartnerGoShiny(e.target.checked)}
+                                onChange={(e) => {
+                                  setPartnerGoShiny(e.target.checked);
+                                  setPartnerPriceOverride(null);
+                                }}
                               />
                               Shiny
                             </label>
@@ -356,7 +482,6 @@ export function P2PTradingHubModal({
                         )}
                       </div>
 
-                      {/* Level & Boost Badges */}
                       <div className="flex items-center gap-2 mt-2">
                         <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500 text-white font-mono">
                           Lv. {receiverItem.stats.level}
@@ -371,7 +496,6 @@ export function P2PTradingHubModal({
                     </div>
                   </div>
 
-                  {/* Partner Cash Sweetener */}
                   <div className="pt-3 border-t border-neutral-800 flex items-center justify-between text-xs font-mono">
                     <span className="text-neutral-400">Partner Cash Added ($):</span>
                     <input
@@ -428,14 +552,14 @@ export function P2PTradingHubModal({
           )}
         </div>
 
-        {/* Footer */}
+        {/* Footer — stays inside modal, above tabbar via overlay padding */}
         {!tradeSuccess && (
-          <div className="px-6 py-4 border-t border-neutral-800 bg-neutral-950 flex items-center justify-between">
-            <span className="text-xs text-neutral-400 font-mono">
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-neutral-800 bg-neutral-950 flex items-center justify-between gap-3 shrink-0">
+            <span className="text-xs text-neutral-400 font-mono hidden sm:inline">
               ⚡ Atomic Collision-Free Quantum Protocol Active
             </span>
 
-            <div className="flex gap-3">
+            <div className="flex gap-3 ml-auto">
               <button
                 type="button"
                 onClick={onClose}
@@ -456,4 +580,7 @@ export function P2PTradingHubModal({
       </div>
     </div>
   );
+
+  if (typeof document === "undefined") return modal;
+  return createPortal(modal, document.body);
 }

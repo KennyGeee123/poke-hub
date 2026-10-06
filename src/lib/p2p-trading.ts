@@ -40,36 +40,105 @@ export type TradeOffer = {
   suggestedSweetener: number;
 };
 
-export const MOCK_TRAINERS: Omit<TradeParty, "items" | "cashSweetener" | "isReady">[] = [
+/** Default partner-side offer when a mock trainer is selected in the P2P hub. */
+export type TrainerDefaultOffer = {
+  kind: "card" | "go";
+  cardName: string;
+  grade: CardGrade;
+  cash: number;
+  goName?: string;
+  goShiny?: boolean;
+  /** Partner card / GO artwork URL — must change when the trainer (offer) changes. */
+  imageUrl: string;
+  /** Fixed USD so each trainer's total differs even when the seed card price is shared. */
+  marketPriceOverride: number;
+};
+
+export type MockTrainer = Omit<TradeParty, "items" | "cashSweetener" | "isReady"> & {
+  defaultOffer: TrainerDefaultOffer;
+};
+
+export const MOCK_TRAINERS: MockTrainer[] = [
   {
     id: "trainer-red",
     name: "Red (Champion Navi)",
-    avatar: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/1.png",
+    // PokeAPI /sprites/trainers/*.png 404 — Showdown trainer sprites are reliable.
+    avatar: "https://play.pokemonshowdown.com/sprites/trainers/red.png",
     reputation: 99.8,
     completedTrades: 342,
+    defaultOffer: {
+      kind: "card",
+      cardName: "Charizard VMAX (Shiny Secret)",
+      grade: "psa9",
+      cash: 0,
+      imageUrl:
+        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png",
+      marketPriceOverride: 312.5,
+    },
   },
   {
     id: "trainer-cynthia",
     name: "Cynthia (Sinnoh Master)",
-    avatar: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/92.png",
+    avatar: "https://play.pokemonshowdown.com/sprites/trainers/cynthia.png",
     reputation: 100.0,
     completedTrades: 512,
+    defaultOffer: {
+      kind: "card",
+      cardName: "Giratina VSTAR (Gold Secret)",
+      grade: "psa10",
+      cash: 40,
+      imageUrl:
+        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/487.png",
+      marketPriceOverride: 485.0,
+    },
   },
   {
     id: "trainer-blue",
     name: "Blue (Viridian Gym)",
-    avatar: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/2.png",
+    avatar: "https://play.pokemonshowdown.com/sprites/trainers/blue.png",
     reputation: 98.9,
     completedTrades: 218,
+    defaultOffer: {
+      kind: "card",
+      cardName: "Blastoise ex (Obsidian Flames)",
+      grade: "raw_nm",
+      cash: 15,
+      imageUrl:
+        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/9.png",
+      marketPriceOverride: 68.4,
+    },
   },
   {
     id: "trainer-steven",
     name: "Steven Stone (Hoenn Vault)",
-    avatar: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/87.png",
+    avatar: "https://play.pokemonshowdown.com/sprites/trainers/steven.png",
     reputation: 99.9,
     completedTrades: 429,
+    defaultOffer: {
+      kind: "go",
+      cardName: "Metagross",
+      grade: "raw",
+      cash: 0,
+      goName: "Metagross",
+      goShiny: true,
+      imageUrl:
+        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/376.png",
+      marketPriceOverride: 142.0,
+    },
   },
 ];
+
+export function getTrainerDefaultOffer(trainerId: string): TrainerDefaultOffer {
+  const t = MOCK_TRAINERS.find((x) => x.id === trainerId);
+  return t?.defaultOffer ?? MOCK_TRAINERS[0].defaultOffer;
+}
+
+/** Display helpers for trainer chips (full name + parenthetical subtitle). */
+export function splitTrainerDisplayName(name: string): { primary: string; subtitle: string | null } {
+  const m = name.match(/^(.+?)\s*\((.+)\)\s*$/);
+  if (m) return { primary: m[1].trim(), subtitle: m[2].trim() };
+  return { primary: name, subtitle: null };
+}
 
 export function createTradeItem(
   card: TCGCard,

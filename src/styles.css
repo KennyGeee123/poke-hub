@@ -660,6 +660,9 @@
   border: 1px solid rgba(255, 255, 255, 0.35);
   cursor: pointer;
   line-height: 1.2;
+  position: relative;
+  z-index: 6;
+  pointer-events: auto;
 }
 .pv-tile-tool-scan {
   background: rgba(14, 165, 233, 0.92);
@@ -6705,8 +6708,25 @@ footer,
   border-radius: 12px;
 }
 
-/* Art Navis: extra chrome collapsed until hover — caption (name/price) always visible. */
-.pv-card-tools,
+/* Round-3: Trade/Scan always hittable (not hover-gated). Tools sit OUTSIDE
+   .pv-card-open (role=button) so clicks never call onOpen → card detail.
+   Meta badges + grade still collapse until hover/focus-within. */
+.pv-card-tools {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  max-height: 72px;
+  opacity: 1;
+  overflow: visible;
+  margin-top: 4px !important;
+  pointer-events: auto;
+  position: relative;
+  z-index: 8;
+}
+.pv-card-tools .pv-tile-tool {
+  pointer-events: auto;
+  z-index: 8;
+}
 .pv-card-meta-badges,
 .pv-card-grade {
   max-height: 0;
@@ -6718,8 +6738,6 @@ footer,
     opacity 0.18s ease,
     max-height 0.18s ease;
 }
-.pv-card-wrap:hover .pv-card-tools,
-.pv-card-wrap:focus-within .pv-card-tools,
 .pv-card-wrap:hover .pv-card-meta-badges,
 .pv-card-wrap:focus-within .pv-card-meta-badges,
 .pv-card-wrap:hover .pv-card-grade,
@@ -6727,6 +6745,23 @@ footer,
   max-height: 72px;
   opacity: 1;
   pointer-events: auto;
+}
+/* Touch / no-hover: also expose grade chrome */
+@media (hover: none), (pointer: coarse) {
+  .pv-card-grade {
+    max-height: 72px;
+    opacity: 1;
+    pointer-events: auto;
+    margin-top: 2px !important;
+  }
+}
+/* Open-detail region only — cursor/press; tools are siblings */
+.pv-card-open {
+  cursor: pointer;
+  outline: none;
+}
+.pv-card-wrap {
+  cursor: default;
 }
 .pv-card-img-wrap {
   box-shadow: 0 4px 12px rgba(11, 18, 32, 0.28);

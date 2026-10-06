@@ -151,195 +151,208 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
         ? "market"
         : null;
 
+  function openDetail() {
+    if (showTradeModal || showScanModal) return;
+    rememberCard(card);
+    onClick(card);
+  }
+
   return (
     <div
-      className="pv-card-wrap pv-card-press"
-      onClick={() => {
-        rememberCard(card);
-        onClick(card);
-      }}
+      className="pv-card-wrap"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onFocus={() => setHovered(true)}
       onBlur={() => setHovered(false)}
       style={{ position: "relative" }}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          rememberCard(card);
-          onClick(card);
-        }
-      }}
     >
-      <div className="pv-card-img-wrap" style={{ position: "relative" }}>
-        {!loaded && <div className="pv-card-skel" />}
-        <img
-          ref={art.ref}
-          className={`pv-card-img ${loaded ? "loaded" : ""}`}
-          src={art.src}
-          alt={art.pending ? `${card.name} — art pending` : card.name}
-          loading={eager ? "eager" : "lazy"}
-          fetchPriority={eager ? "high" : "auto"}
-          decoding="async"
-          data-art-pending={art.pending ? "1" : undefined}
-          onLoad={art.onLoad}
-          onError={art.onError}
-        />
-        {hovered ? <CardSpriteOverlay card={card} size={112} show eager={false} /> : null}
-        {card.lang && card.lang !== "en" && (
-          <div className="pv-lang-b" title={printLangMeta(card.lang).name}>
-            {printLangMeta(card.lang).label}
-          </div>
-        )}
-        {isShadowless && (
-          <div
-            className="pv-var-b"
-            title="Base Set Shadowless"
-            style={card.lang && card.lang !== "en" ? { left: 44 } : undefined}
-          >
-            SL
-          </div>
-        )}
-        {isError && (
-          <div className="pv-err-b" title="Error / misprint">
-            ERR
-          </div>
-        )}
-        {qty && qty > 1 ? <div className="pv-qty-b">×{qty}</div> : null}
-        {onRemove && (
-          <button
-            className="pv-rm-b"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove();
-            }}
-            aria-label="Remove"
-          >
-            ×
-          </button>
-        )}
-      </div>
+      {/* Open-detail hit target: image + caption only — Trade/Scan/grade live OUTSIDE */}
+      <div
+        className="pv-card-open pv-card-press"
+        role="button"
+        tabIndex={0}
+        onClick={openDetail}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openDetail();
+          }
+        }}
+      >
+        <div className="pv-card-img-wrap" style={{ position: "relative" }}>
+          {!loaded && <div className="pv-card-skel" />}
+          <img
+            ref={art.ref}
+            className={`pv-card-img ${loaded ? "loaded" : ""}`}
+            src={art.src}
+            alt={art.pending ? `${card.name} — art pending` : card.name}
+            loading={eager ? "eager" : "lazy"}
+            fetchPriority={eager ? "high" : "auto"}
+            decoding="async"
+            data-art-pending={art.pending ? "1" : undefined}
+            onLoad={art.onLoad}
+            onError={art.onError}
+          />
+          {hovered ? <CardSpriteOverlay card={card} size={112} show eager={false} /> : null}
+          {card.lang && card.lang !== "en" && (
+            <div className="pv-lang-b" title={printLangMeta(card.lang).name}>
+              {printLangMeta(card.lang).label}
+            </div>
+          )}
+          {isShadowless && (
+            <div
+              className="pv-var-b"
+              title="Base Set Shadowless"
+              style={card.lang && card.lang !== "en" ? { left: 44 } : undefined}
+            >
+              SL
+            </div>
+          )}
+          {isError && (
+            <div className="pv-err-b" title="Error / misprint">
+              ERR
+            </div>
+          )}
+          {qty && qty > 1 ? <div className="pv-qty-b">×{qty}</div> : null}
+          {onRemove && (
+            <button
+              className="pv-rm-b"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove();
+              }}
+              aria-label="Remove"
+            >
+              ×
+            </button>
+          )}
+        </div>
 
-      <div className="pv-card-caption">
-        <div className="pv-c-name" title={card.name}>
-          {card.name}
-        </div>
-        <div className="pv-c-set" title={setLine}>
-          {setLine}
-        </div>
-        <div className="pv-c-price-row">
-          <div className="pv-c-price">
-            {displayPrice ? (
-              formatPrice(displayPrice)
-            ) : pricePending ? (
-              <span className="pv-price-pending" title="Prices pending — new set">
-                Pending
+        <div className="pv-card-caption">
+          <div className="pv-c-name" title={card.name}>
+            {card.name}
+          </div>
+          <div className="pv-c-set" title={setLine}>
+            {setLine}
+          </div>
+          <div className="pv-c-price-row">
+            <div className="pv-c-price">
+              {displayPrice ? (
+                formatPrice(displayPrice)
+              ) : pricePending ? (
+                <span className="pv-price-pending" title="Prices pending — new set">
+                  Pending
+                </span>
+              ) : (
+                "—"
+              )}
+            </div>
+            {priceLabel ? <span className="pv-c-price-lbl">{priceLabel}</span> : null}
+            {isGold ? (
+              <span className="pv-gold-chip" title="Gold / Hyper / Secret Rare">
+                GOLD
               </span>
-            ) : (
-              "—"
-            )}
+            ) : null}
           </div>
-          {priceLabel ? <span className="pv-c-price-lbl">{priceLabel}</span> : null}
-          {isGold ? (
-            <span className="pv-gold-chip" title="Gold / Hyper / Secret Rare">
-              GOLD
+
+          <div className="pv-card-meta-badges">
+            <span
+              className="pv-grade-chip"
+              style={{
+                background: gradeMeta.badgeBg,
+                color: gradeMeta.badgeText,
+                borderColor: `${gradeMeta.badgeText}66`,
+              }}
+            >
+              {gradeMeta.shortLabel}
             </span>
-          ) : null}
-        </div>
-
-        <div className="pv-card-meta-badges">
-          <span
-            className="pv-grade-chip"
-            style={{
-              background: gradeMeta.badgeBg,
-              color: gradeMeta.badgeText,
-              borderColor: `${gradeMeta.badgeText}66`,
-            }}
-          >
-            {gradeMeta.shortLabel}
-          </span>
-          <span className="pv-lvl-chip">
-            Lv.{stats.level} · +{stats.totalBoostPercent}%
-          </span>
-        </div>
-
-        <div className="pv-card-tools">
-          <button
-            type="button"
-            className="pv-tile-tool pv-tile-tool-scan"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowScanModal(true);
-            }}
-            title="Launch Dual-Sided Quantum AI Pre-Grade Scanner"
-          >
-            🔬 Scan
-          </button>
-          <button
-            type="button"
-            className="pv-tile-tool pv-tile-tool-trade"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowTradeModal(true);
-            }}
-            title="Propose P2P Card / Game Pokémon Trade"
-          >
-            🔄 Trade
-          </button>
-        </div>
-
-        <div className="pv-card-grade" onClick={(e) => e.stopPropagation()}>
-          <select
-            value={grade}
-            onChange={(e) => {
-              e.stopPropagation();
-              setGrade(e.target.value as CardGrade);
-            }}
-            style={{
-              width: "100%",
-              background: "rgba(10, 15, 29, 0.95)",
-              color: gradeMeta.isSlab ? "#fbbf24" : "var(--t1)",
-              border: gradeMeta.isSlab
-                ? "1px solid rgba(251, 191, 36, 0.5)"
-                : "1px solid var(--brd)",
-              borderRadius: 5,
-              fontSize: 10,
-              fontFamily: "var(--mono, monospace)",
-              padding: "3px 4px",
-              cursor: "pointer",
-              outline: "none",
-            }}
-            title="Select Graded Slab or Ungraded Condition"
-          >
-            <optgroup label="📋 UNGRADED CONDITIONS">
-              {UNGRADED_QUALITIES.map((g) => {
-                const gm = getGradeMeta(g);
-                const gVal = calculateGradedValue(priced, g);
-                return (
-                  <option key={g} value={g}>
-                    {gm.shortLabel} ·{" "}
-                    {gVal.estimatedGradedPrice > 0 ? formatPrice(gVal.estimatedGradedPrice) : "—"}
-                  </option>
-                );
-              })}
-            </optgroup>
-            <optgroup label="🏆 GRADED SLABS">
-              {GRADED_SLABS.map((g) => {
-                const gm = getGradeMeta(g);
-                const gVal = calculateGradedValue(priced, g);
-                return (
-                  <option key={g} value={g}>
-                    {gm.shortLabel} ·{" "}
-                    {gVal.estimatedGradedPrice > 0 ? formatPrice(gVal.estimatedGradedPrice) : "—"}
-                  </option>
-                );
-              })}
-            </optgroup>
-          </select>
+            <span className="pv-lvl-chip">
+              Lv.{stats.level} · +{stats.totalBoostPercent}%
+            </span>
+          </div>
         </div>
       </div>
+
+      {/* Tools OUTSIDE role=button open region — clicks never call onOpen */}
+      <div className="pv-card-tools">
+        <button
+          type="button"
+          className="pv-tile-tool pv-tile-tool-scan"
+          data-pv-suppress-open="1"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setShowScanModal(true);
+          }}
+          title="Launch Dual-Sided Quantum AI Pre-Grade Scanner"
+        >
+          🔬 Scan
+        </button>
+        <button
+          type="button"
+          className="pv-tile-tool pv-tile-tool-trade"
+          data-pv-suppress-open="1"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setShowTradeModal(true);
+          }}
+          title="Propose P2P Card / Game Pokémon Trade"
+        >
+          🔄 Trade
+        </button>
+      </div>
+
+      <div className="pv-card-grade">
+        <select
+          value={grade}
+          onChange={(e) => {
+            e.stopPropagation();
+            setGrade(e.target.value as CardGrade);
+          }}
+          style={{
+            width: "100%",
+            background: "rgba(10, 15, 29, 0.95)",
+            color: gradeMeta.isSlab ? "#fbbf24" : "var(--t1)",
+            border: gradeMeta.isSlab
+              ? "1px solid rgba(251, 191, 36, 0.5)"
+              : "1px solid var(--brd)",
+            borderRadius: 5,
+            fontSize: 10,
+            fontFamily: "var(--mono, monospace)",
+            padding: "3px 4px",
+            cursor: "pointer",
+            outline: "none",
+          }}
+          title="Select Graded Slab or Ungraded Condition"
+        >
+          <optgroup label="📋 UNGRADED CONDITIONS">
+            {UNGRADED_QUALITIES.map((g) => {
+              const gm = getGradeMeta(g);
+              const gVal = calculateGradedValue(priced, g);
+              return (
+                <option key={g} value={g}>
+                  {gm.shortLabel} ·{" "}
+                  {gVal.estimatedGradedPrice > 0 ? formatPrice(gVal.estimatedGradedPrice) : "—"}
+                </option>
+              );
+            })}
+          </optgroup>
+          <optgroup label="🏆 GRADED SLABS">
+            {GRADED_SLABS.map((g) => {
+              const gm = getGradeMeta(g);
+              const gVal = calculateGradedValue(priced, g);
+              return (
+                <option key={g} value={g}>
+                  {gm.shortLabel} ·{" "}
+                  {gVal.estimatedGradedPrice > 0 ? formatPrice(gVal.estimatedGradedPrice) : "—"}
+                </option>
+              );
+            })}
+          </optgroup>
+        </select>
+      </div>
+
       {showScanModal && (
         <VisualGradeScannerModal
           card={card}
