@@ -17,8 +17,10 @@ import {
 import { getCardLevelAndStats } from "@/lib/card-stats";
 import {
   applyLiveQuote,
+  cachedLivePrice,
   cachedLivePriceSource,
   useLivePrice,
+  usePriceLoading,
   usePricePending,
 } from "@/lib/live-prices";
 
@@ -114,6 +116,7 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
 
   const live = useLivePrice(card);
   const pricePending = usePricePending(card);
+  const priceLoading = usePriceLoading(card);
   const priced = live > 0 ? applyLiveQuote(card, live) : card;
   const gradedVal = calculateGradedValue(priced, grade);
   const gradeMeta = getGradeMeta(grade);
@@ -242,6 +245,10 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
               ) : pricePending ? (
                 <span className="pv-price-pending" title="Prices pending — new set">
                   Pending
+                </span>
+              ) : priceLoading ? (
+                <span className="pv-price-pending" title="Fetching live market">
+                  …
                 </span>
               ) : (
                 "—"
@@ -405,6 +412,8 @@ export function CardActions({
   onAfterAction?: (m: string) => void;
 }) {
   const { inVault, inWish, addToVault, toggleWish } = useVault();
+  const live = useLivePrice(card);
+  const priced = live > 0 ? applyLiveQuote(card, live) : card;
   const v = inVault(card.id),
     w = inWish(card.id);
   return (
@@ -413,7 +422,10 @@ export function CardActions({
         className={`pv-btn pv-btn-fill ${v ? "yes" : ""} flex-1`}
         onClick={(e) => {
           e.stopPropagation();
-          addToVault(card);
+          // Persist live market onto the vault copy so header total ≠ $0.00
+          // when the tile already showed a real quote.
+          const liveNow = cachedLivePrice(card.id) || live;
+          addToVault(liveNow > 0 ? applyLiveQuote(card, liveNow) : priced);
           onAfterAction?.(v ? "Added another" : "Added to vault");
         }}
       >

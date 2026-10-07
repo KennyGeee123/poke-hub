@@ -25,7 +25,7 @@ import { PrintLangBar } from "./PrintLangBar";
 import { EmptyState, ErrorState, SkeletonRows, withTimeout } from "./ui";
 import { searchChips, searchPlaceholder, usePrintLang } from "@/lib/print-lang";
 import { cardSearchScore, parseSearchQuery } from "@/lib/card-search";
-import { hydrateLivePrices, useLivePrice } from "@/lib/live-prices";
+import { hydrateLivePrices, useLivePrice, vaultUnitPrice } from "@/lib/live-prices";
 
 const FullArtGallery = lazy(() =>
   import("./FullArtStudio").then((m) => ({ default: m.FullArtGallery })),
@@ -1240,14 +1240,14 @@ export function VaultView({ onOpen }: { onOpen: OnOpen }) {
                 </div>
                 <div className="pv-latest-price">
                   <div className="pv-latest-price-v">
-                    {formatPrice(getMarketPrice(e.card) * e.qty)}
+                    {formatPrice(vaultUnitPrice(e.card) * e.qty)}
                   </div>
                   <div className="pv-latest-price-q">
-                    ×{e.qty} @ {formatPrice(getMarketPrice(e.card))}
+                    ×{e.qty} @ {formatPrice(vaultUnitPrice(e.card))}
                   </div>
                   <CheapestPill
                     query={`${e.card.name} ${e.card.set.name} ${e.card.number}`}
-                    marketPrice={getMarketPrice(e.card)}
+                    marketPrice={vaultUnitPrice(e.card)}
                     cardId={e.card.id}
                   />
                 </div>

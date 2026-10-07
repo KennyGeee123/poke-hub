@@ -5,7 +5,7 @@ import { markdownUrlTransform } from "@/lib/safe-url";
 import { useServerFn } from "@tanstack/react-start";
 import { analyzeCollection } from "@/lib/insights.functions";
 import { useVault, formatPrice } from "@/lib/vault";
-import { getMarketPrice } from "@/lib/pokemon-api";
+import { vaultUnitPrice } from "@/lib/live-prices";
 
 export function CollectionInsightsCard() {
   const { vault, totalValue, totalCards } = useVault();
@@ -29,7 +29,7 @@ export function CollectionInsightsCard() {
           set: e.card.set.name,
           rarity: e.card.rarity,
           qty: e.qty,
-          price: Math.round(getMarketPrice(e.card) * 100) / 100,
+          price: Math.round(vaultUnitPrice(e.card) * 100) / 100,
           types: e.card.types,
         }))
         .sort((a, b) => b.price * b.qty - a.price * a.qty)

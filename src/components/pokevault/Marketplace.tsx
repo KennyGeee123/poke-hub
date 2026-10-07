@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { hdImg } from "@/lib/card-images";
 import { useVault, formatPrice } from "@/lib/vault";
 import { getMarketPrice, searchCards, type TCGCard } from "@/lib/pokemon-api";
+import { vaultUnitPrice, hydrateLivePrices } from "@/lib/live-prices";
 
 // ---------- Marketplace link builders ----------
 // Every link below opens a real, prefilled search/listing page on the target
@@ -119,9 +120,12 @@ const MARKETS: MP[] = [
 export function SellView() {
   const { vault, totalValue } = useVault();
   const entries = Object.values(vault).sort(
-    (a, b) => getMarketPrice(b.card) - getMarketPrice(a.card),
+    (a, b) => vaultUnitPrice(b.card) - vaultUnitPrice(a.card),
   );
   const [openId, setOpenId] = useState<string | null>(null);
+  useEffect(() => {
+    hydrateLivePrices(entries.map((e) => e.card));
+  }, [entries.length]);
 
   const summary = useMemo(() => {
     const count = entries.reduce((s, e) => s + e.qty, 0);
@@ -193,7 +197,7 @@ export function SellView() {
 
       <div className="pv-mp-list">
         {entries.map(({ card, qty }) => {
-          const price = getMarketPrice(card);
+          const price = vaultUnitPrice(card) || getMarketPrice(card);
           const total = price * qty;
           const open = openId === card.id;
           return (

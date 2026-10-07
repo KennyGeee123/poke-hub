@@ -34,7 +34,7 @@
     "intervalMs": 300000
   },
   "id": "pokedex-hub-2026-10-05-dotted-box-images",
-  "frozenAt": "2026-10-05T15:46:56Z",
+  "frozenAt": "2026-10-07T03:10:45.858Z",
   "rootSha256": "c50590de5040a8f0afbead3e12b1ea5e538af2e53b821c1ef57e265b3d5b69bf",
   "fileCount": 224,
   "files": [
@@ -455,7 +455,7 @@
     },
     {
       "path": "src/components/pokevault/CardTile.tsx",
-      "sha256": "272caacf9183e752382b0b7d68edbecc6808015c6b694b579fdc9a4b8e3ecaa4",
+      "sha256": "aeb40ba41668e8ce525284e2da5c760f2c3221c092991a0c619fed36d43d4e65",
       "bytes": 12915
     },
     {
@@ -470,7 +470,7 @@
     },
     {
       "path": "src/components/pokevault/CollectionInsights.tsx",
-      "sha256": "a81c0b1551ee2c8a53c5661472288ff0ed41712586cd8cfece9b0756f27677a6",
+      "sha256": "8568e954071550750ed07676027c8f9cc05142e049bb86b4422fc418c525d54d",
       "bytes": 3680
     },
     {
@@ -495,7 +495,7 @@
     },
     {
       "path": "src/components/pokevault/Marketplace.tsx",
-      "sha256": "385455a0126b576ac740e13f2fd66e08f45254f15cec6194a080fa74ebf28ce6",
+      "sha256": "591b5494722a88c5964175ba33899cdff53a503627387f445eeb14d35ffab3f0",
       "bytes": 14988
     },
     {
@@ -555,7 +555,7 @@
     },
     {
       "path": "src/components/pokevault/views.tsx",
-      "sha256": "fcf36a6b69f2b1c6343fe68cb80abc2f6f437234994f74728dc6a16c7a33b994",
+      "sha256": "250e4bfd7666753cf2cb2f0ef797570ca60fe2e2d37c9c1e25f95229ba4f8735",
       "bytes": 44001
     },
     {
@@ -920,7 +920,7 @@
     },
     {
       "path": "src/lib/live-prices.ts",
-      "sha256": "41cb4a213255177a712a9c72a3faa92247fd18f3c102fc30e7f3e816f0deda6a",
+      "sha256": "4af2dd742eaf9f38a9853698615b67a236c32688b1ad4d036ec403788a070326",
       "bytes": 11975
     },
     {
@@ -955,7 +955,7 @@
     },
     {
       "path": "src/lib/pokemon-api.ts",
-      "sha256": "641a82801284a4558d86ecdeed88daa7ce4490b1fa6318b9c7727d99ccfe8cc4",
+      "sha256": "e192f46ea7303dced8232756dc40f8df8330e54563c61e8b4756ba289439e9f2",
       "bytes": 31043
     },
     {
@@ -1005,7 +1005,7 @@
     },
     {
       "path": "src/lib/vault.ts",
-      "sha256": "7665c4d39732adc6efb58d78bac71177731a97c308612591c442ea5021934fb4",
+      "sha256": "a2cf65caacb8927a89d573a532a6d0632fbfb8c82fa1d51d5f24b6d152becabf",
       "bytes": 14749
     },
     {
@@ -1159,5 +1159,5 @@
       "bytes": 202
     }
   ],
-  "thawNote": "Rebaselined from pokedex-hub-2026-10-05-never-black-tiles: Dragon Majesty, Shining Legends, Shiny Vault, Galarian Gallery, Celebrations Classic use pokemontcg scans (TCGdex image:null)."
+  "thawNote": "Rebaselined from pokedex-hub-2026-10-05-never-black-tiles: Dragon Majesty, Shining Legends, Shiny Vault, Galarian Gallery, Celebrations Classic use pokemontcg scans (TCGdex image:null). | 2026-10-06 price-wiring-1006: search fast-path (no pokemontcg block), live-price seed + vault header live aggregate, CardTile … loading."
 }

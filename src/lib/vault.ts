@@ -1,6 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
 import type { TCGCard } from "./pokemon-api";
 import { getMarketPrice, getCard } from "./pokemon-api";
+import {
+  applyLiveQuote,
+  cachedLivePrice,
+  hydrateLivePrices,
+  vaultUnitPrice,
+} from "./live-prices";
 import { loadSupabase } from "@/integrations/supabase/lazy";
 
 /** Historical localStorage key — still used for one-time migration + meta stub. */
@@ -344,12 +350,14 @@ async function refreshVaultPrices() {
       const id = ordered[i++];
       try {
         const fresh = await getCard(id);
+        const live = cachedLivePrice(id);
+        const card = live && live > 0 ? applyLiveQuote(fresh, live) : fresh;
         if (vault[id]) {
-          vault[id] = { ...vault[id], card: fresh };
+          vault[id] = { ...vault[id], card };
           mutatedVault = true;
         }
         if (wish[id]) {
-          wish[id] = fresh;
+          wish[id] = card;
           mutatedWish = true;
         }
       } catch {
@@ -401,6 +409,7 @@ export function useVault() {
   const [vault, setVault] = useState<Record<string, VaultEntry>>({});
   const [wish, setWish] = useState<Record<string, TCGCard>>({});
   const [hydrated, setHydrated] = useState(false);
+  const [liveTick, setLiveTick] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -409,35 +418,46 @@ export function useVault() {
       setVault({ ...memVault });
       setWish({ ...memWish });
       setHydrated(true);
+      // Pull live quotes for every vault/wish copy so header total isn't stuck at $0.00
+      // when tiles already show market.
+      hydrateLivePrices([
+        ...Object.values(memVault).map((e) => e.card),
+        ...Object.values(memWish),
+      ]);
     });
 
     const handler = () => {
       setVault({ ...memVault });
       setWish({ ...memWish });
     };
+    const onLive = () => setLiveTick((t) => t + 1);
     window.addEventListener("pv-store-change", handler);
     window.addEventListener("storage", handler);
+    window.addEventListener("pv-live-price", onLive);
     // Kick off a background price refresh (throttled internally to 6h).
     refreshVaultPrices().catch(() => {});
     return () => {
       cancelled = true;
       window.removeEventListener("pv-store-change", handler);
       window.removeEventListener("storage", handler);
+      window.removeEventListener("pv-live-price", onLive);
     };
   }, []);
 
   const addToVault = useCallback((card: TCGCard) => {
     void (async () => {
       await ensureVaultReady();
+      const live = cachedLivePrice(card.id);
+      const priced = live && live > 0 ? applyLiveQuote(card, live) : card;
       const current = { ...memVault };
-      const existing = current[card.id];
+      const existing = current[priced.id];
       const isNew = !existing;
-      current[card.id] = existing
-        ? { ...existing, qty: existing.qty + 1 }
-        : { card, qty: 1, addedAt: Date.now() };
+      current[priced.id] = existing
+        ? { ...existing, qty: existing.qty + 1, card: priced }
+        : { card: priced, qty: 1, addedAt: Date.now() };
       await persistVault(current);
       // First time owning this card → auto-enlist in the Game Boy party at Lv 50.
-      if (isNew) autoEnlistInParty(card);
+      if (isNew) autoEnlistInParty(priced);
     })();
   }, []);
 
@@ -460,8 +480,10 @@ export function useVault() {
     })();
   }, []);
 
+  // Recompute when live quotes land (liveTick). Live cache wins over stale embedded $0.
+  void liveTick;
   const totalValue = Object.values(vault).reduce(
-    (sum, e) => sum + getMarketPrice(e.card) * e.qty,
+    (sum, e) => sum + vaultUnitPrice(e.card) * e.qty,
     0,
   );
   const totalCards = Object.values(vault).reduce((s, e) => s + e.qty, 0);

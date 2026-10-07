@@ -493,6 +493,40 @@ export async function searchCards(opts: {
     }
   }
 
+  const specialish = catalog.filter((c) =>
+    /shadowless|error|misprint/i.test(`${c.set?.name || ""} ${c.rarity || ""} ${c.name || ""}`),
+  );
+
+  // Fast path: TCGdex/catalog already answered. Do NOT block on pokemontcg —
+  // /api/public/tcg often 502s or burns 9s×2 retries, which left phone Search
+  // on skeletons past the beta 3.5s window (Charizard input matched, $ missing).
+  if (!luceneOnly && (catalog.length > 0 || special.length > 0)) {
+    const fast = mergeCards(special, specialish, catalog);
+    if (fast.length) {
+      fast.forEach(rememberCard);
+      // Warm pokemontcg cache in the background; UI already has priced tiles.
+      const warm = new URLSearchParams();
+      const warmQ =
+        opts.q && /[\w.]+:/.test(opts.q) && !parsed.print
+          ? opts.q
+          : corrected
+            ? `name:"${corrected.replace(/"/g, "")}*"`
+            : opts.q || "";
+      if (warmQ) warm.set("q", warmQ);
+      warm.set("page", String(page));
+      warm.set("pageSize", String(pageSize));
+      if (opts.orderBy) warm.set("orderBy", opts.orderBy);
+      if (opts.select) warm.set("select", opts.select);
+      void tcgFetch<SearchResult>(`/cards?${warm}`).catch(() => {});
+      return {
+        data: fast.slice(0, pageSize),
+        totalCount: Math.max(fast.length, catalog.length),
+        page,
+        pageSize,
+      };
+    }
+  }
+
   const params = new URLSearchParams();
   const lucene =
     opts.q && /[\w.]+:/.test(opts.q) && !parsed.print
@@ -514,14 +548,7 @@ export async function searchCards(opts: {
   }
 
   const ptcg = res?.data ?? [];
-  const merged = mergeCards(
-    special,
-    catalog.filter((c) =>
-      /shadowless|error|misprint/i.test(`${c.set?.name || ""} ${c.rarity || ""} ${c.name || ""}`),
-    ),
-    ptcg,
-    catalog,
-  );
+  const merged = mergeCards(special, specialish, ptcg, catalog);
   if (merged.length) {
     merged.forEach(rememberCard);
     return {

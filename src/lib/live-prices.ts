@@ -13,6 +13,15 @@ type Quote = {
   tries?: number;
 };
 
+function abortTimeout(ms: number): AbortSignal {
+  if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+    return AbortSignal.timeout(ms);
+  }
+  const c = new AbortController();
+  setTimeout(() => c.abort(), ms);
+  return c.signal;
+}
+
 const cache = new Map<string, Quote>();
 const inflight = new Set<string>();
 const waiters = new Map<string, Array<(q: Quote | null) => void>>();
@@ -60,6 +69,17 @@ function isStrongQuote(q: Quote): boolean {
     q.source === "tcgplayer-low" ||
     q.source === "cardmarket-low"
   );
+}
+
+/** Seed the live cache from a card's already-embedded TCGPlayer/Cardmarket quote. */
+export function seedLivePriceFromCard(card: TCGCard | null | undefined): number {
+  if (!card?.id) return 0;
+  const hit = cache.get(card.id);
+  if (hit && isStrongQuote(hit)) return displayMarket(hit);
+  const market = getMarketPrice(card);
+  if (!(market > 0)) return 0;
+  emit(card.id, { market, source: "pokemontcg-market" });
+  return market;
 }
 
 function pendingTtl(q: Quote): number {
@@ -175,7 +195,7 @@ export function priceIdAliases(id: string): string[] {
 async function fetchBatch(ids: string[]): Promise<Record<string, Quote>> {
   if (!ids.length) return {};
   const url = `/api/public/prices?ids=${pricesQuery(ids)}`;
-  const r = await fetch(url, { signal: AbortSignal.timeout(12000) });
+  const r = await fetch(url, { signal: abortTimeout(12000) });
   if (!r.ok) return {};
   const json = (await r.json()) as { prices?: Record<string, Quote> };
   return json.prices || {};
@@ -275,6 +295,8 @@ export function requestLivePrice(id: string): Promise<Quote | null> {
 export function hydrateLivePrices(cards: TCGCard[]) {
   for (const c of cards) {
     if (!c?.id) continue;
+    // Immediate paint from embedded quotes (Search/Discover tiles) before the batch API.
+    seedLivePriceFromCard(c);
     const hit = cache.get(c.id);
     if (hit && isStrongQuote(hit)) continue;
     if (hit?.pending && isFreshPending(hit)) continue;
@@ -289,6 +311,7 @@ export function useLivePrice(card: TCGCard | null | undefined): number {
   const [n, setN] = useState(() => cachedLivePrice(id) ?? seed);
 
   useEffect(() => {
+    if (card) seedLivePriceFromCard(card);
     const next = cachedLivePrice(id) ?? seed;
     setN(next);
     if (!id) return;
@@ -314,9 +337,55 @@ export function useLivePrice(card: TCGCard | null | undefined): number {
       alive = false;
       window.removeEventListener(EVT, on);
     };
+    // card identity changes often; id + seed cover quote inputs
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- seed from latest card body when id stable
   }, [id, seed]);
 
   return n;
+}
+
+/** True while a live quote is in flight and we have no money yet (show … not —). */
+export function usePriceLoading(card: TCGCard | null | undefined): boolean {
+  const id = card?.id || "";
+  const money = cachedLivePrice(id) ?? (card ? quoted(card) : 0);
+  const [loading, setLoading] = useState(
+    () => !!id && money <= 0 && (inflight.has(id) || pending.includes(id)),
+  );
+
+  useEffect(() => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+    if (money > 0) {
+      setLoading(false);
+      return;
+    }
+    let alive = true;
+    setLoading(inflight.has(id) || pending.includes(id) || true);
+    void requestLivePrice(id).finally(() => {
+      if (alive) setLoading(false);
+    });
+    const on = (e: Event) => {
+      const d = (e as CustomEvent).detail as { id?: string; market?: number; soldAvg?: number };
+      if (d?.id !== id) return;
+      if ((d.soldAvg || 0) > 0 || (d.market || 0) > 0) setLoading(false);
+    };
+    window.addEventListener(EVT, on);
+    return () => {
+      alive = false;
+      window.removeEventListener(EVT, on);
+    };
+  }, [id, money]);
+
+  return loading && money <= 0;
+}
+
+/** Unit market for vault math: live cache wins, else embedded card quote. */
+export function vaultUnitPrice(card: TCGCard): number {
+  const live = cachedLivePrice(card.id);
+  if (live && live > 0) return live;
+  return getMarketPrice(card);
 }
 
 /** True while waiting for first quotes on a new set — false after money lands or retries exhaust. */
