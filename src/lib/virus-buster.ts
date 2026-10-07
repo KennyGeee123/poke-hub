@@ -15,6 +15,9 @@ export const XSS_SVG_IFRAME =
   /<\s*(?:svg|iframe|object|embed|math|link|meta|base)\b/i;
 export const DATA_HTML_URL = /data\s*:\s*text\s*\/\s*html/i;
 
+export const SHELL_META_INJECT =
+  /(?:;\s*(?:id\b|whoami|cat\b|curl\b|wget\b|rm\b|bash\b|sh\b)|\|\s*(?:cat\b|id\b|whoami|bash\b|sh\b|curl\b)|\$\([^)]*(?:id\b|whoami|cat|curl)|`[^`]*(?:id\b|whoami)`|&&\s*(?:curl|wget|id|whoami|bash|sh\b))/i;
+
 export const BLOCK_PATTERNS: ReadonlyArray<{ name: string; re: RegExp }> = [
   { name: "xss-script", re: XSS_SCRIPT_TAG },
   { name: "javascript-url", re: JAVASCRIPT_URL },
@@ -27,6 +30,7 @@ export const BLOCK_PATTERNS: ReadonlyArray<{ name: string; re: RegExp }> = [
   { name: "null-byte", re: NULL_BYTE },
   { name: "php-webshell", re: PHP_WEBSHELL },
   { name: "eval-base64", re: EVAL_BASE64 },
+  { name: "shell-injection", re: SHELL_META_INJECT },
 ];
 
 const MAX_BODY_BYTES = 1_000_000;
@@ -56,6 +60,40 @@ export function scanText(s: string): { blocked: boolean; reason?: string } {
   }
   return { blocked: false };
 }
+
+/** Strict scanner for terminal / command fields (rejects shell metacharacters). */
+// eslint-disable-next-line no-control-regex -- intentional null/control probe
+const STRICT_SHELL_META = /[;|&`$()<>\n\r\x00]|%00/;
+const STRICT_ABS_BIN = /(?:^|[\s])(?:\/bin\/|\/usr\/bin\/|\/usr\/sbin\/)/i;
+const STRICT_BASH_C = /\b(?:bash|sh|zsh|dash)\s+-c\b/i;
+const STRICT_RM_RF = /\brm\s+(-[a-zA-Z]*f[a-zA-Z]*r[a-zA-Z]*|-[a-zA-Z]*r[a-zA-Z]*f[a-zA-Z]*|--recursive)\b/i;
+
+export function scanShellCommand(s: string): { blocked: boolean; reason?: string } {
+  if (!s) return { blocked: false };
+  for (const candidate of decodeCandidates(s)) {
+    if (STRICT_SHELL_META.test(candidate)) {
+      return { blocked: true, reason: "shell-metachar" };
+    }
+    if (PATH_TRAVERSAL.test(candidate)) {
+      return { blocked: true, reason: "path-traversal" };
+    }
+    if (STRICT_ABS_BIN.test(candidate) || /^\s*\//.test(candidate)) {
+      return { blocked: true, reason: "absolute-path" };
+    }
+    if (STRICT_BASH_C.test(candidate)) {
+      return { blocked: true, reason: "shell-c-flag" };
+    }
+    if (STRICT_RM_RF.test(candidate)) {
+      return { blocked: true, reason: "destructive-rm" };
+    }
+    SHELL_META_INJECT.lastIndex = 0;
+    if (SHELL_META_INJECT.test(candidate)) {
+      return { blocked: true, reason: "shell-injection" };
+    }
+  }
+  return { blocked: false };
+}
+
 
 function shouldScanBody(req: Request): boolean {
   const method = req.method.toUpperCase();

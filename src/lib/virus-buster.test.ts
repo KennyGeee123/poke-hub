@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { scanText, scanRequest, BLOCK_PATTERNS } from "./virus-buster";
+import { scanText, scanRequest, scanShellCommand, BLOCK_PATTERNS } from "./virus-buster";
 
 describe("virus-buster patterns", () => {
   test("has svg/iframe + data-html shields", () => {
@@ -30,5 +30,21 @@ describe("virus-buster patterns", () => {
     const req = new Request("https://x.test/api/public/ebay-sold?q=Charizard");
     const r = await scanRequest(req);
     expect(r.blocked).toBe(false);
+  });
+});
+
+describe("virus-buster shell injection", () => {
+  test("blocks ; id style probe via scanText", () => {
+    expect(scanText("foo; id").blocked).toBe(true);
+    expect(scanText("x && curl evil").blocked).toBe(true);
+  });
+
+  test("scanShellCommand rejects metacharacters", () => {
+    expect(scanShellCommand("; id").blocked).toBe(true);
+    expect(scanShellCommand("$(whoami)").blocked).toBe(true);
+    expect(scanShellCommand("| cat /etc/passwd").blocked).toBe(true);
+    expect(scanShellCommand("`id`").blocked).toBe(true);
+    expect(scanShellCommand("uptime").blocked).toBe(false);
+    expect(scanShellCommand("whoami").blocked).toBe(false);
   });
 });
