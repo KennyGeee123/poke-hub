@@ -302,8 +302,21 @@ export function mapTcgdexCard(card: any, setOverride?: any, lang = "en"): TCGCar
           type: String(a?.type ?? "Ability"),
         }))
       : undefined,
+    subtypes: [
+      /stage\s*2|stage2/i.test(String(card?.stage ?? ""))
+        ? "Stage 2"
+        : /stage\s*1|stage1/i.test(String(card?.stage ?? ""))
+          ? "Stage 1"
+          : /basic/i.test(String(card?.stage ?? ""))
+            ? "Basic"
+            : "",
+      /\bex\b/i.test(String(card?.name ?? "")) ? "ex" : "",
+    ].filter(Boolean),
     weaknesses: card?.weaknesses,
     resistances: card?.resistances,
+    retreatCost: Number.isFinite(Number(card?.retreat))
+      ? Array.from({ length: Math.max(0, Number(card.retreat)) }, () => "Colorless")
+      : undefined,
   };
   if (tpPrices) {
     out.tcgplayer = {

@@ -30,10 +30,10 @@ import { EmptyState, SkeletonCards } from "./ui";
 const STYLES: FullArtStyle[] = ["holo", "rainbow", "gold", "alt"];
 const AI_PREF = "pv-fa-ai";
 const AI_STYLE_HINTS: Record<AiArtStyle, string> = {
-  faithful: "Continue background to full art",
-  storybook: "Same habitat, storybook brush",
-  chibi: "Chibi hero — same habitat continued",
-  neon: "Neon light on continued habitat",
+  faithful: "Same Pokémon on the silk swirl",
+  storybook: "Painterly full art on the silk",
+  chibi: "Chibi on the full-art swirl",
+  neon: "Neon light on the silk full art",
 };
 
 export function FullArtStudio({
@@ -145,7 +145,9 @@ export function FullArtStudio({
       const fromTcgdex = !/images\.pokemontcg\.io/.test(`${c.images?.small} ${c.images?.large}`);
       const appOnlySet = /^(base1sl|error)-/.test(c.id);
       const needsData =
-        fromTcgdex && !appOnlySet && (!c.hp || !(c.attacks?.length || c.abilities?.length));
+        fromTcgdex &&
+        !appOnlySet &&
+        (!c.hp || !c.rarity || !(c.attacks?.length || c.abilities?.length));
       const [image, full] = await Promise.all([
         loadCardImage(c),
         needsData
@@ -165,7 +167,11 @@ export function FullArtStudio({
           types: c.types?.length ? c.types : full.types,
           attacks: full.attacks?.length ? full.attacks : c.attacks,
           abilities: full.abilities?.length ? full.abilities : c.abilities,
-          subtypes: c.subtypes?.length ? c.subtypes : full.subtypes,
+          subtypes: full.subtypes?.length ? full.subtypes : c.subtypes,
+          rarity: c.rarity || full.rarity,
+          evolvesFrom: c.evolvesFrom || full.evolvesFrom,
+          weaknesses: c.weaknesses?.length ? c.weaknesses : full.weaknesses,
+          retreatCost: c.retreatCost?.length ? c.retreatCost : full.retreatCost,
         });
       setImg(image);
       setStatus("ready");
@@ -247,8 +253,7 @@ export function FullArtStudio({
           <div className="pv-fa-kicker">FULL ART STUDIO</div>
           <h1 className="pv-fa-title">Make any card a full art</h1>
           <p className="pv-fa-sub">
-            We extend regular card art edge-to-edge into a scenic habitat, then add a thin rim and floating attack text over
-            a soft fade, and card text — art keeps bleeding through the bottom.
+            Current-generation full art: the Pokémon large on a type-colour silk swirl, with the silver name plate, attacks and card edge. Official full arts stay as printed.
           </p>
         </div>
       </header>
@@ -449,11 +454,10 @@ export function FullArtStudio({
               </button>
             </div>
             <p className="pv-fa-how">
-              How it works: the on-device view is a <strong>layout preview only</strong> (not Full
-              Art paint). With AI paint on we try Google Gemini Nano Banana first, then free Hugging
-              Face outpaint to continue the card’s own habitat edge-to-edge. DeepSeek’s hosted API is
-              vision→text only (no pixels). OpenCode image plugins wrap Gemini/GPT — same family, not
-              a separate free painter. Frame, attack text and the fan-made label are still drawn here.
+              How it works: on this device we paint a current-gen full art — silk swirl, silver
+              name plate, attacks. AI paint (Gemini, then free Hugging Face) redraws the Pokémon on
+              that same silk. Official Ultra Rare and Illustration Rare scans are shown as printed.
+              The fan-made label always stays on.
             </p>
           </div>
         </div>

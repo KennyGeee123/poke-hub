@@ -1,12 +1,10 @@
-// Full Art Studio engine: turns a card scan into a fan-made full-bleed / extended-art design.
-// Pure client-side canvas compositor (no paid AI key needed):
-//   1. colour-sampled gradient base  2. stretched + blurred art bleed (atmosphere)
-//   3. CONTINUATION of source habitat from art edges (NO mirror, NO new biome)  4. large sharp art
-//   5. light holo / rainbow / gold texture (edge-biased)  6. thin rim + floating stroked text.
-// Optional AI path: opts.aiArt (Nano Banana, via /api/public/fullart-ai) replaces 1-4.
-// Overlay (fa-v3.4): full-bleed, thin rim, floating stroked attack text (NO chips/panels), name/HP corners.
-// Extension DEFAULT: finish/continue the source art's own plants/grass/sky to every edge.
-// SIR-COHERENCE: subject peakY≈0.54, painted bottoms (edge≥0.63×mid), floating stroke overlay.
+// Full Art Studio engine: turns a regular card into a fan-made CURRENT-GEN full art.
+// Current gen (Scarlet & Violet Ultra Rare, still the Black Bolt full-art look):
+//   1. type-color silk swirl  2. the Pokémon large, melted into that swirl
+//   3. silver name plate, stage, HP, type  4. ability + attack + ex rule
+//   5. light foil  6. gray card edge
+// Official Ultra Rare / Illustration Rare scans are already that look — shown full-bleed.
+// Optional AI path: opts.aiArt replaces the silk + subject. Overlay stays ours.
 import type { TCGCard } from "./pokemon-api";
 
 export type FullArtStyle = "holo" | "rainbow" | "gold" | "alt";
@@ -22,18 +20,16 @@ export type FullArtOptions = {
 export const FULLART_W = 1000;
 export const FULLART_H = 1400;
 
-/** Layout bands from SIR-COHERENCE; fa-v3.4 defaults to habitat CONTINUATION from source edges. */
+/** Layout of a current-generation Ultra Rare full art (silk field + silver name plate). */
 export const FULLART_LAYOUT = {
-  version: "fa-v3.4-continuation",
-  nameHpBand: [0, 0.1],
-  subjectBand: [0.1, 0.65],
-  /** Real SIR detail peak ~0.54 of height — keep hero centred mid-card, not crushed at top. */
-  subjectPeakY: 0.54,
-  habitatBand: [0.65, 0.92],
-  footerBand: [0.92, 1],
-  /** Bottom habitat must keep ≥ this fraction of mid-band edge energy (painted, not mud). */
+  version: "fa-v3.5-current-gen",
+  nameHpBand: [0.04, 0.14],
+  subjectBand: [0.14, 0.62],
+  subjectPeakY: 0.4,
+  habitatBand: [0.62, 0.9],
+  footerBand: [0.9, 1],
   minBottomEdgeRatio: 0.63,
-  overlay: "floating-stroke", // no chips / glass panels
+  overlay: "current-gen-plate",
 } as const;
 
 
@@ -595,155 +591,412 @@ function frameStroke(ctx: CanvasRenderingContext2D, style: FullArtStyle): string
   return rimStroke(ctx, "silver");
 }
 
+function hexRgb(hex: string): [number, number, number] {
+  const h = hex.replace("#", "").trim();
+  const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+  const n = Number.parseInt(full, 16);
+  if (!Number.isFinite(n)) return [200, 200, 200];
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+function mixC(
+  a: [number, number, number],
+  b: [number, number, number],
+  t: number,
+): [number, number, number] {
+  return [a[0] * (1 - t) + b[0] * t, a[1] * (1 - t) + b[1] * t, a[2] * (1 - t) + b[2] * t];
+}
+
+/** Ultra Rare / Illustration Rare scans are already current-gen full arts. */
+export function isOfficialFullBleed(card: TCGCard): boolean {
+  const r = `${card.rarity || ""}`.toLowerCase();
+  return /ultra rare|illustration rare|special illustration|hyper rare|black white|art rare/.test(r);
+}
+
+function stageLabel(card: TCGCard): string {
+  const s = (card.subtypes || []).join(" ");
+  if (/stage\s*2/i.test(s)) return "STAGE 2";
+  if (/stage\s*1/i.test(s)) return "STAGE 1";
+  if (/basic/i.test(s)) return "BASIC";
+  if (card.evolvesFrom) return "STAGE";
+  return "BASIC";
+}
+
+function cardIsEx(card: TCGCard): boolean {
+  return /\bex\b/i.test(card.name) || (card.subtypes || []).some((s) => /^ex$/i.test(s));
+}
+
+function displayName(card: TCGCard): string {
+  return card.name.replace(/\s+ex$/i, "").trim() || card.name;
+}
+
+function wrapLines(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxW: number,
+  maxLines: number,
+): string[] {
+  const words = text.replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+  const lines: string[] = [];
+  let cur = "";
+  let i = 0;
+  for (; i < words.length; i++) {
+    const next = cur ? `${cur} ${words[i]}` : words[i];
+    if (ctx.measureText(next).width > maxW && cur) {
+      lines.push(cur);
+      cur = words[i];
+      if (lines.length === maxLines - 1) {
+        i++;
+        break;
+      }
+    } else cur = next;
+  }
+  if (cur && lines.length < maxLines) {
+    const rest = [cur, ...words.slice(i)].join(" ");
+    let last = rest;
+    const truncated = words.slice(i).length > (cur ? 0 : 1) && i < words.length;
+    if (truncated || ctx.measureText(last).width > maxW) {
+      while (ctx.measureText(`${last}…`).width > maxW && last.length > 4) last = last.slice(0, -1).trim();
+      if (!last.endsWith("…")) last += "…";
+    }
+    lines.push(last);
+  }
+  return lines.slice(0, maxLines);
+}
+
+function paintCardEdge(ctx: CanvasRenderingContext2D) {
+  const g = ctx.createLinearGradient(0, 0, FULLART_W, FULLART_H);
+  g.addColorStop(0, "#dedee2");
+  g.addColorStop(0.5, "#b7b8be");
+  g.addColorStop(1, "#ececf0");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, FULLART_W, FULLART_H);
+}
+
+function clipCardFace(ctx: CanvasRenderingContext2D) {
+  roundRect(ctx, 18, 18, FULLART_W - 36, FULLART_H - 36, 30);
+  ctx.clip();
+}
+
+/** Flowing type-colour silk. This is the background of a current-gen full art. */
+function paintSilk(
+  ctx: CanvasRenderingContext2D,
+  typeHex: string,
+  seed: number,
+  W: number,
+  H: number,
+) {
+  const rnd = seeded(seed);
+  const base = hexRgb(typeHex);
+  const light = mixC(base, [255, 255, 255], 0.66);
+  const mid = mixC(base, [255, 255, 255], 0.3);
+  const deep = mixC(base, [10, 16, 22], 0.42);
+  const g = ctx.createLinearGradient(0, 0, W, H);
+  g.addColorStop(0, rgb(light));
+  g.addColorStop(0.45, rgb(mid));
+  g.addColorStop(1, rgb(mixC(mid, light, 0.22)));
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+  for (let i = 0; i < 9; i++) {
+    ctx.save();
+    ctx.translate(W * (0.15 + rnd() * 0.7), H * (0.06 + rnd() * 0.88));
+    ctx.rotate((rnd() - 0.5) * 1.05);
+    const rw = W * (0.8 + rnd() * 0.85);
+    const rh = 42 + rnd() * 150;
+    const col = rnd() > 0.5 ? light : deep;
+    const grd = ctx.createLinearGradient(-rw / 2, 0, rw / 2, 0);
+    grd.addColorStop(0, rgb(col, 0));
+    grd.addColorStop(0.48, rgb(col, 0.28 + rnd() * 0.22));
+    grd.addColorStop(1, rgb(col, 0));
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, rw / 2, rh / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+  ctx.save();
+  ctx.globalAlpha = 0.08;
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 1.4;
+  for (let x = -H; x < W + 20; x += 24) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x + H * 0.26, H);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawMaskedSubject(
+  ctx: CanvasRenderingContext2D,
+  img: CanvasImageSource,
+  box: Box,
+  dx: number,
+  dy: number,
+  dw: number,
+  dh: number,
+) {
+  const tmp = document.createElement("canvas");
+  tmp.width = Math.max(2, Math.round(dw));
+  tmp.height = Math.max(2, Math.round(dh));
+  const t = tmp.getContext("2d")!;
+  t.imageSmoothingQuality = "high";
+  t.drawImage(img, box.x, box.y, box.w, box.h, 0, 0, tmp.width, tmp.height);
+  t.globalCompositeOperation = "destination-in";
+  // Elliptical falloff that hits zero inside the bitmap, so the crop never
+  // reads as a rectangle on the silk.
+  t.save();
+  t.translate(tmp.width * 0.5, tmp.height * 0.46);
+  t.scale(1, tmp.height / Math.max(1, tmp.width));
+  const rad = tmp.width * 0.38;
+  const g = t.createRadialGradient(0, 0, rad * 0.2, 0, 0, rad);
+  g.addColorStop(0, "rgba(0,0,0,1)");
+  g.addColorStop(0.5, "rgba(0,0,0,1)");
+  g.addColorStop(0.72, "rgba(0,0,0,0.55)");
+  g.addColorStop(0.88, "rgba(0,0,0,0.12)");
+  g.addColorStop(1, "rgba(0,0,0,0)");
+  t.fillStyle = g;
+  t.fillRect(-tmp.width * 2, -tmp.height * 2, tmp.width * 4, tmp.height * 4);
+  t.restore();
+  ctx.drawImage(tmp, dx, dy);
+}
+
+function drawCover(ctx: CanvasRenderingContext2D, img: HTMLImageElement) {
+  const W = FULLART_W;
+  const H = FULLART_H;
+  const s = Math.max(W / img.naturalWidth, H / img.naturalHeight);
+  const dw = img.naturalWidth * s;
+  const dh = img.naturalHeight * s;
+  ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
+}
+
+function fanTag(ctx: CanvasRenderingContext2D) {
+  ctx.save();
+  ctx.font = "800 16px Barlow, system-ui, sans-serif";
+  ctx.textAlign = "right";
+  strokeFillText(ctx, "FAN-MADE CUSTOM · NOT OFFICIAL", FULLART_W - 36, FULLART_H - 28, "#f6d57a", 3);
+  ctx.restore();
+}
+
+function silkHex(card: TCGCard, style: FullArtStyle): string {
+  if (style === "gold") return "#e2b53a";
+  if (style === "rainbow") return "#c9b6ff";
+  return TYPE_COLORS[card.types?.[0] || "Colorless"] || "#d0d0d0";
+}
+
 function drawFrame(ctx: CanvasRenderingContext2D, card: TCGCard, opts: FullArtOptions) {
   const W = FULLART_W;
   const H = FULLART_H;
-  const style = opts.style;
-  const rim: FullArtRim =
-    opts.rim ?? (style === "gold" ? "gold" : style === "alt" ? "silver" : "silver");
+  const rim: FullArtRim = opts.rim ?? (opts.style === "gold" ? "gold" : "silver");
   ctx.save();
 
-  // Thin SIR rim (full-bleed art goes to the card edge; only a slim decorative line).
   if (rim !== "none") {
-    const inset = 8;
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = rimStroke(ctx, rim);
-    roundRect(ctx, inset, inset, W - inset * 2, H - inset * 2, 28);
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = rimStroke(ctx, rim === "gold" ? "gold" : "silver");
+    roundRect(ctx, 28, 28, W - 56, H - 56, 24);
     ctx.stroke();
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = "rgba(255,255,255,0.35)";
-    roundRect(ctx, inset + 5, inset + 5, W - (inset + 5) * 2, H - (inset + 5) * 2, 24);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(255,255,255,0.55)";
+    roundRect(ctx, 36, 36, W - 72, H - 72, 20);
     ctx.stroke();
   }
 
-  // Name (top-left) + HP (top-right) — soft drop shadow, no solid band (art shows through).
-  const top = 54;
-  ctx.shadowColor = "rgba(0,0,0,0.85)";
-  ctx.shadowBlur = 10;
-  ctx.shadowOffsetY = 2;
-  ctx.textBaseline = "alphabetic";
-  const stage = card.subtypes?.find((s) => /basic|stage/i.test(s)) || "";
-  if (stage) {
-    ctx.font = "800 20px Barlow, system-ui, sans-serif";
-    ctx.fillStyle = "rgba(255,255,255,0.9)";
-    ctx.fillText(stage.toUpperCase(), 48, top);
-  }
-  let nameSize = 58;
-  ctx.font = `800 ${nameSize}px "Bebas Neue", Barlow, Impact, sans-serif`;
-  const maxName = W - 48 - 280;
-  while (ctx.measureText(card.name).width > maxName && nameSize > 32) {
+  const plateY = 64;
+  const plateH = 96;
+  const plate = ctx.createLinearGradient(0, plateY, W, plateY + plateH);
+  plate.addColorStop(0, "#fbfbfc");
+  plate.addColorStop(0.45, "#d7dae1");
+  plate.addColorStop(1, "#f4f5f7");
+  ctx.fillStyle = plate;
+  roundRect(ctx, 52, plateY, W - 150, plateH, 20);
+  ctx.fill();
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = "rgba(0,0,0,0.16)";
+  roundRect(ctx, 52, plateY, W - 150, plateH, 20);
+  ctx.stroke();
+
+  const stage = stageLabel(card);
+  ctx.font = "800 18px Barlow, system-ui, sans-serif";
+  const badgeW = ctx.measureText(stage).width + 26;
+  const badge = ctx.createLinearGradient(0, 42, 0, 80);
+  badge.addColorStop(0, "#ffffff");
+  badge.addColorStop(1, "#c5c9d1");
+  ctx.fillStyle = badge;
+  roundRect(ctx, 68, 42, badgeW, 34, 8);
+  ctx.fill();
+  ctx.strokeStyle = "#8e949e";
+  ctx.stroke();
+  ctx.fillStyle = "#1c1c1c";
+  ctx.fillText(stage, 81, 65);
+
+  const name = displayName(card);
+  const ex = cardIsEx(card);
+  let nameSize = 52;
+  ctx.fillStyle = "#141414";
+  ctx.font = `800 ${nameSize}px Barlow, system-ui, sans-serif`;
+  const maxName = W - 280;
+  while (ctx.measureText(name).width > maxName && nameSize > 30) {
     nameSize -= 2;
-    ctx.font = `800 ${nameSize}px "Bebas Neue", Barlow, Impact, sans-serif`;
+    ctx.font = `800 ${nameSize}px Barlow, system-ui, sans-serif`;
   }
-  const nameY = top + (stage ? 52 : 42);
-  strokeFillText(ctx, card.name, 48, nameY, "#fff", 6);
-  if (card.hp) {
-    ctx.textAlign = "right";
-    const hpX = W - 48 - (card.types?.length ? 56 : 0);
-    ctx.font = '800 56px "Bebas Neue", Barlow, Impact, sans-serif';
-    const numW = ctx.measureText(card.hp).width;
-    strokeFillText(ctx, card.hp, hpX, nameY, "#fff", 6);
-    ctx.font = "800 24px Barlow, system-ui, sans-serif";
-    strokeFillText(ctx, "HP", hpX - numW - 8, nameY, "#fff", 4);
-    ctx.textAlign = "left";
+  ctx.fillText(name, 72, plateY + 70);
+  if (ex) {
+    const nx = 78 + ctx.measureText(name).width;
+    ctx.font = `italic 800 ${Math.round(nameSize * 0.7)}px Barlow, system-ui, sans-serif`;
+    ctx.fillText("ex", nx, plateY + 68);
   }
-  ctx.shadowBlur = 0;
-  ctx.shadowOffsetY = 0;
+
   const t0 = card.types?.[0];
   if (t0) {
     ctx.beginPath();
-    ctx.arc(W - 72, top + (stage ? 34 : 24), 22, 0, Math.PI * 2);
+    ctx.arc(W - 78, plateY + 48, 28, 0, Math.PI * 2);
     ctx.fillStyle = TYPE_COLORS[t0] || "#ccc";
     ctx.fill();
     ctx.lineWidth = 3;
-    ctx.strokeStyle = "rgba(255,255,255,0.9)";
+    ctx.strokeStyle = "#fff";
     ctx.stroke();
     ctx.fillStyle = "#111";
-    ctx.font = "800 22px Barlow, system-ui, sans-serif";
+    ctx.font = "800 26px Barlow, system-ui, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText(t0[0], W - 72, top + (stage ? 41 : 31));
+    ctx.fillText(t0[0], W - 78, plateY + 57);
+    ctx.textAlign = "left";
+  }
+  if (card.hp) {
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#141414";
+    ctx.font = "800 52px Barlow, system-ui, sans-serif";
+    const hpRight = W - 124;
+    ctx.fillText(card.hp, hpRight, plateY + 72);
+    const numW = ctx.measureText(card.hp).width;
+    ctx.font = "800 18px Barlow, system-ui, sans-serif";
+    ctx.fillStyle = "#333";
+    ctx.fillText("HP", hpRight - numW - 6, plateY + 62);
     ctx.textAlign = "left";
   }
 
-  // Bottom zone (fa-v3.3): floating stroked attack text — NO chips / panels / glass slabs.
-  // Matches SIR refs (Mega Gengar / Armarouge): text sits on art with shadow+stroke only.
   const attacks = (card.attacks || []).slice(0, 2);
-  const abilities = (card.abilities || []).slice(0, 1);
-  const rowH = 58;
-  const rowGap = 8;
-  const rows = attacks.length + abilities.length;
-  const footerH = 36;
-  const stackH = rows ? rows * rowH + Math.max(0, rows - 1) * rowGap : 0;
-  const stackBottom = H - 24 - footerH;
-  const stackTop = rows ? stackBottom - stackH : stackBottom;
-  const contentX = 48;
-  const contentW = W - 96;
-
-  // Very light legibility veil — art remains the hero (SIR scenic bottoms)
-  const fadeTop = Math.min(stackTop - 80, H * 0.58);
-  const fade = ctx.createLinearGradient(0, fadeTop, 0, H);
-  fade.addColorStop(0, "rgba(0,0,0,0)");
-  fade.addColorStop(0.5, "rgba(0,0,0,0.05)");
-  fade.addColorStop(1, "rgba(0,0,0,0.22)");
-  ctx.fillStyle = fade;
-  ctx.fillRect(0, fadeTop, W, H - fadeTop);
-
-  if (rows) {
-    let y = stackTop;
-    let left = abilities.length + attacks.length;
-    for (const ab of abilities) {
-      left--;
-      const cy = y + rowH / 2 + 4;
-      ctx.font = "800 13px Barlow, system-ui, sans-serif";
-      strokeFillText(ctx, "ABILITY", contentX, cy - 14, "#7dd3fc", 4);
-      ctx.font = "800 28px Barlow, system-ui, sans-serif";
-      let abName = ab.name;
-      while (ctx.measureText(abName).width > contentW && abName.length > 4)
-        abName = abName.slice(0, -2) + "…";
-      strokeFillText(ctx, abName, contentX, cy + 16, "#fff", 5);
-      y += rowH + rowGap;
+  const ability = (card.abilities || [])[0];
+  let y = H * 0.62;
+  if (ability) {
+    ctx.font = "800 18px Barlow, system-ui, sans-serif";
+    const pill = "Ability";
+    const pw = ctx.measureText(pill).width + 24;
+    ctx.fillStyle = "#e10600";
+    roundRect(ctx, 56, y, pw, 32, 16);
+    ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.fillText(pill, 68, y + 22);
+    ctx.fillStyle = "#c40000";
+    ctx.font = "800 28px Barlow, system-ui, sans-serif";
+    let abName = ability.name;
+    while (ctx.measureText(abName).width > W - 160 - pw && abName.length > 4)
+      abName = abName.slice(0, -2) + "…";
+    ctx.fillText(abName, 56 + pw + 12, y + 24);
+    y += 46;
+    if (ability.text) {
+      ctx.font = "600 20px Barlow, system-ui, sans-serif";
+      ctx.fillStyle = "#1b1b1b";
+      for (const line of wrapLines(ctx, ability.text, W - 120, 2)) {
+        ctx.fillText(line, 56, y + 16);
+        y += 26;
+      }
+      y += 6;
     }
-    for (const a of attacks) {
-      left--;
-      const cy = y + rowH / 2 + 4;
-      let x = contentX;
-      for (const c of (a.cost || []).slice(0, 5)) {
-        ctx.beginPath();
-        ctx.arc(x + 13, cy - 2, 13, 0, Math.PI * 2);
-        ctx.fillStyle = TYPE_COLORS[c] || "#ddd";
-        ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "rgba(0,0,0,0.55)";
-        ctx.stroke();
-        ctx.lineWidth = 1.25;
-        ctx.strokeStyle = "rgba(255,255,255,0.85)";
-        ctx.stroke();
-        x += 30;
-      }
-      ctx.font = "800 28px Barlow, system-ui, sans-serif";
-      const nameX = x + 8;
-      const dmgW = a.damage ? 110 : 0;
-      let label = a.name;
-      while (ctx.measureText(label).width > contentW - (nameX - contentX) - dmgW && label.length > 4)
-        label = label.slice(0, -2) + "…";
-      strokeFillText(ctx, label, nameX, cy + 8, "#fff", 5);
-      if (a.damage) {
-        ctx.textAlign = "right";
-        ctx.font = '800 42px "Bebas Neue", Barlow, Impact, sans-serif';
-        strokeFillText(ctx, a.damage, W - 48, cy + 12, "#ffe08a", 5);
-        ctx.textAlign = "left";
-      }
-      y += rowH + rowGap;
+  }
+  for (const a of attacks) {
+    let x = 56;
+    const cy = y + 22;
+    for (const c of (a.cost || []).slice(0, 5)) {
+      ctx.beginPath();
+      ctx.arc(x + 14, cy - 4, 14, 0, Math.PI * 2);
+      ctx.fillStyle = TYPE_COLORS[c] || "#eee";
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "rgba(0,0,0,0.45)";
+      ctx.stroke();
+      x += 32;
+    }
+    ctx.font = "800 30px Barlow, system-ui, sans-serif";
+    ctx.fillStyle = "#141414";
+    const nameX = x + 8;
+    const dmgReserve = a.damage ? 120 : 0;
+    let label = a.name;
+    while (ctx.measureText(label).width > W - 64 - nameX - dmgReserve && label.length > 4)
+      label = label.slice(0, -2) + "…";
+    ctx.fillText(label, nameX, cy + 8);
+    if (a.damage) {
+      ctx.textAlign = "right";
+      ctx.font = "800 44px Barlow, system-ui, sans-serif";
+      ctx.fillText(a.damage, W - 56, cy + 10);
+      ctx.textAlign = "left";
+    }
+    y += 40;
+    if (a.text) {
+      ctx.font = "600 18px Barlow, system-ui, sans-serif";
+      ctx.fillStyle = "#222";
+      const line = wrapLines(ctx, a.text, W - 120, 1)[0];
+      if (line) ctx.fillText(line, 56, y + 8);
+      y += 28;
+    }
+    y += 10;
+  }
+
+  const footY = H - 148;
+  ctx.font = "700 16px Barlow, system-ui, sans-serif";
+  ctx.fillStyle = "#2a2a2a";
+  let fx = 56;
+  const weak = card.weaknesses?.[0];
+  if (weak) {
+    ctx.fillText("weakness", fx, footY);
+    fx += ctx.measureText("weakness").width + 10;
+    ctx.beginPath();
+    ctx.arc(fx + 11, footY - 6, 11, 0, Math.PI * 2);
+    ctx.fillStyle = TYPE_COLORS[weak.type] || "#ddd";
+    ctx.fill();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = "rgba(0,0,0,0.4)";
+    ctx.stroke();
+    fx += 28;
+    ctx.fillStyle = "#2a2a2a";
+    ctx.fillText(weak.value || "×2", fx, footY);
+    fx += 70;
+  }
+  const retreatN = card.retreatCost?.length || 0;
+  if (retreatN) {
+    ctx.fillText("retreat", fx, footY);
+    fx += ctx.measureText("retreat").width + 10;
+    for (let i = 0; i < Math.min(retreatN, 4); i++) {
+      ctx.beginPath();
+      ctx.arc(fx + 11, footY - 6, 11, 0, Math.PI * 2);
+      ctx.fillStyle = "#f2f2f2";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(0,0,0,0.45)";
+      ctx.stroke();
+      fx += 26;
     }
   }
 
-  // Footer floating meta
-  ctx.font = "700 14px Barlow, system-ui, sans-serif";
-  const leftMeta = [card.set?.name, card.number ? `#${card.number}` : ""].filter(Boolean).join(" · ");
-  strokeFillText(ctx, leftMeta, 40, H - 26, "rgba(255,255,255,0.9)", 3);
+  const barY = H - 112;
+  ctx.fillStyle = "rgba(255,255,255,0.78)";
+  roundRect(ctx, 48, barY, W - 96, 64, 14);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(0,0,0,0.12)";
+  ctx.lineWidth = 1;
+  roundRect(ctx, 48, barY, W - 96, 64, 14);
+  ctx.stroke();
+  ctx.fillStyle = "#1a1a1a";
+  ctx.font = "700 16px Barlow, system-ui, sans-serif";
+  const rule = cardIsEx(card)
+    ? "Pokémon ex rule   When your Pokémon ex is Knocked Out, your opponent takes 2 Prize cards."
+    : [card.set?.name, card.number ? `#${card.number}` : ""].filter(Boolean).join("  ·  ");
+  let ruleText = rule;
+  while (ctx.measureText(ruleText).width > W - 160 && ruleText.length > 8)
+    ruleText = ruleText.slice(0, -2) + "…";
+  ctx.fillText(ruleText, 64, barY + 38);
   ctx.textAlign = "right";
   ctx.font = "800 13px Barlow, system-ui, sans-serif";
-  strokeFillText(ctx, "FAN-MADE CUSTOM · NOT OFFICIAL", W - 40, H - 26, "#f6d57a", 3);
+  ctx.fillStyle = "#8a6412";
+  ctx.fillText("FAN-MADE · NOT OFFICIAL", W - 64, barY + 22);
   ctx.textAlign = "left";
   ctx.restore();
 }
@@ -761,124 +1014,27 @@ export function renderFullArt(
   canvas.height = H;
   const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
   ctx.clearRect(0, 0, W, H);
-  if (opts.aiArt) {
-    renderAiArt(ctx, opts.aiArt);
-    // The model already paints the finish; add a lighter foil pass on top.
-    drawTexture(ctx, opts.style, hash(card.id + opts.style), 0.45);
-    drawOverlay(ctx, card, opts);
+
+  if (!opts.aiArt && isOfficialFullBleed(card)) {
+    drawCover(ctx, img);
+    fanTag(ctx);
     return;
   }
-  const box = artBox(img);
 
-  // Sample edge / corner colours for scenic habitat (SIR canyon/forest feel).
-  const probe = document.createElement("canvas");
-  probe.width = 240;
-  probe.height = Math.round((240 * box.h) / box.w);
-  const pc = probe.getContext("2d", { willReadFrequently: true })!;
-  pc.drawImage(img, box.x, box.y, box.w, box.h, 0, 0, probe.width, probe.height);
-  const topC = avgColor(pc, 0, 0, probe.width, 10);
-  const midC = avgColor(pc, 0, probe.height * 0.4, probe.width, probe.height * 0.2);
-  const botC = avgColor(pc, 0, probe.height - 10, probe.width, 10);
-  const leftC = avgColor(pc, 0, probe.height * 0.35, 12, probe.height * 0.35);
-  const rightC = avgColor(pc, probe.width - 12, probe.height * 0.35, 12, probe.height * 0.35);
-  const typeKey = card.types?.[0] || "Colorless";
-  const typeHex = TYPE_COLORS[typeKey] || "#e0e0e0";
-
-  // 1. colour-sampled gradient base
-  const base = ctx.createLinearGradient(0, 0, 0, H);
-  base.addColorStop(0, rgb(topC));
-  base.addColorStop(0.35, rgb(midC));
-  base.addColorStop(0.7, rgb(botC));
-  base.addColorStop(1, rgb(botC.map((v) => v * 0.4) as [number, number, number]));
-  ctx.fillStyle = base;
-  ctx.fillRect(0, 0, W, H);
-
-  // 2. soft atmospheric bleed of the whole art (low alpha — avoid muddy wash)
+  paintCardEdge(ctx);
   ctx.save();
-  ctx.filter = "blur(28px) saturate(1.4)";
-  ctx.globalAlpha = 0.55;
-  const coverScale = Math.max(W / box.w, H / box.h) * 1.15;
-  const cw = box.w * coverScale;
-  const ch = box.h * coverScale;
-  ctx.drawImage(img, box.x, box.y, box.w, box.h, (W - cw) / 2, (H - ch) / 2 - H * 0.06, cw, ch);
+  clipCardFace(ctx);
+  if (opts.aiArt) renderAiArt(ctx, opts.aiArt);
+  else {
+    paintSilk(ctx, silkHex(card, opts.style), hash(card.id + "silk" + opts.style), W, H);
+    const box = artBox(img);
+    const dw = W * 1.28;
+    const dh = dw * (box.h / Math.max(1, box.w));
+    drawMaskedSubject(ctx, img, box, (W - dw) / 2, H * 0.08, dw, dh);
+  }
   ctx.restore();
-
-  // Subject (SIR-COHERENCE): place art so its visual centre sits near mid-card (peakY≈0.54).
-  // Face lives in the upper third of the art box → bias that third toward ~42% of card height.
-  const targetH = H * 0.7;
-  const scale = Math.max((W / box.w) * 1.22, targetH / box.h);
-  const aw = box.w * scale;
-  const ah = box.h * scale;
-  const ax = (W - aw) / 2;
-  const faceY = H * 0.42; // where the face / densest art should land
-  let ay = Math.round(faceY - ah * 0.32);
-  // Keep name band readable and leave room for floating attack text.
-  ay = Math.max(Math.round(H * 0.06), Math.min(ay, Math.round(H * 0.18)));
-
-  const topSpace = ay;
-  const botY = ay + ah;
-  const botSpace = Math.max(0, H - botY);
-
-  // 3a. Edge CONTINUATION — finish canopy / side foliage from the source art
-  fillEdgeContinuation(ctx, img, box, ax, ay, aw, ah, W, H);
-
-  // 3b. Bottom habitat CONTINUATION from the art window's grass/plant strip
-  fillBottomLayers(ctx, img, box, ax, aw, Math.min(botY, H * 0.55), H - Math.min(botY, H * 0.55));
-
-  // 3c. Soft scenic wash (colour-matched; must not invent a new biome)
-  paintHabitat(
-    ctx,
-    topC,
-    midC,
-    botC,
-    leftC,
-    rightC,
-    typeHex,
-    hash(card.id + "hab"),
-    Math.min(botY - 40, H * 0.52),
-    W,
-    H,
-  );
-
-  // Soft vignette
-  const vg = ctx.createRadialGradient(W / 2, H * 0.36, W * 0.25, W / 2, H * 0.46, H * 0.8);
-  vg.addColorStop(0, "rgba(0,0,0,0)");
-  vg.addColorStop(1, "rgba(0,0,0,0.12)");
-  ctx.fillStyle = vg;
-  ctx.fillRect(0, 0, W, H);
-
-  // 4. Sharp hero art — light feather only at top; bottom stays crisp into habitat
-  drawFeathered(ctx, img, box, { x: ax, y: ay, w: aw, h: ah }, 18);
-
-  // Contact shadow so the subject sits in the scene
-  ctx.save();
-  const shY = Math.min(ay + ah * 0.92, H * 0.78);
-  const sh = ctx.createRadialGradient(W / 2, shY, 8, W / 2, shY, aw * 0.4);
-  sh.addColorStop(0, "rgba(0,0,0,0.32)");
-  sh.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.globalCompositeOperation = "multiply";
-  ctx.fillStyle = sh;
-  ctx.fillRect(0, shY - 50, W, 140);
-  ctx.restore();
-
-  // Soft rim light suggestion around subject (premium pop)
-  ctx.save();
-  ctx.globalCompositeOperation = "screen";
-  ctx.globalAlpha = 0.12;
-  const rim = ctx.createRadialGradient(W / 2, ay + ah * 0.45, ah * 0.15, W / 2, ay + ah * 0.45, ah * 0.55);
-  rim.addColorStop(0, "rgba(0,0,0,0)");
-  rim.addColorStop(0.7, typeHex);
-  rim.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = rim;
-  ctx.fillRect(0, ay, W, ah);
-  ctx.restore();
-
-  // 5. Edge-biased foil (keep face clean)
-  drawTexture(ctx, opts.style, hash(card.id + opts.style), 0.65);
-
-  // 6. Overlay
+  drawTexture(ctx, opts.style, hash(card.id + opts.style), opts.aiArt ? 0.35 : 0.45);
   drawOverlay(ctx, card, opts);
-
 }
 
 /** Cover-fit the AI art (3:4 from the model) into the 5:7 canvas, then shade for text legibility. */
@@ -890,10 +1046,10 @@ function renderAiArt(ctx: CanvasRenderingContext2D, art: HTMLImageElement) {
   const dh = art.naturalHeight * s;
   ctx.drawImage(art, (W - dw) / 2, (H - dh) / 2, dw, dh);
   const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, "rgba(0,0,0,0.22)");
-  g.addColorStop(0.12, "rgba(0,0,0,0)");
-  g.addColorStop(0.5, "rgba(0,0,0,0)");
-  g.addColorStop(1, "rgba(0,0,0,0.18)");
+  g.addColorStop(0, "rgba(255,255,255,0.08)");
+  g.addColorStop(0.16, "rgba(0,0,0,0)");
+  g.addColorStop(0.62, "rgba(0,0,0,0)");
+  g.addColorStop(1, "rgba(255,255,255,0.12)");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
 }

@@ -24,7 +24,46 @@ function fail(req: Request, status: number, error: string, message: string) {
   );
 }
 
-async function gradioOutpaint(imageUrl: string, prompt: string, token?: string) {
+function b64ToBytes(s: string): Uint8Array<ArrayBuffer> {
+  return Uint8Array.from(Buffer.from(s, "base64"));
+}
+
+/** Prefer the cropped illustration (no yellow frame). Fall back to the card URL. */
+async function artFile(
+  sourceUrl: string,
+  art: string,
+  token?: string,
+): Promise<{ path: string; url: string; orig_name: string }> {
+  const fallback = { path: sourceUrl, url: sourceUrl, orig_name: "card.png" };
+  const m = /^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/=]+)$/.exec(art);
+  if (!m) return fallback;
+  try {
+    const mime = m[1] === "jpeg" ? "image/jpeg" : m[1] === "webp" ? "image/webp" : "image/png";
+    const form = new FormData();
+    form.append("files", new Blob([b64ToBytes(m[2])], { type: mime }), "art.png");
+    const headers: Record<string, string> = {};
+    if (token) headers.authorization = `Bearer ${token}`;
+    const r = await fetch(`${SPACE_HOST}/gradio_api/upload`, {
+      method: "POST",
+      headers,
+      body: form,
+      signal: AbortSignal.timeout(20_000),
+    });
+    if (!r.ok) return fallback;
+    const j = await r.json();
+    const path = Array.isArray(j) ? String(j[0] ?? "") : "";
+    if (!path) return fallback;
+    return { path, url: `${SPACE_HOST}/gradio_api/file=${path}`, orig_name: "art.png" };
+  } catch {
+    return fallback;
+  }
+}
+
+async function gradioOutpaint(
+  file: { path: string; url: string; orig_name: string },
+  prompt: string,
+  token?: string,
+) {
   const headers: Record<string, string> = { "content-type": "application/json" };
   if (token) headers.authorization = `Bearer ${token}`;
 
@@ -34,7 +73,7 @@ async function gradioOutpaint(imageUrl: string, prompt: string, token?: string) 
     headers,
     body: JSON.stringify({
       data: [
-        { path: imageUrl, meta: { _type: "gradio.FileData" }, url: imageUrl, orig_name: "card.png" },
+        { path: file.path, meta: { _type: "gradio.FileData" }, url: file.url, orig_name: file.orig_name },
         768, // width
         1024, // height
         12, // overlap_percentage
@@ -125,17 +164,25 @@ export const Route = createFileRoute("/api/public/fullart-hf")({
         if (!isAllowedCardImageUrl(sourceUrl))
           return fail(request, 400, "bad_host", "Card image must come from a known card CDN.");
 
+        const finish = (["holo", "rainbow", "gold", "alt"] as const).includes(body?.finish)
+          ? body.finish
+          : "holo";
+        const style = (["faithful", "storybook", "chibi", "neon"] as const).includes(body?.style)
+          ? body.style
+          : "faithful";
         const prompt =
           buildFullArtPrompt({
             species: speciesFromCardName(name),
             type,
-            finish: "alt",
-            style: "faithful",
+            finish,
+            style,
           }) +
-          " Prefer OUTPAINTING: extend the existing habitat (plants/ground/sky) to every edge.";
+          " Paint a current-generation Ultra Rare full art: the creature large on a flowing silk swirl in its type colour. No text, no card frame, no forest.";
 
+        const art = String(body?.art ?? "");
+        const file = await artFile(sourceUrl, art, token || undefined);
         try {
-          const bytes = await gradioOutpaint(sourceUrl, prompt, token || undefined);
+          const bytes = await gradioOutpaint(file, prompt, token || undefined);
           const mime =
             bytes[0] === 0x89 && bytes[1] === 0x50
               ? "image/png"
