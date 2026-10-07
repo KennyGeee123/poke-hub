@@ -390,17 +390,29 @@ export function P2PTradingHubModal({
                     </span>
                   </div>
 
-                  <div className="flex gap-4 items-center">
-                    <img
-                      key={`partner-art-${selectedTrainer.id}-${partnerKind}-${partnerCardName}-${partnerGoName}`}
-                      src={receiverItem.card.images.small}
-                      alt={receiverItem.card.name}
-                      className="w-20 h-28 object-contain rounded-lg border border-neutral-700 bg-black shadow"
-                    />
+                  <div
+                    className="flex gap-4 items-center"
+                    data-partner-kind={partnerKind}
+                    data-partner-name={partnerKind === "go" ? partnerGoName : partnerCardName}
+                    data-partner-total={(receiverItem.marketPrice + partnerCash).toFixed(2)}
+                  >
+                    <div className="flex flex-col items-center gap-1">
+                      <img
+                        key={`partner-art-${selectedTrainer.id}-${partnerKind}-${partnerCardName}-${partnerGoName}`}
+                        src={receiverItem.card.images.small}
+                        alt={receiverItem.card.name}
+                        className="w-20 h-28 object-contain rounded-lg border border-neutral-700 bg-black shadow"
+                      />
+                      <span className="text-[10px] font-mono text-purple-300/90 max-w-[5.5rem] truncate text-center" title={receiverItem.card.name}>
+                        {receiverItem.card.name}
+                        {partnerKind === "go" && partnerGoShiny ? " ✦" : ""}
+                      </span>
+                    </div>
                     <div className="flex-1">
                       <input
                         type="text"
                         value={partnerKind === "go" ? partnerGoName : partnerCardName}
+                        aria-label={partnerKind === "go" ? "Partner GO species" : "Partner card name"}
                         onChange={(e) => {
                           setPartnerPriceOverride(null);
                           if (partnerKind === "go") setPartnerGoName(e.target.value);
