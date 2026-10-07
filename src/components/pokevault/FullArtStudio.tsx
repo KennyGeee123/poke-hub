@@ -26,15 +26,21 @@ import {
   type AiPaintStatus,
 } from "@/lib/fullart-ai";
 import { AI_ART_STYLES, AI_ART_STYLE_LABELS, type AiArtStyle } from "@/lib/fullart-prompt";
+import {
+  GENERATION_REFS,
+  GENERATION_TAB_LABEL,
+  GENERATION_TABS,
+  type FullArtGeneration,
+} from "@/lib/fullart-refs";
 import { EmptyState, SkeletonCards } from "./ui";
 
 const STYLES: FullArtStyle[] = ["holo", "rainbow", "gold", "alt"];
 const AI_PREF = "pv-fa-ai";
 const AI_STYLE_HINTS: Record<AiArtStyle, string> = {
-  faithful: "Same Pokémon on the silk swirl",
-  storybook: "Painterly full art on the silk",
-  chibi: "Chibi on the full-art swirl",
-  neon: "Neon light on the silk full art",
+  faithful: "Locked · N-DESIGN / PLANETA silk",
+  storybook: "Locked · illustration gouache",
+  chibi: "Locked · bigger face, round mask",
+  neon: "Locked · magenta and cyan rim",
 };
 
 export function FullArtStudio({
@@ -47,6 +53,7 @@ export function FullArtStudio({
   const [card, setCard] = useState<TCGCard | null>(null);
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const [style, setStyle] = useState<FullArtStyle>("holo");
+  const [generation, setGeneration] = useState<FullArtGeneration>("auto");
   const [frame, setFrame] = useState(true);
   const [rim, setRim] = useState<FullArtRim>("silver");
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
@@ -202,13 +209,15 @@ export function FullArtStudio({
         style,
         frame,
         rim,
+        generation,
+        artStyle: aiStyle,
         aiArt: showAi ? aiArt : null,
       });
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Render failed");
       setStatus("error");
     }
-  }, [img, card, style, frame, rim, showAi, aiArt]);
+  }, [img, card, style, frame, rim, generation, aiStyle, showAi, aiArt]);
 
   const onTilt = (e: React.PointerEvent) => {
     const el = tiltRef.current;
@@ -324,6 +333,44 @@ export function FullArtStudio({
               </button>
             </div>
 
+            <div className="pv-fa-sec">Generation</div>
+            <div className="pv-fa-gens" role="tablist" aria-label="Generation">
+              {GENERATION_TABS.map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  role="tab"
+                  aria-selected={generation === g}
+                  className={`pv-fa-gen ${generation === g ? "on" : ""}`}
+                  onClick={() => setGeneration(g)}
+                >
+                  {GENERATION_TAB_LABEL[g]}
+                </button>
+              ))}
+            </div>
+            <p className="pv-fa-ainote soft">
+              {generation === "auto"
+                ? "Auto reads the set and locks that era’s banner before the card is built."
+                : GENERATION_REFS[generation].lockedFrom}
+            </p>
+
+            <div className="pv-fa-sec">Artist style</div>
+            <div className="pv-fa-aistyles" role="radiogroup" aria-label="Artist style">
+              {AI_ART_STYLES.map((a) => (
+                <button
+                  key={a}
+                  type="button"
+                  role="radio"
+                  aria-checked={aiStyle === a}
+                  className={`pv-fa-aistyle a-${a} ${aiStyle === a ? "on" : ""}`}
+                  onClick={() => setAiStyle(a)}
+                >
+                  <strong>{AI_ART_STYLE_LABELS[a]}</strong>
+                  <em>{AI_STYLE_HINTS[a]}</em>
+                </button>
+              ))}
+            </div>
+
             <div className="pv-fa-sec">Finish</div>
             <div className="pv-fa-styles" role="radiogroup" aria-label="Finish">
               {STYLES.map((s) => (
@@ -348,8 +395,8 @@ export function FullArtStudio({
               onClick={() => setFrame((f) => !f)}
             >
               <span className="flex-1 text-left">
-                <strong>Full-art overlay (name · HP · floating chips)</strong>
-                <em>Full-bleed art with soft fade + attack chips — fan-made label always on</em>
+                <strong>Banners</strong>
+                <em>Stage, name plate, attacks, weakness bar and the rule. Fan-made label stays on.</em>
               </span>
               <span className="pv-lw-switch" aria-hidden />
             </button>
@@ -392,22 +439,6 @@ export function FullArtStudio({
 
             {aiOn && (
               <div className="pv-fa-ai">
-                <div className="pv-fa-sec">Art style</div>
-                <div className="pv-fa-aistyles" role="radiogroup" aria-label="AI art style">
-                  {AI_ART_STYLES.map((a) => (
-                    <button
-                      key={a}
-                      type="button"
-                      role="radio"
-                      aria-checked={aiStyle === a}
-                      className={`pv-fa-aistyle a-${a} ${aiStyle === a ? "on" : ""}`}
-                      onClick={() => setAiStyle(a)}
-                    >
-                      <strong>{AI_ART_STYLE_LABELS[a]}</strong>
-                      <em>{AI_STYLE_HINTS[a]}</em>
-                    </button>
-                  ))}
-                </div>
                 <button
                   type="button"
                   className="pv-btn pv-btn-fill pv-fa-paint"

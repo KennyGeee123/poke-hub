@@ -211,22 +211,30 @@ export function PokedexHub() {
             setSelected(null);
           }}
         />
-        <div className="flex gap-1 flex-wrap" role="group" aria-label="Generation">
+        <div className="pv-gen-tabs" role="tablist" aria-label="Generation">
           {GENS.map((g) => (
             <button
               key={g.id}
+              type="button"
+              role="tab"
+              aria-selected={gen === g.id}
+              title={
+                g.id === 0 ? "Every generation" : `National Dex ${g.min}–${Math.min(g.max, 1025)}`
+              }
               className={`pv-pill ${gen === g.id ? "on" : ""}`}
               onClick={() => {
                 setGen(g.id);
                 setSelected(null);
+                setShown(PAGE);
               }}
             >
-              {g.label}
+              {g.id === 0 ? "All" : `Gen ${g.label}`}
             </button>
           ))}
         </div>
-        <div className="flex gap-1 flex-wrap" role="group" aria-label="Type">
+        <div className="pv-gen-tabs" role="group" aria-label="Type">
           <button
+            type="button"
             className={`pv-pill ${type === null ? "on" : ""}`}
             onClick={() => {
               setType(null);
@@ -238,6 +246,7 @@ export function PokedexHub() {
           {TYPES.map((t) => (
             <button
               key={t}
+              type="button"
               className={`pv-pill ${type === t ? "on" : ""}`}
               style={type === t ? { background: typeColors[t], color: "#111" } : undefined}
               onClick={() => {

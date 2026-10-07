@@ -10138,6 +10138,34 @@ body[data-pv-tab="adventure"] .pv-music-panel,
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+.pv-fa-gens,
+.pv-app-shell .pv-gen-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pv-fa-gen {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--t1);
+  background: rgba(24, 32, 50, 0.9);
+  border: 1px solid rgba(197, 198, 199, 0.28);
+}
+.pv-fa-gen.on {
+  color: #fff6dc;
+  background: rgba(226, 181, 58, 0.18);
+  border-color: rgba(226, 181, 58, 0.9);
+}
+.pv-app-shell .pv-gen-tabs .pv-pill {
+  min-height: 40px;
+  padding: 8px 14px !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  opacity: 1;
+}
 .pv-fa-styles {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

@@ -7,6 +7,17 @@
 // Official Ultra Rare / Illustration Rare scans are already that look — shown full-bleed.
 // Optional AI path: opts.aiArt replaces the silk + subject. Overlay stays ours.
 import type { TCGCard } from "./pokemon-api";
+import {
+  ARTIST_REFS,
+  GENERATION_REFS,
+  cardRule,
+  resolveFullArtGeneration,
+  type ArtistStyleId,
+  type FullArtGeneration,
+  type MetalStops,
+} from "./fullart-refs";
+
+export type { ArtistStyleId, FullArtGeneration };
 
 export type FullArtStyle = "holo" | "rainbow" | "gold" | "alt";
 export type FullArtRim = "none" | "silver" | "gold";
@@ -15,6 +26,10 @@ export type FullArtOptions = {
   frame: boolean;
   /** Thin decorative rim (SIR-style). Ignored when frame is off. */
   rim?: FullArtRim;
+  /** Era plate. "auto" reads the card's set before paint. */
+  generation?: FullArtGeneration;
+  /** Locked artist treatment. Applied before the banners are drawn. */
+  artStyle?: ArtistStyleId;
   /** AI-painted full-bleed art (Nano Banana). When set, it replaces the compositor's extension. */
   aiArt?: HTMLImageElement | null;
 };
@@ -23,7 +38,7 @@ export const FULLART_H = 1400;
 
 /** Layout of a current-generation Ultra Rare full art (silk field + silver name plate). */
 export const FULLART_LAYOUT = {
-  version: "fa-v3.6-banners",
+  version: "fa-v3.7-refs",
   nameHpBand: [0.04, 0.14],
   subjectBand: [0.14, 0.62],
   subjectPeakY: 0.4,
@@ -623,28 +638,52 @@ function stageLabel(card: TCGCard): string {
   return "BASIC";
 }
 
-function metalFill(ctx: CanvasRenderingContext2D, y: number, h: number): CanvasGradient {
+function metalFill(
+  ctx: CanvasRenderingContext2D,
+  y: number,
+  h: number,
+  stops?: MetalStops,
+): CanvasGradient {
   const g = ctx.createLinearGradient(0, y, 0, y + h);
-  g.addColorStop(0, "#fcfcfd");
-  g.addColorStop(0.4, "#d4d8e0");
-  g.addColorStop(0.58, "#f4f5f7");
-  g.addColorStop(1, "#a4aab3");
+  const use: MetalStops = stops ?? [
+    [0, "#fcfcfd"],
+    [0.4, "#d4d8e0"],
+    [0.58, "#f4f5f7"],
+    [1, "#a4aab3"],
+  ];
+  for (const [t, c] of use) g.addColorStop(t, c);
   return g;
 }
 
-/** Silver name swoosh: thick on the left, pointed before the type disc. */
-function traceNameSwoosh(ctx: CanvasRenderingContext2D, y: number, h: number) {
+/** Name plate. "swoosh" is the current-gen point; "bar" is the straighter V / GX / BW strip. */
+function traceNameSwoosh(
+  ctx: CanvasRenderingContext2D,
+  y: number,
+  h: number,
+  plate: "swoosh" | "bar" = "swoosh",
+) {
   const left = 46;
   const tip = FULLART_W - 150;
   ctx.beginPath();
-  ctx.moveTo(left + 34, y);
-  ctx.lineTo(tip - 86, y);
-  ctx.quadraticCurveTo(tip + 8, y + 4, tip + 26, y + h * 0.46);
-  ctx.quadraticCurveTo(tip - 8, y + h - 2, tip - 92, y + h);
-  ctx.lineTo(left + 30, y + h);
-  ctx.quadraticCurveTo(left, y + h, left, y + h - 24);
-  ctx.lineTo(left, y + 24);
-  ctx.quadraticCurveTo(left, y, left + 34, y);
+  if (plate === "bar") {
+    ctx.moveTo(left + 18, y);
+    ctx.lineTo(tip - 10, y);
+    ctx.quadraticCurveTo(tip + 18, y + 4, tip + 18, y + h * 0.5);
+    ctx.quadraticCurveTo(tip + 18, y + h - 4, tip - 10, y + h);
+    ctx.lineTo(left + 18, y + h);
+    ctx.quadraticCurveTo(left, y + h, left, y + h - 18);
+    ctx.lineTo(left, y + 18);
+    ctx.quadraticCurveTo(left, y, left + 18, y);
+  } else {
+    ctx.moveTo(left + 34, y);
+    ctx.lineTo(tip - 86, y);
+    ctx.quadraticCurveTo(tip + 8, y + 4, tip + 26, y + h * 0.46);
+    ctx.quadraticCurveTo(tip - 8, y + h - 2, tip - 92, y + h);
+    ctx.lineTo(left + 30, y + h);
+    ctx.quadraticCurveTo(left, y + h, left, y + h - 24);
+    ctx.lineTo(left, y + 24);
+    ctx.quadraticCurveTo(left, y, left + 34, y);
+  }
   ctx.closePath();
 }
 
@@ -708,12 +747,12 @@ function drawRetreatStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, 
   ctx.fill();
 }
 
-function cardIsEx(card: TCGCard): boolean {
-  return /\bex\b/i.test(card.name) || (card.subtypes || []).some((s) => /^ex$/i.test(s));
+function displayName(card: TCGCard): string {
+  return card.name.replace(/\s+(ex|EX|VMAX|VSTAR|GX|V)$/, "").trim() || card.name;
 }
 
-function displayName(card: TCGCard): string {
-  return card.name.replace(/\s+ex$/i, "").trim() || card.name;
+function nameSuffix(card: TCGCard): string {
+  return card.name.match(/\s+(ex|EX|VMAX|VSTAR|GX|V)$/)?.[1] || "";
 }
 
 function wrapLines(
@@ -821,15 +860,17 @@ function paintSilk(
   W: number,
   H: number,
   finish: FullArtStyle = "holo",
+  extraFilter = "",
 ) {
   if (stylePlate) {
     ctx.save();
-    ctx.filter =
+    const base =
       finish === "gold"
         ? "hue-rotate(-108deg) saturate(1.3)"
         : finish === "rainbow"
           ? "hue-rotate(40deg) saturate(1.6)"
           : silkFilter(typeName);
+    ctx.filter = extraFilter ? `${base} ${extraFilter}` : base;
     const s = Math.max(W / stylePlate.naturalWidth, H / stylePlate.naturalHeight);
     const dw = stylePlate.naturalWidth * s;
     const dh = stylePlate.naturalHeight * s;
@@ -887,6 +928,7 @@ function drawMaskedSubject(
   dy: number,
   dw: number,
   dh: number,
+  mask = 0.36,
 ) {
   const tmp = document.createElement("canvas");
   tmp.width = Math.max(2, Math.round(dw));
@@ -900,7 +942,7 @@ function drawMaskedSubject(
   t.save();
   t.translate(tmp.width * 0.5, tmp.height * 0.46);
   t.scale(1, tmp.height / Math.max(1, tmp.width));
-  const rad = tmp.width * 0.38;
+  const rad = tmp.width * mask;
   const g = t.createRadialGradient(0, 0, rad * 0.2, 0, 0, rad);
   g.addColorStop(0, "rgba(0,0,0,1)");
   g.addColorStop(0.5, "rgba(0,0,0,1)");
@@ -958,6 +1000,8 @@ function drawFrame(
     ctx.stroke();
   }
 
+  const gen = resolveFullArtGeneration(card, opts.generation);
+  const plateRef = GENERATION_REFS[gen];
   const stage = stageLabel(card);
   const evolved = Boolean(card.evolvesFrom) && stage !== "BASIC";
   const plateY = 78;
@@ -966,20 +1010,26 @@ function drawFrame(
   ctx.shadowColor = "rgba(0,0,0,0.28)";
   ctx.shadowBlur = 10;
   ctx.shadowOffsetY = 3;
-  traceNameSwoosh(ctx, plateY, plateH);
-  ctx.fillStyle = metalFill(ctx, plateY, plateH);
+  traceNameSwoosh(ctx, plateY, plateH, plateRef.plate);
+  ctx.fillStyle = metalFill(ctx, plateY, plateH, plateRef.metal);
   ctx.fill();
   ctx.shadowColor = "transparent";
   ctx.lineWidth = 1.6;
   ctx.strokeStyle = "rgba(30,34,40,0.35)";
   ctx.stroke();
+  ctx.save();
+  ctx.clip();
+  ctx.strokeStyle = "rgba(255,255,255,0.72)";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.restore();
   ctx.restore();
 
   ctx.font = "800 17px Barlow, system-ui, sans-serif";
   const badgeW = ctx.measureText(stage).width + 22;
   const tabY = plateY - 16;
   roundRect(ctx, 62, tabY, badgeW, 30, 7);
-  ctx.fillStyle = metalFill(ctx, tabY, 30);
+  ctx.fillStyle = metalFill(ctx, tabY, 30, plateRef.metal);
   ctx.fill();
   ctx.lineWidth = 1.5;
   ctx.strokeStyle = "#6d7480";
@@ -991,22 +1041,23 @@ function drawFrame(
 
   const nameX = evolved ? 176 : 74;
   const name = displayName(card);
-  const ex = cardIsEx(card);
+  const suffix = nameSuffix(card);
   let nameSize = evolved ? 46 : 50;
   ctx.fillStyle = "#141414";
   ctx.font = `800 ${nameSize}px Barlow, system-ui, sans-serif`;
   const hpRight = W - 168;
-  const maxName = hpRight - nameX - (ex ? 54 : 16);
+  const maxName = hpRight - nameX - (suffix ? 78 : 16);
   while (ctx.measureText(name).width > maxName && nameSize > 28) {
     nameSize -= 2;
     ctx.font = `800 ${nameSize}px Barlow, system-ui, sans-serif`;
   }
   const nameY = evolved ? plateY + 62 : plateY + plateH * 0.66;
   ctx.fillText(name, nameX, nameY);
-  if (ex) {
+  if (suffix) {
     const nx = nameX + 8 + ctx.measureText(name).width;
-    ctx.font = `italic 800 ${Math.round(nameSize * 0.72)}px Barlow, system-ui, sans-serif`;
-    ctx.fillText("ex", nx, nameY - 2);
+    const italic = /ex/i.test(suffix) ? "italic " : "";
+    ctx.font = `${italic}800 ${Math.round(nameSize * 0.62)}px Barlow, system-ui, sans-serif`;
+    ctx.fillText(suffix, nx, nameY - 2);
   }
   if (evolved && card.evolvesFrom) {
     ctx.font = "italic 600 20px Barlow, system-ui, sans-serif";
@@ -1131,7 +1182,7 @@ function drawFrame(
   ctx.shadowBlur = 8;
   ctx.shadowOffsetY = 2;
   roundRect(ctx, statX, statY, statW, statH, 10);
-  ctx.fillStyle = metalFill(ctx, statY, statH);
+  ctx.fillStyle = metalFill(ctx, statY, statH, plateRef.metal);
   ctx.fill();
   ctx.shadowColor = "transparent";
   ctx.lineWidth = 1.4;
@@ -1189,7 +1240,8 @@ function drawFrame(
     rx += 26;
   }
 
-  if (cardIsEx(card)) {
+  const rule = cardRule(card);
+  if (rule) {
     const barY = H - 150;
     const barH = 48;
     ctx.save();
@@ -1197,7 +1249,7 @@ function drawFrame(
     ctx.shadowBlur = 8;
     ctx.shadowOffsetY = 2;
     roundRect(ctx, statX, barY, statW, barH, 12);
-    ctx.fillStyle = metalFill(ctx, barY, barH);
+    ctx.fillStyle = metalFill(ctx, barY, barH, plateRef.metal);
     ctx.fill();
     ctx.shadowColor = "transparent";
     ctx.strokeStyle = "rgba(30,34,40,0.28)";
@@ -1205,18 +1257,16 @@ function drawFrame(
     ctx.stroke();
     ctx.restore();
     ctx.font = "800 16px Barlow, system-ui, sans-serif";
-    const cap = "Pokémon ex rule";
-    const capW = ctx.measureText(cap).width + 28;
+    const capW = ctx.measureText(rule.cap).width + 28;
     roundRect(ctx, statX + 8, barY + 7, capW, barH - 14, (barH - 14) / 2);
     ctx.fillStyle = "#161616";
     ctx.fill();
     ctx.fillStyle = "#fff";
-    ctx.fillText(cap, statX + 22, barY + 30);
+    ctx.fillText(rule.cap, statX + 22, barY + 30);
     ctx.fillStyle = "#1a1a1a";
     ctx.font = "600 16px Barlow, system-ui, sans-serif";
-    const rule = "When your Pokémon ex is Knocked Out, your opponent takes 2 Prize cards.";
     const ruleX = statX + 16 + capW;
-    const lines = wrapLines(ctx, rule, statW - capW - 36, 2);
+    const lines = wrapLines(ctx, rule.body, statW - capW - 36, 2);
     lines.forEach((line, i) => ctx.fillText(line, ruleX, barY + (lines.length === 1 ? 30 : 20 + i * 18)));
   }
 
@@ -1225,6 +1275,38 @@ function drawFrame(
   ctx.fillStyle = "#8a6412";
   ctx.fillText("FAN-MADE · NOT OFFICIAL", W - 58, H - 42);
   ctx.textAlign = "left";
+  ctx.restore();
+}
+
+/** Soft gouache grain locked to the illustration-painter reference. */
+function paintStoryGrain(ctx: CanvasRenderingContext2D, amount: number) {
+  const W = FULLART_W;
+  const H = FULLART_H;
+  ctx.save();
+  ctx.globalAlpha = Math.min(0.08, amount * 0.45);
+  ctx.strokeStyle = "rgba(255,255,255,0.55)";
+  ctx.lineWidth = 1;
+  for (let x = -H; x < W; x += 18) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x + H * 0.18, H);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/** Magenta and cyan rim light. The silk colour stays the type colour. */
+function paintNeonRim(ctx: CanvasRenderingContext2D) {
+  const W = FULLART_W;
+  const H = FULLART_H;
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  const g = ctx.createRadialGradient(W * 0.5, H * 0.42, W * 0.1, W * 0.5, H * 0.42, W * 0.72);
+  g.addColorStop(0, "rgba(0,0,0,0)");
+  g.addColorStop(0.55, "rgba(255, 40, 180, 0.18)");
+  g.addColorStop(1, "rgba(40, 220, 255, 0.28)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
   ctx.restore();
 }
 
@@ -1248,6 +1330,9 @@ export function renderFullArt(
     return;
   }
 
+  const artist = ARTIST_REFS[opts.artStyle || "faithful"];
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   paintCardEdge(ctx);
   ctx.save();
   clipCardFace(ctx);
@@ -1256,15 +1341,18 @@ export function renderFullArt(
     paintSilk(
       ctx,
       card.types?.[0] || "Colorless",
-      hash(card.id + "silk" + opts.style),
+      hash(card.id + "silk" + opts.style + artist.id),
       W,
       H,
       opts.style,
+      artist.filter,
     );
     const box = artBox(img);
-    const dw = W * 1.28;
+    const dw = W * artist.subjectScale;
     const dh = dw * (box.h / Math.max(1, box.w));
-    drawMaskedSubject(ctx, img, box, (W - dw) / 2, H * 0.08, dw, dh);
+    drawMaskedSubject(ctx, img, box, (W - dw) / 2, H * artist.dy, dw, dh, artist.mask);
+    if (artist.grain > 0.08) paintStoryGrain(ctx, artist.grain);
+    if (artist.neon) paintNeonRim(ctx);
   }
   ctx.restore();
   drawTexture(ctx, opts.style, hash(card.id + opts.style), opts.aiArt ? 0.35 : 0.45);

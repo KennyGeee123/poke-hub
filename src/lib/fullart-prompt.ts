@@ -4,7 +4,7 @@
 // still use this): the creature large on a flowing silk swirl in its type colour.
 // Not a forest outpaint, not a yellow-frame card, not a second scene.
 
-export const FULLART_PROMPT_VERSION = "fa-v3.5";
+export const FULLART_PROMPT_VERSION = "fa-v3.7";
 
 export const AI_FINISHES = ["holo", "rainbow", "gold", "alt"] as const;
 export type AiFinish = (typeof AI_FINISHES)[number];
@@ -29,12 +29,12 @@ const FINISH_BLOCKS: Record<AiFinish, string> = {
 
 const ART_STYLE_BLOCKS: Record<AiArtStyle, string> = {
   faithful:
-    "Official current-generation full-art illustration: crisp trading-card linework, clean cel-to-painter shading, the creature large and on-model, sitting on the silk swirl as if the original illustrator had drawn the Ultra Rare.",
+    "LOCKED REFERENCE — N-DESIGN / PLANETA current-gen line. Crisp trading-card linework, clean cel shading, the creature large and on-model on the measured silk swirl (hue 150 shifted to the type). Do not invent a new illustrator.",
   storybook:
-    "Painterly current-gen full art: softer gouache edges on the SAME creature, still on the type-colour silk swirl. Do not invent a forest, city, or new habitat.",
+    "LOCKED REFERENCE — illustration painters (softer gouache, like sui / kantaro). Softer edges on the SAME creature, still on the type-colour silk. No forest, city, or new habitat.",
   chibi:
-    "Chibi current-gen full art: rounder proportions and big eyes, colours and markings intact, placed on the same type-colour silk swirl. No new setting.",
-  neon: "Current-gen full art with neon rim light: magenta and cyan glow on the creature and along the silk ribbons. The swirl stays the type colour. No cyber city.",
+    "LOCKED REFERENCE — chibi grade of the same full art. Rounder proportions and a bigger face, colours and markings intact, on the same silk swirl. No new setting.",
+  neon: "LOCKED REFERENCE — neon rim on the same silk full art. Magenta and cyan light on the creature and along the silk ribbons. The swirl stays the type colour. No cyber city.",
 };
 
 const TYPE_FX: Record<string, string> = {
