@@ -1,7 +1,8 @@
 // Full Art Studio engine: turns a regular card into a fan-made CURRENT-GEN full art.
 // Current gen (Scarlet & Violet Ultra Rare, still the Black Bolt full-art look):
 //   1. type-color silk swirl  2. the Pokémon large, melted into that swirl
-//   3. silver name plate, stage, HP, type  4. ability + attack + ex rule
+//   3. silver name swoosh, stage tab, evolution portrait, HP, type
+//   4. ability pill, attacks, weakness bar, ex-rule bar
 //   5. light foil  6. gray card edge
 // Official Ultra Rare / Illustration Rare scans are already that look — shown full-bleed.
 // Optional AI path: opts.aiArt replaces the silk + subject. Overlay stays ours.
@@ -22,14 +23,14 @@ export const FULLART_H = 1400;
 
 /** Layout of a current-generation Ultra Rare full art (silk field + silver name plate). */
 export const FULLART_LAYOUT = {
-  version: "fa-v3.5-current-gen",
+  version: "fa-v3.6-banners",
   nameHpBand: [0.04, 0.14],
   subjectBand: [0.14, 0.62],
   subjectPeakY: 0.4,
   habitatBand: [0.62, 0.9],
   footerBand: [0.9, 1],
   minBottomEdgeRatio: 0.63,
-  overlay: "current-gen-plate",
+  overlay: "current-gen-banners",
 } as const;
 
 
@@ -615,11 +616,96 @@ export function isOfficialFullBleed(card: TCGCard): boolean {
 
 function stageLabel(card: TCGCard): string {
   const s = (card.subtypes || []).join(" ");
-  if (/stage\s*2/i.test(s)) return "STAGE 2";
-  if (/stage\s*1/i.test(s)) return "STAGE 1";
+  if (/stage\s*2/i.test(s)) return "STAGE2";
+  if (/stage\s*1/i.test(s)) return "STAGE1";
   if (/basic/i.test(s)) return "BASIC";
   if (card.evolvesFrom) return "STAGE";
   return "BASIC";
+}
+
+function metalFill(ctx: CanvasRenderingContext2D, y: number, h: number): CanvasGradient {
+  const g = ctx.createLinearGradient(0, y, 0, y + h);
+  g.addColorStop(0, "#fcfcfd");
+  g.addColorStop(0.4, "#d4d8e0");
+  g.addColorStop(0.58, "#f4f5f7");
+  g.addColorStop(1, "#a4aab3");
+  return g;
+}
+
+/** Silver name swoosh: thick on the left, pointed before the type disc. */
+function traceNameSwoosh(ctx: CanvasRenderingContext2D, y: number, h: number) {
+  const left = 46;
+  const tip = FULLART_W - 150;
+  ctx.beginPath();
+  ctx.moveTo(left + 34, y);
+  ctx.lineTo(tip - 86, y);
+  ctx.quadraticCurveTo(tip + 8, y + 4, tip + 26, y + h * 0.46);
+  ctx.quadraticCurveTo(tip - 8, y + h - 2, tip - 92, y + h);
+  ctx.lineTo(left + 30, y + h);
+  ctx.quadraticCurveTo(left, y + h, left, y + h - 24);
+  ctx.lineTo(left, y + 24);
+  ctx.quadraticCurveTo(left, y, left + 34, y);
+  ctx.closePath();
+}
+
+/** Pre-evolution portrait lives in a fixed circle on a current-gen card scan. */
+function drawPrevoMedallion(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement | undefined,
+  cx: number,
+  cy: number,
+  r: number,
+) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = metalFill(ctx, cy - r, r * 2);
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#5c636c";
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r - 7, 0, Math.PI * 2);
+  ctx.clip();
+  const w = img?.naturalWidth || 0;
+  const h = img?.naturalHeight || 0;
+  const ratio = w && h ? w / h : 0;
+  if (img && ratio > 0.65 && ratio < 0.82) {
+    const sw = w * 0.15;
+    const side = (r - 7) * 2;
+    ctx.drawImage(img, w * 0.03, h * 0.0667, sw, sw, cx - side / 2, cy - side / 2, side, side);
+  } else {
+    ctx.fillStyle = "#e7e9ed";
+    ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+  }
+  ctx.restore();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r - 7, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(255,255,255,0.75)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function drawRetreatStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = "#f7f7f8";
+  ctx.fill();
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = "rgba(0,0,0,0.45)";
+  ctx.stroke();
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const ang = -Math.PI / 2 + i * (Math.PI / 5);
+    const rad = i % 2 === 0 ? r * 0.62 : r * 0.26;
+    const px = cx + Math.cos(ang) * rad;
+    const py = cy + Math.sin(ang) * rad;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+  ctx.fillStyle = "#1c1c1c";
+  ctx.fill();
 }
 
 function cardIsEx(card: TCGCard): boolean {
@@ -850,7 +936,12 @@ function silkHex(card: TCGCard, style: FullArtStyle): string {
   return TYPE_COLORS[card.types?.[0] || "Colorless"] || "#d0d0d0";
 }
 
-function drawFrame(ctx: CanvasRenderingContext2D, card: TCGCard, opts: FullArtOptions) {
+function drawFrame(
+  ctx: CanvasRenderingContext2D,
+  card: TCGCard,
+  opts: FullArtOptions,
+  img?: HTMLImageElement,
+) {
   const W = FULLART_W;
   const H = FULLART_H;
   const rim: FullArtRim = opts.rim ?? (opts.style === "gold" ? "gold" : "silver");
@@ -867,76 +958,91 @@ function drawFrame(ctx: CanvasRenderingContext2D, card: TCGCard, opts: FullArtOp
     ctx.stroke();
   }
 
-  const plateY = 64;
-  const plateH = 96;
-  const plate = ctx.createLinearGradient(0, plateY, W, plateY + plateH);
-  plate.addColorStop(0, "#fbfbfc");
-  plate.addColorStop(0.45, "#d7dae1");
-  plate.addColorStop(1, "#f4f5f7");
-  ctx.fillStyle = plate;
-  roundRect(ctx, 52, plateY, W - 150, plateH, 20);
+  const stage = stageLabel(card);
+  const evolved = Boolean(card.evolvesFrom) && stage !== "BASIC";
+  const plateY = 78;
+  const plateH = evolved ? 112 : 96;
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.28)";
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 3;
+  traceNameSwoosh(ctx, plateY, plateH);
+  ctx.fillStyle = metalFill(ctx, plateY, plateH);
+  ctx.fill();
+  ctx.shadowColor = "transparent";
+  ctx.lineWidth = 1.6;
+  ctx.strokeStyle = "rgba(30,34,40,0.35)";
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.font = "800 17px Barlow, system-ui, sans-serif";
+  const badgeW = ctx.measureText(stage).width + 22;
+  const tabY = plateY - 16;
+  roundRect(ctx, 62, tabY, badgeW, 30, 7);
+  ctx.fillStyle = metalFill(ctx, tabY, 30);
   ctx.fill();
   ctx.lineWidth = 1.5;
-  ctx.strokeStyle = "rgba(0,0,0,0.16)";
-  roundRect(ctx, 52, plateY, W - 150, plateH, 20);
+  ctx.strokeStyle = "#6d7480";
   ctx.stroke();
+  ctx.fillStyle = "#1a1a1a";
+  ctx.fillText(stage, 73, tabY + 21);
 
-  const stage = stageLabel(card);
-  ctx.font = "800 18px Barlow, system-ui, sans-serif";
-  const badgeW = ctx.measureText(stage).width + 26;
-  const badge = ctx.createLinearGradient(0, 42, 0, 80);
-  badge.addColorStop(0, "#ffffff");
-  badge.addColorStop(1, "#c5c9d1");
-  ctx.fillStyle = badge;
-  roundRect(ctx, 68, 42, badgeW, 34, 8);
-  ctx.fill();
-  ctx.strokeStyle = "#8e949e";
-  ctx.stroke();
-  ctx.fillStyle = "#1c1c1c";
-  ctx.fillText(stage, 81, 65);
+  if (evolved) drawPrevoMedallion(ctx, img, 118, plateY + plateH - 18, 46);
 
+  const nameX = evolved ? 176 : 74;
   const name = displayName(card);
   const ex = cardIsEx(card);
-  let nameSize = 52;
+  let nameSize = evolved ? 46 : 50;
   ctx.fillStyle = "#141414";
   ctx.font = `800 ${nameSize}px Barlow, system-ui, sans-serif`;
-  const maxName = W - 280;
-  while (ctx.measureText(name).width > maxName && nameSize > 30) {
+  const hpRight = W - 168;
+  const maxName = hpRight - nameX - (ex ? 54 : 16);
+  while (ctx.measureText(name).width > maxName && nameSize > 28) {
     nameSize -= 2;
     ctx.font = `800 ${nameSize}px Barlow, system-ui, sans-serif`;
   }
-  ctx.fillText(name, 72, plateY + 70);
+  const nameY = evolved ? plateY + 62 : plateY + plateH * 0.66;
+  ctx.fillText(name, nameX, nameY);
   if (ex) {
-    const nx = 78 + ctx.measureText(name).width;
-    ctx.font = `italic 800 ${Math.round(nameSize * 0.7)}px Barlow, system-ui, sans-serif`;
-    ctx.fillText("ex", nx, plateY + 68);
+    const nx = nameX + 8 + ctx.measureText(name).width;
+    ctx.font = `italic 800 ${Math.round(nameSize * 0.72)}px Barlow, system-ui, sans-serif`;
+    ctx.fillText("ex", nx, nameY - 2);
+  }
+  if (evolved && card.evolvesFrom) {
+    ctx.font = "italic 600 20px Barlow, system-ui, sans-serif";
+    ctx.fillStyle = "#2c2c2c";
+    let evo = `Evolves from ${card.evolvesFrom}`;
+    const maxEvo = hpRight - nameX;
+    while (ctx.measureText(evo).width > maxEvo && evo.length > 12) evo = evo.slice(0, -2) + "…";
+    ctx.fillText(evo, nameX, plateY + plateH - 18);
   }
 
   const t0 = card.types?.[0];
+  const typeCx = W - 78;
+  const typeCy = plateY + plateH * 0.48;
   if (t0) {
     ctx.beginPath();
-    ctx.arc(W - 78, plateY + 48, 28, 0, Math.PI * 2);
+    ctx.arc(typeCx, typeCy, 30, 0, Math.PI * 2);
     ctx.fillStyle = TYPE_COLORS[t0] || "#ccc";
     ctx.fill();
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 4;
     ctx.strokeStyle = "#fff";
     ctx.stroke();
     ctx.fillStyle = "#111";
     ctx.font = "800 26px Barlow, system-ui, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText(t0[0], W - 78, plateY + 57);
+    ctx.fillText(t0[0], typeCx, typeCy + 9);
     ctx.textAlign = "left";
   }
   if (card.hp) {
     ctx.textAlign = "right";
     ctx.fillStyle = "#141414";
-    ctx.font = "800 52px Barlow, system-ui, sans-serif";
-    const hpRight = W - 124;
-    ctx.fillText(card.hp, hpRight, plateY + 72);
+    ctx.font = "800 48px Barlow, system-ui, sans-serif";
+    ctx.fillText(card.hp, hpRight, evolved ? plateY + 66 : plateY + plateH * 0.7);
     const numW = ctx.measureText(card.hp).width;
-    ctx.font = "800 18px Barlow, system-ui, sans-serif";
+    ctx.font = "800 16px Barlow, system-ui, sans-serif";
     ctx.fillStyle = "#333";
-    ctx.fillText("HP", hpRight - numW - 6, plateY + 62);
+    ctx.fillText("HP", hpRight - numW - 8, (evolved ? plateY + 66 : plateY + plateH * 0.7) - 8);
     ctx.textAlign = "left";
   }
 
@@ -946,12 +1052,19 @@ function drawFrame(ctx: CanvasRenderingContext2D, card: TCGCard, opts: FullArtOp
   if (ability) {
     ctx.font = "800 18px Barlow, system-ui, sans-serif";
     const pill = "Ability";
-    const pw = ctx.measureText(pill).width + 24;
-    ctx.fillStyle = "#e10600";
+    const pw = ctx.measureText(pill).width + 28;
+    const pillG = ctx.createLinearGradient(0, y, 0, y + 32);
+    pillG.addColorStop(0, "#ff3b30");
+    pillG.addColorStop(0.45, "#e10600");
+    pillG.addColorStop(1, "#9d0000");
+    ctx.fillStyle = pillG;
     roundRect(ctx, 56, y, pw, 32, 16);
     ctx.fill();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(255,255,255,0.35)";
+    ctx.stroke();
     ctx.fillStyle = "#fff";
-    ctx.fillText(pill, 68, y + 22);
+    ctx.fillText(pill, 70, y + 22);
     ctx.fillStyle = "#c40000";
     ctx.font = "800 28px Barlow, system-ui, sans-serif";
     let abName = ability.name;
@@ -969,7 +1082,9 @@ function drawFrame(ctx: CanvasRenderingContext2D, card: TCGCard, opts: FullArtOp
       y += 6;
     }
   }
+  const bannerTop = H - 220;
   for (const a of attacks) {
+    if (y > bannerTop - 40) break;
     let x = 56;
     const cy = y + 22;
     for (const c of (a.cost || []).slice(0, 5)) {
@@ -1007,62 +1122,108 @@ function drawFrame(ctx: CanvasRenderingContext2D, card: TCGCard, opts: FullArtOp
     y += 10;
   }
 
-  const footY = H - 148;
-  ctx.font = "700 16px Barlow, system-ui, sans-serif";
-  ctx.fillStyle = "#2a2a2a";
-  let fx = 56;
-  const weak = card.weaknesses?.[0];
-  if (weak) {
-    ctx.fillText("weakness", fx, footY);
-    fx += ctx.measureText("weakness").width + 10;
+  const statY = H - 214;
+  const statH = 50;
+  const statX = 46;
+  const statW = W - 92;
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.22)";
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 2;
+  roundRect(ctx, statX, statY, statW, statH, 10);
+  ctx.fillStyle = metalFill(ctx, statY, statH);
+  ctx.fill();
+  ctx.shadowColor = "transparent";
+  ctx.lineWidth = 1.4;
+  ctx.strokeStyle = "rgba(30,34,40,0.28)";
+  ctx.stroke();
+  ctx.restore();
+  const colW = statW / 3;
+  ctx.strokeStyle = "rgba(40,44,52,0.28)";
+  ctx.lineWidth = 1.5;
+  for (const i of [1, 2]) {
+    const dx = statX + colW * i;
     ctx.beginPath();
-    ctx.arc(fx + 11, footY - 6, 11, 0, Math.PI * 2);
+    ctx.moveTo(dx, statY + 10);
+    ctx.lineTo(dx, statY + statH - 10);
+    ctx.stroke();
+  }
+  ctx.font = "700 16px Barlow, system-ui, sans-serif";
+  ctx.fillStyle = "#242424";
+  const labelY = statY + 32;
+  const weak = card.weaknesses?.[0];
+  let wx = statX + 16;
+  ctx.fillText("weakness", wx, labelY);
+  wx += ctx.measureText("weakness").width + 10;
+  if (weak) {
+    ctx.beginPath();
+    ctx.arc(wx + 12, labelY - 6, 12, 0, Math.PI * 2);
     ctx.fillStyle = TYPE_COLORS[weak.type] || "#ddd";
     ctx.fill();
     ctx.lineWidth = 1.5;
     ctx.strokeStyle = "rgba(0,0,0,0.4)";
     ctx.stroke();
-    fx += 28;
-    ctx.fillStyle = "#2a2a2a";
-    ctx.fillText(weak.value || "×2", fx, footY);
-    fx += 70;
+    ctx.fillStyle = "#242424";
+    ctx.fillText(weak.value || "×2", wx + 28, labelY);
   }
+  ctx.fillText("resistance", statX + colW + 16, labelY);
+  const resist = card.resistances?.[0];
+  if (resist) {
+    const rx = statX + colW + 16 + ctx.measureText("resistance").width + 10;
+    ctx.beginPath();
+    ctx.arc(rx + 12, labelY - 6, 12, 0, Math.PI * 2);
+    ctx.fillStyle = TYPE_COLORS[resist.type] || "#ddd";
+    ctx.fill();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = "rgba(0,0,0,0.4)";
+    ctx.stroke();
+    ctx.fillStyle = "#242424";
+    ctx.fillText(resist.value || "", rx + 28, labelY);
+  }
+  let rx = statX + colW * 2 + 16;
+  ctx.fillText("retreat", rx, labelY);
+  rx += ctx.measureText("retreat").width + 10;
   const retreatN = card.retreatCost?.length || 0;
-  if (retreatN) {
-    ctx.fillText("retreat", fx, footY);
-    fx += ctx.measureText("retreat").width + 10;
-    for (let i = 0; i < Math.min(retreatN, 4); i++) {
-      ctx.beginPath();
-      ctx.arc(fx + 11, footY - 6, 11, 0, Math.PI * 2);
-      ctx.fillStyle = "#f2f2f2";
-      ctx.fill();
-      ctx.strokeStyle = "rgba(0,0,0,0.45)";
-      ctx.stroke();
-      fx += 26;
-    }
+  for (let i = 0; i < Math.min(retreatN, 4); i++) {
+    drawRetreatStar(ctx, rx + 11, labelY - 6, 11);
+    rx += 26;
   }
 
-  const barY = H - 112;
-  ctx.fillStyle = "rgba(255,255,255,0.78)";
-  roundRect(ctx, 48, barY, W - 96, 64, 14);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(0,0,0,0.12)";
-  ctx.lineWidth = 1;
-  roundRect(ctx, 48, barY, W - 96, 64, 14);
-  ctx.stroke();
-  ctx.fillStyle = "#1a1a1a";
-  ctx.font = "700 16px Barlow, system-ui, sans-serif";
-  const rule = cardIsEx(card)
-    ? "Pokémon ex rule   When your Pokémon ex is Knocked Out, your opponent takes 2 Prize cards."
-    : [card.set?.name, card.number ? `#${card.number}` : ""].filter(Boolean).join("  ·  ");
-  let ruleText = rule;
-  while (ctx.measureText(ruleText).width > W - 160 && ruleText.length > 8)
-    ruleText = ruleText.slice(0, -2) + "…";
-  ctx.fillText(ruleText, 64, barY + 38);
+  if (cardIsEx(card)) {
+    const barY = H - 150;
+    const barH = 48;
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,0.22)";
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetY = 2;
+    roundRect(ctx, statX, barY, statW, barH, 12);
+    ctx.fillStyle = metalFill(ctx, barY, barH);
+    ctx.fill();
+    ctx.shadowColor = "transparent";
+    ctx.strokeStyle = "rgba(30,34,40,0.28)";
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+    ctx.restore();
+    ctx.font = "800 16px Barlow, system-ui, sans-serif";
+    const cap = "Pokémon ex rule";
+    const capW = ctx.measureText(cap).width + 28;
+    roundRect(ctx, statX + 8, barY + 7, capW, barH - 14, (barH - 14) / 2);
+    ctx.fillStyle = "#161616";
+    ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.fillText(cap, statX + 22, barY + 30);
+    ctx.fillStyle = "#1a1a1a";
+    ctx.font = "600 16px Barlow, system-ui, sans-serif";
+    const rule = "When your Pokémon ex is Knocked Out, your opponent takes 2 Prize cards.";
+    const ruleX = statX + 16 + capW;
+    const lines = wrapLines(ctx, rule, statW - capW - 36, 2);
+    lines.forEach((line, i) => ctx.fillText(line, ruleX, barY + (lines.length === 1 ? 30 : 20 + i * 18)));
+  }
+
   ctx.textAlign = "right";
   ctx.font = "800 13px Barlow, system-ui, sans-serif";
   ctx.fillStyle = "#8a6412";
-  ctx.fillText("FAN-MADE · NOT OFFICIAL", W - 64, barY + 22);
+  ctx.fillText("FAN-MADE · NOT OFFICIAL", W - 58, H - 42);
   ctx.textAlign = "left";
   ctx.restore();
 }
@@ -1107,7 +1268,7 @@ export function renderFullArt(
   }
   ctx.restore();
   drawTexture(ctx, opts.style, hash(card.id + opts.style), opts.aiArt ? 0.35 : 0.45);
-  drawOverlay(ctx, card, opts);
+  drawOverlay(ctx, card, opts, img);
 }
 
 /** Cover-fit the AI art (3:4 from the model) into the 5:7 canvas, then shade for text legibility. */
@@ -1127,10 +1288,15 @@ function renderAiArt(ctx: CanvasRenderingContext2D, art: HTMLImageElement) {
   ctx.fillRect(0, 0, W, H);
 }
 
-function drawOverlay(ctx: CanvasRenderingContext2D, card: TCGCard, opts: FullArtOptions) {
+function drawOverlay(
+  ctx: CanvasRenderingContext2D,
+  card: TCGCard,
+  opts: FullArtOptions,
+  img?: HTMLImageElement,
+) {
   const W = FULLART_W;
   const H = FULLART_H;
-  if (opts.frame) drawFrame(ctx, card, opts);
+  if (opts.frame) drawFrame(ctx, card, opts, img);
   else {
     ctx.save();
     ctx.font = "700 20px Barlow, system-ui, sans-serif";
