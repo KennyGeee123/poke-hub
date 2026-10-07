@@ -678,14 +678,80 @@ function clipCardFace(ctx: CanvasRenderingContext2D) {
   ctx.clip();
 }
 
-/** Flowing type-colour silk. This is the background of a current-gen full art. */
+/** Real silk pixels measured off a current-gen Ultra Rare (hue ≈ 150°). */
+let stylePlate: HTMLImageElement | null = null;
+
+export function setFullArtStylePlate(img: HTMLImageElement | null) {
+  stylePlate = img;
+}
+
+/** Navis inject this plate: every background pixel is a real full-art silk pixel. */
+export function loadFullArtStylePlate(src = "/fullart-silk-style.png"): Promise<void> {
+  if (stylePlate) return Promise.resolve();
+  return new Promise((resolve) => {
+    const im = new Image();
+    im.onload = () => {
+      stylePlate = im;
+      resolve();
+    };
+    im.onerror = () => resolve();
+    im.src = src;
+  });
+}
+
+/** Hue shift from the measured grass silk (150°) onto this card’s type. */
+function silkFilter(type: string | undefined): string {
+  switch (type) {
+    case "Fire":
+      return "hue-rotate(-134deg) saturate(1.35)";
+    case "Water":
+      return "hue-rotate(58deg) saturate(1.25)";
+    case "Lightning":
+      return "hue-rotate(-100deg) saturate(1.45)";
+    case "Psychic":
+      return "hue-rotate(140deg) saturate(1.2)";
+    case "Fighting":
+      return "hue-rotate(-122deg) saturate(0.75)";
+    case "Darkness":
+      return "hue-rotate(90deg) saturate(0.45) brightness(0.7)";
+    case "Metal":
+      return "hue-rotate(40deg) saturate(0.25) brightness(1.15)";
+    case "Dragon":
+      return "hue-rotate(-105deg) saturate(1.1)";
+    case "Fairy":
+      return "hue-rotate(176deg) saturate(1.15)";
+    case "Colorless":
+      return "grayscale(0.85) brightness(1.2)";
+    default:
+      return "saturate(1.15)";
+  }
+}
+
+/** Flowing type-colour silk. Prefers the Navi pixel plate; falls back to paint. */
 function paintSilk(
   ctx: CanvasRenderingContext2D,
-  typeHex: string,
+  typeName: string,
   seed: number,
   W: number,
   H: number,
+  finish: FullArtStyle = "holo",
 ) {
+  if (stylePlate) {
+    ctx.save();
+    ctx.filter =
+      finish === "gold"
+        ? "hue-rotate(-108deg) saturate(1.3)"
+        : finish === "rainbow"
+          ? "hue-rotate(40deg) saturate(1.6)"
+          : silkFilter(typeName);
+    const s = Math.max(W / stylePlate.naturalWidth, H / stylePlate.naturalHeight);
+    const dw = stylePlate.naturalWidth * s;
+    const dh = stylePlate.naturalHeight * s;
+    ctx.drawImage(stylePlate, (W - dw) / 2, (H - dh) / 2, dw, dh);
+    ctx.restore();
+    return;
+  }
+  const typeHex = TYPE_COLORS[typeName] || "#d0d0d0";
   const rnd = seeded(seed);
   const base = hexRgb(typeHex);
   const light = mixC(base, [255, 255, 255], 0.66);
@@ -1026,7 +1092,14 @@ export function renderFullArt(
   clipCardFace(ctx);
   if (opts.aiArt) renderAiArt(ctx, opts.aiArt);
   else {
-    paintSilk(ctx, silkHex(card, opts.style), hash(card.id + "silk" + opts.style), W, H);
+    paintSilk(
+      ctx,
+      card.types?.[0] || "Colorless",
+      hash(card.id + "silk" + opts.style),
+      W,
+      H,
+      opts.style,
+    );
     const box = artBox(img);
     const dw = W * 1.28;
     const dh = dw * (box.h / Math.max(1, box.w));

@@ -12,6 +12,7 @@ import {
   fullArtFilename,
   listFullArts,
   loadCardImage,
+  loadFullArtStylePlate,
   renderFullArt,
   saveFullArt,
   type FullArtRecord,
@@ -138,7 +139,7 @@ export function FullArtStudio({
     setErr(null);
     setStatus("loading");
     try {
-      await document.fonts?.ready;
+      await Promise.all([document.fonts?.ready, loadFullArtStylePlate()]);
       // Lists (Discover/search) can carry trimmed card data; fetch the full
       // record so the frame gets HP, types and attacks.
       // pokemontcg-imaged cards already carry full data (or aren't on TCGdex).
