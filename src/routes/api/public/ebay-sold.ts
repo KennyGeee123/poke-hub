@@ -1,6 +1,7 @@
 // Public route: GET /api/public/ebay-sold?q=<query>
 // Scrapes eBay's sold/completed listings (no API key required).
 import { createFileRoute } from "@tanstack/react-router";
+import { scanText, blockedResponse } from "@/lib/virus-buster";
 
 export type SoldListing = {
   title: string;
@@ -11,6 +12,16 @@ export type SoldListing = {
   url: string;
   image: string | null;
 };
+
+
+function isSafeHttpUrl(u: string): boolean {
+  try {
+    const parsed = new URL(u);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
 function stripTags(s: string): string {
   return s
@@ -55,8 +66,8 @@ function parseListings(html: string): SoldListing[] {
       priceValue: numMatch ? parseFloat(numMatch[0].replace(/,/g, "")) : null,
       currency: currMatch ? currMatch[0] : "$",
       soldDate: soldMatch ? soldMatch[1] : null,
-      url: urlMatch ? urlMatch[1] : "",
-      image: imgMatch ? imgMatch[1] : null,
+      url: urlMatch && isSafeHttpUrl(urlMatch[1]) ? urlMatch[1] : "",
+      image: imgMatch && isSafeHttpUrl(imgMatch[1]) ? imgMatch[1] : null,
     });
   }
   return items;
@@ -94,6 +105,8 @@ export const Route = createFileRoute("/api/public/ebay-sold")({
         if (!q.trim()) {
           return Response.json({ error: "Missing q parameter" }, { status: 400 });
         }
+        const probe = scanText(q);
+        if (probe.blocked) return blockedResponse();
         const ebayUrl = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(q)}&LH_Sold=1&LH_Complete=1&_ipg=60`;
         const ctl = new AbortController();
         const timer = setTimeout(() => ctl.abort(), 12000);

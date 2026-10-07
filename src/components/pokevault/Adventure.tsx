@@ -116,7 +116,7 @@ export function AdventureView() {
   useEffect(() => {
     const postIframe = (msg: Record<string, unknown>) => {
       try {
-        retroIframeRef.current?.contentWindow?.postMessage(msg, "*");
+        retroIframeRef.current?.contentWindow?.postMessage(msg, window.location.origin);
       } catch {}
     };
     const onMsg = (e: MessageEvent) => {
@@ -680,7 +680,7 @@ export function AdventureView() {
                             type:
                               result === "lose" ? "pv-adventure-whiteout" : "pv-adventure-resume",
                           },
-                          "*",
+                          window.location.origin,
                         );
                       } catch {}
                       focusRetro();

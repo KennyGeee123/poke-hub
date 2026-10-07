@@ -11,11 +11,16 @@ export const PATH_TRAVERSAL = /(?:\.\.[/\\]|\.\.%2f|\.\.%5c)/i;
 export const NULL_BYTE = /%00|\x00/;
 export const PHP_WEBSHELL = /<\?(?:php|=)/i;
 export const EVAL_BASE64 = /eval\s*\(\s*base64/i;
+export const XSS_SVG_IFRAME =
+  /<\s*(?:svg|iframe|object|embed|math|link|meta|base)\b/i;
+export const DATA_HTML_URL = /data\s*:\s*text\s*\/\s*html/i;
 
 export const BLOCK_PATTERNS: ReadonlyArray<{ name: string; re: RegExp }> = [
   { name: "xss-script", re: XSS_SCRIPT_TAG },
   { name: "javascript-url", re: JAVASCRIPT_URL },
   { name: "event-handler", re: EVENT_HANDLER },
+  { name: "xss-svg-iframe", re: XSS_SVG_IFRAME },
+  { name: "data-html-url", re: DATA_HTML_URL },
   { name: "sql-union", re: SQL_UNION },
   { name: "sql-dump", re: SQL_DUMP },
   { name: "path-traversal", re: PATH_TRAVERSAL },
@@ -135,6 +140,8 @@ export const VIRUS_BUSTER_SHIELDS = [
   "xss-script",
   "javascript-url",
   "event-handler",
+  "xss-svg-iframe",
+  "data-html-url",
   "sql-injection",
   "path-traversal",
   "null-byte",

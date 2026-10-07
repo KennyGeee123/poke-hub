@@ -1,6 +1,7 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { markdownUrlTransform } from "@/lib/safe-url";
 import { useServerFn } from "@tanstack/react-start";
 import { analyzeCollection } from "@/lib/insights.functions";
 import { useVault, formatPrice } from "@/lib/vault";
@@ -122,7 +123,7 @@ export function CollectionInsightsCard() {
             lineHeight: 1.55,
           }}
         >
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{md}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={markdownUrlTransform}>{md}</ReactMarkdown>
         </div>
       )}
     </div>

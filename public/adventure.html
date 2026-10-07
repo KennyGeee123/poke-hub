@@ -586,6 +586,31 @@ const NPCS = AREAS.map((a, i) => ({
   quote: a.quote || (a.region + " · " + a.name),
 }));
 
+
+function escapeHtml(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+function sanitizeCssColor(s, fallback) {
+  const v = String(s == null ? "" : s).trim();
+  if (!v || v.length > 64) return fallback || "transparent";
+  if (/^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(v)) return v;
+  if (/^rgba?\(\s*[\d.%\s,]+\s*\)$/i.test(v)) return v;
+  if (/^hsla?\(\s*[\d.%\s,/]+\s*\)$/i.test(v)) return v;
+  if (/^[a-z]{1,20}$/i.test(v)) return v;
+  return fallback || "transparent";
+}
+function safeSpeciesName(name) {
+  const n = String(name == null ? "" : name).slice(0, 64);
+  // Reject markup / event handlers in stored names (poisoned localStorage)
+  if (/[<>"'`]|javascript:|on\w+=/i.test(n)) return "Unknown";
+  return n || "Unknown";
+}
+
 function spriteSlug(name) {
   return String(name).toLowerCase()
     .replace(/[♀♂δ★:'']/g, '')
@@ -632,8 +657,12 @@ function pokeImgFallback(img) {
   img.src = q[0];
 }
 function pokeImgTag(name) {
-  const urls = spriteFallbacks(name);
-  return `<img src="${urls[0]}" alt="${name}" data-fall="${urls.slice(1).join("|")}" onerror="pokeImgFallback(this)" />`;
+  const safe = safeSpeciesName(name);
+  const urls = spriteFallbacks(safe);
+  const src = escapeHtml(urls[0] || "");
+  const fall = escapeHtml(urls.slice(1).join("|"));
+  const alt = escapeHtml(safe);
+  return `<img src="${src}" alt="${alt}" data-fall="${fall}" onerror="pokeImgFallback(this)" />`;
 }
 
 const Camera = {
@@ -894,7 +923,7 @@ const AudioFX = {
 };
 
 function postParent(msg) {
-  try { window.parent && window.parent.postMessage(msg, "*"); } catch (_) {}
+  try { window.parent && window.parent.postMessage(msg, window.location.origin); } catch (_) {}
 }
 function postStatus() {
   postParent({
@@ -1149,7 +1178,7 @@ const UIManager = {
       el.innerHTML = 'Walk with —';
       return;
     }
-    el.innerHTML = `${pokeImgTag(name)}<span>${name}</span>`;
+    el.innerHTML = `${pokeImgTag(name)}<span>${escapeHtml(safeSpeciesName(name))}</span>`;
   },
   renderPartyHud() {
     const el = document.getElementById('party-hud');
@@ -1161,8 +1190,9 @@ const UIManager = {
       if (!name) return `<div class="pip" style="opacity:.35"></div>`;
       const poke = speciesOf(name);
       const on = name === Follower.name ? ' on' : '';
-      const bg = poke ? poke.color : '#e2b53a';
-      return `<div class="pip${on}" data-walk="${name}" title="Walk with ${name}" style="background:${bg}"></div>`;
+      const bg = sanitizeCssColor(poke ? poke.color : '#e2b53a', '#e2b53a');
+      const sn = safeSpeciesName(name);
+      return `<div class="pip${on}" data-walk="${escapeHtml(sn)}" title="Walk with ${escapeHtml(sn)}" style="background:${bg}"></div>`;
     }).join('');
     el.querySelectorAll('[data-walk]').forEach((pip) => {
       pip.addEventListener('click', (e) => {
@@ -1271,9 +1301,11 @@ const UIManager = {
       const got = caught.some(c => c.name === p.name);
       const li = document.createElement('li');
       const walk = Follower.name === p.name ? ' · walking' : '';
-      li.innerHTML = `<span class="dot" style="background:${p.color}"></span>
-                      ${pokeImgTag(p.name)}
-                      <span>${String(i+1).padStart(3,'0')} ${p.name}${got ? ' · caught' : ' · seen'}${walk}</span>`;
+      const sn = safeSpeciesName(p.name);
+      const col = sanitizeCssColor(p.color, '#888');
+      li.innerHTML = `<span class="dot" style="background:${col}"></span>
+                      ${pokeImgTag(sn)}
+                      <span>${String(i+1).padStart(3,'0')} ${escapeHtml(sn)}${got ? ' · caught' : ' · seen'}${escapeHtml(walk)}</span>`;
       li.title = 'Walk with ' + p.name;
       li.addEventListener('click', () => Follower.set(p.name));
       ul.appendChild(li);
@@ -1284,13 +1316,13 @@ const UIManager = {
     const have = SaveSystem.state.badges || [];
     const gyms = regionGyms(MapManager.regionName());
     row.innerHTML = gyms.map(g =>
-      `<div class="badge-slot ${have.includes(g.badge) ? 'on' : ''}" title="${g.leader} · ${g.badge}">◆</div>`
+      `<div class="badge-slot ${have.includes(g.badge) ? 'on' : ''}" title="${escapeHtml(g.leader)} · ${escapeHtml(g.badge)}">◆</div>`
     ).join('') || '<div class="badge-slot" title="No gyms here">–</div>';
     const pips = document.getElementById('e4-pips');
     const league = MapManager.league() || [];
     const n = (SaveSystem.state.leagues || {})[MapManager.regionName()] || 0;
     pips.innerHTML = league.map((e, i) =>
-      `<div class="e4-pip ${i < n ? 'on' : ''} ${e.kind === 'champion' && i < n ? 'champ' : ''}" title="${e.leader}"></div>`
+      `<div class="e4-pip ${i < n ? 'on' : ''} ${e.kind === 'champion' && i < n ? 'champ' : ''}" title="${escapeHtml(e.leader)}"></div>`
     ).join('');
   },
   renderAtlas() {
@@ -1304,9 +1336,9 @@ const UIManager = {
       const items = groups[region].map(({ a, i }) => {
         const on = i === MapManager.current ? " on" : "";
         const lg = a.league ? " league" : "";
-        return `<button type="button" class="area${on}${lg}" data-area="${i}">${a.name}</button>`;
+        return `<button type="button" class="area${on}${lg}" data-area="${i}">${escapeHtml(a.name)}</button>`;
       }).join("");
-      return `<div class="atlas-region"><div class="atlas-region-name">${region}</div><div class="atlas-areas">${items}</div></div>`;
+      return `<div class="atlas-region"><div class="atlas-region-name">${escapeHtml(region)}</div><div class="atlas-areas">${items}</div></div>`;
     }).join("");
     body.querySelectorAll("[data-area]").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -1816,6 +1848,19 @@ const SaveSystem = {
           this.state.seen = Array.isArray(s.caught) ? s.caught : [];
           this.state.caught = [];
         }
+        // Scrub poisoned localStorage names (XSS finger-scan / tampering)
+        const scrubName = (n) => {
+          const sn = String(n == null ? "" : n).slice(0, 64);
+          return /[<>"'`]|javascript:|on\w+=/i.test(sn) ? "Unknown" : sn;
+        };
+        const scrubList = (arr) => Array.isArray(arr) ? arr.map((p) => {
+          if (!p || typeof p !== "object") return null;
+          return Object.assign({}, p, { name: scrubName(p.name), color: sanitizeCssColor(p.color, "#888") });
+        }).filter(Boolean) : [];
+        this.state.seen = scrubList(this.state.seen);
+        this.state.caught = scrubList(this.state.caught);
+        if (this.state.follower) this.state.follower = scrubName(this.state.follower);
+
         let x = s.x ?? Math.floor(MAP_SIZE / 2);
         let y = s.y ?? Math.floor(MAP_SIZE / 2);
         // Migrate tiny-map saves into the new open world (center-ish)
