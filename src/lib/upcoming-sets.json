@@ -1,5 +1,5 @@
 {
-  "_source": "Revealed Mega Evolution—Delta Reign checklist (number + name + rarity + illustrator) from Bulbapedia 'Delta Reign (TCG)' + card pages and pokemon.com (news 2026-08-20, sneak peek 2026-10-05), captured 2026-10-07. Art in public/card-art/me06 = resized copies of the Bulbapedia scans (English where posted; Japanese Storm Emeralda / M-P promo scan where the English scan isn't out). No prices are shipped. This file is a pre-release stand-in: once TCGdex English (or pokemontcg.io) publishes the set, live data replaces it automatically — delete the entry and public/card-art/me06 after that.",
+  "_source": "Revealed Mega Evolution—Delta Reign checklist (number + name + rarity + illustrator) from Bulbapedia 'Delta Reign (TCG)' + card pages, cross-checked with pokemon.com (news 2026-08-20, sneak peek 2026-10-05) and PokeBeach reveal posts. Refresh with `node scripts/upcoming-topup.mjs` (see docs/UPCOMING-SETS.md). Art in public/card-art/me06 = resized copies of English scans (Bulbapedia / PokeBeach); where no English scan is out yet, the Japanese print of the same illustration is used and flagged artLang \"ja\". No prices are shipped. This file is a pre-release stand-in: once TCGdex English (or pokemontcg.io) publishes the set, live data replaces it automatically — delete the entry and public/card-art/me06 after that.",
   "sets": [
     {
       "id": "me06",
@@ -16,7 +16,8 @@
       "sources": [
         "https://www.pokemon.com/us/news/the-pokemon-tcg-mega-evolution-delta-reign-expansion-arrives-november-6-2026",
         "https://www.pokemon.com/us/features/sneak-a-peek-at-cards-from-the-mega-evolution-delta-reign-expansion",
-        "https://bulbapedia.bulbagarden.net/wiki/Delta_Reign_(TCG)"
+        "https://bulbapedia.bulbagarden.net/wiki/Delta_Reign_(TCG)",
+        "https://www.pokebeach.com/2026/10/more-delta-reign-english-cards-revealed-including-legendary-pyroduct"
       ],
       "cards": [
         {
@@ -476,7 +477,8 @@
           "rarity": "Illustration Rare",
           "supertype": "Pokémon",
           "types": ["Darkness"],
-          "art": false
+          "artist": "GOSSAN",
+          "art": true
         },
         {
           "number": "114",
@@ -486,8 +488,7 @@
           "types": ["Colorless"],
           "artist": "Hideki Ishikawa",
           "art": true,
-          "artNote": "Japanese print scan (same illustration; English scan not posted yet)",
-          "artLang": "ja"
+          "artNote": "Japanese print scan (same illustration; English scan not posted yet)"
         },
         {
           "number": "115",

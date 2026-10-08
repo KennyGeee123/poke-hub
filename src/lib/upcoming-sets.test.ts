@@ -47,9 +47,15 @@ describe("upcoming sets: Delta Reign", () => {
     expect(isUpcomingStub(dr)).toBe(true);
     const before = upcomingSetBadge(dr, new Date(2026, 9, 7).getTime());
     expect(before?.label).toBe("Upcoming · Nov 6");
-    expect(before?.revealed).toBe(52);
-    expect(before?.withArt).toBe(51);
-    expect(before?.japaneseArt).toBe(13);
+    // Counts follow the JSON (scripts/upcoming-topup.mjs grows it until release).
+    const def = upcoming.sets[0];
+    expect(before?.revealed).toBe(def.cards.length);
+    expect(before?.revealed).toBeGreaterThanOrEqual(52);
+    expect(before?.withArt).toBe(def.cards.filter((c) => c.art).length);
+    expect(before?.japaneseArt).toBe(
+      def.cards.filter((c) => c.art && (c as { artLang?: string }).artLang === "ja").length,
+    );
+    expect(before?.announcedTotal).toBe("135+");
     expect(upcomingSetBadge(dr, new Date(2026, 10, 7).getTime())?.label).toMatch(/^Released Nov 6/);
     expect(upcomingSetBadge(LIVE_LIST[0])).toBeNull();
   });
@@ -62,6 +68,14 @@ describe("upcoming sets: Delta Reign", () => {
     expect(rayquaza.name).toBe("Mega Rayquaza ex");
     expect(rayquaza.printedNumber).toBe("084/103");
     expect(cards.find((c) => c.number === "139")?.name).toBe("Aarune");
+    // Zorua IR now has its English scan + credit (was "Art pending").
+    const zorua = cards.find((c) => c.number === "112")!;
+    expect(zorua.artist).toBe("GOSSAN");
+    expect(zorua.images.small).toBe("/card-art/me06/112.webp");
+    // Numbers stay unique, padded and sorted; nothing beyond the revealed list.
+    const nums = upcoming.sets[0].cards.map((c) => c.number);
+    expect(nums.every((n) => /^\d{3}$/.test(n))).toBe(true);
+    expect([...nums].sort()).toEqual(nums);
     for (const c of cards) {
       expect(c.tcgplayer).toBeUndefined();
       expect(c.cardmarket).toBeUndefined();

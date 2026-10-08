@@ -23,6 +23,24 @@ pokemontcg.io carries yet. Today: **Mega Evolution—Delta Reign** (`me06`, out 
 4. **Prices** — `/api/public/prices` quotes by card id (`me06-084`), so real prices appear as
    soon as the catalog has them.
 
+## Daily top-up until release
+```
+node scripts/upcoming-topup.mjs            # rewrite upcoming-sets.json + public/card-art/<id>
+node scripts/upcoming-topup.mjs --dry-run  # report only
+```
+- Re-reads the Bulbapedia set list (it only lists cards whose **English number** is confirmed) and
+  each new card page (illustrator + scan). The Japanese Storm Emeralda list is never mapped onto
+  English numbers.
+- Art priority: hand-verified English scans in `scripts/upcoming-topup.overrides.json` → PokeBeach
+  reveal images whose file name says EN + number → Bulbapedia scan. A Bulbapedia scan whose upload
+  comment points at a Japanese source is kept as a stand-in and flagged `artLang: "ja"`; it is
+  replaced as soon as an English scan shows up. English scans already shipped are never overwritten.
+- Never removes cards and never adds prices. Probes TCGdex English and says so once the set is live.
+- Counts in the Sets badge ("N of 135+ revealed") and the set header note come from the JSON, so
+  nothing else needs editing. Run `bun test src/lib/upcoming-sets.test.ts`, then commit + deploy.
+- Before adding an override, look at the image: PokeBeach file names like `078-Eevee.jpg` can be the
+  Spanish/French press print.
+
 ## Cleanup after release
 Delete the set's entry in `upcoming-sets.json` and `public/card-art/<id>/`, and update
 `upcoming-sets.test.ts`.

@@ -1,0 +1,24 @@
+{
+  "_doc": "Hand-verified inputs for scripts/upcoming-topup.mjs. Only list a card here after looking at the image: `art` must be an English scan of that exact card number (Bulbapedia/PokeBeach file names do not say the language reliably — e.g. PokeBeach's 078-Eevee.jpg is the Spanish print). `artist` fills a credit Bulbapedia hasn't posted yet. Never add a card that no official/English source has shown.",
+  "me06": {
+    "bulbapediaPage": "Delta_Reign_(TCG)",
+    "bulbapediaTitle": "Delta Reign",
+    "pokebeachArticles": [
+      "https://www.pokebeach.com/2026/10/more-delta-reign-english-cards-revealed-including-legendary-pyroduct"
+    ],
+    "pokebeachSlugMatch": "delta-reign",
+    "cards": {
+      "112": {
+        "art": "https://www.pokebeach.com/news/2026/10/112-Zorua.jpg",
+        "artLang": "en",
+        "artist": "GOSSAN",
+        "verified": "2026-10-07: English print (Stampede / Scratch, 'Illus. GOSSAN', DLR EN 112/103)"
+      },
+      "114": {
+        "art": "https://www.pokebeach.com/news/2026/09/114-Eevee.jpg",
+        "artLang": "en",
+        "verified": "2026-10-07: English print (Nap / Headbutt, 'Illus. Hideki Ishikawa', DLR EN 114/103)"
+      }
+    }
+  }
+}

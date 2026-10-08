@@ -665,7 +665,10 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
                 {soon ? (
                   <div className="pv-set-upcoming" data-upcoming-set={s.id}>
                     <span className="pv-set-upcoming-badge">{soon.label}</span>
-                    <span>{soon.revealed} revealed</span>
+                    <span>
+                      {soon.revealed}
+                      {soon.announcedTotal ? ` of ${soon.announcedTotal}` : ""} revealed
+                    </span>
                   </div>
                 ) : (
                   <div style={{ fontSize: 10, color: special ? "var(--gold)" : "var(--t3)" }}>
@@ -818,8 +821,9 @@ export function SetCardsView({
           {upcomingNote && (
             <div className="pv-set-upcoming-note" role="status" data-upcoming-set={set.id}>
               <span className="pv-set-upcoming-badge">{upcomingNote.label}</span> Pre-release
-              checklist: {upcomingNote.revealed} officially revealed cards
-              {upcomingNote.announcedTotal ? ` of ${upcomingNote.announcedTotal}` : ""}
+              checklist: {upcomingNote.revealed}
+              {upcomingNote.announcedTotal ? ` of ${upcomingNote.announcedTotal}` : ""} cards
+              officially revealed
               {upcomingNote.revealedAsOf ? ` (as of ${upcomingNote.revealedAsOf})` : ""}
               {upcomingNote.japaneseArt
                 ? `; ${upcomingNote.japaneseArt} show the Japanese print until English scans are out`
