@@ -461,9 +461,7 @@ export function calculateGradedValue(card: TCGCard, grade: CardGrade): GradedVal
   // Lower slabs (PSA 7 etc.) must be allowed below raw NM.
   const rawEstimate = rawPrice * effectiveMultiplier;
   const estimatedGradedPrice =
-    effectiveMultiplier >= 1 && meta.isSlab
-      ? Math.max(rawEstimate, rawPrice + 18.0)
-      : rawEstimate;
+    effectiveMultiplier >= 1 && meta.isSlab ? Math.max(rawEstimate, rawPrice + 18.0) : rawEstimate;
 
   const rounded = Math.round(estimatedGradedPrice * 100) / 100;
   const totalCostBasis = rawPrice + GRADING_FEE_ESTIMATE;
@@ -665,4 +663,22 @@ export function getSlabSearchUrls(card: TCGCard, grade: CardGrade) {
 
 export function getEstimatedGradePrice(card: TCGCard, grade: CardGrade = "raw"): number {
   return calculateGradedValue(card, grade).estimatedGradedPrice;
+}
+
+/**
+ * Compact PSA 10 figure for card tiles (Sets grid). This is the SAME era-adjusted
+ * multiplier estimate shown in Card detail → GRADED SLABS "Est. value" — it is not a
+ * sold comp, so UI must label it "est.". Returns 0 when the card has no raw market
+ * quote (never invent a graded number for an unpriced card).
+ */
+export function tilePsa10Estimate(card: TCGCard): number {
+  const v = calculateGradedValue(card, "psa10");
+  return v.rawPrice > 0 && v.estimatedGradedPrice > 0 ? v.estimatedGradedPrice : 0;
+}
+
+/** "$85.40" under $100, whole dollars ("$1,240") at/above $100 — keeps tiles narrow. */
+export function formatCompactUsd(n: number): string {
+  if (!isFinite(n) || n <= 0) return "—";
+  if (n >= 100) return "$" + Math.round(n).toLocaleString("en-US");
+  return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }

@@ -13,6 +13,8 @@ import {
   UNGRADED_QUALITIES,
   GRADED_SLABS,
   getGradeMeta,
+  tilePsa10Estimate,
+  formatCompactUsd,
 } from "@/lib/card-grades";
 import { getCardLevelAndStats } from "@/lib/card-stats";
 import {
@@ -31,6 +33,8 @@ type Props = {
   onRemove?: () => void;
   eager?: boolean;
   defaultGrade?: CardGrade;
+  /** Sets grid: show the PSA 10 estimate next to the raw price (gated so Search/Discover/Vault stay unchanged). */
+  showGraded?: boolean;
 };
 
 export function CardSpriteOverlay({
@@ -108,7 +112,15 @@ export function CardSpriteOverlay({
   );
 }
 
-function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "raw_nm" }: Props) {
+function CardTileInner({
+  card,
+  onClick,
+  qty,
+  onRemove,
+  eager,
+  defaultGrade = "raw_nm",
+  showGraded = false,
+}: Props) {
   const [hovered, setHovered] = useState(false);
   const [grade, setGrade] = useState<CardGrade>(defaultGrade);
   const [showScanModal, setShowScanModal] = useState(false);
@@ -127,6 +139,9 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
       ? Math.round(live * gradeMeta.baseMultiplier * 100) / 100
       : gradedVal.estimatedGradedPrice || (live > 0 ? live : null);
   const stats = getCardLevelAndStats(card, grade);
+  // Same era-adjusted PSA 10 estimate as Card detail → GRADED SLABS "Est. value",
+  // derived from the raw quote this tile shows. Only for raw tiles with a real price.
+  const psa10Est = showGraded && isRaw && displayPrice ? tilePsa10Estimate(priced) : 0;
 
   const art = useCardImageChain(card, { tile: true });
   const loaded = art.loaded;
@@ -255,6 +270,17 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
               )}
             </div>
             {priceLabel ? <span className="pv-c-price-lbl">{priceLabel}</span> : null}
+            {psa10Est > 0 ? (
+              <span
+                className="pv-c-graded"
+                data-pv-graded="psa10-est"
+                data-pv-graded-value={psa10Est.toFixed(2)}
+                title={`PSA 10 estimate ${formatPrice(psa10Est)} — era-adjusted multiplier on the raw market price, not a sold comp. Open the card for the full slab ladder & eBay sold slabs.`}
+              >
+                <span className="pv-c-graded-lbl">PSA 10 est.</span>
+                <span className="pv-c-graded-val">{formatCompactUsd(psa10Est)}</span>
+              </span>
+            ) : null}
             {isGold ? (
               <span className="pv-gold-chip" title="Gold / Hyper / Secret Rare">
                 GOLD
@@ -321,9 +347,7 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
             width: "100%",
             background: "rgba(10, 15, 29, 0.95)",
             color: gradeMeta.isSlab ? "#fbbf24" : "var(--t1)",
-            border: gradeMeta.isSlab
-              ? "1px solid rgba(251, 191, 36, 0.5)"
-              : "1px solid var(--brd)",
+            border: gradeMeta.isSlab ? "1px solid rgba(251, 191, 36, 0.5)" : "1px solid var(--brd)",
             borderRadius: 5,
             fontSize: 10,
             fontFamily: "var(--mono, monospace)",

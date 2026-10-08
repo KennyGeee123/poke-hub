@@ -919,7 +919,7 @@ export function SetCardsView({
         <VirtualCardGrid
           items={visible}
           getKey={(c) => c.id}
-          renderItem={(c) => <CardTile card={c} onClick={() => onOpen(c.id)} />}
+          renderItem={(c) => <CardTile card={c} onClick={() => onOpen(c.id)} showGraded />}
           windowAbove={10000}
         />
       )}

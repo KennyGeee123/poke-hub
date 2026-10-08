@@ -11213,3 +11213,31 @@ body[data-pv-tab="adventure"] .pv-music-panel,
     overflow-x: hidden;
   }
 }
+
+/* === 2026-10-07 SETS: PSA 10 est. next to raw price === */
+.pv-c-graded {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  max-width: 100%;
+  padding: 1px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  background: rgba(239, 68, 68, 0.1);
+  white-space: nowrap;
+  font-family: "Barlow", ui-sans-serif, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.35;
+}
+.pv-c-graded-lbl {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fca5a5;
+}
+.pv-c-graded-val {
+  font-size: 11px;
+  font-weight: 700;
+  color: #fecaca;
+}

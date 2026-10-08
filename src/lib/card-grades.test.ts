@@ -11,6 +11,8 @@ import {
   printVariantPriceRows,
   rawConditionLadder,
   gradedSlabLadder,
+  tilePsa10Estimate,
+  formatCompactUsd,
 } from "./card-grades";
 import type { TCGCard } from "./pokemon-api";
 
@@ -105,5 +107,28 @@ describe("AI Pre-Grade Inspector & Predetermination Engine", () => {
 
     expect(analysis.probabilities.psa10).toBe(0);
     expect(analysis.probabilities.sub8).toBeGreaterThanOrEqual(60);
+  });
+});
+
+describe("Sets tile PSA 10 estimate", () => {
+  it("matches the Card detail slab ladder PSA 10 est. value", () => {
+    expect(tilePsa10Estimate(mockCharizard)).toBe(
+      calculateGradedValue(mockCharizard, "psa10").estimatedGradedPrice,
+    );
+    expect(tilePsa10Estimate(mockCharizard)).toBeGreaterThan(350);
+  });
+  it("returns 0 for unpriced cards (never invents a graded number)", () => {
+    const bare: TCGCard = {
+      ...mockCharizard,
+      id: "x-1",
+      tcgplayer: undefined,
+      cardmarket: undefined,
+    };
+    expect(tilePsa10Estimate(bare)).toBe(0);
+  });
+  it("formats compactly", () => {
+    expect(formatCompactUsd(85.4)).toBe("$85.40");
+    expect(formatCompactUsd(1240.49)).toBe("$1,240");
+    expect(formatCompactUsd(0)).toBe("—");
   });
 });
