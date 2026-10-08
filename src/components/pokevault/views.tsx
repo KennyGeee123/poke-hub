@@ -820,9 +820,12 @@ export function SetCardsView({
               <span className="pv-set-upcoming-badge">{upcomingNote.label}</span> Pre-release
               checklist: {upcomingNote.revealed} officially revealed cards
               {upcomingNote.announcedTotal ? ` of ${upcomingNote.announcedTotal}` : ""}
-              {upcomingNote.revealedAsOf ? ` (as of ${upcomingNote.revealedAsOf})` : ""}. No market
-              prices until release — the full list and prices load automatically once the catalog
-              publishes the set.
+              {upcomingNote.revealedAsOf ? ` (as of ${upcomingNote.revealedAsOf})` : ""}
+              {upcomingNote.japaneseArt
+                ? `; ${upcomingNote.japaneseArt} show the Japanese print until English scans are out`
+                : ""}
+              . No market prices until release — the full list and prices load automatically once
+              the catalog publishes the set.
             </div>
           )}
           {set.id === "base1sl" && (

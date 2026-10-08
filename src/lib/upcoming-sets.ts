@@ -29,6 +29,8 @@ type UpcomingCard = {
   types?: string[];
   artist?: string;
   art: boolean;
+  /** "ja" when the shipped scan is the Japanese print of the same illustration. */
+  artLang?: string;
   artNote?: string;
 };
 
@@ -179,6 +181,8 @@ export function upcomingSetBadge(set: Pick<TCGSet, "id"> | null | undefined, now
   return {
     label: released ? `Released ${day} · list pending` : `Upcoming · ${day}`,
     revealed: def.cards.length,
+    withArt: def.cards.filter((c) => c.art).length,
+    japaneseArt: def.cards.filter((c) => c.art && c.artLang === "ja").length,
     announcedTotal: def.announcedTotal || "",
     revealedAsOf: def.revealedAsOf || "",
     released,

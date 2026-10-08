@@ -47,6 +47,9 @@ describe("upcoming sets: Delta Reign", () => {
     expect(isUpcomingStub(dr)).toBe(true);
     const before = upcomingSetBadge(dr, new Date(2026, 9, 7).getTime());
     expect(before?.label).toBe("Upcoming · Nov 6");
+    expect(before?.revealed).toBe(52);
+    expect(before?.withArt).toBe(51);
+    expect(before?.japaneseArt).toBe(13);
     expect(upcomingSetBadge(dr, new Date(2026, 10, 7).getTime())?.label).toMatch(/^Released Nov 6/);
     expect(upcomingSetBadge(LIVE_LIST[0])).toBeNull();
   });

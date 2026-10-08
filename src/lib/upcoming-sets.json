@@ -71,7 +71,9 @@
           "supertype": "Pokémon",
           "types": ["Fire"],
           "artist": "Teeziro",
-          "art": true
+          "art": true,
+          "artNote": "Japanese print scan (same illustration; English scan not posted yet)",
+          "artLang": "ja"
         },
         {
           "number": "019",
@@ -80,7 +82,9 @@
           "supertype": "Pokémon",
           "types": ["Fire"],
           "artist": "Felicia Chen",
-          "art": true
+          "art": true,
+          "artNote": "Japanese print scan (same illustration; English scan not posted yet)",
+          "artLang": "ja"
         },
         {
           "number": "023",
@@ -98,7 +102,9 @@
           "supertype": "Pokémon",
           "types": ["Water"],
           "artist": "5ban Graphics",
-          "art": true
+          "art": true,
+          "artNote": "Japanese print scan (same illustration; English scan not posted yet)",
+          "artLang": "ja"
         },
         {
           "number": "031",
@@ -116,7 +122,9 @@
           "supertype": "Pokémon",
           "types": ["Lightning"],
           "artist": "hncl",
-          "art": true
+          "art": true,
+          "artNote": "Japanese print scan (same illustration; English scan not posted yet)",
+          "artLang": "ja"
         },
         {
           "number": "033",
@@ -224,7 +232,9 @@
           "supertype": "Pokémon",
           "types": ["Darkness"],
           "artist": "kurumitsu",
-          "art": true
+          "art": true,
+          "artNote": "Japanese print scan (same illustration; English scan not posted yet)",
+          "artLang": "ja"
         },
         {
           "number": "071",
@@ -260,7 +270,9 @@
           "supertype": "Pokémon",
           "types": ["Colorless"],
           "artist": "UKUMO uiti",
-          "art": true
+          "art": true,
+          "artNote": "Japanese print scan (same illustration; English scan not posted yet)",
+          "artLang": "ja"
         },
         {
           "number": "079",
@@ -305,7 +317,9 @@
           "supertype": "Trainer",
           "subtypes": ["Supporter"],
           "artist": "Sanosuke Sakuma",
-          "art": true
+          "art": true,
+          "artNote": "Japanese print scan (same illustration; English scan not posted yet)",
+          "artLang": "ja"
         },
         {
           "number": "090",
@@ -324,7 +338,8 @@
           "subtypes": ["Supporter"],
           "artist": "Souichirou Gunjima",
           "art": true,
-          "artNote": "Japanese print scan (same illustration)"
+          "artNote": "Japanese print scan (same illustration; English scan not posted yet)",
+          "artLang": "ja"
         },
         {
           "number": "094",
@@ -334,7 +349,7 @@
           "subtypes": ["Stadium"],
           "artist": "akagi",
           "art": true,
-          "artNote": "Half of the combined Legendary Stadium illustration"
+          "artNote": "Left half of the combined Legendary Stadium illustration"
         },
         {
           "number": "095",
@@ -344,7 +359,7 @@
           "subtypes": ["Stadium"],
           "artist": "akagi",
           "art": true,
-          "artNote": "Half of the combined Legendary Stadium illustration"
+          "artNote": "Right half of the combined Legendary Stadium illustration"
         },
         {
           "number": "096",
@@ -354,7 +369,7 @@
           "subtypes": ["Stadium"],
           "artist": "nagimiso",
           "art": true,
-          "artNote": "Half of the combined Legendary Stadium illustration"
+          "artNote": "Left half of the combined Legendary Stadium illustration"
         },
         {
           "number": "097",
@@ -364,7 +379,7 @@
           "subtypes": ["Stadium"],
           "artist": "nagimiso",
           "art": true,
-          "artNote": "Half of the combined Legendary Stadium illustration"
+          "artNote": "Right half of the combined Legendary Stadium illustration"
         },
         {
           "number": "098",
@@ -374,7 +389,8 @@
           "subtypes": ["Stadium"],
           "artist": "danciao",
           "art": true,
-          "artNote": "Half of the combined Legendary Stadium illustration"
+          "artNote": "Japanese print scan (same illustration; English scan not posted yet); Left half of the combined Legendary Stadium illustration",
+          "artLang": "ja"
         },
         {
           "number": "099",
@@ -384,7 +400,8 @@
           "subtypes": ["Stadium"],
           "artist": "danciao",
           "art": true,
-          "artNote": "Half of the combined Legendary Stadium illustration"
+          "artNote": "Japanese print scan (same illustration; English scan not posted yet); Right half of the combined Legendary Stadium illustration",
+          "artLang": "ja"
         },
         {
           "number": "101",
@@ -420,7 +437,9 @@
           "supertype": "Pokémon",
           "types": ["Grass"],
           "artist": "Jiro Sasumo",
-          "art": true
+          "art": true,
+          "artNote": "Japanese print scan (same illustration; English scan not posted yet)",
+          "artLang": "ja"
         },
         {
           "number": "106",
@@ -429,7 +448,9 @@
           "supertype": "Pokémon",
           "types": ["Fire"],
           "artist": "Yoshimoto Yoshimon",
-          "art": true
+          "art": true,
+          "artNote": "Japanese print scan (same illustration; English scan not posted yet)",
+          "artLang": "ja"
         },
         {
           "number": "109",
@@ -464,7 +485,9 @@
           "supertype": "Pokémon",
           "types": ["Colorless"],
           "artist": "Hideki Ishikawa",
-          "art": true
+          "art": true,
+          "artNote": "Japanese print scan (same illustration; English scan not posted yet)",
+          "artLang": "ja"
         },
         {
           "number": "115",
