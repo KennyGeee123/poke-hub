@@ -3,6 +3,7 @@ import { canonicalSetId, setIdAliases } from "@/lib/set-ids";
 import { parseSearchQuery } from "@/lib/card-search";
 import shadowlessCatalog from "./shadowless-catalog.json";
 import errorCatalog from "./error-catalog.json";
+import { isUpcomingStub, withUpcomingSets } from "@/lib/upcoming-sets";
 
 const BASE_LOGO = "https://images.pokemontcg.io/base1/logo.png";
 const BASE_SYMBOL = "https://images.pokemontcg.io/base1/symbol.png";
@@ -284,6 +285,9 @@ export function mergeSetLists(primary: TCGSet[], extra: TCGSet[]): TCGSet[] {
 
   const take = (s: TCGSet) => {
     if (!s?.id) return;
+    // Upcoming stubs are re-added by injectSpecialSets only while no live set
+    // matches; a cached stub must never merge into (or shadow) a live entry.
+    if (isUpcomingStub(s)) return;
     const canon = canonicalSetId(s.id);
     const canonKey = canon.toLowerCase();
     const name = normName(s.name);
@@ -319,7 +323,7 @@ export function mergeSetLists(primary: TCGSet[], extra: TCGSet[]): TCGSet[] {
 }
 
 export function injectSpecialSets(sets: TCGSet[]): TCGSet[] {
-  return mergeSetLists(specialSets(), sets);
+  return withUpcomingSets(mergeSetLists(specialSets(), sets));
 }
 
 export function parentSetIdForSpecial(setId: string, number?: string): string | null {

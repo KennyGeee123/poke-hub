@@ -16,6 +16,7 @@ import {
 import { formatPrice, useVault } from "@/lib/vault";
 import { uniqueBoxPrints } from "@/lib/set-ids";
 import { isBoxSet } from "@/lib/special-sets";
+import { upcomingSetBadge } from "@/lib/upcoming-sets";
 import { CardTile, CardSkeleton } from "./CardTile";
 import { VirtualCardGrid } from "./VirtualCardGrid";
 import { CollectionInsightsCard } from "./CollectionInsights";
@@ -619,6 +620,7 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
       <div className={`pv-sets-grid ${chip === "box" ? "pv-box-tab-grid" : ""}`}>
         {filtered.map((s) => {
           const special = s.id === "base1sl" || s.id === "error";
+          const soon = upcomingSetBadge(s);
           return (
             <div
               key={s.id}
@@ -660,9 +662,16 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
                 <div style={{ fontSize: 10, color: "var(--t3)" }}>
                   {s.series} • {s.releaseDate}
                 </div>
-                <div style={{ fontSize: 10, color: special ? "var(--gold)" : "var(--t3)" }}>
-                  {s.total} cards{special ? " · special print" : ""}
-                </div>
+                {soon ? (
+                  <div className="pv-set-upcoming" data-upcoming-set={s.id}>
+                    <span className="pv-set-upcoming-badge">{soon.label}</span>
+                    <span>{soon.revealed} revealed</span>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 10, color: special ? "var(--gold)" : "var(--t3)" }}>
+                    {s.total} cards{special ? " · special print" : ""}
+                  </div>
+                )}
               </div>
               {s.images?.symbol && (
                 <img
@@ -774,6 +783,7 @@ export function SetCardsView({
     if (cards?.length) hydrateLivePrices(cards);
   }, [cards]);
 
+  const upcomingNote = upcomingSetBadge(set);
   const is30thBox = /^(30th|me55)/i.test(set.id);
   const printed = is30thBox ? 0 : set.printedTotal || 0;
   const boxed = cards
@@ -805,6 +815,16 @@ export function SetCardsView({
               : set.total}{" "}
             • {set.releaseDate}
           </div>
+          {upcomingNote && (
+            <div className="pv-set-upcoming-note" role="status" data-upcoming-set={set.id}>
+              <span className="pv-set-upcoming-badge">{upcomingNote.label}</span> Pre-release
+              checklist: {upcomingNote.revealed} officially revealed cards
+              {upcomingNote.announcedTotal ? ` of ${upcomingNote.announcedTotal}` : ""}
+              {upcomingNote.revealedAsOf ? ` (as of ${upcomingNote.revealedAsOf})` : ""}. No market
+              prices until release — the full list and prices load automatically once the catalog
+              publishes the set.
+            </div>
+          )}
           {set.id === "base1sl" && (
             <div style={{ color: "var(--gold)", fontSize: 11, marginTop: 4 }}>
               1999 English Base Set shadowless print — all 102 cards plus Red Cheeks Pikachu.

@@ -21,6 +21,12 @@ import {
   searchSpecialCards,
 } from "@/lib/special-sets";
 import {
+  getUpcomingCard,
+  getUpcomingSetCards,
+  upcomingLiveTcgdexId,
+  upcomingSetIsLive,
+} from "@/lib/upcoming-sets";
+import {
   getCachedSets,
   setCachedSets,
   getCachedSetCards,
@@ -630,6 +636,12 @@ export async function getCard(id: string, lang?: string): Promise<TCGCard> {
     return hit;
   }
   if (memo) return memo;
+  // Announced-but-unpublished set (upcoming-sets.json): live lookups above win.
+  const upcoming = getUpcomingCard(id);
+  if (upcoming) {
+    rememberCard(upcoming);
+    return upcoming;
+  }
   return FALLBACK_CARDS.find((c) => c.id === id) || stubCardFromId(id);
 }
 
@@ -810,6 +822,36 @@ async function fetchPokemonTcgSetPages(
   return { cards: best, total: bestTotal };
 }
 
+const upcomingProbeMiss = new Map<string, number>();
+const UPCOMING_PROBE_TTL_MS = 10 * 60_000;
+
+/**
+ * Cards TCGdex English already publishes for an upcoming set id. One direct
+ * probe first (404 while unreleased), so the proxy/alias walk only runs once
+ * the set really exists.
+ */
+async function liveUpcomingSetCards(setId: string): Promise<TCGCard[]> {
+  const liveId = upcomingLiveTcgdexId(setId);
+  if (!liveId) return [];
+  const missAt = upcomingProbeMiss.get(liveId) || 0;
+  if (Date.now() - missAt < UPCOMING_PROBE_TTL_MS) return [];
+  try {
+    const ctl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timer = ctl ? setTimeout(() => ctl.abort(), 6000) : null;
+    const r = await fetch(`https://api.tcgdex.net/v2/en/sets/${encodeURIComponent(liveId)}`, {
+      signal: ctl?.signal,
+    }).finally(() => timer && clearTimeout(timer));
+    const raw = r.ok ? ((await r.json()) as { cards?: unknown[] } | null) : null;
+    if (!Array.isArray(raw?.cards) || !raw.cards.length) {
+      upcomingProbeMiss.set(liveId, Date.now());
+      return [];
+    }
+    return await tcgdexGetSetCards(liveId, "en");
+  } catch {
+    return [];
+  }
+}
+
 /** Load every card in a set, calling onPage after each API page so the grid can paint early. */
 export async function getAllCardsBySet(
   setId: string,
@@ -829,6 +871,21 @@ export async function getAllCardsBySet(
     cards.forEach(rememberCard);
     onPage?.(cards, Math.max(total, cards.length, expectedCount));
   };
+
+  // Announced set no catalog lists yet: paint the revealed checklist, then let
+  // TCGdex English take over as soon as it publishes (see upcoming-sets.ts).
+  const upcoming = lang === "en" && !upcomingSetIsLive(setId) ? getUpcomingSetCards(setId) : null;
+  if (upcoming) {
+    upcoming.forEach(rememberCard);
+    onPage?.(upcoming, upcoming.length);
+    const live = await liveUpcomingSetCards(setId);
+    if (!live.length) return { data: upcoming, totalCount: upcoming.length };
+    const merged = sortSetCards(
+      live.length >= upcoming.length ? live : mergeSetCardsByLocalId(live, upcoming),
+    );
+    paint(merged, merged.length);
+    return { data: merged, totalCount: merged.length };
+  }
 
   let staleCards: TCGCard[] | null = null;
   let cached: TCGCard[] | null = null;

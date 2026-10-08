@@ -1,0 +1,499 @@
+{
+  "_source": "Revealed Mega Evolution—Delta Reign checklist (number + name + rarity + illustrator) from Bulbapedia 'Delta Reign (TCG)' + card pages and pokemon.com (news 2026-08-20, sneak peek 2026-10-05), captured 2026-10-07. Art in public/card-art/me06 = resized copies of the Bulbapedia scans (English where posted; Japanese Storm Emeralda / M-P promo scan where the English scan isn't out). No prices are shipped. This file is a pre-release stand-in: once TCGdex English (or pokemontcg.io) publishes the set, live data replaces it automatically — delete the entry and public/card-art/me06 after that.",
+  "sets": [
+    {
+      "id": "me06",
+      "liveIds": ["me06", "me6"],
+      "name": "Delta Reign",
+      "fullName": "Mega Evolution—Delta Reign",
+      "series": "Mega Evolution",
+      "releaseDate": "2026/11/06",
+      "printedTotal": 103,
+      "announcedTotal": "135+",
+      "revealedAsOf": "2026-10-07",
+      "logo": "/card-art/me06/logo.webp",
+      "symbol": "/card-art/me06/symbol.png",
+      "sources": [
+        "https://www.pokemon.com/us/news/the-pokemon-tcg-mega-evolution-delta-reign-expansion-arrives-november-6-2026",
+        "https://www.pokemon.com/us/features/sneak-a-peek-at-cards-from-the-mega-evolution-delta-reign-expansion",
+        "https://bulbapedia.bulbagarden.net/wiki/Delta_Reign_(TCG)"
+      ],
+      "cards": [
+        {
+          "number": "003",
+          "name": "Masquerain",
+          "rarity": "Common",
+          "supertype": "Pokémon",
+          "types": ["Grass"],
+          "artist": "Kazumasa Yasukuni",
+          "art": true
+        },
+        {
+          "number": "011",
+          "name": "Mega Golisopod ex",
+          "rarity": "Double Rare",
+          "supertype": "Pokémon",
+          "types": ["Grass"],
+          "artist": "5ban Graphics",
+          "art": true
+        },
+        {
+          "number": "012",
+          "name": "Sprigatito",
+          "rarity": "Common",
+          "supertype": "Pokémon",
+          "types": ["Grass"],
+          "artist": "Makura Tami",
+          "art": true
+        },
+        {
+          "number": "013",
+          "name": "Floragato",
+          "rarity": "Uncommon",
+          "supertype": "Pokémon",
+          "types": ["Grass"],
+          "artist": "Sanosuke Sakuma",
+          "art": true
+        },
+        {
+          "number": "014",
+          "name": "Meowscarada ex",
+          "rarity": "Double Rare",
+          "supertype": "Pokémon",
+          "types": ["Grass"],
+          "artist": "5ban Graphics",
+          "art": true
+        },
+        {
+          "number": "018",
+          "name": "Growlithe",
+          "rarity": "Common",
+          "supertype": "Pokémon",
+          "types": ["Fire"],
+          "artist": "Teeziro",
+          "art": true
+        },
+        {
+          "number": "019",
+          "name": "Arcanine",
+          "rarity": "Rare",
+          "supertype": "Pokémon",
+          "types": ["Fire"],
+          "artist": "Felicia Chen",
+          "art": true
+        },
+        {
+          "number": "023",
+          "name": "Heat Rotom ex",
+          "rarity": "Double Rare",
+          "supertype": "Pokémon",
+          "types": ["Fire"],
+          "artist": "5ban Graphics",
+          "art": true
+        },
+        {
+          "number": "029",
+          "name": "Wishiwashi ex",
+          "rarity": "Double Rare",
+          "supertype": "Pokémon",
+          "types": ["Water"],
+          "artist": "5ban Graphics",
+          "art": true
+        },
+        {
+          "number": "031",
+          "name": "Electivire",
+          "rarity": "Uncommon",
+          "supertype": "Pokémon",
+          "types": ["Lightning"],
+          "artist": "hncl",
+          "art": true
+        },
+        {
+          "number": "032",
+          "name": "Jolteon",
+          "rarity": "Uncommon",
+          "supertype": "Pokémon",
+          "types": ["Lightning"],
+          "artist": "hncl",
+          "art": true
+        },
+        {
+          "number": "033",
+          "name": "Raikou ex",
+          "rarity": "Double Rare",
+          "supertype": "Pokémon",
+          "types": ["Lightning"],
+          "artist": "aky CG Works",
+          "art": true
+        },
+        {
+          "number": "035",
+          "name": "Thundurus",
+          "rarity": "Uncommon",
+          "supertype": "Pokémon",
+          "types": ["Lightning"],
+          "artist": "Takumi Wada",
+          "art": true
+        },
+        {
+          "number": "036",
+          "name": "Pincurchin",
+          "rarity": "Common",
+          "supertype": "Pokémon",
+          "types": ["Lightning"],
+          "artist": "OKUBO",
+          "art": true
+        },
+        {
+          "number": "044",
+          "name": "Hypno",
+          "rarity": "Common",
+          "supertype": "Pokémon",
+          "types": ["Psychic"],
+          "artist": "Yuta Kawazu",
+          "art": true
+        },
+        {
+          "number": "047",
+          "name": "Mega Golurk ex",
+          "rarity": "Double Rare",
+          "supertype": "Pokémon",
+          "types": ["Psychic"],
+          "artist": "5ban Graphics",
+          "art": true
+        },
+        {
+          "number": "053",
+          "name": "Groudon",
+          "rarity": "Rare",
+          "supertype": "Pokémon",
+          "types": ["Fighting"],
+          "artist": "Nisota Niso",
+          "art": true
+        },
+        {
+          "number": "054",
+          "name": "Landorus",
+          "rarity": "Uncommon",
+          "supertype": "Pokémon",
+          "types": ["Fighting"],
+          "artist": "Oku",
+          "art": true
+        },
+        {
+          "number": "055",
+          "name": "Nidoran♀",
+          "rarity": "Common",
+          "supertype": "Pokémon",
+          "types": ["Darkness"],
+          "artist": "tayu",
+          "art": true
+        },
+        {
+          "number": "058",
+          "name": "Spinarak",
+          "rarity": "Common",
+          "supertype": "Pokémon",
+          "types": ["Darkness"],
+          "artist": "Apios",
+          "art": true
+        },
+        {
+          "number": "060",
+          "name": "Sableye",
+          "rarity": "Common",
+          "supertype": "Pokémon",
+          "types": ["Darkness"],
+          "artist": "Shinji Kanda",
+          "art": true
+        },
+        {
+          "number": "069",
+          "name": "Mega Malamar ex",
+          "rarity": "Double Rare",
+          "supertype": "Pokémon",
+          "types": ["Darkness"],
+          "artist": "5ban Graphics",
+          "art": true
+        },
+        {
+          "number": "070",
+          "name": "Morpeko",
+          "rarity": "Uncommon",
+          "supertype": "Pokémon",
+          "types": ["Darkness"],
+          "artist": "kurumitsu",
+          "art": true
+        },
+        {
+          "number": "071",
+          "name": "Zarude",
+          "rarity": "Uncommon",
+          "supertype": "Pokémon",
+          "types": ["Darkness"],
+          "artist": "Nisota Niso",
+          "art": true
+        },
+        {
+          "number": "072",
+          "name": "Druddigon",
+          "rarity": "Uncommon",
+          "supertype": "Pokémon",
+          "types": ["Dragon"],
+          "artist": "AKIRA EGAWA",
+          "art": true
+        },
+        {
+          "number": "075",
+          "name": "Kommo-o",
+          "rarity": "Rare",
+          "supertype": "Pokémon",
+          "types": ["Dragon"],
+          "artist": "Mitsuhiro Arita",
+          "art": true
+        },
+        {
+          "number": "078",
+          "name": "Eevee",
+          "rarity": "Common",
+          "supertype": "Pokémon",
+          "types": ["Colorless"],
+          "artist": "UKUMO uiti",
+          "art": true
+        },
+        {
+          "number": "079",
+          "name": "Delibird",
+          "rarity": "Uncommon",
+          "supertype": "Pokémon",
+          "types": ["Colorless"],
+          "artist": "satoma",
+          "art": true
+        },
+        {
+          "number": "083",
+          "name": "Kecleon",
+          "rarity": "Common",
+          "supertype": "Pokémon",
+          "types": ["Colorless"],
+          "artist": "Akira Komayama",
+          "art": true
+        },
+        {
+          "number": "084",
+          "name": "Mega Rayquaza ex",
+          "rarity": "Double Rare",
+          "supertype": "Pokémon",
+          "types": ["Colorless"],
+          "artist": "takuyoa",
+          "art": true
+        },
+        {
+          "number": "085",
+          "name": "Tornadus",
+          "rarity": "Uncommon",
+          "supertype": "Pokémon",
+          "types": ["Colorless"],
+          "artist": "Uta",
+          "art": true
+        },
+        {
+          "number": "089",
+          "name": "Aarune",
+          "rarity": "Uncommon",
+          "supertype": "Trainer",
+          "subtypes": ["Supporter"],
+          "artist": "Sanosuke Sakuma",
+          "art": true
+        },
+        {
+          "number": "090",
+          "name": "Adventure Lantern",
+          "rarity": "Uncommon",
+          "supertype": "Trainer",
+          "subtypes": ["Item"],
+          "artist": "inose yukie",
+          "art": true
+        },
+        {
+          "number": "093",
+          "name": "Grisham",
+          "rarity": "Uncommon",
+          "supertype": "Trainer",
+          "subtypes": ["Supporter"],
+          "artist": "Souichirou Gunjima",
+          "art": true,
+          "artNote": "Japanese print scan (same illustration)"
+        },
+        {
+          "number": "094",
+          "name": "Legendary Pyroduct",
+          "rarity": "Uncommon",
+          "supertype": "Trainer",
+          "subtypes": ["Stadium"],
+          "artist": "akagi",
+          "art": true,
+          "artNote": "Half of the combined Legendary Stadium illustration"
+        },
+        {
+          "number": "095",
+          "name": "Legendary Pyroduct",
+          "rarity": "Uncommon",
+          "supertype": "Trainer",
+          "subtypes": ["Stadium"],
+          "artist": "akagi",
+          "art": true,
+          "artNote": "Half of the combined Legendary Stadium illustration"
+        },
+        {
+          "number": "096",
+          "name": "Legendary Summit",
+          "rarity": "Uncommon",
+          "supertype": "Trainer",
+          "subtypes": ["Stadium"],
+          "artist": "nagimiso",
+          "art": true,
+          "artNote": "Half of the combined Legendary Stadium illustration"
+        },
+        {
+          "number": "097",
+          "name": "Legendary Summit",
+          "rarity": "Uncommon",
+          "supertype": "Trainer",
+          "subtypes": ["Stadium"],
+          "artist": "nagimiso",
+          "art": true,
+          "artNote": "Half of the combined Legendary Stadium illustration"
+        },
+        {
+          "number": "098",
+          "name": "Legendary Trench",
+          "rarity": "Uncommon",
+          "supertype": "Trainer",
+          "subtypes": ["Stadium"],
+          "artist": "danciao",
+          "art": true,
+          "artNote": "Half of the combined Legendary Stadium illustration"
+        },
+        {
+          "number": "099",
+          "name": "Legendary Trench",
+          "rarity": "Uncommon",
+          "supertype": "Trainer",
+          "subtypes": ["Stadium"],
+          "artist": "danciao",
+          "art": true,
+          "artNote": "Half of the combined Legendary Stadium illustration"
+        },
+        {
+          "number": "101",
+          "name": "Tasty Rice Ball",
+          "rarity": "Common",
+          "supertype": "Trainer",
+          "subtypes": ["Item"],
+          "artist": "AYUMI ODASHIMA",
+          "art": true
+        },
+        {
+          "number": "103",
+          "name": "Zinnia's Trust",
+          "rarity": "Uncommon",
+          "supertype": "Trainer",
+          "subtypes": ["Supporter"],
+          "artist": "GIDORA",
+          "art": true
+        },
+        {
+          "number": "104",
+          "name": "Masquerain",
+          "rarity": "Illustration Rare",
+          "supertype": "Pokémon",
+          "types": ["Grass"],
+          "artist": "REND",
+          "art": true
+        },
+        {
+          "number": "105",
+          "name": "Sprigatito",
+          "rarity": "Illustration Rare",
+          "supertype": "Pokémon",
+          "types": ["Grass"],
+          "artist": "Jiro Sasumo",
+          "art": true
+        },
+        {
+          "number": "106",
+          "name": "Growlithe",
+          "rarity": "Illustration Rare",
+          "supertype": "Pokémon",
+          "types": ["Fire"],
+          "artist": "Yoshimoto Yoshimon",
+          "art": true
+        },
+        {
+          "number": "109",
+          "name": "Pincurchin",
+          "rarity": "Illustration Rare",
+          "supertype": "Pokémon",
+          "types": ["Lightning"],
+          "artist": "Tetsu Kayama",
+          "art": true
+        },
+        {
+          "number": "110",
+          "name": "Enamorus",
+          "rarity": "Illustration Rare",
+          "supertype": "Pokémon",
+          "types": ["Psychic"],
+          "artist": "Taira Akitsu",
+          "art": true
+        },
+        {
+          "number": "112",
+          "name": "Zorua",
+          "rarity": "Illustration Rare",
+          "supertype": "Pokémon",
+          "types": ["Darkness"],
+          "art": false
+        },
+        {
+          "number": "114",
+          "name": "Eevee",
+          "rarity": "Illustration Rare",
+          "supertype": "Pokémon",
+          "types": ["Colorless"],
+          "artist": "Hideki Ishikawa",
+          "art": true
+        },
+        {
+          "number": "115",
+          "name": "Azurill",
+          "rarity": "Illustration Rare",
+          "supertype": "Pokémon",
+          "types": ["Colorless"],
+          "artist": "Narumi Sato",
+          "art": true
+        },
+        {
+          "number": "136",
+          "name": "Raikou ex",
+          "rarity": "Special Illustration Rare",
+          "supertype": "Pokémon",
+          "types": ["Lightning"],
+          "artist": "Oku",
+          "art": true
+        },
+        {
+          "number": "139",
+          "name": "Aarune",
+          "rarity": "Special Illustration Rare",
+          "supertype": "Trainer",
+          "subtypes": ["Supporter"],
+          "artist": "Shimaris Yukichi",
+          "art": true
+        }
+      ]
+    }
+  ]
+}
