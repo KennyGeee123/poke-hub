@@ -1263,13 +1263,33 @@ export function metersPerPixel(lat: number, zoom = MAP_ZOOM_DEFAULT): number {
 
 type GeoPin = { xPct: number; yPct: number; distanceMeters: number; lat?: number; lng?: number };
 
+/**
+ * Full-world linear upgrade.
+ * The old pin term was `(xPct - 50) * 8` meters. The old field-spawn term was
+ * `(x - origin) * 12` meters. Both are multiplied by WORLD_SCALE.
+ * 120 makes the plane 120× as wide and 120× as tall (area is 120² = 14,400×).
+ * The walk camera stays a window. Dresden Park nest meters stay at 8 m per
+ * park-percent because that nest is a real reserve, not the world plane.
+ */
+export const WORLD_SCALE = 120;
+export const PIN_METERS_PER_PCT = 8 * WORLD_SCALE;
+export const FIELD_METERS_PER_PCT = 12 * WORLD_SCALE;
+const PARK_NEST_METERS_PER_PCT = 8;
+/** Local cohort stays inside this radius so the 96 km plane is not an empty camera. */
+const WALK_RING_METERS = 380;
+
+/** Edge-to-edge width of the percent plane, in meters. Old value was 800. */
+export function worldPlaneSpanMeters(): number {
+  return 100 * PIN_METERS_PER_PCT;
+}
+
 /** Pin percent-plane POIs onto real lat/lng around a walk origin (God's Eye teleport / GPS). */
 export function pinWorldPoisToGeo<
   T extends { discoveryPoints: GeoPin[]; battleArenas: GeoPin[]; cardCaches: GeoPin[] },
 >(state: T, center: { lat: number; lng: number }): T {
   const pin = <P extends GeoPin>(item: P): P => {
-    const dxM = (item.xPct - 50) * 8;
-    const dyM = (50 - item.yPct) * 8;
+    const dxM = (item.xPct - 50) * PIN_METERS_PER_PCT;
+    const dyM = (50 - item.yPct) * PIN_METERS_PER_PCT;
     const geo = geoOffsetFromMeters(center.lat, center.lng, dxM, dyM);
     return {
       ...item,
@@ -1389,9 +1409,11 @@ export function generateEraSpawns(
   const origin =
     opts.localOrigin || (includePark ? { xPct: 31, yPct: 48 } : { xPct: 50, yPct: 50 });
 
-  // 1. Dresden Park nest — real-world hub only, never mixed into other region planes
+  // 1. Dresden Park nest — real-world hub only, never mixed into other region planes.
+  // Field spawns are the upgraded world: same legacy cohort, times WORLD_SCALE.
   const parkCount = includePark ? 3 : 0;
-  const generalCount = includePark ? Math.max(3, count - parkCount) : Math.max(3, count);
+  const legacyGeneral = includePark ? Math.max(3, count - parkCount) : Math.max(3, count);
+  const fieldTotal = legacyGeneral * WORLD_SCALE;
 
   // Dresden Park nest pool: draws rare/epic/legendary from full franchise
   const highTierFranchisePool = ALL_POKEMON.filter(
@@ -1407,9 +1429,10 @@ export function generateEraSpawns(
     const level = Math.round(32 + Math.random() * 16);
     const cp = Math.round(chosen.baseCp * (1 + (level - 20) * 0.04) * 1.25);
 
-    // Nest geo is always Dresden Park, not the active region's center
-    const dxM = (parkX - 31) * 8; // meters
-    const dyM = (parkY - 48) * 8;
+    // Nest geo is always Dresden Park, not the active region's center.
+    // Park meters stay at the real reserve scale (not WORLD_SCALE).
+    const dxM = (parkX - 31) * PARK_NEST_METERS_PER_PCT;
+    const dyM = (parkY - 48) * PARK_NEST_METERS_PER_PCT;
     const geo = geoOffsetFromMeters(DRESDEN_PARK_GEO.lat, DRESDEN_PARK_GEO.lng, dxM, dyM);
     const distMeters = haversineMeters(centerGeo.lat, centerGeo.lng, geo.lat, geo.lng);
 
@@ -1438,22 +1461,31 @@ export function generateEraSpawns(
     });
   }
 
-  // 2. Generate remaining general spawns from the active era pool
-  for (let i = 0; i < generalCount; i++) {
-    const chosen = pool[Math.floor(Math.random() * pool.length)];
-    let x = Math.round(origin.xPct - 28 + Math.random() * 56);
-    let y = Math.round(origin.yPct - 28 + Math.random() * 56);
-    x = Math.min(90, Math.max(10, x));
-    y = Math.min(90, Math.max(10, y));
-    if (includePark && isInsidePark(x, y)) {
-      x = x < 31 ? 12 : 72;
+  // 2. Field spawns. The first legacy cohort sits in the walk ring (meters, not
+  // coarse percent) so the camera still has Pokémon. The rest fill the ×120 plane.
+  for (let i = 0; i < fieldTotal; i++) {
+    const chosen = pool[i % pool.length];
+    let x: number;
+    let y: number;
+    let dxM: number;
+    let dyM: number;
+    if (i < legacyGeneral) {
+      const ang = ((i + 1) / legacyGeneral) * Math.PI * 2;
+      const radius = 28 + ((i * 53) % (WALK_RING_METERS - 28));
+      dxM = Math.cos(ang) * radius;
+      dyM = Math.sin(ang) * radius;
+      x = +(origin.xPct + dxM / FIELD_METERS_PER_PCT).toFixed(3);
+      y = +(origin.yPct + dyM / FIELD_METERS_PER_PCT).toFixed(3);
+    } else {
+      x = +(8 + ((i * 37) % 8400) / 100).toFixed(2);
+      y = +(8 + ((i * 91) % 8400) / 100).toFixed(2);
+      dxM = (x - origin.xPct) * FIELD_METERS_PER_PCT;
+      dyM = (y - origin.yPct) * FIELD_METERS_PER_PCT;
     }
 
-    const level = Math.round(16 + Math.random() * 20);
+    const level = Math.round(16 + (i % 20));
     const cp = Math.round(chosen.baseCp * (1 + (level - 20) * 0.04));
 
-    const dxM = (x - origin.xPct) * 12;
-    const dyM = (y - origin.yPct) * 12;
     const geo = geoOffsetFromMeters(centerGeo.lat, centerGeo.lng, dxM, dyM);
     const distMeters = haversineMeters(centerGeo.lat, centerGeo.lng, geo.lat, geo.lng);
 
@@ -1600,6 +1632,8 @@ export interface WorldState {
   activeRegionId?: string;
   /** `gba` = original pixel overworld on the map; `go` = OSM/Carto streets (real hubs). */
   walkSkin?: "go" | "gba";
+  /** WORLD_SCALE stamped on the POI catalog. Missing means a pre-upgrade save. */
+  catalogScale?: number;
 }
 
 export interface AdventureState {
@@ -1617,6 +1651,35 @@ export interface AdventureState {
 
 export function cloneAdventureState(state: AdventureState): AdventureState {
   return JSON.parse(JSON.stringify(state));
+}
+
+type CatalogPoi = { id: string; xPct: number; yPct: number; cardPayload?: object };
+
+/** Repeat each hand-authored POI across the plane until the list is WORLD_SCALE times longer. */
+export function scaleWorldCatalog<T extends CatalogPoi>(items: T[], scale = WORLD_SCALE): T[] {
+  const seeds = items.filter((item) => !/-x\d+$/.test(item.id));
+  const base = seeds.length ? seeds : items;
+  if (scale <= 1 || base.length === 0) return base;
+  const out: T[] = [];
+  for (let i = 0; i < base.length * scale; i++) {
+    const seed = base[i % base.length];
+    if (i < base.length) {
+      out.push(seed);
+      continue;
+    }
+    const slot = i - base.length;
+    const copy: T = {
+      ...seed,
+      id: `${seed.id}-x${slot}`,
+      xPct: +(4 + ((slot * 17) % 9200) / 100).toFixed(2),
+      yPct: +(4 + ((slot * 41) % 9200) / 100).toFixed(2),
+    };
+    if (seed.cardPayload && typeof seed.cardPayload === "object") {
+      copy.cardPayload = { ...seed.cardPayload };
+    }
+    out.push(copy);
+  }
+  return out;
 }
 
 const STORAGE_KEY = "pv_adventure_world_state_v1";
@@ -1714,6 +1777,7 @@ export function getDefaultAdventureState(): AdventureState {
       lastEraRotationTimestamp: Date.now(),
       isInsidePark: false,
       walkSkin: "go",
+      catalogScale: WORLD_SCALE,
     },
     wildCreatures: [
       {
@@ -1948,6 +2012,13 @@ export function getDefaultAdventureState(): AdventureState {
       },
     ],
   };
+  state.discoveryPoints = scaleWorldCatalog(state.discoveryPoints);
+  state.battleArenas = scaleWorldCatalog(state.battleArenas);
+  state.cardCaches = scaleWorldCatalog(state.cardCaches);
+  state.wildCreatures = generateEraSpawns("vintage_kanto", 7, state.world.lastEraRotationTimestamp || Date.now(), {
+    lat: DRESDEN_PARK_GEO.lat,
+    lng: DRESDEN_PARK_GEO.lng,
+  });
   return pinWorldPoisToGeo(state, DRESDEN_PARK_GEO);
 }
 
@@ -1972,9 +2043,24 @@ function hydrateAdventureGeo(state: AdventureState): AdventureState {
     next.world.mapStyle = "osm_streets";
     dirty = true;
   }
-  const needsPin = [...next.discoveryPoints, ...next.battleArenas, ...next.cardCaches].some(
-    (p) => typeof p.lat !== "number" || typeof p.lng !== "number",
-  );
+  const needsScale = next.world.catalogScale !== WORLD_SCALE;
+  if (needsScale) {
+    if (!dirty) next = cloneAdventureState(next);
+    next.discoveryPoints = scaleWorldCatalog(next.discoveryPoints);
+    next.battleArenas = scaleWorldCatalog(next.battleArenas);
+    next.cardCaches = scaleWorldCatalog(next.cardCaches);
+    next.wildCreatures = generateEraSpawns(next.world.activeEraId, 7, Date.now(), {
+      lat: geo.lat,
+      lng: geo.lng,
+    });
+    next.world.catalogScale = WORLD_SCALE;
+    dirty = true;
+  }
+  const needsPin =
+    needsScale ||
+    [...next.discoveryPoints, ...next.battleArenas, ...next.cardCaches].some(
+      (p) => typeof p.lat !== "number" || typeof p.lng !== "number",
+    );
   const pinned = needsPin ? pinWorldPoisToGeo(next, { lat: geo.lat, lng: geo.lng }) : next;
   if (dirty && typeof window !== "undefined") {
     try {

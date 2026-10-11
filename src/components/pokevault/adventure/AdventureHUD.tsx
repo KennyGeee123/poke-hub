@@ -26,7 +26,10 @@ import {
   DRESDEN_PARK_GEO,
   haversineMeters,
   isInsidePark,
+  WORLD_SCALE,
 } from "@/lib/adventure-engine";
+import { trainerFacingUrl } from "@/lib/sprites";
+import { WorldSprite } from "./WorldSprite";
 
 export function AdventureHUD({
   adventureState,
@@ -87,7 +90,7 @@ export function AdventureHUD({
           <div className="relative w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 p-0.5 flex items-center justify-center shadow">
             <div className="w-full h-full rounded-[10px] bg-neutral-950 flex items-center justify-center overflow-hidden">
               <img
-                src="/adventure-assets/trainer-down.png"
+                src={trainerFacingUrl(180)}
                 alt="Trainer"
                 className="w-8 h-8 object-contain"
                 style={{ imageRendering: "pixelated" }}
@@ -313,21 +316,22 @@ export function AdventureHUD({
           title="Open Nearby Creatures & Stops"
         >
           <div className="flex items-center -space-x-2">
-            {adventureState.wildCreatures.slice(0, 3).map((c) => (
+            {adventureState.wildCreatures
+              .filter((c) => c.distanceMeters <= 2000)
+              .slice(0, 3)
+              .map((c) => (
               <div
                 key={c.id}
                 className="w-7 h-7 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center overflow-hidden"
               >
-                <img
-                  src={`https://img.pokemondb.net/sprites/home/normal/${c.species.toLowerCase()}.png`}
-                  alt={c.species}
-                  className="w-6 h-6 object-contain"
-                />
+                <WorldSprite name={c.species} className="w-6 h-6 object-contain" />
               </div>
             ))}
           </div>
           <span className="hidden sm:inline font-bold">
-            NEARBY ({adventureState.wildCreatures.length})
+            NEARBY (
+            {adventureState.wildCreatures.filter((c) => c.distanceMeters <= 2000).length}/
+            {adventureState.wildCreatures.length} · ×{WORLD_SCALE})
           </span>
         </button>
       </div>

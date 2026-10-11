@@ -726,20 +726,63 @@ async function walmart(q: string): Promise<Listing[]> {
 }
 
 // ─── TCGPlayer Sealed (via tcgcsv) ────────────────────────────────────────
-const DIRECT_GROUPS: Record<string, number> = {
-  "surging sparks": 23651,
-  "destined rivals": 24269,
-  "30th celebration": 24722,
-  "30th classic": 24837,
-  "mega evolution": 24380,
-  "stellar crown": 23537,
-  "scarlet violet": 22873,
-  "scarlet & violet": 22873,
-  "151": 23237,
-  "crown zenith": 17688,
-  celebrations: 2867,
-  "base set": 604,
-};
+function cleanSetQuery(q: string): string {
+  return q
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(
+      /booster\s*box|booster\s*bundle|booster\s*pack|elite\s*trainer|booster|sealed|pokemon|display|bundle|etb/g,
+      " ",
+    )
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normGroupName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/^(?:sv|swsh|sm|xy|bw|dp|hgss|ex|me|pl)\s*\d*\s*[:.-]\s*/, "")
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Sealed box for a set. A real booster box wins. Sets that were never sold as
+ * a booster box (151, Prismatic Evolutions) fall through to the Elite Trainer
+ * Box, then the booster bundle. Cases, displays, and code cards are not a box.
+ */
+function sealedBoxKind(name: string): "box" | "etb" | "bundle" | null {
+  const n = name.toLowerCase();
+  if (/code\s*card/.test(n)) return null;
+  if (/\bcase\b/.test(n)) return null;
+  if (/half\s*booster/.test(n)) return null;
+  if (/\bdisplay\b/.test(n)) return null;
+  if (/\bbooster\s*box\b/.test(n)) return "box";
+  if (/\belite\s*trainer\s*box\b/.test(n)) return "etb";
+  if (/\bbooster\s*bundle\b/.test(n)) return "bundle";
+  return null;
+}
+
+function pickGroupId(groups: any[], qClean: string): number | null {
+  const qWords = qClean.split(" ").filter((w) => w.length > 1);
+  let best: { id: number; score: number } | null = null;
+  for (const g of groups) {
+    const gn = normGroupName(String(g?.name || ""));
+    const id = Number(g?.groupId);
+    if (!gn || !(id > 0)) continue;
+    let score = 0;
+    if (gn === qClean) score = 1000 + qClean.length;
+    else if (qWords.length && qWords.every((w) => gn.split(" ").includes(w))) score = 500 + qWords.length;
+    else if (qClean.length > 3 && (gn.includes(qClean) || qClean.includes(gn))) {
+      score = 200 + Math.min(gn.length, qClean.length);
+    }
+    if (score > 0 && (!best || score > best.score)) best = { id, score };
+  }
+  return best?.id ?? null;
+}
 
 let sealedGroupsCache: any[] | null = null;
 let sealedGroupsAt = 0;
@@ -747,21 +790,9 @@ let sealedGroupsAt = 0;
 async function tcgcsvSealed(q: string): Promise<Listing[]> {
   try {
     const ua = "PokeVault/1.0.0";
-    const qClean = q
-      .toLowerCase()
-      .replace(
-        /booster\s*box|booster\s*bundle|booster\s*pack|booster|sealed|pokemon|display|bundle|etb|elite\s*trainer/g,
-        "",
-      )
-      .trim();
+    const qClean = cleanSetQuery(q);
 
     let groupId: number | null = null;
-    for (const [key, gid] of Object.entries(DIRECT_GROUPS)) {
-      if (qClean.includes(key) || key.includes(qClean)) {
-        groupId = gid;
-        break;
-      }
-    }
 
     if (!groupId) {
       if (!sealedGroupsCache || Date.now() - sealedGroupsAt > 60 * 60 * 1000) {
@@ -777,13 +808,7 @@ async function tcgcsvSealed(q: string): Promise<Listing[]> {
           }
         }
       }
-      const matched = (sealedGroupsCache || []).find((g: any) => {
-        const gn = (g.name || "").toLowerCase();
-        if (gn.includes(qClean) || (qClean && qClean.includes(gn))) return true;
-        const words = qClean.split(/\s+/).filter((w: string) => w.length > 2);
-        return words.length > 0 && words.every((w: string) => gn.includes(w));
-      });
-      groupId = matched?.groupId || null;
+      groupId = pickGroupId(sealedGroupsCache || [], qClean);
     }
 
     if (!groupId) return [];
@@ -802,43 +827,44 @@ async function tcgcsvSealed(q: string): Promise<Listing[]> {
     if (!prodsR.ok || !pricesR.ok) return [];
     const prodsJson: any = await prodsR.json();
     const pricesJson: any = await pricesR.json();
-    const priceMap = new Map<number, { market: number; low: number; mid: number }>();
+    const priceMap = new Map<number, number>();
     for (const p of pricesJson?.results || []) {
       const pid = Number(p.productId);
-      const m = Number(p.marketPrice) || 0;
-      const l = Number(p.lowPrice) || 0;
-      const mid = Number(p.midPrice) || 0;
-      if (pid > 0 && (m > 0 || l > 0 || mid > 0)) {
-        priceMap.set(pid, { market: m || mid || l, low: l || m || mid, mid: mid || m || l });
-      }
+      const low = Number(p.lowPrice) || 0;
+      const direct = Number(p.directLowPrice) || 0;
+      const asks = [low, direct].filter((n) => n > 0);
+      const ask = asks.length ? Math.min(...asks) : Number(p.marketPrice) || Number(p.midPrice) || 0;
+      if (!(pid > 0) || !(ask > 0)) continue;
+      const prev = priceMap.get(pid);
+      if (prev == null || ask < prev) priceMap.set(pid, ask);
     }
 
     const out: Listing[] = [];
     for (const prod of prodsJson?.results || []) {
       const name = String(prod.name || "");
-      if (
-        !/booster\s*box|elite\s*trainer|booster\s*bundle|booster\s*pack|blister|tin|collection\s*box/i.test(
-          name,
-        )
-      )
-        continue;
-      if (/code\s*card/i.test(name)) continue;
-      const pr = priceMap.get(Number(prod.productId));
-      if (!pr || !(pr.market > 0)) continue;
+      const kind = sealedBoxKind(name);
+      if (!kind) continue;
+      const pid = Number(prod.productId);
+      const price = priceMap.get(pid) || 0;
+      if (!(price > 0) || !(pid > 0)) continue;
+      const productUrl =
+        (typeof prod.url === "string" && prod.url.startsWith("http") && prod.url) ||
+        `https://www.tcgplayer.com/product/${pid}`;
       out.push({
         source: "TCGplayer",
         title: name,
-        price: pr.low > 0 ? pr.low : pr.market,
-        priceRaw: `$${(pr.low > 0 ? pr.low : pr.market).toFixed(2)}`,
+        price: Math.round(price * 100) / 100,
+        priceRaw: `$${price.toFixed(2)}`,
         currency: "USD",
-        url: prod.url || `https://www.tcgplayer.com/product/${prod.productId}`,
+        url: productUrl,
         image: prod.imageUrl || null,
         condition: "raw_nm",
-        variant: "sealed",
+        variant: kind,
         kind: "listing",
+        listingId: String(pid),
       });
     }
-    return out.sort(sortByLanded).slice(0, 10);
+    return out.sort(sortByLanded);
   } catch {
     return [];
   }
@@ -1038,13 +1064,18 @@ export const Route = createFileRoute("/api/public/card-prices")({
             });
           }
         } else {
-          let priced = sealed ? PRICED.filter((s) => s.sealed) : PRICED;
-          if (cheapOnly)
+          let priced = PRICED;
+          if (sealed) priced = PRICED.filter((s) => s.sealed);
+          else if (cheapOnly)
             priced = PRICED.filter((s) => s.name === "TCGplayer" || s.name === "Cardmarket");
           const settled = await Promise.allSettled(
             priced.map(async (src) => {
               try {
-                const listings = await withTimeout(src.fn(q || cardId), cheapOnly ? 5000 : 8000);
+                const fn = sealed && src.name === "TCGplayer" ? tcgcsvSealed : src.fn;
+                const listings = await withTimeout(
+                  fn(q || cardId),
+                  sealed ? 12000 : cheapOnly ? 5000 : 8000,
+                );
                 return { src, listings };
               } catch (e) {
                 return { src, listings: [] as Listing[], error: String((e as Error).message || e) };
@@ -1153,7 +1184,35 @@ export const Route = createFileRoute("/api/public/card-prices")({
         const all = sources
           .flatMap((s) => s.listings)
           .filter((l) => !isShopRow(l) && l.price > 0 && matchesCond(l));
-        const considered = sealed ? all.filter((l) => landed(l) >= 40) : all;
+        const setQuery = cleanSetQuery(q);
+        const mentionsSet = (title: string) => {
+          const words = setQuery.split(" ").filter((w) => w.length > 2 && w !== "and" && w !== "the");
+          const n = title.toLowerCase();
+          if (!words.length) return false;
+          const digits = words.filter((w) => /\d/.test(w));
+          if (digits.length) return digits.every((w) => n.includes(w));
+          const hit = words.filter((w) => n.includes(w)).length;
+          return hit >= Math.min(2, words.length);
+        };
+        const sealedPool = sealed
+          ? all.filter((l) => {
+              if (!sealedBoxKind(l.title || "")) return false;
+              if (l.source === "TCGplayer") return true;
+              return mentionsSet(l.title || "");
+            })
+          : all;
+        let sealedTier = sealedPool;
+        if (sealed) {
+          sealedTier = [];
+          for (const kind of ["box", "etb", "bundle"] as const) {
+            const tier = sealedPool.filter((l) => sealedBoxKind(l.title || "") === kind);
+            if (tier.length) {
+              sealedTier = tier;
+              break;
+            }
+          }
+        }
+        const considered = sealed ? sealedTier.filter((l) => landed(l) >= 15) : all;
         const ranked = considered.slice().sort(sortByLanded);
         const seen = new Set<string>();
         const queue: Listing[] = [];

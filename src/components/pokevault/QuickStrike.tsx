@@ -515,3 +515,179 @@ export function QuickStrike({ card, selectedGrade }: { card: TCGCard; selectedGr
     </div>
   );
 }
+
+/** One-click buy for a set's cheapest sealed booster box. */
+export function BoxQuickStrike({ setName }: { setName: string }) {
+  const query = `${setName} booster box`;
+  const [queue, setQueue] = useState<Listing[]>([]);
+  const [struck, setStruck] = useState<Listing | null>(null);
+  const [liveStatus, setLiveStatus] = useState<"loading" | "live" | "error">("loading");
+  const [pollCountdown, setPollCountdown] = useState(5);
+  const skipRef = useRef<string[]>([]);
+  const liveRef = useRef<Listing[]>([]);
+  const setRef = useRef(setName);
+  const lastFetchRef = useRef(0);
+  const inFlightRef = useRef(false);
+  setRef.current = setName;
+
+  function rank(rows: Listing[]) {
+    const skip = new Set(skipRef.current);
+    return rows
+      .filter((l) => listingTotal(l) > 0 && l.url && !skip.has(listingKey(l)) && !isListingSold(listingKey(l)))
+      .sort((a, b) => listingTotal(a) - listingTotal(b));
+  }
+
+  function refresh(opts?: { force?: boolean }) {
+    if (inFlightRef.current && !opts?.force) return;
+    const name = setName;
+    inFlightRef.current = true;
+    getCardPrices(query, {
+      sealed: true,
+      cheapOnly: true,
+      fresh: true,
+      skipKeys: skipRef.current,
+    })
+      .then((r) => {
+        if (setRef.current !== name) return;
+        const live = rank(r.queue ?? r.sources.flatMap((s) => s.listings));
+        lastFetchRef.current = Date.now();
+        liveRef.current = live;
+        setQueue(live);
+        setLiveStatus(live.length ? "live" : "error");
+      })
+      .catch(() => {
+        if (setRef.current !== name) return;
+        lastFetchRef.current = Date.now();
+        const fallback = rank(liveRef.current);
+        setQueue(fallback);
+        setLiveStatus(fallback.length ? "live" : "error");
+      })
+      .finally(() => {
+        if (setRef.current === name) inFlightRef.current = false;
+      });
+  }
+
+  useEffect(() => {
+    skipRef.current = [];
+    liveRef.current = [];
+    lastFetchRef.current = 0;
+    inFlightRef.current = false;
+    setStruck(null);
+    setQueue([]);
+    setLiveStatus("loading");
+    setPollCountdown(5);
+    refresh({ force: true });
+    const tick = window.setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      if (setRef.current !== setName) return;
+      setPollCountdown((prev) => (prev <= 1 ? 5 : prev - 1));
+      const ranked = rank(liveRef.current);
+      liveRef.current = ranked;
+      setQueue(ranked);
+      if (Date.now() - lastFetchRef.current > TTL_MS) refresh();
+    }, 1000);
+    return () => window.clearInterval(tick);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setName]);
+
+  const current = queue[0] ?? null;
+  const nextUp = queue[1] ?? null;
+
+  function strike() {
+    if (!current) return;
+    window.open(current.url, "_blank", "noopener,noreferrer");
+    setStruck(current);
+    // Keep the only box on screen so a second click still opens the buy page.
+    if (!nextUp) return;
+    const key = listingKey(current);
+    markListingSold(key);
+    skipRef.current = [...skipRef.current, key];
+    const next = rank(liveRef.current);
+    liveRef.current = next;
+    setQueue(next);
+  }
+
+  return (
+    <div
+      style={{
+        margin: "0 0 16px",
+        padding: 14,
+        background: "linear-gradient(180deg, rgba(226,181,58,.14), rgba(11,18,32,.75))",
+        border: "1px solid var(--gold-brd, #e2b53a55)",
+        borderRadius: 12,
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ fontSize: 9, letterSpacing: 2, color: "var(--gold)", fontWeight: 800 }}>
+          ⚡ QUICK STRIKE · BUY CHEAPEST BOX
+        </div>
+        <span style={{ fontSize: 9, color: "var(--t3)", fontFamily: "var(--mono, monospace)" }}>
+          ⟳ {pollCountdown}s
+        </span>
+      </div>
+      {liveStatus === "loading" && !current && (
+        <div style={{ marginTop: 8, fontSize: 12, color: "var(--t3)" }}>
+          Finding the cheapest sealed box for {setName}…
+        </div>
+      )}
+      {current && (
+        <>
+          <div
+            style={{
+              fontFamily: "Bebas Neue",
+              fontSize: 36,
+              color: "var(--gold)",
+              letterSpacing: 1,
+              lineHeight: 1.1,
+              marginTop: 4,
+            }}
+          >
+            {money(current)}
+          </div>
+          <div
+            style={{
+              fontSize: 11,
+              color: "var(--t2)",
+              marginBottom: 10,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            <strong style={{ color: "var(--t1)" }}>{current.source}</strong>
+            {" · "}
+            {current.title}
+            {!listingHasShipping(current) ? " · ship TBD" : ""}
+          </div>
+          <button
+            className="pv-btn pv-btn-fill"
+            onClick={strike}
+            style={{
+              width: "100%",
+              letterSpacing: 1.5,
+              fontWeight: 800,
+              background: "linear-gradient(135deg, #f59e0b, #e11d48)",
+            }}
+          >
+            🚀 STRIKE · BUY BOX
+          </button>
+          <div style={{ marginTop: 8, fontSize: 11, color: "var(--t3)" }}>
+            {nextUp
+              ? `Next: ${money(nextUp)} · ${nextUp.source}`
+              : "One live booster box at this price."}
+          </div>
+        </>
+      )}
+      {!current && liveStatus !== "loading" && (
+        <div style={{ marginTop: 8, fontSize: 12, color: "var(--t3)" }}>
+          No sealed booster box listing for {setName} yet.
+        </div>
+      )}
+      {struck && current && listingKey(struck) !== listingKey(current) && (
+        <div style={{ marginTop: 6, fontSize: 10, color: "#4ade80" }}>
+          Box opened in a new tab. Next cheapest is ready.
+        </div>
+      )}
+    </div>
+  );
+}

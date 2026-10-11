@@ -86,6 +86,26 @@ export function trainerFacingUrl(facingAngleDeg: number): string {
   return `/adventure-assets/trainer-${dir}.png`;
 }
 
+/**
+ * Living-world sprite chain. Animated Showdown frame first, then the vendored
+ * gen5 PNG, then Home / static Showdown. Battle art stays on fallbackSpriteUrls.
+ */
+export function worldSpriteUrls(name: string): string[] {
+  const s = spriteSlug(name);
+  const local = localGen5Url(name);
+  return [
+    `https://play.pokemonshowdown.com/sprites/ani/${s}.gif`,
+    ...(local ? [local] : []),
+    `https://img.pokemondb.net/sprites/home/normal/${s}.png`,
+    `https://play.pokemonshowdown.com/sprites/gen5/${s}.png`,
+    `https://play.pokemonshowdown.com/sprites/dex/${s}.png`,
+  ];
+}
+
+export function worldSpriteUrl(name: string): string {
+  return worldSpriteUrls(name)[0];
+}
+
 export function animatedSpriteUrl(name: string): string {
   return fallbackSpriteUrls(name)[0];
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { TCGCard } from "@/lib/pokemon-api";
-import { getMarketPrice } from "@/lib/pokemon-api";
+import { getListedLow, getMarketPrice } from "@/lib/pokemon-api";
 
 type Quote = {
   market: number;
@@ -34,8 +34,15 @@ export function isPendingPriceSet(cardOrId: TCGCard | string | null | undefined)
   return PENDING_SET_RE.test(id) || PENDING_SET_RE.test(setId);
 }
 
+function isListingLowQuote(q: Quote | null | undefined): boolean {
+  if (!q || !(q.market > 0)) return false;
+  const s = q.source || "";
+  return s === "lowest-online" || s === "cardmarket-low" || s.endsWith("-low");
+}
+
 function displayMarket(q: Quote): number {
-  // Real money always wins over a stale pending flag.
+  // A current listing low is the buy price. Sold averages stay behind it.
+  if (isListingLowQuote(q)) return q.market;
   if (q.soldAvg && q.soldAvg > 0) return q.soldAvg;
   if (q.market > 0) return q.market;
   if (q.pending) return 0;
@@ -52,6 +59,7 @@ function isStrongQuote(q: Quote): boolean {
   if (q.pending && !hasMoney(q)) return false;
   return (
     (q.soldAvg || 0) > 0 ||
+    q.source === "lowest-online" ||
     q.source === "sold-avg" ||
     q.source === "tcgplayer-market" ||
     q.source === "pokemontcg-market" ||
@@ -103,7 +111,7 @@ function emit(id: string, q: Quote) {
 }
 
 function quoted(card: TCGCard): number {
-  return getMarketPrice(card);
+  return getListedLow(card) || getMarketPrice(card);
 }
 
 export function cachedLivePrice(id: string): number | null {
@@ -282,39 +290,59 @@ export function hydrateLivePrices(cards: TCGCard[]) {
   }
 }
 
-/** Live sold-avg / TCGPlayer market; falls back to already-quoted card price. */
+/** Lowest current listing, then the catalog quote already on the card. */
 export function useLivePrice(card: TCGCard | null | undefined): number {
   const id = card?.id || "";
-  const seed = card ? quoted(card) : 0;
-  const [n, setN] = useState(() => cachedLivePrice(id) ?? seed);
+  const listed = card ? getListedLow(card) : 0;
+  const seed = listed || (card ? quoted(card) : 0);
+  const [n, setN] = useState(() => {
+    const cached = id ? cache.get(id) : undefined;
+    if (cached && isListingLowQuote(cached)) {
+      const live = displayMarket(cached);
+      if (live > 0) return live;
+    }
+    return seed;
+  });
 
   useEffect(() => {
-    const next = cachedLivePrice(id) ?? seed;
-    setN(next);
+    const cached = id ? cache.get(id) : undefined;
+    const cachedLow = cached && isListingLowQuote(cached) ? displayMarket(cached) : 0;
+    setN(cachedLow > 0 ? cachedLow : seed);
     if (!id) return;
     let alive = true;
-    void requestLivePrice(id).then((q) => {
-      if (!alive || !q) return;
+    const apply = (q: Quote | null | undefined) => {
+      if (!q) return;
       const m = displayMarket(q);
-      if (m > 0) setN(m);
+      if (!(m > 0)) return;
+      // A sold average must not cover a listing low already on the card.
+      if (isListingLowQuote(q) || !(listed > 0)) setN(m);
+    };
+    void requestLivePrice(id).then((q) => {
+      if (!alive) return;
+      apply(q);
     });
     const on = (e: Event) => {
       const d = (e as CustomEvent).detail as {
         id?: string;
         market?: number;
+        source?: string;
         soldAvg?: number;
         pending?: boolean;
       };
       if (d?.id !== id) return;
-      const m = (d.soldAvg && d.soldAvg > 0 ? d.soldAvg : d.market) || 0;
-      if (m > 0) setN(m);
+      apply({
+        market: d.market || 0,
+        source: d.source || "",
+        soldAvg: d.soldAvg,
+        pending: d.pending,
+      });
     };
     window.addEventListener(EVT, on);
     return () => {
       alive = false;
       window.removeEventListener(EVT, on);
     };
-  }, [id, seed]);
+  }, [id, seed, listed]);
 
   return n;
 }

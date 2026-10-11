@@ -7,8 +7,8 @@ import {
   CAPTURE_ITEMS,
   attemptCapture,
 } from "@/lib/adventure-engine";
-import { animatedSpriteUrl } from "@/lib/sprites";
 import { addWildCatchToParty } from "@/lib/adventure-party";
+import { WorldSprite } from "./WorldSprite";
 
 export function AdventureEncounterModal({
   creature,
@@ -167,9 +167,8 @@ export function AdventureEncounterModal({
           <div className="absolute bottom-6 w-44 h-12 rounded-full bg-cyan-500/15 filter blur-sm" />
 
           {/* Creature Image */}
-          <img
-            src={animatedSpriteUrl(creature.species)}
-            alt={creature.species}
+          <WorldSprite
+            name={creature.species}
             className={`w-36 h-36 object-contain relative z-10 filter drop-shadow-[0_12px_18px_rgba(0,0,0,0.8)] transition-transform duration-300 ${
               throwPhase === "shaking"
                 ? "scale-0 opacity-0"

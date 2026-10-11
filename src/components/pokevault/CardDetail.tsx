@@ -134,8 +134,8 @@ export function CardDetail({
   }, [ebayQuery]);
 
   const ebayAvg = ebaySold?.summary?.avg && ebaySold.summary.avg > 0 ? ebaySold.summary.avg : 0;
-  // Prefer real eBay sold average (signed-in) → live sold-avg API → catalog quote.
-  const displayMarket = ebayAvg || live;
+  // Headline is the lowest current listing. eBay sold averages stay in the sold panel.
+  const displayMarket = live || ebayAvg;
   const priced = card && displayMarket > 0 ? applyLiveQuote(card, displayMarket) : card;
 
   if (!priced || !card) return <SkeletonRows rows={4} label="Loading card" />;

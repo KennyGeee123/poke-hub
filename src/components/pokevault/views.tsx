@@ -20,6 +20,7 @@ import { CardTile, CardSkeleton } from "./CardTile";
 import { VirtualCardGrid } from "./VirtualCardGrid";
 import { CollectionInsightsCard } from "./CollectionInsights";
 import { CheapestPill } from "./CheapestPill";
+import { BoxQuickStrike } from "./QuickStrike";
 import { PriceComparePanel } from "./PriceCompare";
 import { PrintLangBar } from "./PrintLangBar";
 import { EmptyState, ErrorState, SkeletonRows, withTimeout } from "./ui";
@@ -866,6 +867,7 @@ export function SetCardsView({
         </div>
       )}
 
+      <BoxQuickStrike setName={set.name} />
       {showBox && (
         <div style={{ marginBottom: 16 }}>
           <PriceComparePanel query={`${set.name} booster box sealed pokemon`} />

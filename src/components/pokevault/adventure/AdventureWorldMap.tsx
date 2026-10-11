@@ -36,8 +36,11 @@ import {
   metersPerPixel,
   pinWorldPoisToGeo,
   latLngToWorldPixels,
+  WORLD_SCALE,
+  worldPlaneSpanMeters,
 } from "@/lib/adventure-engine";
-import { animatedSpriteUrl, trainerFacingUrl } from "@/lib/sprites";
+import { trainerFacingUrl } from "@/lib/sprites";
+import { WorldSprite } from "./WorldSprite";
 import { AdventureJoystick } from "./AdventureJoystick";
 import { GodsEyeMap } from "./GodsEyeMap";
 import {
@@ -57,7 +60,7 @@ import {
   cloneAdventureState,
 } from "@/lib/adventure-engine";
 
-const GBA_CELL_PX = 32;
+const GBA_CELL_PX = 64;
 
 function GbaWalkLayer({
   playerGeo,
@@ -71,8 +74,8 @@ function GbaWalkLayer({
   const originRow = Math.floor(world.y / GBA_CELL_PX);
   const fracX = world.x % GBA_CELL_PX;
   const fracY = world.y % GBA_CELL_PX;
-  const cols = 28;
-  const rows = 24;
+  const cols = 22;
+  const rows = 16;
   const cells: { key: string; left: number; top: number; a: string; b: string; tex: string }[] = [];
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
@@ -106,8 +109,8 @@ function GbaWalkLayer({
               backgroundColor: c.a,
               backgroundImage: `url(${c.tex})`,
               backgroundSize: "cover",
-              imageRendering: "pixelated",
-              boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.18)",
+              imageRendering: "auto",
+              boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.08)",
             }}
           />
         ))}
@@ -165,6 +168,9 @@ export function AdventureWorldMap({
   const [useLiveGps, setUseLiveGps] = useState(false);
   const [gpsStatus, setGpsStatus] = useState<"idle" | "tracking" | "denied">("idle");
   const [mapStyle, setMapStyle] = useState<"dark" | "streets">("dark");
+  // Esri World Dark Gray Canvas has no zoom-17 tiles (they paint "Map data not yet available").
+  // Zoom 16 is the last level that draws real streets. Streets stay at the walk zoom.
+  const zoom = mapStyle === "dark" ? 16 : MAP_ZOOM_DEFAULT;
   const [facingAngle, setFacingAngle] = useState(0);
   const [isWalking, setIsWalking] = useState(false);
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(adventureState.world.timeOfDay);
@@ -172,9 +178,10 @@ export function AdventureWorldMap({
   const [recentlyPoppedId, setRecentlyPoppedId] = useState<string | null>(null);
   const [godsEyeOpen, setGodsEyeOpen] = useState(false);
   const [controlsOpen, setControlsOpen] = useState(false);
-  const [walkSkin, setWalkSkin] = useState<"go" | "gba">(adventureState.world.walkSkin || "go");
+  const [walkSkin, setWalkSkin] = useState<"go" | "gba">("gba");
 
   const walkTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const routeBootRef = useRef(false);
   const watchIdRef = useRef<number | null>(null);
   const playerGeoRef = useRef(playerGeo);
   playerGeoRef.current = playerGeo;
@@ -191,6 +198,18 @@ export function AdventureWorldMap({
     adventureState.world.playerGeo,
     adventureState.world.walkSkin,
   ]);
+
+  // Open on the route. City streets stay one tap away. Runs once so the toggle still sticks.
+  useEffect(() => {
+    if (routeBootRef.current) return;
+    routeBootRef.current = true;
+    setWalkSkin("gba");
+    if (!onStateUpdate || adventureState.world.walkSkin === "gba") return;
+    const s = cloneAdventureState(adventureState);
+    s.world.walkSkin = "gba";
+    saveAdventureState(s);
+    onStateUpdate(s);
+  }, [adventureState, onStateUpdate]);
 
   // Live GPS Tracking with navigator.geolocation
   useEffect(() => {
@@ -358,7 +377,7 @@ export function AdventureWorldMap({
     const rect = e.currentTarget.getBoundingClientRect();
     const dxPx = e.clientX - rect.left - rect.width / 2;
     const dyPx = e.clientY - rect.top - rect.height / 2;
-    const mpp = metersPerPixel(playerGeo.lat, MAP_ZOOM_DEFAULT);
+    const mpp = metersPerPixel(playerGeo.lat, zoom);
     const metersX = dxPx * mpp;
     const metersY = -dyPx * mpp;
     const dist = Math.round(Math.hypot(metersX, metersY));
@@ -412,10 +431,9 @@ export function AdventureWorldMap({
   };
 
   // Slippy Map Tiles (CartoDB Dark Matter / OpenStreetMap)
-  const zoom = MAP_ZOOM_DEFAULT;
   const tileInfo = useMemo(() => {
     return latLngToTile(playerGeo.lat, playerGeo.lng, zoom);
-  }, [playerGeo.lat, playerGeo.lng]);
+  }, [playerGeo.lat, playerGeo.lng, zoom]);
 
   const screenPos = (entity: { lat?: number; lng?: number; xPct: number; yPct: number }) => {
     if (typeof entity.lat === "number" && typeof entity.lng === "number") {
@@ -424,6 +442,14 @@ export function AdventureWorldMap({
     }
     return { left: `${entity.xPct}%`, top: `${entity.yPct}%` };
   };
+
+  // The catalog is WORLD_SCALE times the old plane. Only the camera window is mounted.
+  const inWalkWindow = (entity: { lat?: number; lng?: number }) => {
+    if (typeof entity.lat !== "number" || typeof entity.lng !== "number") return true;
+    const off = geoScreenOffset(playerGeo, { lat: entity.lat, lng: entity.lng }, zoom);
+    return Math.abs(off.dx) <= 1100 && Math.abs(off.dy) <= 800;
+  };
+  const worldKm = Math.round(worldPlaneSpanMeters() / 1000);
 
   const walkTowardGeo = (target: { lat: number; lng: number }) => {
     const dist = Math.max(1, haversineMeters(playerGeo.lat, playerGeo.lng, target.lat, target.lng));
@@ -467,10 +493,8 @@ export function AdventureWorldMap({
         if (mapStyle === "dark" && cartoKey) {
           url = `https://a.basemaps.cartocdn.com/dark_all/${zoom}/${tx}/${ty}@2x.png?api_key=${encodeURIComponent(cartoKey)}`;
         } else if (mapStyle === "dark") {
-          // Esri's Dark Gray Canvas stops at z16 and returns "Map data not yet
-          // available" placeholders at our z17 walk zoom, so render the street
-          // map and darken it with a CSS filter instead (see tile <img> below).
-          url = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${zoom}/${ty}/${tx}`;
+          // Esri World Dark Gray Base — tile order is z/y/x. Zoom is capped at 16 above.
+          url = `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/${zoom}/${ty}/${tx}`;
         } else {
           // Esri World Street Map — tile order is z/y/x (= zoom/ty/tx)
           url = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${zoom}/${ty}/${tx}`;
@@ -492,9 +516,9 @@ export function AdventureWorldMap({
     (import.meta.env.VITE_MAP_TILE_KEY as string | undefined)?.trim()
   );
   const darkTileFilter =
-    mapStyle === "dark" && !hasCartoKey
-      ? "invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9) saturate(0.55)"
-      : "contrast(1.25) brightness(0.95)";
+    mapStyle === "dark"
+      ? "contrast(1.25) brightness(1.25)"
+      : "none";
 
   const isNight = timeOfDay === "night";
   const isSunset = timeOfDay === "sunset";
@@ -511,9 +535,8 @@ export function AdventureWorldMap({
         <div
           className="absolute inset-0 pointer-events-none transition-opacity duration-500 overflow-hidden flex items-center justify-center"
           style={{
-            opacity: walkSkin === "gba" ? 0.28 : 0.88,
-            transform: walkSkin === "gba" ? "none" : "rotateX(12deg) scale(1.08)",
-            transformOrigin: "center center",
+            opacity: walkSkin === "gba" ? 0.42 : 1,
+            transform: "none",
             imageRendering: walkSkin === "gba" ? "pixelated" : undefined,
           }}
         >
@@ -547,13 +570,7 @@ export function AdventureWorldMap({
         )}
 
         {/* 2.5D Tilt Perspective Surface Layer */}
-        <div
-          className="absolute inset-0 transition-transform duration-300"
-          style={{
-            transform: walkSkin === "gba" ? "none" : "rotateX(12deg) translateZ(0)",
-            transformOrigin: "bottom center",
-          }}
-        >
+        <div className="absolute inset-0">
           {/* Subtle Ambient Grid */}
           <div
             className="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(#06b6d4_1px,transparent_1px)]"
@@ -603,7 +620,7 @@ export function AdventureWorldMap({
           {/* ───────────────────────────────────────────────────────────── */}
           {/* ENTITY: BATTLE ARENAS (GYM TOWERS) */}
           {/* ───────────────────────────────────────────────────────────── */}
-          {adventureState.battleArenas.map((arena) => (
+          {adventureState.battleArenas.filter(inWalkWindow).map((arena) => (
             <div
               key={arena.id}
               onClick={(e) => {
@@ -631,7 +648,7 @@ export function AdventureWorldMap({
           {/* ───────────────────────────────────────────────────────────── */}
           {/* ENTITY: DISCOVERY POINTS (POKÉSTOPS) */}
           {/* ───────────────────────────────────────────────────────────── */}
-          {adventureState.discoveryPoints.map((point) => {
+          {adventureState.discoveryPoints.filter(inWalkWindow).map((point) => {
             const onCooldown = Date.now() - point.lastSpunTimestamp < point.cooldownMs;
             return (
               <div
@@ -673,7 +690,7 @@ export function AdventureWorldMap({
           {/* ENTITY: CARD CACHES (HOLO CRATES) */}
           {/* ───────────────────────────────────────────────────────────── */}
           {adventureState.cardCaches
-            .filter((c) => !c.claimed)
+            .filter((c) => !c.claimed && inWalkWindow(c))
             .map((cache) => (
               <div
                 key={cache.id}
@@ -701,7 +718,7 @@ export function AdventureWorldMap({
           {/* ───────────────────────────────────────────────────────────── */}
           {/* ENTITY: WILD POKÉMON CREATURES (45m HIDDEN SPAWN DISCOVERY) */}
           {/* ───────────────────────────────────────────────────────────── */}
-          {adventureState.wildCreatures.map((creature) => {
+          {adventureState.wildCreatures.filter(inWalkWindow).map((creature) => {
             const isDiscovered =
               creature.isDiscovered || creature.distanceMeters <= RADAR_DISCOVERY_RADIUS_METERS;
 
@@ -776,8 +793,8 @@ export function AdventureWorldMap({
                 )}
 
                 {/* Animated 3D Pokémon Model */}
-                <img
-                  src={animatedSpriteUrl(creature.species)}
+                <WorldSprite
+                  name={creature.species}
                   alt={creature.species}
                   className={`w-14 h-14 sm:w-16 sm:h-16 object-contain relative z-10 filter animate-bounce [image-rendering:pixelated] ${
                     creature.isParkNest
@@ -858,11 +875,10 @@ export function AdventureWorldMap({
                 isWalking ? "animate-bounce" : ""
               }`}
             >
-              <img
-                src={animatedSpriteUrl(adventureState.buddy.species)}
+              <WorldSprite
+                name={adventureState.buddy.species}
                 alt={adventureState.buddy.species}
                 className="w-10 h-10 object-contain filter drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)]"
-                style={{ imageRendering: "pixelated" }}
               />
             </div>
           </div>
@@ -887,11 +903,18 @@ export function AdventureWorldMap({
           />
           <span className="flex flex-col min-w-0 text-left">
             <span className="pv-lw-chip-title">
-              {useLiveGps ? "LIVE GPS" : walkSkin === "gba" ? "GBA OVERWORLD" : "POKÉMON GO MAP"}
-              {isWalking ? " · 45m range" : ""}
+              {useLiveGps
+                ? "LIVE GPS"
+                : isWalking
+                  ? walkSkin === "gba"
+                    ? "ROUTE · 45m"
+                    : "CITY STREETS · 45m"
+                  : walkSkin === "gba"
+                    ? "ROUTE OVERWORLD"
+                    : "CITY STREETS"}
             </span>
             <span className="pv-lw-chip-sub">
-              {adventureState.world.biome || "Walk plane"} · {timeOfDay} · {weather}
+              {playerGeo.lat.toFixed(4)}, {playerGeo.lng.toFixed(4)} · ×{WORLD_SCALE} · {worldKm} km
             </span>
           </span>
         </button>
@@ -978,7 +1001,7 @@ export function AdventureWorldMap({
                 className={walkSkin === "gba" ? "on gold" : ""}
                 aria-pressed={walkSkin === "gba"}
               >
-                GBA
+                ROUTE
               </button>
             </div>
 

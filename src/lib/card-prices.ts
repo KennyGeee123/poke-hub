@@ -415,11 +415,13 @@ export async function getCardPrices(
     cardId?: string;
     skipKeys?: string[];
     condition?: string | null;
+    /** Sealed booster box for a set. One product URL, ranked by listing low. */
+    sealed?: boolean;
   },
 ): Promise<AggregateResponse> {
   const skip = (opts?.skipKeys ?? []).slice(0, 64);
   const cond = (opts?.condition || "").toLowerCase().trim();
-  const key = `${opts?.cheapOnly ? "c:" : "f:"}${opts?.cardId ?? ""}:${query.toLowerCase().trim()}:${cond}:${skip.slice().sort().join("|")}`;
+  const key = `${opts?.sealed ? "s:" : ""}${opts?.cheapOnly ? "c:" : "f:"}${opts?.cardId ?? ""}:${query.toLowerCase().trim()}:${cond}:${skip.slice().sort().join("|")}`;
   if (!opts?.fresh) {
     const hit = cache.get(key);
     if (hit && Date.now() - hit.t < TTL_MS) return hit.v;
@@ -437,6 +439,7 @@ export async function getCardPrices(
 
   const qs = new URLSearchParams({ q: query });
   if (opts?.cardId) qs.set("id", opts.cardId);
+  if (opts?.sealed) qs.set("sealed", "1");
   if (opts?.cheapOnly) qs.set("cheap", "1");
   if (opts?.fresh) qs.set("fresh", "1");
   if (cond) qs.set("condition", cond);

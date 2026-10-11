@@ -139,14 +139,16 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
   const setLine = [card.set?.name, card.number ? `#${card.number}` : null]
     .filter(Boolean)
     .join(" · ");
-  // Only Cardmarket / eBay sold averages are "sold avg"; TCGPlayer quotes are market.
+  // Sold averages stay labeled as sold. Listing lows are the buy price.
   const liveSource = cachedLivePriceSource(card.id);
   const priceLabel = pricePending
     ? null
     : live > 0
       ? liveSource === "sold-avg"
         ? "sold avg"
-        : "market"
+        : liveSource === "lowest-online" || (liveSource || "").endsWith("-low")
+          ? "lowest"
+          : "market"
       : displayPrice
         ? "market"
         : null;

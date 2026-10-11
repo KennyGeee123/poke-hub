@@ -302,15 +302,20 @@ export const GBA_CELL_TEXTURE: Record<GbaCell, string> = {
   dirt: "/adventure-assets/tex-sand.jpg",
 };
 
-/** Original hashed overworld cell — not a Nintendo tileset. */
+/**
+ * Repeating route, locked to world cells so it stays put while the trainer walks.
+ * Each 20-cell block is a river, a crossroad, tall grass beside the path, and open field.
+ * Textures are the original adventure-assets set, not a Nintendo tileset.
+ */
 export function gbaCellKind(tx: number, ty: number): GbaCell {
-  let h = (Math.imul(tx, 374761393) + Math.imul(ty, 668265263)) >>> 0;
-  h = Math.imul(h ^ (h >>> 13), 1274126177);
-  const r = ((h ^ (h >>> 16)) >>> 0) / 4294967296;
-  if (r < 0.08) return "water";
-  if (r < 0.18) return "path";
-  if (r < 0.28) return "tree";
-  if (r < 0.38) return "dirt";
+  const x = ((tx % 20) + 20) % 20;
+  const y = ((ty % 20) + 20) % 20;
+  if (y <= 1) return "water";
+  if (y >= 9 && y <= 11) return "path";
+  if (x >= 9 && x <= 11) return "path";
+  if ((y === 7 || y === 8 || y === 12 || y === 13) && (x < 8 || x > 12)) return "tree";
+  if (y >= 18) return "tree";
+  if (x <= 2 && y >= 3 && y <= 6) return "dirt";
   return "grass";
 }
 

@@ -345,21 +345,32 @@ function estimatePrice(c: TCGCard): number {
   return Math.round(base * jitter * 100) / 100;
 }
 
+/**
+ * Cheapest current listing on this card. TCGPlayer low and directLow are the
+ * asks. Cardmarket's raw low joins them only when it is at least half that
+ * ask, because the raw low is often a played copy.
+ */
 export function getListedLow(c: TCGCard): number {
   if (!c) return 0;
+  let tpAsk = 0;
+  const considerTp = (n: number) => {
+    if (Number.isFinite(n) && n > 0 && (tpAsk === 0 || n < tpAsk)) tpAsk = n;
+  };
   const tp = c.tcgplayer?.prices;
   if (tp && typeof tp === "object") {
-    const variants = Object.values(tp).filter(Boolean) as Array<Record<string, unknown>>;
-    for (const key of ["low", "directLow", "market"] as const) {
-      for (const v of variants) {
-        const val = Number(v?.[key]);
-        if (Number.isFinite(val) && val > 0) return val;
-      }
+    for (const v of Object.values(tp)) {
+      if (!v || typeof v !== "object") continue;
+      considerTp(Number(v.low));
+      considerTp(Number(v.directLow));
     }
   }
-  const low = Number(c.cardmarket?.prices?.lowPrice);
-  if (Number.isFinite(low) && low > 0) return Math.round(low * EUR_USD * 100) / 100;
-  return 0;
+  const cmRaw = Number(c.cardmarket?.prices?.lowPrice);
+  const cmLow = Number.isFinite(cmRaw) && cmRaw > 0 ? Math.round(cmRaw * EUR_USD * 100) / 100 : 0;
+  let best = tpAsk;
+  if (cmLow > 0 && (!(tpAsk > 0) || cmLow >= tpAsk * 0.5)) {
+    best = tpAsk > 0 ? Math.min(tpAsk, cmLow) : cmLow;
+  }
+  return best > 0 ? Math.round(best * 100) / 100 : 0;
 }
 
 export function getRarityColor(rarity?: string): string {

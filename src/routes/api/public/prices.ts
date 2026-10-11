@@ -80,28 +80,44 @@ function pickTpField(tp: any, field: "marketPrice" | "midPrice" | "lowPrice"): n
   return 0;
 }
 
+/** Lowest positive value of one TCGPlayer field across every finish on this card. */
+function minTpField(tp: any, field: "marketPrice" | "midPrice" | "lowPrice" | "directLowPrice"): number {
+  if (!tp || typeof tp !== "object") return 0;
+  const unit = tp.unit || "USD";
+  let best = 0;
+  const consider = (n: number) => {
+    if (n > 0 && (best === 0 || n < best)) best = n;
+  };
+  for (const k of TP_PRINTS) consider(usd(Number(tp[k]?.[field]), unit));
+  for (const [k, v] of Object.entries(tp)) {
+    if (!v || typeof v !== "object" || k === "updated" || k === "unit" || k === "url") continue;
+    consider(usd(Number((v as any)[field]), unit));
+  }
+  return best;
+}
+
+function isListingLow(q: PriceQuote | null | undefined): boolean {
+  if (!q || !(q.market > 0)) return false;
+  const s = q.source || "";
+  return s === "lowest-online" || s === "cardmarket-low" || s.endsWith("-low");
+}
+
 /**
- * TCGPlayer market (US sales) first, for the card's base print. Cardmarket
- * (EU, EUR) is only a fallback: on 2026-10-03 its avg7 was >15% / $1 off
- * TCGPlayer for 35% of a 1,179-card sample, and TCGdex often maps secret
- * rares to the regular print's Cardmarket product (Dialga EX 122/119 quoted
- * $9 vs $1,022 market).
+ * Cardmarket's raw low is often a played copy. It can win only when it is at
+ * least half the TCGPlayer ask, so a damaged outlier does not become the price.
+ */
+function listingLow(tpAsk: number, cmLow: number): number {
+  if (tpAsk > 0 && cmLow > 0 && cmLow >= tpAsk * 0.5) return Math.min(tpAsk, cmLow);
+  if (tpAsk > 0) return tpAsk;
+  return cmLow > 0 ? cmLow : 0;
+}
+
+/**
+ * Current buy price: the cheapest TCGPlayer listing low on this card, or the
+ * Cardmarket low in USD when that ask is in the same range. Sold averages stay
+ * on soldAvg and are only the price when no listing low exists.
  */
 function marketFromTcgdex(raw: any): PriceQuote | null {
-  const tpMarket = pickTpField(raw?.pricing?.tcgplayer, "marketPrice");
-  const tpMid = pickTpField(raw?.pricing?.tcgplayer, "midPrice");
-  const tpLow = pickTpField(raw?.pricing?.tcgplayer, "lowPrice");
-  if (tpMarket > 0) {
-    return {
-      market: tpMarket,
-      source: "tcgplayer-market",
-      listingMarket: tpMid && tpMid !== tpMarket ? tpMid : undefined,
-    };
-  }
-  if (tpMid > 0) {
-    return { market: tpMid, source: "tcgplayer-mid", listingMarket: tpLow || undefined };
-  }
-
   const cm = raw?.pricing?.cardmarket;
   let soldAvg = 0;
   let cmLow = 0;
@@ -116,11 +132,40 @@ function marketFromTcgdex(raw: any): PriceQuote | null {
     }
     cmLow = usd(Number(cm.low), unit);
   }
-  if (soldAvg > 0) {
-    return { market: soldAvg, source: "sold-avg", soldAvg, listingMarket: tpLow || undefined };
+
+  const tp = raw?.pricing?.tcgplayer;
+  const tpMarket = pickTpField(tp, "marketPrice");
+  const tpMid = pickTpField(tp, "midPrice");
+  const tpAsks = [minTpField(tp, "lowPrice"), minTpField(tp, "directLowPrice")].filter((n) => n > 0);
+  const tpAsk = tpAsks.length ? Math.min(...tpAsks) : 0;
+  const listingMarket = tpMarket || tpMid || undefined;
+  const lowest = listingLow(tpAsk, cmLow);
+
+  if (lowest > 0) {
+    return {
+      market: lowest,
+      source: "lowest-online",
+      soldAvg: soldAvg > 0 ? soldAvg : undefined,
+      listingMarket: listingMarket && listingMarket !== lowest ? listingMarket : undefined,
+    };
   }
-  if (tpLow > 0) {
-    return { market: tpLow, source: "tcgplayer-low" };
+  if (soldAvg > 0) {
+    return {
+      market: soldAvg,
+      source: "sold-avg",
+      soldAvg,
+      listingMarket,
+    };
+  }
+  if (tpMarket > 0) {
+    return {
+      market: tpMarket,
+      source: "tcgplayer-market",
+      listingMarket: tpMid || undefined,
+    };
+  }
+  if (tpMid > 0) {
+    return { market: tpMid, source: "tcgplayer-mid" };
   }
   if (cmLow > 0) {
     return { market: cmLow, source: "cardmarket-low" };
@@ -166,7 +211,9 @@ function productNameAgrees(productName: string, cardName?: string): boolean {
   return !!a && !!b && (a === b || a.startsWith(b) || b.startsWith(a));
 }
 
-async function quoteTcgplayerProduct(productId: number): Promise<number | null> {
+async function quoteTcgplayerProduct(
+  productId: number,
+): Promise<{ price: number; fromLow: boolean } | null> {
   try {
     const r = await fetch(
       `https://infinite-api.tcgplayer.com/price/history/${productId}?range=quarter`,
@@ -179,18 +226,29 @@ async function quoteTcgplayerProduct(productId: number): Promise<number | null> 
     const j: any = await r.json();
     const variants = j?.result?.[0]?.variants;
     if (!Array.isArray(variants)) return null;
-    let best = Infinity;
+    let bestLow = Infinity;
+    let bestMkt = Infinity;
     for (const v of variants) {
-      const n = Number(v.marketPrice);
-      if (Number.isFinite(n) && n > 0 && n < best) best = n;
+      const low = Number(v.lowPrice);
+      const mkt = Number(v.marketPrice);
+      if (Number.isFinite(low) && low > 0 && low < bestLow) bestLow = low;
+      if (Number.isFinite(mkt) && mkt > 0 && mkt < bestMkt) bestMkt = mkt;
     }
-    return Number.isFinite(best) && best < Infinity ? best : null;
+    if (bestLow < Infinity) return { price: bestLow, fromLow: true };
+    if (bestMkt < Infinity) return { price: bestMkt, fromLow: false };
+    return null;
   } catch {
     return null;
   }
 }
 
-type CsvRow = { productId: number; name: string; number: string; market: number };
+type CsvRow = {
+  productId: number;
+  name: string;
+  number: string;
+  market: number;
+  fromLow: boolean;
+};
 type CsvCache = {
   at: number;
   byNum: Map<string, CsvRow>;
@@ -221,13 +279,17 @@ async function loadTcgcsvGroup(groupId: number): Promise<CsvCache | null> {
     if (!prodsR.ok || !pricesR.ok) return hit || null;
     const prods: any = await prodsR.json();
     const prices: any = await pricesR.json();
-    const priceByPid = new Map<number, number>();
+    const priceByPid = new Map<number, { n: number; fromLow: boolean }>();
     for (const p of prices?.results || []) {
       const pid = Number(p.productId);
-      const m = Number(p.marketPrice) || Number(p.midPrice) || Number(p.lowPrice) || 0;
-      if (pid > 0 && m > 0) {
-        const prev = priceByPid.get(pid) || Infinity;
-        if (m < prev) priceByPid.set(pid, m);
+      const low = Number(p.lowPrice) || 0;
+      const mkt = Number(p.marketPrice) || Number(p.midPrice) || 0;
+      if (!(pid > 0)) continue;
+      const prev = priceByPid.get(pid);
+      if (low > 0 && (!prev || !prev.fromLow || low < prev.n)) {
+        priceByPid.set(pid, { n: low, fromLow: true });
+      } else if (mkt > 0 && (!prev || (!prev.fromLow && mkt < prev.n))) {
+        priceByPid.set(pid, { n: mkt, fromLow: false });
       }
     }
     const byNum = new Map<string, CsvRow>();
@@ -235,7 +297,9 @@ async function loadTcgcsvGroup(groupId: number): Promise<CsvCache | null> {
     const rows: CsvRow[] = [];
     for (const r of prods?.results || []) {
       const pid = Number(r.productId);
-      const market = priceByPid.get(pid) || 0;
+      const hit = priceByPid.get(pid);
+      const market = hit?.n || 0;
+      const fromLow = !!hit?.fromLow;
       if (!(market > 0)) continue;
       let number = "";
       for (const ed of r.extendedData || []) {
@@ -247,7 +311,7 @@ async function loadTcgcsvGroup(groupId: number): Promise<CsvCache | null> {
       const name = String(r.name || "")
         .replace(/\s*-\s*\d+\/\d+\s*$/, "")
         .trim();
-      const row: CsvRow = { productId: pid, name, number, market };
+      const row: CsvRow = { productId: pid, name, number, market, fromLow };
       rows.push(row);
       if (number) {
         const key = padLocal(number);
@@ -324,7 +388,10 @@ async function quoteTcgcsv(
     if (!row && name && setKey === "me55c") row = matchByName(cache, name);
   }
   if (!row || !(row.market > 0)) return null;
-  return { market: Math.round(row.market * 100) / 100, source: "tcgcsv-market" };
+  return {
+    market: Math.round(row.market * 100) / 100,
+    source: row.fromLow ? "lowest-online" : "tcgcsv-market",
+  };
 }
 
 /** Shipped box-set extras (Unown A-Z, 30th Mew R/G/B) with their TCGPlayer product. */
@@ -432,7 +499,18 @@ function priceCacheAliases(id: string): string[] {
 
 function quoteFromPokemonPrices(prices: any): PriceQuote | null {
   if (!prices || typeof prices !== "object") return null;
-  for (const field of ["market", "mid", "low"] as const) {
+  let best = 0;
+  for (const v of Object.values(prices)) {
+    if (!v || typeof v !== "object") continue;
+    for (const key of ["low", "directLow"] as const) {
+      const n = Number((v as any)[key]);
+      if (Number.isFinite(n) && n > 0 && (best === 0 || n < best)) best = n;
+    }
+  }
+  if (best > 0) {
+    return { market: Math.round(best * 100) / 100, source: "lowest-online" };
+  }
+  for (const field of ["market", "mid"] as const) {
     for (const k of [
       "normal",
       "holofoil",
@@ -444,13 +522,10 @@ function quoteFromPokemonPrices(prices: any): PriceQuote | null {
     ]) {
       const n = Number(prices[k]?.[field]);
       if (Number.isFinite(n) && n > 0) {
-        const source =
-          field === "market"
-            ? "pokemontcg-market"
-            : field === "mid"
-              ? "pokemontcg-mid"
-              : "pokemontcg-low";
-        return { market: n, source };
+        return {
+          market: n,
+          source: field === "market" ? "pokemontcg-market" : "pokemontcg-mid",
+        };
       }
     }
   }
@@ -481,11 +556,6 @@ async function fetchPokemonCardMeta(
   return { quote: null };
 }
 
-async function quotePokemonTcg(id: string): Promise<PriceQuote | null> {
-  const meta = await fetchPokemonCardMeta(id);
-  return meta.quote;
-}
-
 async function tryTcgdexCard(
   cardId: string,
 ): Promise<{ name?: string; localId?: string; quote: PriceQuote | null }> {
@@ -499,15 +569,37 @@ async function tryTcgdexCard(
     const name = typeof raw?.name === "string" ? raw.name : undefined;
     const localId = raw?.localId ? String(raw.localId) : undefined;
     const q = marketFromTcgdex(raw);
-    if (q && q.market > 0) return { name, localId, quote: q };
+    if (q && isListingLow(q)) return { name, localId, quote: q };
     const pid = Number(
       raw?.pricing?.tcgplayer?.holofoil?.productId ||
         raw?.pricing?.tcgplayer?.normal?.productId ||
         raw?.pricing?.tcgplayer?.reverseHolofoil?.productId,
     );
+    let history: { price: number; fromLow: boolean } | null = null;
     if (pid > 0) {
-      const tp = await quoteTcgplayerProduct(pid);
-      if (tp && tp > 0) return { name, localId, quote: { market: tp, source: "tcgplayer-market" } };
+      history = await quoteTcgplayerProduct(pid);
+      if (history && history.price > 0 && history.fromLow) {
+        return {
+          name,
+          localId,
+          quote: {
+            market: Math.round(history.price * 100) / 100,
+            source: "lowest-online",
+            soldAvg: q?.soldAvg,
+          },
+        };
+      }
+    }
+    if (q && q.market > 0) return { name, localId, quote: q };
+    if (history && history.price > 0) {
+      return {
+        name,
+        localId,
+        quote: {
+          market: Math.round(history.price * 100) / 100,
+          source: "tcgplayer-market",
+        },
+      };
     }
     return { name, localId, quote: null };
   } catch {
@@ -520,56 +612,69 @@ async function quoteOne(id: string): Promise<PriceQuote | null> {
   if (extra) {
     // Shipped prints are keyed to their own TCGPlayer product. Never fall
     // through to a name lookup that could land on a different card.
-    const q = await quoteTcgcsvProduct(extra.groupId, extra.productId);
-    if (q) return q;
+    // This product id only. A listing low on it is the buy price; market is the fallback.
     const group = await loadTcgcsvGroup(extra.groupId);
     const row = group?.rows.find((r) => r.productId === extra.productId);
     if (row && row.market > 0) {
-      return { market: Math.round(row.market * 100) / 100, source: "tcgcsv-market" };
+      return {
+        market: Math.round(row.market * 100) / 100,
+        source: row.fromLow ? "lowest-online" : "tcgcsv-market",
+      };
     }
+    const q = await quoteTcgcsvProduct(extra.groupId, extra.productId);
+    if (q) return q;
   }
   const parsed = parseCardId(id);
   const setKey = parsed?.setKey || "";
   let cardName: string | undefined;
   let cardLocal: string | undefined;
+  let fallback: PriceQuote | null = null;
+  const remember = (q: PriceQuote | null | undefined) => {
+    if (!q || !(q.market > 0) || isListingLow(q)) return;
+    if (!fallback) fallback = q;
+  };
 
   // 1) TCGdex — requested id + safe aliases (Celebration: me55↔30th; Classic: same-set pad only)
   for (const candidate of tcgdexIdCandidates(id).slice(0, 8)) {
     const got = await tryTcgdexCard(candidate);
     if (got.name && !cardName) cardName = got.name;
     if (got.localId && !cardLocal) cardLocal = got.localId;
-    if (got.quote && got.quote.market > 0) return got.quote;
+    if (got.quote && isListingLow(got.quote)) return got.quote;
+    remember(got.quote);
     if (cardName) break;
   }
 
-  // 2) pokemontcg — name (needed for Classic tcgcsv) + embedded market if present
+  // 2) pokemontcg — a real listing low, else the name Classic tcgcsv needs
   let pkmnQuote: PriceQuote | null = null;
-  if (!cardName || (setKey && TCGCSV_GROUP[setKey])) {
-    const meta = await fetchPokemonCardMeta(id);
-    if (meta.name && !cardName) cardName = meta.name;
-    pkmnQuote = meta.quote;
-  }
+  const meta = await fetchPokemonCardMeta(id);
+  if (meta.name && !cardName) cardName = meta.name;
+  pkmnQuote = meta.quote;
+  const pkmnLow = pkmnQuote && isListingLow(pkmnQuote) ? pkmnQuote : null;
+  remember(pkmnQuote);
 
   // 3) tcgcsv (TCGPlayer mirror) — Classic 30th-c by name; me55c by number then name.
   // Skipped for shipped prints: their product id above is the only safe key.
+  let csvLow: PriceQuote | null = null;
   if (!extra && setKey && TCGCSV_GROUP[setKey]) {
     const csv = await quoteTcgcsv(setKey, cardLocal || parsed?.rawLocal || "", cardName);
-    if (csv) return csv;
+    if (csv && isListingLow(csv)) csvLow = csv;
+    else remember(csv);
     // Aliased set keys share a TCGCSV group. Classic alts: NAME only (never number cross-map).
     for (const alt of SET_ID_ALIAS[setKey] || []) {
       if (alt === setKey) continue;
       const altLocal =
         isClassicSet(setKey) || isClassicSet(alt) ? "" : cardLocal || parsed?.rawLocal || "";
       const csvAlt = await quoteTcgcsv(alt, altLocal, cardName);
-      if (csvAlt) return csvAlt;
+      if (csvAlt && isListingLow(csvAlt) && (!csvLow || csvAlt.market < csvLow.market)) {
+        csvLow = csvAlt;
+      } else remember(csvAlt);
     }
   }
 
-  if (pkmnQuote) return pkmnQuote;
-  if (!pkmnQuote) {
-    const late = await quotePokemonTcg(id);
-    if (late) return late;
-  }
+  if (pkmnLow && csvLow) return pkmnLow.market <= csvLow.market ? pkmnLow : csvLow;
+  if (pkmnLow) return pkmnLow;
+  if (csvLow) return csvLow;
+  if (fallback) return fallback;
 
   // Honest pending marker for known new sets with no public quote yet
   if (PENDING_NEW_SETS.has(setKey)) {

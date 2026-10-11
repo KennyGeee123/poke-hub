@@ -18,6 +18,7 @@ import {
   generateEraSpawns,
   forceSwitchEra,
   cloneAdventureState,
+  WORLD_SCALE,
 } from "./adventure-engine";
 
 describe("Adventure Living World Engine & Economy", () => {
@@ -196,7 +197,12 @@ describe("Adventure Living World Engine & Economy", () => {
 
   it("generates era-specific wild spawns with guaranteed Dresden Park nest encounters", () => {
     const hoennSpawns = generateEraSpawns("advanced_hoenn", 7, 1000);
-    expect(hoennSpawns.length).toBe(7);
+    // Park nest stays 3. The old field cohort was 4. The world multiplies that cohort by 120.
+    expect(hoennSpawns.length).toBe(3 + 4 * WORLD_SCALE);
+    const walkRing = hoennSpawns.filter((s) => !s.isParkNest && s.distanceMeters <= 380);
+    expect(walkRing.length).toBeGreaterThanOrEqual(4);
+    const farField = hoennSpawns.filter((s) => s.distanceMeters > 5000);
+    expect(farField.length).toBeGreaterThan(100);
 
     // Check that at least some are park nest spawns
     const parkSpawns = hoennSpawns.filter((s) => s.isParkNest);
@@ -476,6 +482,38 @@ describe("GO walk camera — geo projection + POI pins", () => {
     expect(pinned.cardCaches[0].lat).toBeDefined();
     expect(pinned.battleArenas[0].distanceMeters).toBeGreaterThan(0);
   });
+
+  it("upgrades the full plane by 120 in the meter formula", async () => {
+    const { WORLD_SCALE, PIN_METERS_PER_PCT, worldPlaneSpanMeters, pinWorldPoisToGeo, DRESDEN_PARK_GEO } =
+      await import("./adventure-engine");
+    expect(WORLD_SCALE).toBe(120);
+    expect(PIN_METERS_PER_PCT).toBe(8 * 120);
+    expect(worldPlaneSpanMeters()).toBe(800 * 120);
+
+    const pinned = pinWorldPoisToGeo(
+      {
+        discoveryPoints: [
+          { id: "origin", title: "o", subtitle: "", xPct: 50, yPct: 50, distanceMeters: 0, lastSpunTimestamp: 0, cooldownMs: 1, photoUrl: "" },
+          { id: "east", title: "e", subtitle: "", xPct: 100, yPct: 50, distanceMeters: 0, lastSpunTimestamp: 0, cooldownMs: 1, photoUrl: "" },
+        ],
+        battleArenas: [],
+        cardCaches: [],
+      },
+      DRESDEN_PARK_GEO,
+    );
+    const east = pinned.discoveryPoints[1].distanceMeters;
+    // 50 percent * 8 m * 120 = 48,000 m. Haversine on the degree offset stays in that band.
+    expect(east).toBeGreaterThan(45000);
+    expect(east).toBeLessThan(51000);
+    expect(Math.round(east / 400)).toBeGreaterThan(100);
+
+    const fresh = getDefaultAdventureState();
+    expect(fresh.world.catalogScale).toBe(WORLD_SCALE);
+    expect(fresh.discoveryPoints.length).toBe(2 * WORLD_SCALE);
+    expect(fresh.battleArenas.length).toBe(WORLD_SCALE);
+    expect(fresh.cardCaches.length).toBe(2 * WORLD_SCALE);
+    expect(fresh.wildCreatures.length).toBe(3 + 4 * WORLD_SCALE);
+  });
 });
 
 describe("God's Eye planet atlas", () => {
@@ -516,5 +554,8 @@ describe("Adventure visuals — on-disk trainer + local sprites first", () => {
     expect(trainerFacingUrl(270)).toBe("/adventure-assets/trainer-left.png");
     expect(fallbackSpriteUrls("Pikachu")[0]).toBe("/sprites/gen5/pikachu.png");
     expect(fallbackSpriteUrls("Pecharunt")[0]).toContain("pokemondb.net");
+    const { worldSpriteUrl, worldSpriteUrls } = await import("./sprites");
+    expect(worldSpriteUrl("Pikachu")).toBe("https://play.pokemonshowdown.com/sprites/ani/pikachu.gif");
+    expect(worldSpriteUrls("Pikachu")[1]).toBe("/sprites/gen5/pikachu.png");
   });
 });

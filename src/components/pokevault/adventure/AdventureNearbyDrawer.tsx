@@ -6,8 +6,10 @@ import {
   type DiscoveryPoint,
   type BattleArena,
   RADAR_DISCOVERY_RADIUS_METERS,
+  WORLD_SCALE,
+  worldPlaneSpanMeters,
 } from "@/lib/adventure-engine";
-import { animatedSpriteUrl } from "@/lib/sprites";
+import { WorldSprite } from "./WorldSprite";
 
 export function AdventureNearbyDrawer({
   adventureState,
@@ -22,6 +24,17 @@ export function AdventureNearbyDrawer({
   onSelectDiscoveryPoint: (point: DiscoveryPoint) => void;
   onSelectBattleArena: (arena: BattleArena) => void;
 }) {
+  const worldKm = Math.round(worldPlaneSpanMeters() / 1000);
+  const walkCreatures = adventureState.wildCreatures
+    .filter((c) => c.distanceMeters <= 2000)
+    .sort((a, b) => a.distanceMeters - b.distanceMeters)
+    .slice(0, 18);
+  const walkStops = adventureState.discoveryPoints
+    .filter((p) => (p.distanceMeters ?? 0) <= 2000)
+    .slice(0, 8);
+  const walkArenas = adventureState.battleArenas
+    .filter((a) => (a.distanceMeters ?? 0) <= 2000)
+    .slice(0, 6);
   return (
     <div className="absolute inset-x-3 sm:inset-x-auto sm:right-6 bottom-20 sm:w-96 max-h-[500px] z-50 rounded-3xl bg-neutral-950/95 backdrop-blur-md border border-neutral-800 shadow-2xl p-4 flex flex-col gap-3 font-mono">
       {/* Header */}
@@ -29,7 +42,7 @@ export function AdventureNearbyDrawer({
         <div className="flex items-center gap-2">
           <Compass className="w-4 h-4 text-cyan-400 animate-spin-slow" />
           <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-            Nearby GO Radar (45m Radius)
+            Nearby · ×{WORLD_SCALE} · 2 km
           </h4>
         </div>
         <button
@@ -46,13 +59,13 @@ export function AdventureNearbyDrawer({
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
             <span className="text-[10px] uppercase font-bold text-neutral-400">
-              Nearby Wildlife ({adventureState.wildCreatures.length})
+              Walk window ({walkCreatures.length} of {adventureState.wildCreatures.length} · ×{WORLD_SCALE} · {worldKm} km)
             </span>
             <span className="text-[9px] text-cyan-400/80">Walk to rustling grass to reveal</span>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            {adventureState.wildCreatures.map((c) => {
+            {walkCreatures.map((c) => {
               const isDiscovered =
                 c.isDiscovered || c.distanceMeters <= RADAR_DISCOVERY_RADIUS_METERS;
               const footprints =
@@ -77,15 +90,14 @@ export function AdventureNearbyDrawer({
                   {/* Silhouette vs Revealed Sprite */}
                   <div className="w-10 h-10 flex items-center justify-center relative shrink-0">
                     {isDiscovered ? (
-                      <img
-                        src={animatedSpriteUrl(c.species)}
-                        alt={c.species}
+                      <WorldSprite
+                        name={c.species}
                         className="w-10 h-10 object-contain animate-bounce"
                       />
                     ) : (
                       <div className="relative flex items-center justify-center">
-                        <img
-                          src={animatedSpriteUrl(c.species)}
+                        <WorldSprite
+                          name={c.species}
                           alt="Unknown Pokémon"
                           className="w-9 h-9 object-contain filter brightness-0 contrast-200 opacity-60"
                         />
@@ -131,7 +143,7 @@ export function AdventureNearbyDrawer({
             Discovery Landmarks (PokéStops)
           </span>
           <div className="flex flex-col gap-1.5">
-            {adventureState.discoveryPoints.map((p) => (
+            {walkStops.map((p) => (
               <button
                 key={p.id}
                 type="button"
@@ -160,7 +172,7 @@ export function AdventureNearbyDrawer({
             Battle Arenas (Gym Towers)
           </span>
           <div className="flex flex-col gap-1.5">
-            {adventureState.battleArenas.map((a) => (
+            {walkArenas.map((a) => (
               <button
                 key={a.id}
                 type="button"
