@@ -5,6 +5,7 @@ import {
   getRandomPokemon,
   type NationalDexPokemon,
 } from "./all-pokemon-data";
+import { learnPrintedMoves, type ScannedFighter } from "./card-moves";
 /**
  * PokéVault Pro — Adventure Living World Engine
  *
@@ -1640,6 +1641,8 @@ export interface WorldState {
   routeBadges?: Partial<Record<PokemonEraId, string[]>>;
   /** Era league cleared after the 4-badge gate. Gyms stay open either way. */
   leaguesCleared?: Partial<Record<PokemonEraId, boolean>>;
+  /** Printed attacks learned by scanning a card, keyed by species. A later card adds moves. */
+  scannedFighters?: Record<string, ScannedFighter>;
 }
 
 export interface AdventureState {
@@ -2102,6 +2105,32 @@ export function saveAdventureState(state: AdventureState): void {
     } catch {}
   }
   memoryFallback.set(STORAGE_KEY, state);
+}
+
+/** Scanning a Pokémon card adds its printed attacks onto that species. */
+export function grantScannedCardToAdventure(card: {
+  id: string;
+  name: string;
+  supertype?: string;
+  types?: string[];
+  attacks?: { name: string; cost?: string[]; damage?: string; text?: string }[];
+}): { added: string[]; species: string | null } {
+  const state = loadAdventureState();
+  const before = state.world.scannedFighters;
+  const learned = learnPrintedMoves(before, card);
+  const same = JSON.stringify(learned.book) === JSON.stringify(before || {});
+  if (!same) {
+    const next = { ...state, world: { ...state.world, scannedFighters: learned.book } };
+    saveAdventureState(next);
+  }
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent("pv-card-moves", {
+        detail: { species: learned.species, added: learned.added },
+      }),
+    );
+  }
+  return { added: learned.added, species: learned.species };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

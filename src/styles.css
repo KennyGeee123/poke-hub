@@ -2040,13 +2040,15 @@
   position: absolute;
   left: 50%;
   top: 42%;
-  width: min(72%, 520px);
-  height: min(58%, 320px);
+  width: min(78%, 640px);
+  height: min(64%, 380px);
   transform: translate(-50%, -50%);
-  object-fit: contain;
-  border-radius: 18px;
-  opacity: 0.94;
-  mix-blend-mode: screen;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 16px;
+  opacity: 1;
+  mix-blend-mode: normal;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
   z-index: 1;
   pointer-events: none;
 }
@@ -2318,6 +2320,280 @@
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+/* Battle floor ring. The move plays across this, it does not replace the fight with a still. */
+.pv-battle-ring {
+  position: absolute;
+  left: 50%;
+  top: 56%;
+  width: min(78%, 440px);
+  height: 42%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.72);
+  box-shadow:
+    inset 0 0 0 14px rgba(255, 255, 255, 0.12),
+    0 0 0 1px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  z-index: 2;
+}
+.pv-battle-ring::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 28%;
+  height: 28%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+}
+.gb-arena > .pv-battle-ring {
+  top: 50%;
+  height: 46%;
+  width: min(86%, 280px);
+}
+
+.pv-movefx.pv-stage-live {
+  --shot-x0: 22%;
+  --shot-y0: 74%;
+  --shot-x1: 74%;
+  --shot-y1: 24%;
+}
+.pv-movefx.pv-stage-live.pv-fx-from-top {
+  --shot-x0: 74%;
+  --shot-y0: 24%;
+  --shot-x1: 22%;
+  --shot-y1: 74%;
+}
+.pv-movefx.pv-stage-live.pv-fx-from-bot,
+.pv-movefx.pv-stage-live.pv-fx-from-top {
+  animation: pv-fx-in 0.18s ease-out;
+}
+.pv-stage-floor {
+  position: absolute;
+  left: 12%;
+  width: 76%;
+  top: 30%;
+  height: 40%;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--fx-hue) 82%, white);
+  box-shadow:
+    0 0 18px var(--fx-hue),
+    inset 0 0 0 12px color-mix(in srgb, var(--fx-hue) 20%, transparent);
+  pointer-events: none;
+}
+.pv-stage-floor::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 26%;
+  height: 26%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--fx-hue) 75%, white);
+}
+.pv-shot-travel {
+  position: absolute;
+  left: var(--shot-x0);
+  top: var(--shot-y0);
+  width: 0;
+  height: 0;
+  z-index: 3;
+  animation: pv-shot-fly 0.72s cubic-bezier(0.15, 0.7, 0.2, 1) forwards;
+}
+@keyframes pv-shot-fly {
+  0% {
+    left: var(--shot-x0);
+    top: var(--shot-y0);
+    opacity: 1;
+  }
+  76% {
+    left: var(--shot-x1);
+    top: var(--shot-y1);
+    opacity: 1;
+  }
+  100% {
+    left: var(--shot-x1);
+    top: var(--shot-y1);
+    opacity: 0;
+  }
+}
+.pv-shot-body {
+  position: absolute;
+  left: var(--sway, 0px);
+  top: 0;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 22%, var(--fx-hue) 48%, transparent 74%);
+  box-shadow:
+    0 0 12px var(--fx-hue),
+    -16px 4px 0 -3px color-mix(in srgb, var(--fx-hue) 75%, transparent),
+    -30px 8px 0 -6px color-mix(in srgb, var(--fx-hue) 40%, transparent);
+}
+.pv-shot-bolt {
+  width: 36px;
+  height: 8px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, transparent, #fff 35%, var(--fx-hue));
+}
+.pv-fx-from-bot .pv-shot-bolt {
+  transform: translate(-50%, -50%) rotate(-34deg);
+}
+.pv-fx-from-top .pv-shot-bolt {
+  transform: translate(-50%, -50%) rotate(146deg);
+}
+.pv-shot-spiral {
+  width: 48px;
+  height: 48px;
+  background: conic-gradient(from 30deg, transparent, var(--fx-hue), #fff, transparent 72%);
+  animation: pv-shot-spin 0.42s linear infinite;
+}
+.pv-shot-wave {
+  width: 92px;
+  height: 28px;
+  background: transparent;
+  border: 3px solid var(--fx-hue);
+  box-shadow: 0 0 14px var(--fx-hue);
+}
+.pv-shot-orb {
+  width: 16px;
+  height: 16px;
+}
+.pv-shot-leaf {
+  width: 16px;
+  height: 8px;
+  border-radius: 10px 2px;
+  background: var(--fx-hue);
+}
+@keyframes pv-shot-spin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+.pv-impact {
+  position: absolute;
+  left: var(--shot-x1);
+  top: var(--shot-y1);
+  z-index: 4;
+  pointer-events: none;
+}
+.pv-impact-slash {
+  width: 168px;
+  height: 12px;
+  margin: -6px 0 0 -84px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, transparent, #fff, var(--fx-hue), transparent);
+  box-shadow: 0 0 16px var(--fx-hue);
+  transform: rotate(-32deg) scaleX(0.15);
+  animation: pv-slash-cut 0.55s ease-out forwards;
+}
+@keyframes pv-slash-cut {
+  45% {
+    transform: rotate(-28deg) scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(-16deg) scaleX(1.08);
+    opacity: 0;
+  }
+}
+.pv-impact-column {
+  width: 28px;
+  height: 12px;
+  margin-left: -14px;
+  border-radius: 8px 8px 2px 2px;
+  background: linear-gradient(#fff, var(--fx-hue));
+  box-shadow: 0 0 16px var(--fx-hue);
+  transform-origin: bottom center;
+  animation: pv-column-rise 0.7s ease-out forwards;
+}
+@keyframes pv-column-rise {
+  0% {
+    height: 10px;
+    opacity: 0;
+  }
+  46% {
+    height: 132px;
+    margin-top: -132px;
+    opacity: 1;
+  }
+  100% {
+    height: 148px;
+    margin-top: -148px;
+    opacity: 0;
+  }
+}
+.pv-impact-burst {
+  width: 20px;
+  height: 20px;
+  margin: -10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff, var(--fx-hue) 42%, transparent 72%);
+  animation: pv-burst-pop 0.62s ease-out forwards;
+}
+@keyframes pv-burst-pop {
+  0% {
+    transform: scale(0.25);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(8);
+    opacity: 0;
+  }
+}
+.pv-impact-ring {
+  width: 18px;
+  height: 18px;
+  margin: -9px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 0 18px var(--fx-hue);
+  opacity: 0;
+  animation: pv-impact-ring 0.42s ease-out 0.5s forwards;
+}
+@keyframes pv-impact-ring {
+  0% {
+    opacity: 1;
+    transform: scale(0.35);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3.4);
+  }
+}
+.pv-stage-live .pv-fx-label {
+  bottom: auto;
+  top: 47%;
+  z-index: 6;
+  font-size: 15px;
+  letter-spacing: 2px;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 1px 8px;
+  border-radius: 4px;
+}
+.gb-arena .pv-stage-live .pv-fx-label {
+  top: 36%;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+.pv-shot-drop {
+  position: absolute;
+  top: 6%;
+  width: 6px;
+  height: 18px;
+  border-radius: 4px;
+  background: linear-gradient(#fff, var(--fx-hue));
+  box-shadow: 0 0 8px var(--fx-hue);
+  animation: pv-drop 0.7s ease-in forwards;
+}
+@keyframes pv-drop {
+  to {
+    top: 64%;
+    opacity: 0;
   }
 }
 
@@ -2915,6 +3191,12 @@
   margin: 8px 0 12px;
   padding-top: 16px;
   border-top: 1px dashed rgba(255, 203, 5, 0.25);
+}
+.pv-scan-learn {
+  margin: -4px 0 12px;
+  color: var(--pkmn-yellow);
+  font-size: 13px;
+  line-height: 1.4;
 }
 .pv-scan-none {
   color: var(--t2);
@@ -4470,6 +4752,14 @@ footer,
 }
 .gb-moves-4 .gb-move-run {
   grid-column: span 2;
+}
+.gb-moves-scroll {
+  max-height: 76px;
+  overflow-y: auto;
+}
+[data-move-box="gb"] > .gb-move-run {
+  width: 100%;
+  margin-top: 4px;
 }
 .gb-move span {
   font-size: 7px;
@@ -8514,10 +8804,13 @@ body[data-pv-tab="adventure"] .pv-music-panel,
 .pv-app-shell .pv-print-lang::-webkit-scrollbar {
   display: none;
 }
-/* Pixel art sprites stay crisp when scaled. */
-.pv-adv-stage img[alt="Trainer"],
-.pv-adv-stage img[alt="Map Tile"] {
+/* Trainer sheets are pixel art. Esri photos and painted route tiles stay smooth. */
+.pv-adv-stage img[alt="Trainer"] {
   image-rendering: pixelated;
+}
+.pv-adv-stage img.pv-basemap-tile,
+.pv-adv-stage canvas.pv-route-canvas {
+  image-rendering: auto;
 }
 .gb-page img,
 .gb-arena img,

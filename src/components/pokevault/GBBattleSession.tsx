@@ -17,8 +17,11 @@ import { spriteSlug } from "@/lib/sprites";
 import { SpriteImg } from "./SpriteImg";
 import { hpPct } from "@/lib/battle";
 import { movesAtLevel, newlyLearned } from "@/lib/pokeapi-moves";
+import { appendNamedMoves } from "@/lib/card-moves";
 import { CatchFx, type CatchPhase } from "./CatchFx";
-import { ARENA_CLIP, FX_VIDEOS_ENABLED, battleClipFor } from "@/lib/battle-cine";
+import { ARENA_CLIP, FX_VIDEOS_ENABLED } from "@/lib/battle-cine";
+import { MoveFx, type MoveFxData } from "./MoveFx";
+import { ADVENTURE_MOVE_SHOW, adventureMoveShow } from "@/lib/move-show";
 import { getMonHp, healAllHp, moveMonHp, setMonHp } from "@/lib/gb-hp";
 import { pressGbDpad, pressGbFace } from "@/lib/gb-face";
 
@@ -90,7 +93,7 @@ export function GBBattleSession({
   const [foeFx, setFoeFx] = useState<"" | "hit" | "flash" | "faint">("");
   const [meFx, setMeFx] = useState<"" | "hit" | "flash" | "faint">("");
   const [catchPhase, setCatchPhase] = useState<CatchPhase | null>(null);
-  const [atkClip, setAtkClip] = useState<string | null>(null);
+  const [moveFx, setMoveFx] = useState<MoveFxData | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [catchable, setCatchable] = useState(true);
   const catchableRef = useRef(true);
@@ -277,8 +280,9 @@ export function GBBattleSession({
       const mon = await addToParty(card, 5);
       try {
         const real = await movesAtLevel(mon.name, mon.level, mon.attacks);
-        if (real.length) {
-          mon.attacks = real;
+        const attacks = appendNamedMoves(mon.attacks, real);
+        if (attacks.length !== mon.attacks.length) {
+          mon.attacks = attacks;
           await saveMonStats(mon);
         }
       } catch (e) {
@@ -297,6 +301,19 @@ export function GBBattleSession({
     }
   }
 
+  function showMove(name: string, type: string | undefined, side: "player" | "ai") {
+    const known = Object.prototype.hasOwnProperty.call(ADVENTURE_MOVE_SHOW, name);
+    const show = adventureMoveShow(name, type || "Normal");
+    setMoveFx({
+      name,
+      type: known ? show.type : type || "Normal",
+      side,
+      pattern: known ? show.pattern : undefined,
+      hue: known ? show.hue : undefined,
+      holdMs: 1100,
+    });
+  }
+
   async function playerAttack(move: GBMove) {
     const active = activeRef.current;
     const foe = foeRef.current;
@@ -304,9 +321,9 @@ export function GBBattleSession({
     setBusy(true);
     setPane("main");
     const { dmg, eff } = advDamage(move, active.level, foe.types, active.types);
-    setAtkClip(battleClipFor(move.name, active.types?.[0]));
+    showMove(move.name, active.types?.[0], "player");
     setFoeFx("flash");
-    await wait(180);
+    await wait(740);
     setFoeFx("hit");
     const newFoeHp = Math.max(0, foeHpRef.current - dmg);
     putFoeHp(newFoeHp);
@@ -314,9 +331,9 @@ export function GBBattleSession({
       `▶ ${active.name.toUpperCase()} used ${move.name}!  ${dmg} dmg${eff === "super" ? " ★ super effective!" : eff === "weak" ? " (not very effective)" : ""}`,
       ...l,
     ]);
-    await wait(550);
+    await wait(360);
     setFoeFx("");
-    setAtkClip(null);
+    setMoveFx(null);
 
     if (newFoeHp <= 0) {
       setFoeFx("faint");
@@ -336,16 +353,16 @@ export function GBBattleSession({
     }
     const fmove = foe.attacks[Math.floor(Math.random() * foe.attacks.length)];
     const fdmg = advDamage(fmove, foe.level, active.types, foe.types).dmg;
-    setAtkClip(battleClipFor(fmove.name, foe.types?.[0]));
+    showMove(fmove.name, foe.types?.[0], "ai");
     setMeFx("flash");
-    await wait(180);
+    await wait(740);
     setMeFx("hit");
     const newPlayerHp = Math.max(0, activeHpRef.current - fdmg);
     putActiveHp(newPlayerHp);
     setLog((l) => [`◀ Foe ${foe.name.toUpperCase()} used ${fmove.name}!  ${fdmg} dmg`, ...l]);
-    await wait(550);
+    await wait(360);
     setMeFx("");
-    setAtkClip(null);
+    setMoveFx(null);
     if (newPlayerHp <= 0) {
       setMeFx("faint");
       await wait(500);
@@ -440,8 +457,9 @@ export function GBBattleSession({
         const mon = await addSpeciesToParty(foe.name, foe.level, foe.types);
         try {
           const real = await movesAtLevel(mon.name, mon.level, mon.attacks);
-          if (real.length) {
-            mon.attacks = real;
+          const attacks = appendNamedMoves(mon.attacks, real);
+          if (attacks.length !== mon.attacks.length) {
+            mon.attacks = attacks;
             await saveMonStats(mon);
           }
         } catch {}
@@ -487,23 +505,9 @@ export function GBBattleSession({
         try {
           const learned = await newlyLearned(mon.name, oldLevel, mon.level);
           if (learned.length) {
-            const attacks = [...mon.attacks];
+            const attacks = appendNamedMoves(mon.attacks, learned);
             for (const nm of learned) {
-              if (attacks.find((a) => a.name === nm.name)) continue;
-              if (attacks.length < 4) attacks.push(nm);
-              else {
-                const widx = attacks.reduce(
-                  (wi, a, i, arr) => (a.damage < arr[wi].damage ? i : wi),
-                  0,
-                );
-                if (nm.damage > attacks[widx].damage) {
-                  learnedLogs.push(
-                    `📘 ${mon.name} forgot ${attacks[widx].name} and learned ${nm.name}!`,
-                  );
-                  attacks[widx] = nm;
-                  continue;
-                }
-              }
+              if (mon.attacks.some((a) => a.name.toLowerCase() === nm.name.toLowerCase())) continue;
               learnedLogs.push(`📘 ${mon.name} learned ${nm.name}!`);
             }
             mon = { ...mon, attacks };
@@ -602,7 +606,8 @@ export function GBBattleSession({
           foeFx={foeFx}
           catchPhase={catchPhase}
           catchable={catchable}
-          atkClip={atkClip}
+          atkClip={null}
+          moveFx={moveFx}
           log={log}
           busy={busy}
           pane={pane}
@@ -821,6 +826,7 @@ function BattleScreen({
   catchPhase,
   catchable,
   atkClip,
+  moveFx,
   log,
   busy,
   pane,
@@ -843,6 +849,7 @@ function BattleScreen({
   catchPhase: CatchPhase | null;
   catchable: boolean;
   atkClip: string | null;
+  moveFx: MoveFxData | null;
   log: string[];
   busy: boolean;
   pane: BattlePane;
@@ -860,7 +867,8 @@ function BattleScreen({
   const foeHpPct = hpPct(foeHp, foe.max_hp);
   const meLow = meHpPct < 25 ? "gb-low" : "";
   const foeLow = foeHpPct < 25 ? "gb-low" : "";
-  const moves = me.attacks.slice(0, 4);
+  const realMoves = me.attacks.filter((m) => m.name && m.name !== "—");
+  const moves = realMoves.length >= 4 ? realMoves : [...realMoves];
   while (moves.length < 4) moves.push({ name: "—", damage: 0 });
 
   return (
@@ -877,9 +885,11 @@ function BattleScreen({
             preload="none"
           />
         )}
-        {FX_VIDEOS_ENABLED && atkClip && (
+        {FX_VIDEOS_ENABLED && atkClip && !moveFx && (
           <video key={atkClip} className="gb-atk-vid" src={atkClip} autoPlay muted playsInline />
         )}
+        <div className="pv-battle-ring" data-battle-ring="gb" aria-hidden />
+        {moveFx && <MoveFx fx={moveFx} onDone={() => {}} />}
         <div className="gb-bf">
           <div className="gb-side gb-foe">
             <div className={`gb-stat ${foeLow}`}>
@@ -956,17 +966,19 @@ function BattleScreen({
       )}
 
       {pane === "fight" && (
-        <div className="gb-moves gb-moves-4">
-          {moves.map((m, i) => (
-            <button
-              key={i}
-              className="gb-move"
-              disabled={busy || !m.damage}
-              onClick={() => m.damage && onMove(m)}
-            >
-              {m.name} {m.damage ? <span>·{m.damage}</span> : null}
-            </button>
-          ))}
+        <div data-move-box="gb" data-move-count={realMoves.length}>
+          <div className={`gb-moves${realMoves.length > 4 ? " gb-moves-scroll" : ""}`}>
+            {moves.map((m, i) => (
+              <button
+                key={i}
+                className="gb-move"
+                disabled={busy || !m.damage}
+                onClick={() => m.damage && onMove(m)}
+              >
+                {m.name} {m.damage ? <span>·{m.damage}</span> : null}
+              </button>
+            ))}
+          </div>
           <button className="gb-move gb-move-run" disabled={busy} onClick={() => onPane("main")}>
             BACK
           </button>

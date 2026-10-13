@@ -16,6 +16,7 @@ import {
 import { SpriteImg } from "./SpriteImg";
 import { hpPct } from "@/lib/battle";
 import { movesAtLevel, newlyLearned } from "@/lib/pokeapi-moves";
+import { appendNamedMoves } from "@/lib/card-moves";
 import { CatchFx, type CatchPhase } from "./CatchFx";
 import { ARENA_CLIP, FX_VIDEOS_ENABLED, battleClipFor } from "@/lib/battle-cine";
 import { pressGbDpad, pressGbFace } from "@/lib/gb-face";
@@ -70,13 +71,14 @@ export function GameBoyView() {
         const p = await fetchParty();
         setParty(p);
         for (const m of p) {
+          const printed =
+            !!m.card_id && m.card_id !== "rental" && !m.card_id.startsWith("species:");
+          if (printed) continue;
           try {
             const real = await movesAtLevel(m.name, m.level, m.attacks);
-            const same =
-              real.length === m.attacks.length &&
-              real.every((r, i) => r.name === m.attacks[i]?.name);
-            if (real.length && !same) {
-              const updated = { ...m, attacks: real };
+            const attacks = appendNamedMoves(m.attacks, real);
+            if (attacks.length !== m.attacks.length) {
+              const updated = { ...m, attacks };
               await saveMonStats(updated);
               setParty((cur) => cur.map((x) => (x.id === updated.id ? updated : x)));
             }
@@ -114,8 +116,9 @@ export function GameBoyView() {
       const mon = await addToParty(card, 5);
       try {
         const real = await movesAtLevel(mon.name, mon.level, mon.attacks);
-        if (real.length) {
-          mon.attacks = real;
+        const attacks = appendNamedMoves(mon.attacks, real);
+        if (attacks.length !== mon.attacks.length) {
+          mon.attacks = attacks;
           await saveMonStats(mon);
         }
       } catch (e) {
@@ -359,8 +362,9 @@ export function GameBoyView() {
         const mon = await addSpeciesToParty(foe.name, foe.level, foe.types);
         try {
           const real = await movesAtLevel(mon.name, mon.level, mon.attacks);
-          if (real.length) {
-            mon.attacks = real;
+          const attacks = appendNamedMoves(mon.attacks, real);
+          if (attacks.length !== mon.attacks.length) {
+            mon.attacks = attacks;
             await saveMonStats(mon);
           }
         } catch {}
@@ -395,23 +399,9 @@ export function GameBoyView() {
         try {
           const learned = await newlyLearned(mon.name, oldLevel, mon.level);
           if (learned.length) {
-            const attacks = [...mon.attacks];
+            const attacks = appendNamedMoves(mon.attacks, learned);
             for (const nm of learned) {
-              if (attacks.find((a) => a.name === nm.name)) continue;
-              if (attacks.length < 4) attacks.push(nm);
-              else {
-                const widx = attacks.reduce(
-                  (wi, a, i, arr) => (a.damage < arr[wi].damage ? i : wi),
-                  0,
-                );
-                if (nm.damage > attacks[widx].damage) {
-                  learnedLogs.push(
-                    `📘 ${mon.name} forgot ${attacks[widx].name} and learned ${nm.name}!`,
-                  );
-                  attacks[widx] = nm;
-                  continue;
-                }
-              }
+              if (mon.attacks.some((a) => a.name.toLowerCase() === nm.name.toLowerCase())) continue;
               learnedLogs.push(`📘 ${mon.name} learned ${nm.name}!`);
             }
             mon = { ...mon, attacks };
@@ -890,7 +880,8 @@ function BattleScreen({
 
   const meLow = meHpPct < 25 ? "gb-low" : "";
   const foeLow = foeHpPct < 25 ? "gb-low" : "";
-  const moves = me.attacks.slice(0, 4);
+  const realMoves = me.attacks.filter((m) => m.name && m.name !== "—");
+  const moves = realMoves.length >= 4 ? realMoves : [...realMoves];
   while (moves.length < 4) moves.push({ name: "—", damage: 0 });
 
   return (
@@ -986,17 +977,19 @@ function BattleScreen({
       )}
 
       {pane === "fight" && (
-        <div className="gb-moves gb-moves-4">
-          {moves.map((m, i) => (
-            <button
-              key={i}
-              className="gb-move"
-              disabled={busy || !m.damage}
-              onClick={() => m.damage && onMove(m)}
-            >
-              {m.name} {m.damage ? <span>·{m.damage}</span> : null}
-            </button>
-          ))}
+        <div data-move-box="gb" data-move-count={realMoves.length}>
+          <div className={`gb-moves${realMoves.length > 4 ? " gb-moves-scroll" : ""}`}>
+            {moves.map((m, i) => (
+              <button
+                key={i}
+                className="gb-move"
+                disabled={busy || !m.damage}
+                onClick={() => m.damage && onMove(m)}
+              >
+                {m.name} {m.damage ? <span>·{m.damage}</span> : null}
+              </button>
+            ))}
+          </div>
           <button className="gb-move gb-move-run" disabled={busy} onClick={() => onPane("main")}>
             BACK
           </button>

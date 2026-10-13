@@ -25,7 +25,7 @@ import {
 } from "@/lib/adventure-engine";
 import { addWildCatchToParty } from "@/lib/adventure-party";
 import { MoveFx, type MoveFxData } from "../MoveFx";
-import { adventureMoveShow, moveRenderUrl } from "@/lib/move-show";
+import { adventureMoveShow } from "@/lib/move-show";
 
 export interface BattlePokemon {
   name: string;
@@ -138,8 +138,7 @@ export function HDBattleArena({
       side,
       pattern: show.pattern,
       hue: show.hue,
-      holdMs: 900,
-      renderUrl: moveRenderUrl(name),
+      holdMs: 1100,
     });
   }
   const [battleOver, setBattleOver] = useState<"win" | "lose" | "caught" | null>(null);
@@ -179,7 +178,7 @@ export function HDBattleArena({
     showMove(foeMove.name, foeMove.type, "ai");
     setFoeAnim("attack");
     setVfxFlash("attack-red");
-    await wait(600);
+    await wait(740);
     setFoeAnim("");
 
     const foeMult = getTypeEffectiveness(foeMove.type, me.types);
@@ -245,7 +244,7 @@ export function HDBattleArena({
     setPlayerAnim("attack");
     setVfxFlash("attack-cyan");
 
-    await wait(600);
+    await wait(740);
     setPlayerAnim("");
 
     // Calculate Damage
@@ -409,6 +408,7 @@ export function HDBattleArena({
         {/* Stadium Background Atmosphere */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-950/40 via-neutral-950/80 to-neutral-950 pointer-events-none" />
         <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-emerald-950/30 to-transparent pointer-events-none" />
+        <div className="pv-battle-ring" data-battle-ring="hd" aria-hidden />
         {moveFx && <MoveFx fx={moveFx} onDone={clearMoveFx} />}
 
         {/* TOP RIGHT: FOE POKEMON & STATUS CARD */}
@@ -607,7 +607,11 @@ export function HDBattleArena({
                 ← Back
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div
+              className={`grid grid-cols-2 gap-2 ${playerMon.moves.length > 4 ? "max-h-[9.25rem] overflow-y-auto pr-1" : ""}`}
+              data-move-box="hd"
+              data-move-count={playerMon.moves.length}
+            >
               {playerMon.moves.map((m, idx) => {
                 const conf = TYPE_COLORS[m.type] || TYPE_COLORS.Normal;
                 return (

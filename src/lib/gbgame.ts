@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { TCGCard } from "./pokemon-api";
 import { animatedSpriteUrl, staticSpriteUrl } from "./sprites";
 import { healAllHp } from "./gb-hp";
+import { appendNamedMoves, speciesFromCardName } from "./card-moves";
 
 export type GBMove = {
   name: string;
@@ -281,6 +282,28 @@ export async function addSpeciesToParty(
     .single();
   if (error) throw error;
   return { ...m, id: data.id } as GBMon;
+}
+
+/**
+ * A scanned card joins that species. Printed attacks are appended.
+ * A second Pikachu card does not open a second party slot.
+ */
+export async function mergeCardMoves(card: TCGCard, level = 50): Promise<GBMon | null> {
+  if (card.supertype !== "Pokémon") return null;
+  const species = speciesFromCardName(card.name);
+  const party = await fetchParty();
+  const printed = (card.attacks ?? []).length ? movesFromCard(card) : [];
+  const existing = party.find(
+    (m) =>
+      m.card_id === card.id ||
+      speciesFromCardName(m.name).toLowerCase() === species.toLowerCase(),
+  );
+  if (!existing) return addToParty(card, level);
+  const attacks = appendNamedMoves(existing.attacks, printed);
+  if (attacks.length === existing.attacks.length) return existing;
+  const next = { ...existing, attacks };
+  await saveMonStats(next);
+  return next;
 }
 
 export async function addToParty(card: TCGCard, level = 5): Promise<GBMon> {

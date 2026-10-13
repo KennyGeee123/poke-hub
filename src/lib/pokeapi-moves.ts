@@ -88,7 +88,7 @@ export async function fetchLearnset(name: string): Promise<LearnEntry[]> {
   return p;
 }
 
-/** Replace attacks with the 4 strongest level-up moves the Pokémon knows by `level`. */
+/** Up to four strong level-up moves known by `level`. A wild foe can take this list as its set. A player's fighter appends any name it does not already know. */
 export async function movesAtLevel(
   name: string,
   level: number,

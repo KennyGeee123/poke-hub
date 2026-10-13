@@ -66,9 +66,9 @@ const STOPS: Record<PokemonEraId, RouteStop[]> = {
   diamond_sinnoh: line("sinnoh", "Twinleaf", [
     ["Oreburgh", "Roark", "Rock", "Coal", "Rampardos", 16],
     ["Eterna", "Gardenia", "Grass", "Forest", "Roserade", 18],
+    ["Hearthome", "Fantina", "Ghost", "Relic", "Mismagius", 20],
     ["Veilstone", "Maylene", "Fighting", "Cobble", "Lucario", 22],
     ["Pastoria", "Crasher Wake", "Water", "Fen", "Floatzel", 24],
-    ["Hearthome", "Fantina", "Ghost", "Relic", "Mismagius", 26],
     ["Canalave", "Byron", "Steel", "Mine", "Bastiodon", 28],
     ["Snowpoint", "Candice", "Ice", "Icicle", "Abomasnow", 30],
     ["Sunyshore", "Volkner", "Electric", "Beacon", "Electivire", 32],

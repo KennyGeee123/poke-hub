@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
-import { FX_VIDEOS_ENABLED, battleClipFor } from "@/lib/battle-cine";
-import type { MovePattern } from "@/lib/move-show";
+import { useEffect } from "react";
+import { PATTERN_STAGE, type MovePattern, type StageShape } from "@/lib/move-show";
 
 const CLASH_MOVES = /flamethrower|thunderbolt|solar beam|hydro pump|hyper beam/i;
 
@@ -51,6 +50,10 @@ const TYPE_KIT: Record<string, Kit> = {
   Dragon: { glyphs: ["🐉", "💥", "🔥", "✨", "🐉"], hue: "#fbbf24", pattern: "beam" },
   Colorless: { glyphs: ["✦", "✨", "★", "✦", "✨"], hue: "#e2e8f0", pattern: "burst" },
 };
+TYPE_KIT.Electric = TYPE_KIT.Lightning;
+TYPE_KIT.Steel = TYPE_KIT.Metal;
+TYPE_KIT.Normal = TYPE_KIT.Colorless;
+TYPE_KIT.Dark = TYPE_KIT.Darkness;
 
 /* Name → kit. Patterns matched case-insensitive in order. */
 const NAME_RULES: { test: RegExp; kit: Kit }[] = [
@@ -172,13 +175,64 @@ function pickKit(name: string, type: string): Kit {
   return TYPE_KIT[type] || TYPE_KIT.Colorless;
 }
 
+function StageCast({ shape }: { shape: StageShape }) {
+  if (shape === "rain") {
+    return (
+      <>
+        {Array.from({ length: 8 }, (_, i) => (
+          <span
+            key={i}
+            className="pv-shot-drop"
+            style={{ left: `${16 + i * 9}%`, animationDelay: `${i * 45}ms` }}
+          />
+        ))}
+        <span className="pv-impact pv-impact-ring" />
+      </>
+    );
+  }
+  if (shape === "slash" || shape === "column" || shape === "burst") {
+    const cls =
+      shape === "slash" ? "pv-impact-slash" : shape === "column" ? "pv-impact-column" : "pv-impact-burst";
+    return (
+      <>
+        <span className={`pv-impact ${cls}`} />
+        <span className="pv-impact pv-impact-ring" />
+      </>
+    );
+  }
+  const count = shape === "orbs" ? 3 : shape === "swarm" ? 6 : shape === "bolt" ? 3 : 1;
+  const body =
+    shape === "bolt"
+      ? "pv-shot-bolt"
+      : shape === "spiral"
+        ? "pv-shot-spiral"
+        : shape === "wave"
+          ? "pv-shot-wave"
+          : shape === "swarm"
+            ? "pv-shot-leaf"
+            : "pv-shot-orb";
+  return (
+    <>
+      {Array.from({ length: count }, (_, i) => (
+        <span
+          key={i}
+          className="pv-shot-travel"
+          style={{
+            animationDelay: `${i * 70}ms`,
+            ["--sway" as string]: `${(i - (count - 1) / 2) * 18}px`,
+          }}
+        >
+          <span className={`pv-shot-body ${body}`} />
+        </span>
+      ))}
+      <span className="pv-impact pv-impact-ring" />
+    </>
+  );
+}
+
 export function MoveFx({ fx, onDone }: { fx: MoveFxData; onDone: () => void }) {
-  const [, setTick] = useState(0);
-  const [cineOk, setCineOk] = useState(true);
   useEffect(() => {
-    const t = setTimeout(onDone, fx.holdMs ?? 2400);
-    setTick((x) => x + 1);
-    setCineOk(true);
+    const t = setTimeout(onDone, fx.holdMs ?? 1100);
     return () => clearTimeout(t);
   }, [fx, onDone]);
 
@@ -186,42 +240,20 @@ export function MoveFx({ fx, onDone }: { fx: MoveFxData; onDone: () => void }) {
     fx.pattern && fx.hue
       ? { pattern: fx.pattern, hue: fx.hue, glyphs: PATTERN_GLYPH[fx.pattern] }
       : pickKit(fx.name, fx.type);
+  const shape = PATTERN_STAGE[kit.pattern];
   const dirClass = fx.side === "player" ? "pv-fx-from-bot" : "pv-fx-from-top";
-  const cine = battleClipFor(fx.name, fx.type);
 
   return (
     <div
-      className={`pv-movefx pv-fx-${kit.pattern} ${dirClass}`}
+      className={`pv-movefx pv-stage-live pv-fx-${kit.pattern} pv-stage-${shape} ${dirClass}`}
       style={{ "--fx-hue": kit.hue } as React.CSSProperties}
       data-move-fx={fx.name}
       data-move-pattern={kit.pattern}
+      data-move-stage={shape}
       aria-hidden
     >
-      {fx.renderUrl && (
-        <img
-          src={fx.renderUrl}
-          alt=""
-          className="pv-move-render"
-          onError={(e) => {
-            e.currentTarget.hidden = true;
-          }}
-        />
-      )}
-      {FX_VIDEOS_ENABLED && cineOk && !fx.renderUrl && (
-        <video
-          className="pv-fx-clash-vid"
-          src={cine}
-          autoPlay
-          muted
-          playsInline
-          onError={() => setCineOk(false)}
-        />
-      )}
-      <div className="pv-fx-burst" />
-      <div className="pv-fx-core" />
-      <div className="pv-fx-ring" />
-      <div className="pv-fx-ring pv-fx-ring-2" />
-      <ParticleField kit={kit} />
+      <div className="pv-stage-floor" />
+      <StageCast shape={shape} />
       <div className="pv-fx-label" style={{ color: kit.hue, textShadow: `0 0 12px ${kit.hue}` }}>
         {fx.name.toUpperCase()}
       </div>

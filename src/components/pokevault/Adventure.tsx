@@ -40,6 +40,7 @@ import { toast } from "sonner";
 import { HDBattleArena, type BattlePokemon } from "./adventure/HDBattleArena";
 import { GBBattleSession, type GBBattleFoe } from "./GBBattleSession";
 import { healParty } from "@/lib/gbgame";
+import { partyWithCardMoves } from "@/lib/card-moves";
 import { healAllHp } from "@/lib/gb-hp";
 import { awardRouteBadge, leagueStanding, routePartner, startersForEra } from "@/lib/route-towns";
 import { mergeRouteBooks, routeBookFromRetro, syncRouteBookToRetro } from "@/lib/adventure-session";
@@ -68,6 +69,12 @@ const RETRO_KEYS = new Set([
 
 export function AdventureView() {
   const [adventureState, setAdventureState] = useState<AdventureState>(loadAdventureState);
+
+  useEffect(() => {
+    const onCardMoves = () => setAdventureState(loadAdventureState());
+    window.addEventListener("pv-card-moves", onCardMoves);
+    return () => window.removeEventListener("pv-card-moves", onCardMoves);
+  }, []);
 
   useEffect(() => {
     const retro = routeBookFromRetro();
@@ -347,39 +354,48 @@ export function AdventureView() {
   const battleParty = useMemo(() => {
     const eraId = adventureState.world.activeEraId || "vintage_kanto";
     const saved = adventureState.world.partner;
-    if (!saved || saved.eraId !== eraId) return playerParty;
-    const partner = routePartner(eraId, saved.species);
-    if (!partner) return playerParty;
-    const level = 14;
-    const hp = Math.round(level * 4.2 + 25);
-    const lead: BattlePokemon = {
-      name: partner.species,
-      species: partner.species,
-      level,
-      maxHp: hp,
-      currentHp: hp,
-      types: [partner.type],
-      moves: [
-        {
-          name: "Tackle",
-          type: "Normal",
-          power: 40,
-          pp: 35,
-          maxPp: 35,
-          description: "Full body charge.",
-        },
-        {
-          name: partner.move,
-          type: partner.type,
-          power: 40,
-          pp: 25,
-          maxPp: 25,
-          description: `${partner.species}'s first move.`,
-        },
-      ],
-    };
-    return [lead, ...playerParty.slice(1)];
-  }, [adventureState.world.activeEraId, adventureState.world.partner, playerParty]);
+    let party = playerParty;
+    if (saved && saved.eraId === eraId) {
+      const partner = routePartner(eraId, saved.species);
+      if (partner) {
+        const level = 14;
+        const hp = Math.round(level * 4.2 + 25);
+        const lead: BattlePokemon = {
+          name: partner.species,
+          species: partner.species,
+          level,
+          maxHp: hp,
+          currentHp: hp,
+          types: [partner.type],
+          moves: [
+            {
+              name: "Tackle",
+              type: "Normal",
+              power: 40,
+              pp: 35,
+              maxPp: 35,
+              description: "Full body charge.",
+            },
+            {
+              name: partner.move,
+              type: partner.type,
+              power: 40,
+              pp: 25,
+              maxPp: 25,
+              description: `${partner.species}'s first move.`,
+            },
+          ],
+        };
+        party = [lead, ...playerParty.slice(1)];
+      }
+    }
+    return partyWithCardMoves(party, adventureState.world.scannedFighters);
+  }, [
+    adventureState.world.activeEraId,
+    adventureState.world.partner,
+    adventureState.world.scannedFighters,
+    playerParty,
+  ]);
 
   const choosePartner = (species: string) => {
     const eraId = adventureState.world.activeEraId || "vintage_kanto";

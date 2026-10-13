@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import type { TCGCard } from "./pokemon-api";
 import { getMarketPrice, getCard } from "./pokemon-api";
-import { loadSupabase } from "@/integrations/supabase/lazy";
+import { scanLearnNote } from "./card-moves";
 
 /** Historical localStorage key — still used for one-time migration + meta stub. */
 const VAULT_KEY = "pokevault.v1";
@@ -364,36 +364,22 @@ async function refreshVaultPrices() {
   lsWriteRaw(PRICE_REFRESH_KEY, String(Date.now()));
 }
 
-async function autoEnlistInParty(card: TCGCard) {
-  if (card.supertype !== "Pokémon") return;
-  if (!card.attacks?.length && !(parseInt(card.hp || "") > 0)) return;
+/** Every Pokémon scan teaches the printed attacks. A repeat scan still adds any new names. */
+async function teachScannedCard(card: TCGCard): Promise<{ added: string[]; species: string | null }> {
+  if (card.supertype !== "Pokémon") return { added: [], species: null };
   try {
-    const supabase = await loadSupabase();
-    const { data: u } = await supabase.auth.getUser();
-    const uid = u.user?.id;
-    if (!uid) return;
-    // Skip if this card is already in the party.
-    const { data: existing } = await supabase
-      .from("gb_party")
-      .select("id")
-      .eq("user_id", uid)
-      .eq("card_id", card.id)
-      .maybeSingle();
-    if (existing) return;
-    const [{ addToParty, saveMonStats }, { movesAtLevel }] = await Promise.all([
-      import("./gbgame"),
-      import("./pokeapi-moves"),
-    ]);
-    const mon = await addToParty(card, VAULT_START_LEVEL);
+    const { grantScannedCardToAdventure } = await import("./adventure-engine");
+    const learned = grantScannedCardToAdventure(card);
     try {
-      const real = await movesAtLevel(mon.name, mon.level, mon.attacks);
-      if (real.length) {
-        mon.attacks = real;
-        await saveMonStats(mon);
-      }
-    } catch {}
+      const { mergeCardMoves } = await import("./gbgame");
+      await mergeCardMoves(card, VAULT_START_LEVEL);
+    } catch (e) {
+      console.warn("party learn failed", e);
+    }
+    return learned;
   } catch (e) {
-    console.warn("auto-enlist failed", e);
+    console.warn("scan learn failed", e);
+    return { added: [], species: null };
   }
 }
 
@@ -426,18 +412,17 @@ export function useVault() {
     };
   }, []);
 
-  const addToVault = useCallback((card: TCGCard) => {
-    void (async () => {
+  const addToVault = useCallback((card: TCGCard): Promise<string> => {
+    return (async () => {
       await ensureVaultReady();
       const current = { ...memVault };
       const existing = current[card.id];
-      const isNew = !existing;
       current[card.id] = existing
         ? { ...existing, qty: existing.qty + 1 }
         : { card, qty: 1, addedAt: Date.now() };
       await persistVault(current);
-      // First time owning this card → auto-enlist in the Game Boy party at Lv 50.
-      if (isNew) autoEnlistInParty(card);
+      const learned = await teachScannedCard(card);
+      return scanLearnNote(card, learned.added, learned.species);
     })();
   }, []);
 

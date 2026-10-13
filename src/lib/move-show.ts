@@ -13,6 +13,51 @@ export type MovePattern =
 
 export type MoveShow = { pattern: MovePattern; hue: string; type: string };
 
+/** How the move crosses the floor ring. Original shapes, matched to travel-then-hit staging. */
+export type StageShape =
+  | "bolt"
+  | "spiral"
+  | "slash"
+  | "column"
+  | "orbs"
+  | "wave"
+  | "swarm"
+  | "burst"
+  | "rain";
+
+export const PATTERN_STAGE: Record<MovePattern, StageShape> = {
+  beam: "bolt",
+  spray: "spiral",
+  burst: "burst",
+  rain: "rain",
+  slash: "slash",
+  wave: "wave",
+  smash: "column",
+  orbit: "orbs",
+  swarm: "swarm",
+};
+
+/** Who can select this move in the living-world party, a hometown partner, or a foe. */
+export const MOVE_USERS: Record<string, string> = {
+  Thunderbolt: "Pikachu (Sparky), the default lead.",
+  "Iron Tail": "Pikachu (Sparky).",
+  "Volt Tackle": "Pikachu (Sparky).",
+  "Quick Attack": "Pikachu (Sparky).",
+  Flamethrower: "Charizard (Blaze), the second party slot.",
+  "Dragon Claw": "Charizard (Blaze).",
+  "Fire Blast": "Charizard (Blaze).",
+  "Wing Attack": "Charizard (Blaze).",
+  Tackle: "Every hometown partner, and every wild, gym, and league foe.",
+  "Vine Whip": "Bulbasaur, Snivy, and Chespin.",
+  Ember: "Charmander, Cyndaquil, Torchic, Chimchar, Tepig, Fennekin, Litten, Scorbunny, and Fuecoco. Every Fire wild, gym, or league foe.",
+  "Water Gun": "Squirtle, Totodile, Mudkip, Piplup, Oshawott, Froakie, Popplio, Sobble, and Quaxly. Every Water foe.",
+  "Razor Leaf": "Chikorita.",
+  Absorb: "Treecko and Turtwig.",
+  Leafage: "Rowlet and Sprigatito.",
+  "Branch Poke": "Grookey, the Galar grass partner.",
+  "Quick Strike": "Every wild, gym, and league foe whose first type is not Fire or Water.",
+};
+
 /** Every move the living-world party, partner, or gym foe can select. */
 export const ADVENTURE_MOVE_SHOW: Record<string, MoveShow> = {
   Thunderbolt: { pattern: "beam", hue: "#fde047", type: "Electric" },
@@ -48,4 +93,12 @@ export function moveRenderUrl(name: string): string {
 
 export function adventureMoveShow(name: string, type: string): MoveShow {
   return ADVENTURE_MOVE_SHOW[name] || { pattern: "burst", hue: "#e2e8f0", type: type || "Normal" };
+}
+
+export function moveStage(name: string, type: string): StageShape {
+  return PATTERN_STAGE[adventureMoveShow(name, type).pattern];
+}
+
+export function moveUsers(name: string): string {
+  return MOVE_USERS[name] || "Any fighter whose learned move uses this name.";
 }

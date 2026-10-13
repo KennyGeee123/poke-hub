@@ -54,6 +54,7 @@ function ScannerInner({
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<TCGCard[]>([]);
   const [ident, setIdent] = useState<Identified | null>(null);
+  const [learnNote, setLearnNote] = useState<string | null>(null);
   const { addToVault } = useVault();
   const identifyFn = useServerFn(identifyCard);
 
@@ -336,6 +337,7 @@ function ScannerInner({
                       setQuery("");
                       setIdent(null);
                       setError(null);
+                      setLearnNote(null);
                     }}
                   >
                     ✕ Close
@@ -352,6 +354,11 @@ function ScannerInner({
                 🎴 {results.length} possible {results.length === 1 ? "match" : "matches"}
               </span>
             </div>
+            {learnNote && (
+              <p className="pv-scan-learn" data-scan-note>
+                {learnNote}
+              </p>
+            )}
             {results.length === 0 ? (
               <div className="pv-scan-none">No matches. Try a different spelling.</div>
             ) : (
@@ -372,7 +379,7 @@ function ScannerInner({
                           className="pv-scan-add"
                           onClick={(e) => {
                             e.stopPropagation();
-                            addToVault(c);
+                            void addToVault(c).then((msg) => setLearnNote(msg));
                           }}
                         >
                           + Vault

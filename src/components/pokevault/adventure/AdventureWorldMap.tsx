@@ -60,7 +60,7 @@ import {
   type GodsEyeNode,
 } from "@/lib/gods-eye-world";
 import { earnedStopIds, routeStopLayout, type RouteStop } from "@/lib/route-towns";
-import { marchGbaWalk, type WildEncounter } from "@/lib/adventure-step";
+import { dryRouteStart, marchGbaWalk, type WildEncounter } from "@/lib/adventure-step";
 import {
   forceSwitchEra,
   generateEraSpawns,
@@ -69,6 +69,102 @@ import {
 } from "@/lib/adventure-engine";
 
 const GBA_CELL_PX = 64;
+
+const routeTex = new Map<string, HTMLImageElement>();
+
+function loadRouteTex(src: string): Promise<HTMLImageElement | null> {
+  const cached = routeTex.get(src);
+  if (cached?.complete) return Promise.resolve(cached.naturalWidth > 0 ? cached : null);
+  return new Promise((resolve) => {
+    const img = cached || new Image();
+    const finish = () => resolve(img.naturalWidth > 0 ? img : null);
+    img.addEventListener("load", finish, { once: true });
+    img.addEventListener("error", () => resolve(null), { once: true });
+    if (!cached) {
+      routeTex.set(src, img);
+      img.src = src;
+    } else if (img.complete) finish();
+  });
+}
+
+type RouteCell = {
+  key: string;
+  left: number;
+  top: number;
+  a: string;
+  tex: string;
+  kind: "grass" | "path" | "water" | "tree" | "dirt";
+  cover: number;
+  shore: boolean;
+};
+
+/** One bitmap for the visible route. Photos stay smooth. Cells no longer stack 352 boxes. */
+function RouteCanvas({ cells }: { cells: RouteCell[] }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const minLeft = cells[0]?.left ?? 0;
+  const minTop = cells[0]?.top ?? 0;
+  const width = 22 * GBA_CELL_PX;
+  const height = 16 * GBA_CELL_PX;
+  const paintKey = cells.map((c) => `${c.left},${c.top},${c.kind},${c.shore ? 1 : 0}`).join(";");
+  const counts = { grass: 0, path: 0, water: 0, tree: 0, dirt: 0 };
+  for (const cell of cells) counts[cell.kind] += 1;
+
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas || cells.length === 0) return;
+    let dead = false;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    const urls = [...new Set(cells.map((c) => c.tex))];
+    Promise.all(urls.map((url) => loadRouteTex(url))).then((loaded) => {
+      if (dead) return;
+      const bySrc = new Map<string, HTMLImageElement | null>();
+      urls.forEach((url, i) => bySrc.set(url, loaded[i]));
+      ctx.clearRect(0, 0, width, height);
+      for (const cell of cells) {
+        const x = cell.left - minLeft;
+        const y = cell.top - minTop;
+        const img = bySrc.get(cell.tex);
+        ctx.globalAlpha = cell.cover;
+        if (img) ctx.drawImage(img, x, y, GBA_CELL_PX, GBA_CELL_PX);
+        else {
+          ctx.fillStyle = cell.a;
+          ctx.fillRect(x, y, GBA_CELL_PX, GBA_CELL_PX);
+        }
+        if (cell.shore) {
+          ctx.globalAlpha = 0.92;
+          ctx.fillStyle = "rgba(224, 242, 254, 0.95)";
+          ctx.fillRect(x, y + GBA_CELL_PX - 5, GBA_CELL_PX, 5);
+        }
+      }
+      ctx.globalAlpha = 1;
+    });
+    return () => {
+      dead = true;
+    };
+  }, [paintKey, cells, minLeft, minTop, width, height]);
+
+  return (
+    <canvas
+      ref={ref}
+      className="absolute pv-route-canvas"
+      data-route-render="canvas"
+      data-cell-count={cells.length}
+      data-cell-grass={counts.grass}
+      data-cell-path={counts.path}
+      data-cell-water={counts.water}
+      data-cell-tree={counts.tree}
+      data-cell-dirt={counts.dirt}
+      style={{ left: minLeft, top: minTop, width, height, imageRendering: "auto" }}
+    />
+  );
+}
 
 function GbaWalkLayer({
   playerGeo,
@@ -94,17 +190,7 @@ function GbaWalkLayer({
   const fracY = world.y % GBA_CELL_PX;
   const cols = 22;
   const rows = 16;
-  const cells: {
-    key: string;
-    left: number;
-    top: number;
-    a: string;
-    b: string;
-    tex: string;
-    kind: string;
-    cover: number;
-    shore: boolean;
-  }[] = [];
+  const cells: RouteCell[] = [];
   const stops = eraId ? routeStopLayout(anchorGeo, zoom, eraId, GBA_CELL_PX) : [];
   const visibleStops: Array<RouteStop & { left: number; top: number }> = [];
   for (let row = 0; row < rows; row++) {
@@ -112,13 +198,12 @@ function GbaWalkLayer({
       const tx = originCol + col - Math.floor(cols / 2);
       const ty = originRow + row - Math.floor(rows / 2);
       const kind = gbaCellKind(tx, ty);
-      const [a, b] = GBA_CELL_COLORS[kind];
+      const [a] = GBA_CELL_COLORS[kind];
       cells.push({
         key: `${originCol + col}-${originRow + row}`,
         left: (col - cols / 2) * GBA_CELL_PX - fracX,
         top: (row - rows / 2) * GBA_CELL_PX - fracY,
         a,
-        b,
         tex: GBA_CELL_TEXTURE[kind],
         kind,
         cover: gbaCellCover(kind),
@@ -139,27 +224,7 @@ function GbaWalkLayer({
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
       <div className="absolute left-1/2 top-1/2">
-        {cells.map((c) => (
-          <div
-            key={c.key}
-            className="absolute"
-            data-cell-kind={c.kind}
-            style={{
-              width: GBA_CELL_PX,
-              height: GBA_CELL_PX,
-              left: c.left,
-              top: c.top,
-              backgroundColor: c.a,
-              backgroundImage: `url(${c.tex})`,
-              backgroundSize: "cover",
-              imageRendering: "auto",
-              opacity: c.cover,
-              boxShadow: c.shore
-                ? "inset 0 -5px 0 rgba(224,242,254,0.95), inset 0 0 0 1px rgba(186,230,253,0.45)"
-                : "inset 0 0 0 1px rgba(0,0,0,0.12)",
-            }}
-          />
-        ))}
+        <RouteCanvas cells={cells} />
         {visibleStops.map((stop) => {
           const earned = !!stop.leader && earnedIds.includes(stop.id);
           return (
@@ -320,16 +385,29 @@ export function AdventureWorldMap({
   ]);
 
   // Open on the route. City streets stay one tap away. Runs once so the toggle still sticks.
+  // A pin that lands in the river is moved to the nearest path so grass steps can start.
   useEffect(() => {
     if (routeBootRef.current) return;
     routeBootRef.current = true;
     setWalkSkin("gba");
-    if (!onStateUpdate || adventureState.world.walkSkin === "gba") return;
+    if (!onStateUpdate) return;
+    const here = adventureState.world.playerGeo;
+    const dry = here ? dryRouteStart(here.lat, here.lng, zoom) : null;
+    const stuck = !!(here && dry && (dry.lat !== here.lat || dry.lng !== here.lng));
+    if (adventureState.world.walkSkin === "gba" && !stuck) return;
     const s = cloneAdventureState(adventureState);
     s.world.walkSkin = "gba";
+    if (stuck && dry) {
+      s.world.playerGeo = {
+        lat: dry.lat,
+        lng: dry.lng,
+        accuracy: 12,
+        heading: s.world.playerGeo?.heading || 0,
+      };
+    }
     saveAdventureState(s);
     onStateUpdate(s);
-  }, [adventureState, onStateUpdate]);
+  }, [adventureState, onStateUpdate, zoom]);
 
   // Live GPS Tracking with navigator.geolocation
   useEffect(() => {
@@ -610,44 +688,46 @@ export function AdventureWorldMap({
   };
 
   const tileGrid = useMemo(() => {
-    const tiles: { key: string; url: string; xOffset: number; yOffset: number }[] = [];
-    const radius = 2; // 5x5 so walking the planet does not flash empty tiles
+    const tiles: { key: string; url: string; xOffset: number; yOffset: number; size: number }[] = [];
+    const cartoKey =
+      (import.meta.env.VITE_CARTO_API_KEY as string | undefined)?.trim() ||
+      (import.meta.env.VITE_MAP_TILE_KEY as string | undefined)?.trim() ||
+      "";
+    // Walk math stays at `zoom`. Imagery is fetched one level closer and drawn
+    // at half size, so the same ground gets twice the photo detail.
+    const sharp = mapStyle === "dark" && walkSkin === "gba" && !cartoKey;
+    const imageryZoom = sharp ? Math.min(18, zoom + 1) : zoom;
+    const info = sharp ? latLngToTile(playerGeo.lat, playerGeo.lng, imageryZoom) : tileInfo;
+    const tilePx = 256 / 2 ** (imageryZoom - zoom);
+    const radius = sharp ? 5 : 2;
 
     for (let dy = -radius; dy <= radius; dy++) {
       for (let dx = -radius; dx <= radius; dx++) {
-        const tx = tileInfo.tileX + dx;
-        const ty = tileInfo.tileY + dy;
-        const key = `${zoom}-${tx}-${ty}`;
-        // Default: Esri (no API key, no watermark). Optional Carto if VITE_CARTO_API_KEY / VITE_MAP_TILE_KEY set.
-        const cartoKey =
-          (import.meta.env.VITE_CARTO_API_KEY as string | undefined)?.trim() ||
-          (import.meta.env.VITE_MAP_TILE_KEY as string | undefined)?.trim() ||
-          "";
+        const tx = info.tileX + dx;
+        const ty = info.tileY + dy;
+        const key = `${imageryZoom}-${tx}-${ty}`;
         let url: string;
         if (mapStyle === "dark" && cartoKey) {
           url = `https://a.basemaps.cartocdn.com/dark_all/${zoom}/${tx}/${ty}@2x.png?api_key=${encodeURIComponent(cartoKey)}`;
-        } else if (mapStyle === "dark" && walkSkin === "gba") {
-          // Esri World Imagery, same service as God's Eye. Route cells stay translucent.
-          // Zoom stays 16 because the route layout and GBA step are locked to that scale.
-          url = esriWorldImageryTile(zoom, ty, tx);
+        } else if (sharp) {
+          url = esriWorldImageryTile(imageryZoom, ty, tx);
         } else if (mapStyle === "dark") {
-          // Esri World Dark Gray Base — tile order is z/y/x. Zoom is capped at 16 above.
           url = `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/${zoom}/${ty}/${tx}`;
         } else {
-          // Esri World Street Map — tile order is z/y/x (= zoom/ty/tx)
           url = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${zoom}/${ty}/${tx}`;
         }
 
         tiles.push({
           key,
           url,
-          xOffset: dx * 256 - tileInfo.fracX * 256,
-          yOffset: dy * 256 - tileInfo.fracY * 256,
+          size: tilePx,
+          xOffset: dx * tilePx - info.fracX * tilePx,
+          yOffset: dy * tilePx - info.fracY * tilePx,
         });
       }
     }
     return tiles;
-  }, [tileInfo, mapStyle, walkSkin]);
+  }, [tileInfo, mapStyle, walkSkin, zoom, playerGeo.lat, playerGeo.lng]);
 
   const hasCartoKey = !!(
     (import.meta.env.VITE_CARTO_API_KEY as string | undefined)?.trim() ||
@@ -689,10 +769,12 @@ export function AdventureWorldMap({
                 key={t.key}
                 src={t.url}
                 alt="Map Tile"
-                className="absolute w-[256px] h-[256px] object-cover pointer-events-none"
+                className="pv-basemap-tile absolute object-cover pointer-events-none"
                 style={{
                   left: `calc(50% + ${t.xOffset}px)`,
                   top: `calc(50% + ${t.yOffset}px)`,
+                  width: t.size,
+                  height: t.size,
                 }}
                 onError={(e) => {
                   (e.target as HTMLElement).style.display = "none";
@@ -705,7 +787,7 @@ export function AdventureWorldMap({
         {walkSkin === "gba" && (
           <div
             className="absolute inset-0 pointer-events-none"
-            style={{ transform: "none", imageRendering: "pixelated" }}
+            style={{ transform: "none" }}
           >
             <GbaWalkLayer
               playerGeo={playerGeo}
@@ -736,11 +818,12 @@ export function AdventureWorldMap({
 
         {/* 2.5D Tilt Perspective Surface Layer */}
         <div className="absolute inset-0">
-          {/* Subtle Ambient Grid */}
-          <div
-            className="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(#06b6d4_1px,transparent_1px)]"
-            style={{ backgroundSize: "36px 36px" }}
-          />
+          {walkSkin !== "gba" && (
+            <div
+              className="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(#06b6d4_1px,transparent_1px)]"
+              style={{ backgroundSize: "36px 36px" }}
+            />
+          )}
 
           {/* Atmospheric Weather Particles */}
           {weather === "rain" && (
@@ -896,7 +979,7 @@ export function AdventureWorldMap({
                     ...screenPos(creature),
                     transform: "translate(-50%, -50%)",
                   }}
-                  className="absolute z-15 flex flex-col items-center group cursor-pointer"
+                  className="absolute z-20 flex flex-col items-center group cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation();
                     if (typeof creature.lat === "number" && typeof creature.lng === "number") {
@@ -909,7 +992,7 @@ export function AdventureWorldMap({
                       src="/adventure-assets/tex-tallgrass.jpg"
                       alt=""
                       className="w-10 h-10 object-cover rounded-sm shadow-[0_4px_8px_rgba(0,0,0,0.45)]"
-                      style={{ imageRendering: "pixelated" }}
+                      style={{ imageRendering: "auto" }}
                     />
                   </div>
 
@@ -937,7 +1020,7 @@ export function AdventureWorldMap({
                   ...screenPos(creature),
                   transform: "translate(-50%, -50%)",
                 }}
-                className="absolute z-25 cursor-pointer group flex flex-col items-center hover:scale-115 transition-transform duration-200"
+                className="absolute z-20 cursor-pointer group flex flex-col items-center hover:scale-115 transition-transform duration-200"
               >
                 {/* Rarity Ring Aura — GO-style ground disc, not infinite ping */}
                 <div
@@ -961,7 +1044,7 @@ export function AdventureWorldMap({
                 <WorldSprite
                   name={creature.species}
                   alt={creature.species}
-                  className={`w-14 h-14 sm:w-16 sm:h-16 object-contain relative z-10 filter animate-bounce [image-rendering:pixelated] ${
+                  className={`w-14 h-14 sm:w-16 sm:h-16 object-contain relative z-10 filter animate-bounce ${
                     creature.isParkNest
                       ? "drop-shadow-[0_0_12px_rgba(16,185,129,0.9)]"
                       : "drop-shadow-[0_8px_12px_rgba(0,0,0,0.8)]"
@@ -1014,9 +1097,7 @@ export function AdventureWorldMap({
           >
             {/* 45-Meter Glowing GO Interaction Radar Ring */}
             <div
-              className={`w-40 h-40 rounded-full border-2 border-cyan-400/50 bg-cyan-400/10 absolute ${
-                isWalking ? "animate-ping" : ""
-              }`}
+              className="w-40 h-40 rounded-full border border-cyan-200/50 absolute"
             />
             <div className="w-56 h-56 rounded-full border border-dashed border-cyan-400/30 absolute" />
 
