@@ -49,10 +49,18 @@ import {
   regionWalkOrigin,
   walkSkinForNode,
   gbaCellKind,
+  gbaCellCover,
+  gbaShoreEdge,
+  eraWorldLight,
+  esriWorldImageryTile,
   GBA_CELL_COLORS,
   GBA_CELL_TEXTURE,
+  nearestGodsEyeNodeByGeo,
+  findGodsEyeNode,
   type GodsEyeNode,
 } from "@/lib/gods-eye-world";
+import { earnedStopIds, routeStopLayout, type RouteStop } from "@/lib/route-towns";
+import { marchGbaWalk, type WildEncounter } from "@/lib/adventure-step";
 import {
   forceSwitchEra,
   generateEraSpawns,
@@ -65,9 +73,19 @@ const GBA_CELL_PX = 64;
 function GbaWalkLayer({
   playerGeo,
   zoom,
+  anchorGeo,
+  eraId,
+  onChallengeGym,
+  onVisitHome,
+  earnedIds,
 }: {
   playerGeo: { lat: number; lng: number };
   zoom: number;
+  anchorGeo: { lat: number; lng: number };
+  eraId: AdventureState["world"]["activeEraId"];
+  onChallengeGym?: (stop: RouteStop) => void;
+  onVisitHome?: (stop: RouteStop) => void;
+  earnedIds: string[];
 }) {
   const world = latLngToWorldPixels(playerGeo.lat, playerGeo.lng, zoom);
   const originCol = Math.floor(world.x / GBA_CELL_PX);
@@ -76,13 +94,24 @@ function GbaWalkLayer({
   const fracY = world.y % GBA_CELL_PX;
   const cols = 22;
   const rows = 16;
-  const cells: { key: string; left: number; top: number; a: string; b: string; tex: string }[] = [];
+  const cells: {
+    key: string;
+    left: number;
+    top: number;
+    a: string;
+    b: string;
+    tex: string;
+    kind: string;
+    cover: number;
+    shore: boolean;
+  }[] = [];
+  const stops = eraId ? routeStopLayout(anchorGeo, zoom, eraId, GBA_CELL_PX) : [];
+  const visibleStops: Array<RouteStop & { left: number; top: number }> = [];
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
-      const kind = gbaCellKind(
-        originCol + col - Math.floor(cols / 2),
-        originRow + row - Math.floor(rows / 2),
-      );
+      const tx = originCol + col - Math.floor(cols / 2);
+      const ty = originRow + row - Math.floor(rows / 2);
+      const kind = gbaCellKind(tx, ty);
       const [a, b] = GBA_CELL_COLORS[kind];
       cells.push({
         key: `${originCol + col}-${originRow + row}`,
@@ -91,16 +120,30 @@ function GbaWalkLayer({
         a,
         b,
         tex: GBA_CELL_TEXTURE[kind],
+        kind,
+        cover: gbaCellCover(kind),
+        shore: gbaShoreEdge(tx, ty),
       });
     }
   }
+  for (const stop of stops) {
+    const relCol = stop.tx - (originCol - Math.floor(cols / 2));
+    const relRow = stop.ty - (originRow - Math.floor(rows / 2));
+    if (relCol < 0 || relCol >= cols || relRow < 0 || relRow >= rows) continue;
+    visibleStops.push({
+      ...stop,
+      left: (relCol - cols / 2) * GBA_CELL_PX - fracX,
+      top: (relRow - rows / 2) * GBA_CELL_PX - fracY,
+    });
+  }
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
       <div className="absolute left-1/2 top-1/2">
         {cells.map((c) => (
           <div
             key={c.key}
             className="absolute"
+            data-cell-kind={c.kind}
             style={{
               width: GBA_CELL_PX,
               height: GBA_CELL_PX,
@@ -110,10 +153,53 @@ function GbaWalkLayer({
               backgroundImage: `url(${c.tex})`,
               backgroundSize: "cover",
               imageRendering: "auto",
-              boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.08)",
+              opacity: c.cover,
+              boxShadow: c.shore
+                ? "inset 0 -5px 0 rgba(224,242,254,0.95), inset 0 0 0 1px rgba(186,230,253,0.45)"
+                : "inset 0 0 0 1px rgba(0,0,0,0.12)",
             }}
           />
         ))}
+        {visibleStops.map((stop) => {
+          const earned = !!stop.leader && earnedIds.includes(stop.id);
+          return (
+          <button
+            key={stop.id}
+            type="button"
+            className="absolute pointer-events-auto flex flex-col items-center"
+            style={{ left: stop.left + 8, top: stop.top - 18, width: 48, zIndex: 5 }}
+            aria-label={
+              stop.leader
+                ? earned
+                  ? `${stop.town} Gym, ${stop.badge} Badge earned. Rematch is open.`
+                  : `${stop.town} Gym, ${stop.leader}. Challenge in any order.`
+                : `${stop.town}, hometown. Choose your partner.`
+            }
+            onClick={() => {
+              if (stop.leader && stop.mon && stop.level && stop.type) onChallengeGym?.(stop);
+              else onVisitHome?.(stop);
+            }}
+          >
+            <span
+              className="block h-0 w-0"
+              style={{
+                borderLeft: "16px solid transparent",
+                borderRight: "16px solid transparent",
+                borderBottom: stop.leader ? "10px solid #9f1239" : "10px solid #44403c",
+              }}
+            />
+            <span
+              className="block h-6 w-8 border border-neutral-900"
+              style={{ background: stop.leader ? "#fde68a" : "#e7e5e4" }}
+            />
+            <span className="mt-0.5 max-w-[72px] truncate rounded bg-neutral-950/90 px-1 text-[8px] font-bold leading-tight text-amber-100">
+              {earned ? "✓ " : ""}
+              {stop.town}
+              {stop.leader ? ` · ${stop.leader}` : ""}
+            </span>
+          </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -143,12 +229,18 @@ export function AdventureWorldMap({
   onSelectCardCache,
   onUpdateCoords,
   onStateUpdate,
+  onChallengeGym,
+  onVisitHome,
+  onWildEncounter,
 }: {
   adventureState: AdventureState;
   onSelectCreature: (creature: WildCreature, mode: "catch" | "battle") => void;
   onSelectDiscoveryPoint: (point: DiscoveryPoint) => void;
   onSelectBattleArena: (arena: BattleArena) => void;
   onSelectCardCache: (cache: CardCacheDrop) => void;
+  onChallengeGym?: (stop: RouteStop) => void;
+  onVisitHome?: (stop: RouteStop) => void;
+  onWildEncounter?: (encounter: WildEncounter) => void;
   onUpdateCoords: (
     newCoords: { xPct: number; yPct: number },
     distMeters: number,
@@ -179,12 +271,40 @@ export function AdventureWorldMap({
   const [godsEyeOpen, setGodsEyeOpen] = useState(false);
   const [controlsOpen, setControlsOpen] = useState(false);
   const [walkSkin, setWalkSkin] = useState<"go" | "gba">("gba");
+  const nearestHub = nearestGodsEyeNodeByGeo(playerGeo.lat, playerGeo.lng);
+  const routeAnchor = nearestHub.kind === "region" ? nearestHub : findGodsEyeNode("dresden") || nearestHub;
 
   const walkTimerRef = useRef<NodeJS.Timeout | null>(null);
   const routeBootRef = useRef(false);
   const watchIdRef = useRef<number | null>(null);
   const playerGeoRef = useRef(playerGeo);
   playerGeoRef.current = playerGeo;
+  const encounterLock = useRef(false);
+
+  const applyGbaStep = (
+    metersX: number,
+    metersY: number,
+  ): { lat: number; lng: number; meters: number } | null => {
+    if (walkSkin !== "gba") return null;
+    const here = playerGeoRef.current;
+    const step = marchGbaWalk({
+      lat: here.lat,
+      lng: here.lng,
+      metersX,
+      metersY,
+      zoom,
+      eraId: adventureState.world.activeEraId || "vintage_kanto",
+    });
+    if (!step.moved) return null;
+    if (step.encounter && !encounterLock.current) {
+      encounterLock.current = true;
+      onWildEncounter?.(step.encounter);
+      window.setTimeout(() => {
+        encounterLock.current = false;
+      }, 2500);
+    }
+    return { lat: step.lat, lng: step.lng, meters: step.meters };
+  };
 
   // Sync external state changes
   useEffect(() => {
@@ -283,12 +403,19 @@ export function AdventureWorldMap({
 
     const metersX = dx * 14;
     const metersY = -dy * 14;
-    const nextGeo = geoOffsetFromMeters(playerGeo.lat, playerGeo.lng, metersX, metersY);
+    const stepped = applyGbaStep(metersX, metersY);
+    const here = playerGeoRef.current;
+    const nextGeo = stepped
+      ? { lat: stepped.lat, lng: stepped.lng }
+      : walkSkin === "gba"
+        ? null
+        : geoOffsetFromMeters(here.lat, here.lng, metersX, metersY);
+    if (!nextGeo) return;
     const nextCoords = { xPct: 50, yPct: 50 };
     setPlayerGeo((prev) => ({ ...prev, lat: nextGeo.lat, lng: nextGeo.lng, heading: deg }));
     setPlayerCoords(nextCoords);
-    onUpdateCoords(nextCoords, Math.max(1, distMeters), {
-      ...playerGeo,
+    onUpdateCoords(nextCoords, stepped ? stepped.meters : Math.max(1, distMeters), {
+      ...here,
       lat: nextGeo.lat,
       lng: nextGeo.lng,
       heading: deg,
@@ -385,12 +512,19 @@ export function AdventureWorldMap({
     const deg = (Math.atan2(dyPx, dxPx) * 180) / Math.PI + 90;
     setFacingAngle(deg);
 
-    const nextGeo = geoOffsetFromMeters(playerGeo.lat, playerGeo.lng, metersX, metersY);
+    const stepped = applyGbaStep(metersX, metersY);
+    const here = playerGeoRef.current;
+    const nextGeo = stepped
+      ? { lat: stepped.lat, lng: stepped.lng }
+      : walkSkin === "gba"
+        ? null
+        : geoOffsetFromMeters(here.lat, here.lng, metersX, metersY);
+    if (!nextGeo) return;
     const nextCoords = { xPct: 50, yPct: 50 };
     setPlayerGeo((prev) => ({ ...prev, lat: nextGeo.lat, lng: nextGeo.lng }));
     setPlayerCoords(nextCoords);
-    onUpdateCoords(nextCoords, Math.max(1, dist), {
-      ...playerGeo,
+    onUpdateCoords(nextCoords, stepped ? stepped.meters : Math.max(1, dist), {
+      ...here,
       lat: nextGeo.lat,
       lng: nextGeo.lng,
     });
@@ -492,6 +626,10 @@ export function AdventureWorldMap({
         let url: string;
         if (mapStyle === "dark" && cartoKey) {
           url = `https://a.basemaps.cartocdn.com/dark_all/${zoom}/${tx}/${ty}@2x.png?api_key=${encodeURIComponent(cartoKey)}`;
+        } else if (mapStyle === "dark" && walkSkin === "gba") {
+          // Esri World Imagery, same service as God's Eye. Route cells stay translucent.
+          // Zoom stays 16 because the route layout and GBA step are locked to that scale.
+          url = esriWorldImageryTile(zoom, ty, tx);
         } else if (mapStyle === "dark") {
           // Esri World Dark Gray Base — tile order is z/y/x. Zoom is capped at 16 above.
           url = `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/${zoom}/${ty}/${tx}`;
@@ -509,7 +647,7 @@ export function AdventureWorldMap({
       }
     }
     return tiles;
-  }, [tileInfo, mapStyle]);
+  }, [tileInfo, mapStyle, walkSkin]);
 
   const hasCartoKey = !!(
     (import.meta.env.VITE_CARTO_API_KEY as string | undefined)?.trim() ||
@@ -535,13 +673,17 @@ export function AdventureWorldMap({
         <div
           className="absolute inset-0 pointer-events-none transition-opacity duration-500 overflow-hidden flex items-center justify-center"
           style={{
-            opacity: walkSkin === "gba" ? 0.42 : 1,
+            opacity: 1,
             transform: "none",
-            imageRendering: walkSkin === "gba" ? "pixelated" : undefined,
+            imageRendering: walkSkin === "gba" ? "auto" : undefined,
           }}
         >
           {/* One filter pass for the whole tile layer (per-tile filters cost ~25 passes/frame). */}
-          <div className="relative w-[768px] h-[768px]" style={{ filter: darkTileFilter }}>
+          <div
+            className="relative w-[768px] h-[768px]"
+            data-world-basemap={walkSkin === "gba" && mapStyle === "dark" && !hasCartoKey ? "world-imagery" : mapStyle}
+            style={{ filter: walkSkin === "gba" ? "saturate(1.15) contrast(1.05)" : darkTileFilter }}
+          >
             {tileGrid.map((t) => (
               <img
                 key={t.key}
@@ -565,8 +707,31 @@ export function AdventureWorldMap({
             className="absolute inset-0 pointer-events-none"
             style={{ transform: "none", imageRendering: "pixelated" }}
           >
-            <GbaWalkLayer playerGeo={playerGeo} zoom={zoom} />
+            <GbaWalkLayer
+              playerGeo={playerGeo}
+              zoom={zoom}
+              anchorGeo={routeAnchor}
+              eraId={adventureState.world.activeEraId}
+              earnedIds={earnedStopIds(
+                adventureState.world.routeBadges,
+                adventureState.world.activeEraId || "vintage_kanto",
+              )}
+              onChallengeGym={onChallengeGym}
+              onVisitHome={onVisitHome}
+            />
           </div>
+        )}
+
+        {walkSkin === "gba" && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            data-era-light={adventureState.world.activeEraId || "vintage_kanto"}
+            data-era-label={eraWorldLight(adventureState.world.activeEraId).label}
+            style={{
+              background: eraWorldLight(adventureState.world.activeEraId).wash,
+              mixBlendMode: "soft-light",
+            }}
+          />
         )}
 
         {/* 2.5D Tilt Perspective Surface Layer */}
@@ -1054,7 +1219,9 @@ export function AdventureWorldMap({
 
       {/* Basemap attribution (Esri courtesy) */}
       <div className="absolute bottom-2 left-2 z-30 pointer-events-none px-2 py-0.5 rounded bg-black/55 text-[9px] text-neutral-400 font-sans tracking-wide">
-        Basemap © Esri
+        {walkSkin === "gba" && mapStyle === "dark" && !hasCartoKey
+          ? `Imagery © Esri, Maxar, Earthstar Geographics · ${eraWorldLight(adventureState.world.activeEraId).label}`
+          : "Basemap © Esri"}
       </div>
 
       <GodsEyeMap

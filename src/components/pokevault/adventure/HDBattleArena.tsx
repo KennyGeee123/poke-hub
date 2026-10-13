@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Swords,
   Shield,
@@ -24,6 +24,8 @@ import {
   saveAdventureState,
 } from "@/lib/adventure-engine";
 import { addWildCatchToParty } from "@/lib/adventure-party";
+import { MoveFx, type MoveFxData } from "../MoveFx";
+import { adventureMoveShow, moveRenderUrl } from "@/lib/move-show";
 
 export interface BattlePokemon {
   name: string;
@@ -94,7 +96,7 @@ export function HDBattleArena({
   /** Persist rewards / ball use back into the Adventure state. */
   onStateUpdate?: (state: AdventureState) => void;
   catchable?: boolean;
-  foeKind?: "wild" | "gym";
+  foeKind?: "wild" | "gym" | "league";
   /** Map creature this fight came from (removed from the map when caught). */
   creatureId?: string;
 }) {
@@ -116,7 +118,7 @@ export function HDBattleArena({
 
   const [menuView, setMenuView] = useState<"main" | "fight" | "bag" | "pokemon">("main");
   const [battleLog, setBattleLog] = useState<string[]>([
-    foeKind === "gym"
+    foeKind === "gym" || foeKind === "league"
       ? `🏟️ ${foeMon.name} sent out Lv. ${foeMon.level} ${foeMon.species}!`
       : `⚔️ A wild Lv. ${foeMon.level} ${foeMon.name} appeared!`,
     `Go, ${playerParty[0]?.name ?? "partner"}!`,
@@ -125,6 +127,21 @@ export function HDBattleArena({
   const [playerAnim, setPlayerAnim] = useState<"" | "attack" | "hit" | "faint">("");
   const [foeAnim, setFoeAnim] = useState<"" | "attack" | "hit" | "faint">("");
   const [vfxFlash, setVfxFlash] = useState<string | null>(null);
+  const [moveFx, setMoveFx] = useState<MoveFxData | null>(null);
+  const clearMoveFx = useCallback(() => setMoveFx(null), []);
+
+  function showMove(name: string, type: string, side: "player" | "ai") {
+    const show = adventureMoveShow(name, type);
+    setMoveFx({
+      name,
+      type: show.type || type,
+      side,
+      pattern: show.pattern,
+      hue: show.hue,
+      holdMs: 900,
+      renderUrl: moveRenderUrl(name),
+    });
+  }
   const [battleOver, setBattleOver] = useState<"win" | "lose" | "caught" | null>(null);
   const [potions, setPotions] = useState(HD_POTIONS_PER_BATTLE);
   const [outcomeNote, setOutcomeNote] = useState<string | null>(null);
@@ -159,6 +176,7 @@ export function HDBattleArena({
       power: 40,
     };
     appendLog(`Foe ${f.name} used ${foeMove.name.toUpperCase()}!`);
+    showMove(foeMove.name, foeMove.type, "ai");
     setFoeAnim("attack");
     setVfxFlash("attack-red");
     await wait(600);
@@ -223,6 +241,7 @@ export function HDBattleArena({
     }));
 
     appendLog(`${me.name} used ${move.name.toUpperCase()}!`);
+    showMove(move.name, move.type, "player");
     setPlayerAnim("attack");
     setVfxFlash("attack-cyan");
 
@@ -390,6 +409,7 @@ export function HDBattleArena({
         {/* Stadium Background Atmosphere */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-950/40 via-neutral-950/80 to-neutral-950 pointer-events-none" />
         <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-emerald-950/30 to-transparent pointer-events-none" />
+        {moveFx && <MoveFx fx={moveFx} onDone={clearMoveFx} />}
 
         {/* TOP RIGHT: FOE POKEMON & STATUS CARD */}
         <div className="relative z-10 flex items-start justify-end gap-3 sm:gap-6">
@@ -768,7 +788,7 @@ export function HDBattleArena({
               type="button"
               disabled={isTurnBusy || playerMon.currentHp <= 0}
               onClick={() => {
-                appendLog(foeKind === "gym" ? "You forfeited the Gym battle." : "Got away safely!");
+                appendLog(foeKind === "wild" ? "Got away safely!" : "You forfeited the battle.");
                 setIsTurnBusy(true);
                 setTimeout(() => onBattleEnd("run"), 600);
               }}

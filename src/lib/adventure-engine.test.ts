@@ -543,6 +543,115 @@ describe("God's Eye planet atlas", () => {
     expect(walkSkinForNode(byId["central-park"])).toBe("go");
     expect(gbaCellKind(0, 0)).toMatch(/grass|path|water|tree|dirt/);
   });
+
+  it("lays Esri World Imagery under a lighter route and a per-era wash", async () => {
+    const { esriWorldImageryTile, gbaCellCover, gbaShoreEdge, eraWorldLight, gbaCellKind } =
+      await import("./gods-eye-world");
+    expect(esriWorldImageryTile(16, 25, 10)).toBe(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/16/25/10",
+    );
+    expect(gbaCellCover("grass")).toBeLessThan(gbaCellCover("path"));
+    expect(gbaCellCover("water")).toBeLessThan(gbaCellCover("tree"));
+    expect(gbaCellKind(0, 0)).toBe("water");
+    expect(gbaShoreEdge(5, 2)).toBe(true);
+    expect(gbaShoreEdge(5, 0)).toBe(false);
+    expect(eraWorldLight("modern_paldea").label).toBe("Paldea dusk");
+    expect(eraWorldLight("sun_alola").wash).toContain("255, 140, 64");
+    expect(eraWorldLight(undefined).label).toBe("Kanto gold hour");
+  });
+
+  it("puts each era's gyms on the route crossroad, open in any order", async () => {
+    const { DRESDEN_PARK_GEO } = await import("./adventure-engine");
+    const { routeStopsForEra, routeGyms, routeStopLayout } = await import("./route-towns");
+    const paldea = routeStopsForEra("modern_paldea");
+    expect(paldea[0].town).toBe("Cabo Poco");
+    expect(paldea[0].leader).toBeUndefined();
+    const gyms = routeGyms(paldea);
+    expect(gyms).toHaveLength(8);
+    expect(gyms.map((g) => g.leader)).toEqual([
+      "Katy",
+      "Brassius",
+      "Iono",
+      "Kofu",
+      "Larry",
+      "Ryme",
+      "Tulip",
+      "Grusha",
+    ]);
+    expect(gyms.every((g) => !("requires" in g))).toBe(true);
+
+    const kanto = routeStopsForEra("vintage_kanto");
+    expect(kanto[0].town).toBe("Pallet");
+    expect(routeGyms(kanto).map((g) => g.leader)).toContain("Brock");
+
+    const { latLngToWorldPixels } = await import("./adventure-engine");
+    const { gbaCellKind } = await import("./gods-eye-world");
+    const laid = routeStopLayout(DRESDEN_PARK_GEO, 16, "modern_paldea");
+    const world = latLngToWorldPixels(DRESDEN_PARK_GEO.lat, DRESDEN_PARK_GEO.lng, 16);
+    const col = Math.floor(world.x / 64);
+    const row = Math.floor(world.y / 64);
+    expect(Math.abs(laid[0].tx - col)).toBeLessThanOrEqual(11);
+    expect(Math.abs(laid[0].ty - row)).toBeLessThanOrEqual(8);
+    for (const stop of laid) {
+      expect(gbaCellKind(stop.tx, stop.ty)).toBe("path");
+    }
+    for (let i = 1; i < laid.length; i++) {
+      expect(laid[i].tx - laid[i - 1].tx).toBe(20);
+      expect(laid[i].ty).toBe(laid[0].ty);
+    }
+  });
+
+  it("offers each era three starters and keeps Pikachu as the buddy until one is chosen", async () => {
+    const { startersForEra, routePartner } = await import("./route-towns");
+    const { POKEMON_ERAS } = await import("./adventure-engine");
+    expect(startersForEra("modern_paldea").map((s) => s.species)).toEqual([
+      "Sprigatito",
+      "Fuecoco",
+      "Quaxly",
+    ]);
+    expect(startersForEra("vintage_kanto").map((s) => s.species)).toEqual([
+      "Bulbasaur",
+      "Charmander",
+      "Squirtle",
+    ]);
+    for (const eraId of Object.keys(POKEMON_ERAS) as (keyof typeof POKEMON_ERAS)[]) {
+      const trio = startersForEra(eraId);
+      expect(trio).toHaveLength(3);
+      expect(new Set(trio.map((s) => s.species)).size).toBe(3);
+    }
+    expect(routePartner("modern_paldea", "Pikachu")).toBeNull();
+    const charmander = routePartner("vintage_kanto", "Charmander");
+    expect(charmander?.type).toBe("Fire");
+    expect(charmander?.move).toBe("Ember");
+    expect(charmander?.eraId).toBe("vintage_kanto");
+    const fresh = getDefaultAdventureState();
+    expect(fresh.world.partner).toBeUndefined();
+    expect(fresh.buddy.species).toBe("Pikachu");
+  });
+
+  it("stores a route badge once and leaves every other gym open", async () => {
+    const { awardRouteBadge, nextOpenGym, routeBadgeCase } = await import("./route-towns");
+    const fresh = getDefaultAdventureState();
+    const pewter = awardRouteBadge(fresh, "vintage_kanto", "kanto-pewter");
+    expect(pewter.awarded).toBe(true);
+    expect(pewter.state.world.routeBadges?.vintage_kanto).toEqual(["kanto-pewter"]);
+    expect(pewter.state.player.xp).toBeGreaterThan(fresh.player.xp);
+    expect(pewter.state.inventory.coins).toBe(fresh.inventory.coins + 40);
+    const again = awardRouteBadge(pewter.state, "vintage_kanto", "kanto-pewter");
+    expect(again.awarded).toBe(false);
+    expect(again.reason).toBe("rematch");
+    expect(again.state.world.routeBadges?.vintage_kanto).toEqual(["kanto-pewter"]);
+    expect(again.state.inventory.coins).toBe(pewter.state.inventory.coins);
+    const home = awardRouteBadge(pewter.state, "vintage_kanto", "kanto-home");
+    expect(home.awarded).toBe(false);
+    expect(home.reason).toBe("not-a-gym");
+    const kantoCase = routeBadgeCase("vintage_kanto", pewter.state.world.routeBadges);
+    expect(kantoCase.filter((row) => row.earned).map((row) => row.town)).toEqual(["Pewter"]);
+    expect(nextOpenGym("vintage_kanto", pewter.state.world.routeBadges)?.town).toBe("Cerulean");
+    const paldea = routeBadgeCase("modern_paldea", pewter.state.world.routeBadges);
+    expect(paldea.every((row) => !row.earned)).toBe(true);
+    expect(paldea).toHaveLength(8);
+  });
 });
 
 describe("Adventure visuals — on-disk trainer + local sprites first", () => {

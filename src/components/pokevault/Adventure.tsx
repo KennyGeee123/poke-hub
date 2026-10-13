@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Sparkles,
   Swords,
@@ -41,6 +41,9 @@ import { HDBattleArena, type BattlePokemon } from "./adventure/HDBattleArena";
 import { GBBattleSession, type GBBattleFoe } from "./GBBattleSession";
 import { healParty } from "@/lib/gbgame";
 import { healAllHp } from "@/lib/gb-hp";
+import { awardRouteBadge, leagueStanding, routePartner, startersForEra } from "@/lib/route-towns";
+import { mergeRouteBooks, routeBookFromRetro, syncRouteBookToRetro } from "@/lib/adventure-session";
+import { WorldSprite } from "./adventure/WorldSprite";
 
 const RETRO_KEYS = new Set([
   "ArrowUp",
@@ -65,6 +68,19 @@ const RETRO_KEYS = new Set([
 
 export function AdventureView() {
   const [adventureState, setAdventureState] = useState<AdventureState>(loadAdventureState);
+
+  useEffect(() => {
+    const retro = routeBookFromRetro();
+    setAdventureState((prev) => {
+      const merged = mergeRouteBooks(prev.world.routeBadges, retro);
+      syncRouteBookToRetro(merged);
+      const same = JSON.stringify(merged) === JSON.stringify(prev.world.routeBadges || {});
+      if (same) return prev;
+      const next = { ...prev, world: { ...prev.world, routeBadges: merged } };
+      saveAdventureState(next);
+      return next;
+    });
+  }, []);
   const [viewMode, setViewMode] = useState<"living_world" | "retro_gb">("living_world");
 
   const retroIframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -189,11 +205,17 @@ export function AdventureView() {
   const [buddyOpen, setBuddyOpen] = useState(false);
   const [nearbyOpen, setNearbyOpen] = useState(false);
   const [pokedexOpen, setPokedexOpen] = useState(false);
+  const [partnerTown, setPartnerTown] = useState<string | null>(null);
 
   // HD Turn-Based Battle State
   const [hdBattleOpen, setHdBattleOpen] = useState(false);
   const [currentBattleFoe, setCurrentBattleFoe] = useState<BattlePokemon | null>(null);
-  const [battleCtx, setBattleCtx] = useState<{ kind: "wild" | "gym"; creatureId?: string }>({
+  const [battleCtx, setBattleCtx] = useState<{
+    kind: "wild" | "gym" | "league";
+    creatureId?: string;
+    badge?: string;
+    stopId?: string;
+  }>({
     kind: "wild",
   });
 
@@ -321,13 +343,70 @@ export function AdventureView() {
     });
   };
 
+  // Hometown partner leads gym fights for this era. Sparky still leads until one is chosen.
+  const battleParty = useMemo(() => {
+    const eraId = adventureState.world.activeEraId || "vintage_kanto";
+    const saved = adventureState.world.partner;
+    if (!saved || saved.eraId !== eraId) return playerParty;
+    const partner = routePartner(eraId, saved.species);
+    if (!partner) return playerParty;
+    const level = 14;
+    const hp = Math.round(level * 4.2 + 25);
+    const lead: BattlePokemon = {
+      name: partner.species,
+      species: partner.species,
+      level,
+      maxHp: hp,
+      currentHp: hp,
+      types: [partner.type],
+      moves: [
+        {
+          name: "Tackle",
+          type: "Normal",
+          power: 40,
+          pp: 35,
+          maxPp: 35,
+          description: "Full body charge.",
+        },
+        {
+          name: partner.move,
+          type: partner.type,
+          power: 40,
+          pp: 25,
+          maxPp: 25,
+          description: `${partner.species}'s first move.`,
+        },
+      ],
+    };
+    return [lead, ...playerParty.slice(1)];
+  }, [adventureState.world.activeEraId, adventureState.world.partner, playerParty]);
+
+  const choosePartner = (species: string) => {
+    const eraId = adventureState.world.activeEraId || "vintage_kanto";
+    const partner = routePartner(eraId, species);
+    if (!partner) return;
+    setAdventureState((prev) => {
+      const next = { ...prev, world: { ...prev.world, partner } };
+      saveAdventureState(next);
+      return next;
+    });
+    toast.success(`${partner.species} is your partner`);
+    setPartnerTown(null);
+  };
+
+  const eraId = adventureState.world.activeEraId || "vintage_kanto";
+  const currentPartner =
+    adventureState.world.partner?.eraId === eraId ? adventureState.world.partner : undefined;
+
   // Launch HD Battle Arena
   const startHdBattle = (
     foeName: string,
     foeSpecies: string,
     level: number,
     types: string[],
-    ctx: { kind: "wild" | "gym"; creatureId?: string } = { kind: "wild" },
+    ctx: { kind: "wild" | "gym" | "league"; creatureId?: string; badge?: string; stopId?: string } = {
+      kind: "wild",
+    },
   ) => {
     setBattleCtx(ctx);
     const foe: BattlePokemon = {
@@ -428,7 +507,7 @@ export function AdventureView() {
             <HDBattleArena
               key={`${currentBattleFoe.species}-${battleCtx.creatureId ?? battleCtx.kind}`}
               foeMon={currentBattleFoe}
-              playerParty={playerParty}
+              playerParty={battleParty}
               adventureState={adventureState}
               onStateUpdate={handleStateUpdate}
               catchable={battleCtx.kind === "wild"}
@@ -447,6 +526,37 @@ export function AdventureView() {
                     saveAdventureState(next);
                     return next;
                   });
+                }
+                if (res === "win" && battleCtx.kind === "gym" && battleCtx.stopId) {
+                  const eraId = adventureState.world.activeEraId || "vintage_kanto";
+                  const awarded = awardRouteBadge(adventureState, eraId, battleCtx.stopId);
+                  handleStateUpdate(awarded.state);
+                  if (awarded.stop?.badge) {
+                    window.dispatchEvent(
+                      new CustomEvent("pv-adv-gym-won", { detail: { badge: awarded.stop.badge } }),
+                    );
+                  }
+                  syncRouteBookToRetro(awarded.state.world.routeBadges);
+                  if (awarded.awarded && awarded.stop) {
+                    toast.success(`${awarded.stop.badge} Badge · ${awarded.stop.town}`);
+                  } else if (awarded.stop) {
+                    toast.message(`${awarded.stop.town} rematch · ${awarded.stop.badge} Badge stays in the case`);
+                  }
+                }
+                if (res === "win" && battleCtx.kind === "league") {
+                  const eraId = adventureState.world.activeEraId || "vintage_kanto";
+                  setAdventureState((prev) => {
+                    const next = {
+                      ...prev,
+                      world: {
+                        ...prev.world,
+                        leaguesCleared: { ...(prev.world.leaguesCleared || {}), [eraId]: true },
+                      },
+                    };
+                    saveAdventureState(next);
+                    return next;
+                  });
+                  toast.success(`${leagueStanding(eraId, adventureState.world.routeBadges).name} cleared`);
                 }
                 if (res === "caught")
                   toast.success(`${currentBattleFoe.species} joined your party!`);
@@ -486,6 +596,18 @@ export function AdventureView() {
                   );
                 }}
                 onSelectCardCache={(cache) => setActiveCardCache(cache)}
+                onChallengeGym={(stop) => {
+                  if (!stop.leader || !stop.mon || !stop.level || !stop.type) return;
+                  startHdBattle(stop.leader, stop.mon, stop.level, [stop.type], {
+                    kind: "gym",
+                    badge: stop.badge,
+                    stopId: stop.id,
+                  });
+                }}
+                onVisitHome={(stop) => setPartnerTown(stop.town)}
+                onWildEncounter={(enc) => {
+                  startHdBattle(enc.species, enc.species, enc.level, [enc.type], { kind: "wild" });
+                }}
                 onStateUpdate={handleStateUpdate}
                 onUpdateCoords={handleUpdateCoords}
               />
@@ -506,6 +628,12 @@ export function AdventureView() {
                 }}
                 onToggleNearby={() => setNearbyOpen(!nearbyOpen)}
                 onOpenPokedex={() => setPokedexOpen(true)}
+                onChallengeLeague={() => {
+                  const eraId = adventureState.world.activeEraId || "vintage_kanto";
+                  const gate = leagueStanding(eraId, adventureState.world.routeBadges);
+                  if (!gate.open) return;
+                  startHdBattle(gate.foe, gate.species, gate.level, [gate.type], { kind: "league" });
+                }}
               />
 
               {/* Nearby Proximity Drawer */}
@@ -690,6 +818,55 @@ export function AdventureView() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {partnerTown && (
+        <div
+          role="dialog"
+          aria-label="Choose your partner"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/85 backdrop-blur-md font-mono"
+        >
+          <div className="w-full max-w-md rounded-3xl bg-neutral-950 border border-amber-500/40 shadow-2xl p-5 flex flex-col gap-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-amber-300">
+                {partnerTown}
+              </p>
+              <h3 className="text-lg font-extrabold text-white">Choose your partner</h3>
+              <p className="text-xs text-neutral-400">
+                {currentPartner
+                  ? `${currentPartner.species} is with you. Pick again to change.`
+                  : "One of these three travels with you into the gyms."}
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {startersForEra(eraId).map((starter) => (
+                <button
+                  key={starter.species}
+                  type="button"
+                  aria-label={`Choose ${starter.species}`}
+                  onClick={() => choosePartner(starter.species)}
+                  className="flex flex-col items-center gap-1 rounded-2xl border border-neutral-800 bg-neutral-900 px-2 py-3 text-white hover:border-amber-400"
+                >
+                  <WorldSprite
+                    name={starter.species}
+                    className="h-16 w-16 object-contain"
+                    alt={starter.species}
+                  />
+                  <span className="text-xs font-bold">{starter.species}</span>
+                  <span className="text-[10px] text-neutral-400">{starter.type}</span>
+                  <span className="text-[10px] text-amber-200">{starter.move}</span>
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setPartnerTown(null)}
+              className="rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs font-bold text-neutral-300 hover:text-white"
+            >
+              Not now
+            </button>
+          </div>
         </div>
       )}
     </div>

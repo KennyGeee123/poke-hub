@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { FX_VIDEOS_ENABLED, battleClipFor } from "@/lib/battle-cine";
+import type { MovePattern } from "@/lib/move-show";
 
 const CLASH_MOVES = /flamethrower|thunderbolt|solar beam|hydro pump|hyper beam/i;
 
@@ -8,6 +9,23 @@ export type MoveFxData = {
   type: string; // attacker's primary type (Fire/Water/...)
   name: string; // attack name (drives the chosen FX kit)
   side: "player" | "ai"; // who is attacking (drives travel direction)
+  /** Adventure battles pass an explicit kit so Volt Tackle is not just a beam. */
+  pattern?: MovePattern;
+  hue?: string;
+  holdMs?: number;
+  renderUrl?: string;
+};
+
+const PATTERN_GLYPH: Record<MovePattern, string[]> = {
+  beam: ["⚡", "✨", "⚡", "✨", "💥"],
+  spray: ["🔥", "🔥", "💥", "🔥", "✨"],
+  burst: ["💥", "✨", "💥", "✨", "💥"],
+  rain: ["❄️", "✨", "💧", "✨", "❄️"],
+  slash: ["✦", "🗡️", "✦", "✨", "✦"],
+  wave: ["💧", "🌊", "💦", "🌊", "💧"],
+  smash: ["💥", "💢", "💥", "💢", "💥"],
+  orbit: ["✨", "🌀", "✨", "💫", "✨"],
+  swarm: ["🍃", "🌿", "🍃", "✨", "🍃"],
 };
 
 /* ─────────────── MOVE KIT REGISTRY ───────────────
@@ -158,13 +176,16 @@ export function MoveFx({ fx, onDone }: { fx: MoveFxData; onDone: () => void }) {
   const [, setTick] = useState(0);
   const [cineOk, setCineOk] = useState(true);
   useEffect(() => {
-    const t = setTimeout(onDone, 2400);
+    const t = setTimeout(onDone, fx.holdMs ?? 2400);
     setTick((x) => x + 1);
     setCineOk(true);
     return () => clearTimeout(t);
   }, [fx, onDone]);
 
-  const kit = pickKit(fx.name, fx.type);
+  const kit =
+    fx.pattern && fx.hue
+      ? { pattern: fx.pattern, hue: fx.hue, glyphs: PATTERN_GLYPH[fx.pattern] }
+      : pickKit(fx.name, fx.type);
   const dirClass = fx.side === "player" ? "pv-fx-from-bot" : "pv-fx-from-top";
   const cine = battleClipFor(fx.name, fx.type);
 
@@ -172,9 +193,21 @@ export function MoveFx({ fx, onDone }: { fx: MoveFxData; onDone: () => void }) {
     <div
       className={`pv-movefx pv-fx-${kit.pattern} ${dirClass}`}
       style={{ "--fx-hue": kit.hue } as React.CSSProperties}
+      data-move-fx={fx.name}
+      data-move-pattern={kit.pattern}
       aria-hidden
     >
-      {FX_VIDEOS_ENABLED && cineOk && (
+      {fx.renderUrl && (
+        <img
+          src={fx.renderUrl}
+          alt=""
+          className="pv-move-render"
+          onError={(e) => {
+            e.currentTarget.hidden = true;
+          }}
+        />
+      )}
+      {FX_VIDEOS_ENABLED && cineOk && !fx.renderUrl && (
         <video
           className="pv-fx-clash-vid"
           src={cine}

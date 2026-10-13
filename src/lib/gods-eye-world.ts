@@ -319,6 +319,54 @@ export function gbaCellKind(tx: number, ty: number): GbaCell {
   return "grass";
 }
 
+/** Esri World Imagery. Same service as God's Eye. Tile order is z/y/x. */
+export const ESRI_WORLD_IMAGERY =
+  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile";
+
+export function esriWorldImageryTile(z: number, y: number, x: number): string {
+  return `${ESRI_WORLD_IMAGERY}/${z}/${y}/${x}`;
+}
+
+/**
+ * How much of the painted route covers the satellite.
+ * Field grass stays open so World Imagery reads through.
+ */
+export function gbaCellCover(kind: GbaCell): number {
+  if (kind === "path") return 0.92;
+  if (kind === "dirt") return 0.8;
+  if (kind === "tree") return 0.78;
+  if (kind === "water") return 0.58;
+  return 0.42;
+}
+
+/** Land cell that touches the river, so the shore can take a foam edge. */
+export function gbaShoreEdge(tx: number, ty: number): boolean {
+  if (gbaCellKind(tx, ty) === "water") return false;
+  return (
+    gbaCellKind(tx, ty + 1) === "water" ||
+    gbaCellKind(tx, ty - 1) === "water" ||
+    gbaCellKind(tx + 1, ty) === "water" ||
+    gbaCellKind(tx - 1, ty) === "water"
+  );
+}
+
+/** One light per era. The route geometry stays shared. The wash is the region. */
+export const ERA_WORLD_LIGHT: Record<string, { wash: string; label: string }> = {
+  vintage_kanto: { wash: "rgba(255, 186, 72, 0.22)", label: "Kanto gold hour" },
+  neo_johto: { wash: "rgba(134, 196, 92, 0.20)", label: "Johto cedar" },
+  advanced_hoenn: { wash: "rgba(56, 189, 196, 0.22)", label: "Hoenn tide" },
+  diamond_sinnoh: { wash: "rgba(148, 176, 214, 0.24)", label: "Sinnoh frost" },
+  black_unova: { wash: "rgba(120, 132, 156, 0.18)", label: "Unova city" },
+  mega_kalos: { wash: "rgba(214, 140, 176, 0.18)", label: "Kalos bloom" },
+  sun_alola: { wash: "rgba(255, 140, 64, 0.22)", label: "Alola sun" },
+  sword_galar: { wash: "rgba(168, 176, 188, 0.16)", label: "Galar steel" },
+  modern_paldea: { wash: "rgba(196, 92, 168, 0.18)", label: "Paldea dusk" },
+};
+
+export function eraWorldLight(eraId: string | undefined): { wash: string; label: string } {
+  return ERA_WORLD_LIGHT[eraId || ""] || ERA_WORLD_LIGHT.vintage_kanto;
+}
+
 export function isDresdenHub(node: GodsEyeNode): boolean {
   return node.id === "dresden" || node.kind === "nest";
 }

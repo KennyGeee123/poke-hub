@@ -431,8 +431,25 @@ function IsoCard({ asset, side }: { asset: FairAsset | null; side: "left" | "rig
   );
 }
 
-function LivePair({ mine, theirs }: { mine: FairAsset | null; theirs: FairAsset | null }) {
-  const v = useMemo(() => compareFairAssets(mine, theirs), [mine, theirs]);
+function LivePair({
+  mine,
+  theirs,
+  cashMine,
+  cashTheirs,
+  onBalance,
+  onClearCash,
+}: {
+  mine: FairAsset | null;
+  theirs: FairAsset | null;
+  cashMine: number;
+  cashTheirs: number;
+  onBalance: (side: "mine" | "theirs", amount: number) => void;
+  onClearCash: () => void;
+}) {
+  const v = useMemo(
+    () => compareFairAssets(mine, theirs, cashMine, cashTheirs),
+    [mine, theirs, cashMine, cashTheirs],
+  );
   const tone =
     v.youWinLose === "FAIR"
       ? "fair"
@@ -441,8 +458,14 @@ function LivePair({ mine, theirs }: { mine: FairAsset | null; theirs: FairAsset 
         : v.youWinLose === "YOU LOSE"
           ? "you-add"
           : "need-prices";
+  const balance =
+    v.label === "THEY ADD"
+      ? { side: "theirs" as const, amount: v.theyAdd, label: `They add ${formatPrice(v.theyAdd)}` }
+      : v.label === "YOU ADD"
+        ? { side: "mine" as const, amount: v.youAdd, label: `You add ${formatPrice(v.youAdd)}` }
+        : null;
   return (
-    <div className={`ft-verdict ft-${tone}`}>
+    <div className={`ft-verdict ft-banner ft-${tone}`} role="status" data-fair-banner="1">
       <div className="ft-verdict-kicker">
         FAIR TRADE ·{" "}
         {v.mode === "card-card"
@@ -461,19 +484,34 @@ function LivePair({ mine, theirs }: { mine: FairAsset | null; theirs: FairAsset 
             : v.youWinLose}
       </div>
       <p>{v.line}</p>
+      <p className="ft-rule">A swap is fair when the gap is inside 10% or $5, whichever is larger.</p>
+      <div className="ft-banner-actions">
+        {balance && (
+          <button type="button" className="ft-balance-btn" onClick={() => onBalance(balance.side, balance.amount)}>
+            {balance.label}
+          </button>
+        )}
+        {(cashMine > 0 || cashTheirs > 0) && (
+          <button type="button" className="ft-balance-btn ghost" onClick={onClearCash}>
+            Clear cash
+          </button>
+        )}
+      </div>
       <div className="ft-math">
         <span>
-          Yours {mine ? formatPrice(mine.valueUsd) : "—"}
+          Yours {mine ? formatPrice(mine.valueUsd + cashMine) : "—"}
           {mine
             ? ` (${mine.kind === "go" ? "GO" : getGradeMeta(mine.grade).shortLabel})`
             : ""}
+          {cashMine > 0 ? ` incl. ${formatPrice(cashMine)} cash` : ""}
         </span>
         <span>↔</span>
         <span>
-          Theirs {theirs ? formatPrice(theirs.valueUsd) : "—"}
+          Theirs {theirs ? formatPrice(theirs.valueUsd + cashTheirs) : "—"}
           {theirs
             ? ` (${theirs.kind === "go" ? "GO" : getGradeMeta(theirs.grade).shortLabel})`
             : ""}
+          {cashTheirs > 0 ? ` incl. ${formatPrice(cashTheirs)} cash` : ""}
         </span>
       </div>
     </div>
@@ -483,6 +521,9 @@ function LivePair({ mine, theirs }: { mine: FairAsset | null; theirs: FairAsset 
 export function FairTradeView() {
   const [mine, setMine] = useState<FairAsset | null>(null);
   const [theirs, setTheirs] = useState<FairAsset | null>(null);
+  const [cashMine, setCashMine] = useState(0);
+  const [cashTheirs, setCashTheirs] = useState(0);
+  const [activeDemo, setActiveDemo] = useState<string | null>(null);
   const demos = useMemo(() => fairTradeDemos(), []);
 
   return (
@@ -503,9 +544,13 @@ export function FairTradeView() {
               type="button"
               className={`ft-demo-btn ft-demo-${d.id.includes("win") ? "win" : d.id.includes("lose") ? "lose" : "fair"}`}
               title={d.blurb}
+              aria-pressed={activeDemo === d.id}
               onClick={() => {
                 setMine(d.mine);
                 setTheirs(d.theirs);
+                setCashMine(0);
+                setCashTheirs(0);
+                setActiveDemo(d.id);
               }}
             >
               {d.title}
@@ -534,15 +579,48 @@ export function FairTradeView() {
       </div>
 
       <div className="ft-grid">
-        <ScanSlot label="Your side" asset={mine} onSet={setMine} onClear={() => setMine(null)} />
+        <ScanSlot
+          label="Your side"
+          asset={mine}
+          onSet={(asset) => {
+            setMine(asset);
+            setCashMine(0);
+            setCashTheirs(0);
+            setActiveDemo(null);
+          }}
+          onClear={() => setMine(null)}
+        />
         <ScanSlot
           label="Their side"
           asset={theirs}
-          onSet={setTheirs}
+          onSet={(asset) => {
+            setTheirs(asset);
+            setCashMine(0);
+            setCashTheirs(0);
+            setActiveDemo(null);
+          }}
           onClear={() => setTheirs(null)}
         />
       </div>
-      <LivePair mine={mine} theirs={theirs} />
+      <LivePair
+        mine={mine}
+        theirs={theirs}
+        cashMine={cashMine}
+        cashTheirs={cashTheirs}
+        onBalance={(side, amount) => {
+          if (side === "mine") {
+            setCashMine(amount);
+            setCashTheirs(0);
+          } else {
+            setCashTheirs(amount);
+            setCashMine(0);
+          }
+        }}
+        onClearCash={() => {
+          setCashMine(0);
+          setCashTheirs(0);
+        }}
+      />
     </div>
   );
 }

@@ -30,6 +30,7 @@ import {
 } from "@/lib/adventure-engine";
 import { trainerFacingUrl } from "@/lib/sprites";
 import { WorldSprite } from "./WorldSprite";
+import { leagueStanding, nextOpenGym, routeBadgeCase } from "@/lib/route-towns";
 
 export function AdventureHUD({
   adventureState,
@@ -42,6 +43,7 @@ export function AdventureHUD({
   onToggleNearby,
   onForceSwitchEra,
   onOpenPokedex,
+  onChallengeLeague,
 }: {
   adventureState: AdventureState;
   onOpenShop: () => void;
@@ -53,6 +55,7 @@ export function AdventureHUD({
   onToggleNearby: () => void;
   onForceSwitchEra?: (eraId: PokemonEraId) => void;
   onOpenPokedex?: () => void;
+  onChallengeLeague?: () => void;
 }) {
   const [radialOpen, setRadialOpen] = useState(false);
   const [eraModalOpen, setEraModalOpen] = useState(false);
@@ -77,6 +80,13 @@ export function AdventureHUD({
 
   const xpPct = Math.min(100, Math.round((p.xp / p.xpToNextLevel) * 100));
   const energyPct = Math.min(100, Math.round((inv.energy / inv.maxEnergy) * 100));
+  const eraId = w.activeEraId || "vintage_kanto";
+  const badgeCase = routeBadgeCase(eraId, w.routeBadges);
+  const earnedCount = badgeCase.filter((row) => row.earned).length;
+  const openGym = nextOpenGym(eraId, w.routeBadges);
+  const partnerName = w.partner?.eraId === eraId ? w.partner.species : "";
+  const gate = leagueStanding(eraId, w.routeBadges);
+  const leagueCleared = !!w.leaguesCleared?.[eraId];
 
   return (
     <>
@@ -172,6 +182,49 @@ export function AdventureHUD({
             title="Open Bag"
           >
             <Package className="w-4 h-4 text-cyan-400" />
+          </button>
+        </div>
+      </div>
+
+      <div
+        className="absolute top-[4.25rem] left-3 right-3 z-40 pointer-events-none select-none"
+        data-route-case="1"
+      >
+        <div className="pointer-events-auto inline-flex max-w-full flex-col gap-1 rounded-2xl border border-amber-500/30 bg-neutral-950/85 px-2.5 py-1.5 shadow-xl backdrop-blur-md">
+          <div className="flex items-center justify-between gap-3 text-[10px] font-bold">
+            <span className="text-amber-200">
+              Badge case {earnedCount}/{badgeCase.length}
+            </span>
+            <span className="truncate text-neutral-300">
+              {partnerName ? partnerName : "Partner at hometown"}
+              {openGym ? ` · Open ${openGym.town}` : badgeCase.length ? " · Route clear" : ""}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {badgeCase.map((row) => (
+              <span
+                key={row.id}
+                title={row.earned ? `${row.badge} Badge · ${row.town}` : `${row.town} · ${row.leader}`}
+                className={`h-2.5 w-2.5 rounded-full border ${
+                  row.earned ? "border-amber-200 bg-amber-400" : "border-neutral-600 bg-neutral-800"
+                }`}
+              />
+            ))}
+          </div>
+          <button
+            type="button"
+            data-league-gate="1"
+            disabled={!gate.open}
+            onClick={() => gate.open && onChallengeLeague?.()}
+            className={`mt-0.5 w-fit max-w-full truncate rounded-full px-2 py-0.5 text-left text-[10px] font-bold ${
+              gate.open ? "bg-amber-400 text-neutral-950" : "bg-neutral-800 text-neutral-400"
+            }`}
+          >
+            {leagueCleared
+              ? `${gate.name} rematch`
+              : gate.open
+                ? `${gate.name} open`
+                : `${gate.name} sealed ${gate.earned}/${gate.need}`}
           </button>
         </div>
       </div>

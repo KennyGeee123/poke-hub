@@ -1634,6 +1634,12 @@ export interface WorldState {
   walkSkin?: "go" | "gba";
   /** WORLD_SCALE stamped on the POI catalog. Missing means a pre-upgrade save. */
   catalogScale?: number;
+  /** Starter chosen at the hometown for this era. Missing means the buddy still leads. */
+  partner?: { species: string; type: string; move: string; eraId: PokemonEraId };
+  /** Route gym stop ids already won, per era. A rematch does not add a second copy. */
+  routeBadges?: Partial<Record<PokemonEraId, string[]>>;
+  /** Era league cleared after the 4-badge gate. Gyms stay open either way. */
+  leaguesCleared?: Partial<Record<PokemonEraId, boolean>>;
 }
 
 export interface AdventureState {
