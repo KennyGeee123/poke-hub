@@ -10,7 +10,7 @@
       "releaseDate": "2026/11/06",
       "printedTotal": 103,
       "announcedTotal": "135+",
-      "revealedAsOf": "2026-10-07",
+      "revealedAsOf": "2026-10-14",
       "logo": "/card-art/me06/logo.webp",
       "symbol": "/card-art/me06/symbol.png",
       "sources": [
@@ -285,6 +285,15 @@
           "art": true
         },
         {
+          "number": "080",
+          "name": "Azurill",
+          "rarity": "Common",
+          "supertype": "Pokémon",
+          "types": ["Colorless"],
+          "artist": "TOMATO MARKET",
+          "art": true
+        },
+        {
           "number": "083",
           "name": "Kecleon",
           "rarity": "Common",
@@ -452,6 +461,15 @@
           "art": true,
           "artNote": "Japanese print scan (same illustration; English scan not posted yet)",
           "artLang": "ja"
+        },
+        {
+          "number": "107",
+          "name": "Magmortar",
+          "rarity": "Illustration Rare",
+          "supertype": "Pokémon",
+          "types": ["Fire"],
+          "artist": "Taiga Kasai",
+          "art": true
         },
         {
           "number": "109",
