@@ -2,13 +2,13 @@
 // Header: x-shop-admin: <SHOP_ADMIN_SECRET>. Call repeatedly with nextOffset (cron) to page through the catalog.
 import { createFileRoute } from "@tanstack/react-router";
 import { refreshBatch } from "@/lib/shop/refresh.server";
+import { ADMIN_HEADER, safeEqual } from "@/lib/shop/admin";
 
 export const Route = createFileRoute("/api/shop-refresh")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const secret = process.env.SHOP_ADMIN_SECRET;
-        if (!secret || request.headers.get("x-shop-admin") !== secret) return Response.json({ error: "Unauthorized" }, { status: 401 });
+        if (!safeEqual(request.headers.get(ADMIN_HEADER) ?? "", process.env.SHOP_ADMIN_SECRET ?? "")) return Response.json({ error: "Unauthorized" }, { status: 401 });
         const u = new URL(request.url);
         const kinds = (u.searchParams.get("kinds") ?? "sealed,single").split(",").filter((k): k is "sealed" | "single" => k === "sealed" || k === "single");
         try {

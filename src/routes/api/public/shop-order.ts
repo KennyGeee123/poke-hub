@@ -18,11 +18,12 @@ export const Route = createFileRoute("/api/public/shop-order")({
         if (!productId || !EMAIL.test(email)) return Response.json({ error: "productId and a valid email are required" }, { status: 400 });
         if (!ship.line1 || !ship.city || !ship.zip) return Response.json({ error: "Shipping address is incomplete" }, { status: 400 });
         const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } });
-        const { data: p, error } = await sb.from("shop_products").select("id,name,sale_price,cheapest_source_price,cheapest_source,cheapest_source_url,in_stock,sell_mode").eq("id", productId).maybeSingle();
-        if (error || !p || p.sale_price == null || !p.in_stock || p.sell_mode !== "store") return Response.json({ error: "Product unavailable" }, { status: 404 });
+        const { data: p, error } = await sb.from("shop_products").select("id,name,sale_price,cheapest_source_price,cheapest_source,cheapest_source_url,in_stock,sell_mode,hidden,price_override").eq("id", productId).maybeSingle();
+        const price = p?.price_override ?? p?.sale_price;
+        if (error || !p || price == null || !p.in_stock || p.sell_mode !== "store" || p.hidden) return Response.json({ error: "Product unavailable" }, { status: 404 });
         const clean = Object.fromEntries(["line1", "line2", "city", "state", "zip", "country"].map((k) => [k, String(ship[k] ?? "").slice(0, 120)]));
         const { data: order, error: oe } = await sb.from("shop_orders").insert({
-          product_id: p.id, product_name: p.name, quantity: qty, sale_price: p.sale_price,
+          product_id: p.id, product_name: p.name, quantity: qty, sale_price: price,
           source_price_snapshot: p.cheapest_source_price, source_snapshot: p.cheapest_source, source_url_snapshot: p.cheapest_source_url,
           customer_email: email, customer_name: String(b?.name ?? "").slice(0, 120), shipping_address: clean,
         }).select("id,status,sale_price,quantity").single();

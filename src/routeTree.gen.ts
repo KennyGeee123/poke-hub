@@ -13,7 +13,9 @@ import { Route as ShopRouteImport } from './routes/shop'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ShopConfirmationRouteImport } from './routes/shop.confirmation'
+import { Route as ShopAdminRouteImport } from './routes/shop.admin'
 import { Route as ApiShopRefreshRouteImport } from './routes/api/shop-refresh'
+import { Route as ApiShopAdminRouteImport } from './routes/api/shop-admin'
 import { Route as ApiPublicVirusBusterRouteImport } from './routes/api/public/virus-buster'
 import { Route as ApiPublicTcgdexRouteImport } from './routes/api/public/tcgdex'
 import { Route as ApiPublicTcgRouteImport } from './routes/api/public/tcg'
@@ -50,9 +52,19 @@ const ShopConfirmationRoute = ShopConfirmationRouteImport.update({
   path: '/confirmation',
   getParentRoute: () => ShopRoute,
 } as any)
+const ShopAdminRoute = ShopAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => ShopRoute,
+} as any)
 const ApiShopRefreshRoute = ApiShopRefreshRouteImport.update({
   id: '/api/shop-refresh',
   path: '/api/shop-refresh',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopAdminRoute = ApiShopAdminRouteImport.update({
+  id: '/api/shop-admin',
+  path: '/api/shop-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicVirusBusterRoute = ApiPublicVirusBusterRouteImport.update({
@@ -135,7 +147,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/shop': typeof ShopRouteWithChildren
+  '/api/shop-admin': typeof ApiShopAdminRoute
   '/api/shop-refresh': typeof ApiShopRefreshRoute
+  '/shop/admin': typeof ShopAdminRoute
   '/shop/confirmation': typeof ShopConfirmationRoute
   '/api/public/auth-status': typeof ApiPublicAuthStatusRoute
   '/api/public/bulba': typeof ApiPublicBulbaRoute
@@ -157,7 +171,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/shop': typeof ShopRouteWithChildren
+  '/api/shop-admin': typeof ApiShopAdminRoute
   '/api/shop-refresh': typeof ApiShopRefreshRoute
+  '/shop/admin': typeof ShopAdminRoute
   '/shop/confirmation': typeof ShopConfirmationRoute
   '/api/public/auth-status': typeof ApiPublicAuthStatusRoute
   '/api/public/bulba': typeof ApiPublicBulbaRoute
@@ -180,7 +196,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/shop': typeof ShopRouteWithChildren
+  '/api/shop-admin': typeof ApiShopAdminRoute
   '/api/shop-refresh': typeof ApiShopRefreshRoute
+  '/shop/admin': typeof ShopAdminRoute
   '/shop/confirmation': typeof ShopConfirmationRoute
   '/api/public/auth-status': typeof ApiPublicAuthStatusRoute
   '/api/public/bulba': typeof ApiPublicBulbaRoute
@@ -204,7 +222,9 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/shop'
+    | '/api/shop-admin'
     | '/api/shop-refresh'
+    | '/shop/admin'
     | '/shop/confirmation'
     | '/api/public/auth-status'
     | '/api/public/bulba'
@@ -226,7 +246,9 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/shop'
+    | '/api/shop-admin'
     | '/api/shop-refresh'
+    | '/shop/admin'
     | '/shop/confirmation'
     | '/api/public/auth-status'
     | '/api/public/bulba'
@@ -248,7 +270,9 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/shop'
+    | '/api/shop-admin'
     | '/api/shop-refresh'
+    | '/shop/admin'
     | '/shop/confirmation'
     | '/api/public/auth-status'
     | '/api/public/bulba'
@@ -271,6 +295,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   ShopRoute: typeof ShopRouteWithChildren
+  ApiShopAdminRoute: typeof ApiShopAdminRoute
   ApiShopRefreshRoute: typeof ApiShopRefreshRoute
   ApiPublicAuthStatusRoute: typeof ApiPublicAuthStatusRoute
   ApiPublicBulbaRoute: typeof ApiPublicBulbaRoute
@@ -319,11 +344,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopConfirmationRouteImport
       parentRoute: typeof ShopRoute
     }
+    '/shop/admin': {
+      id: '/shop/admin'
+      path: '/admin'
+      fullPath: '/shop/admin'
+      preLoaderRoute: typeof ShopAdminRouteImport
+      parentRoute: typeof ShopRoute
+    }
     '/api/shop-refresh': {
       id: '/api/shop-refresh'
       path: '/api/shop-refresh'
       fullPath: '/api/shop-refresh'
       preLoaderRoute: typeof ApiShopRefreshRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shop-admin': {
+      id: '/api/shop-admin'
+      path: '/api/shop-admin'
+      fullPath: '/api/shop-admin'
+      preLoaderRoute: typeof ApiShopAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/virus-buster': {
@@ -435,10 +474,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface ShopRouteChildren {
+  ShopAdminRoute: typeof ShopAdminRoute
   ShopConfirmationRoute: typeof ShopConfirmationRoute
 }
 
 const ShopRouteChildren: ShopRouteChildren = {
+  ShopAdminRoute: ShopAdminRoute,
   ShopConfirmationRoute: ShopConfirmationRoute,
 }
 
@@ -448,6 +489,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   ShopRoute: ShopRouteWithChildren,
+  ApiShopAdminRoute: ApiShopAdminRoute,
   ApiShopRefreshRoute: ApiShopRefreshRoute,
   ApiPublicAuthStatusRoute: ApiPublicAuthStatusRoute,
   ApiPublicBulbaRoute: ApiPublicBulbaRoute,
