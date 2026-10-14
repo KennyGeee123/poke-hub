@@ -9,11 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ShopRouteImport } from './routes/shop'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ShopConfirmationRouteImport } from './routes/shop.confirmation'
+import { Route as ApiShopRefreshRouteImport } from './routes/api/shop-refresh'
 import { Route as ApiPublicVirusBusterRouteImport } from './routes/api/public/virus-buster'
 import { Route as ApiPublicTcgdexRouteImport } from './routes/api/public/tcgdex'
 import { Route as ApiPublicTcgRouteImport } from './routes/api/public/tcg'
+import { Route as ApiPublicShopOrderRouteImport } from './routes/api/public/shop-order'
+import { Route as ApiPublicShopRouteImport } from './routes/api/public/shop'
 import { Route as ApiPublicPricesRouteImport } from './routes/api/public/prices'
 import { Route as ApiPublicPokeRadioRouteImport } from './routes/api/public/poke-radio'
 import { Route as ApiPublicMcpRouteImport } from './routes/api/public/mcp'
@@ -25,6 +30,11 @@ import { Route as ApiPublicCardImageRouteImport } from './routes/api/public/card
 import { Route as ApiPublicBulbaRouteImport } from './routes/api/public/bulba'
 import { Route as ApiPublicAuthStatusRouteImport } from './routes/api/public/auth-status'
 
+const ShopRoute = ShopRouteImport.update({
+  id: '/shop',
+  path: '/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -33,6 +43,16 @@ const LoginRoute = LoginRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShopConfirmationRoute = ShopConfirmationRouteImport.update({
+  id: '/confirmation',
+  path: '/confirmation',
+  getParentRoute: () => ShopRoute,
+} as any)
+const ApiShopRefreshRoute = ApiShopRefreshRouteImport.update({
+  id: '/api/shop-refresh',
+  path: '/api/shop-refresh',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicVirusBusterRoute = ApiPublicVirusBusterRouteImport.update({
@@ -48,6 +68,16 @@ const ApiPublicTcgdexRoute = ApiPublicTcgdexRouteImport.update({
 const ApiPublicTcgRoute = ApiPublicTcgRouteImport.update({
   id: '/api/public/tcg',
   path: '/api/public/tcg',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicShopOrderRoute = ApiPublicShopOrderRouteImport.update({
+  id: '/api/public/shop-order',
+  path: '/api/public/shop-order',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicShopRoute = ApiPublicShopRouteImport.update({
+  id: '/api/public/shop',
+  path: '/api/public/shop',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicPricesRoute = ApiPublicPricesRouteImport.update({
@@ -104,6 +134,9 @@ const ApiPublicAuthStatusRoute = ApiPublicAuthStatusRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/shop': typeof ShopRouteWithChildren
+  '/api/shop-refresh': typeof ApiShopRefreshRoute
+  '/shop/confirmation': typeof ShopConfirmationRoute
   '/api/public/auth-status': typeof ApiPublicAuthStatusRoute
   '/api/public/bulba': typeof ApiPublicBulbaRoute
   '/api/public/card-image': typeof ApiPublicCardImageRoute
@@ -114,6 +147,8 @@ export interface FileRoutesByFullPath {
   '/api/public/mcp': typeof ApiPublicMcpRoute
   '/api/public/poke-radio': typeof ApiPublicPokeRadioRoute
   '/api/public/prices': typeof ApiPublicPricesRoute
+  '/api/public/shop': typeof ApiPublicShopRoute
+  '/api/public/shop-order': typeof ApiPublicShopOrderRoute
   '/api/public/tcg': typeof ApiPublicTcgRoute
   '/api/public/tcgdex': typeof ApiPublicTcgdexRoute
   '/api/public/virus-buster': typeof ApiPublicVirusBusterRoute
@@ -121,6 +156,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/shop': typeof ShopRouteWithChildren
+  '/api/shop-refresh': typeof ApiShopRefreshRoute
+  '/shop/confirmation': typeof ShopConfirmationRoute
   '/api/public/auth-status': typeof ApiPublicAuthStatusRoute
   '/api/public/bulba': typeof ApiPublicBulbaRoute
   '/api/public/card-image': typeof ApiPublicCardImageRoute
@@ -131,6 +169,8 @@ export interface FileRoutesByTo {
   '/api/public/mcp': typeof ApiPublicMcpRoute
   '/api/public/poke-radio': typeof ApiPublicPokeRadioRoute
   '/api/public/prices': typeof ApiPublicPricesRoute
+  '/api/public/shop': typeof ApiPublicShopRoute
+  '/api/public/shop-order': typeof ApiPublicShopOrderRoute
   '/api/public/tcg': typeof ApiPublicTcgRoute
   '/api/public/tcgdex': typeof ApiPublicTcgdexRoute
   '/api/public/virus-buster': typeof ApiPublicVirusBusterRoute
@@ -139,6 +179,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/shop': typeof ShopRouteWithChildren
+  '/api/shop-refresh': typeof ApiShopRefreshRoute
+  '/shop/confirmation': typeof ShopConfirmationRoute
   '/api/public/auth-status': typeof ApiPublicAuthStatusRoute
   '/api/public/bulba': typeof ApiPublicBulbaRoute
   '/api/public/card-image': typeof ApiPublicCardImageRoute
@@ -149,6 +192,8 @@ export interface FileRoutesById {
   '/api/public/mcp': typeof ApiPublicMcpRoute
   '/api/public/poke-radio': typeof ApiPublicPokeRadioRoute
   '/api/public/prices': typeof ApiPublicPricesRoute
+  '/api/public/shop': typeof ApiPublicShopRoute
+  '/api/public/shop-order': typeof ApiPublicShopOrderRoute
   '/api/public/tcg': typeof ApiPublicTcgRoute
   '/api/public/tcgdex': typeof ApiPublicTcgdexRoute
   '/api/public/virus-buster': typeof ApiPublicVirusBusterRoute
@@ -158,6 +203,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/shop'
+    | '/api/shop-refresh'
+    | '/shop/confirmation'
     | '/api/public/auth-status'
     | '/api/public/bulba'
     | '/api/public/card-image'
@@ -168,6 +216,8 @@ export interface FileRouteTypes {
     | '/api/public/mcp'
     | '/api/public/poke-radio'
     | '/api/public/prices'
+    | '/api/public/shop'
+    | '/api/public/shop-order'
     | '/api/public/tcg'
     | '/api/public/tcgdex'
     | '/api/public/virus-buster'
@@ -175,6 +225,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/shop'
+    | '/api/shop-refresh'
+    | '/shop/confirmation'
     | '/api/public/auth-status'
     | '/api/public/bulba'
     | '/api/public/card-image'
@@ -185,6 +238,8 @@ export interface FileRouteTypes {
     | '/api/public/mcp'
     | '/api/public/poke-radio'
     | '/api/public/prices'
+    | '/api/public/shop'
+    | '/api/public/shop-order'
     | '/api/public/tcg'
     | '/api/public/tcgdex'
     | '/api/public/virus-buster'
@@ -192,6 +247,9 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/login'
+    | '/shop'
+    | '/api/shop-refresh'
+    | '/shop/confirmation'
     | '/api/public/auth-status'
     | '/api/public/bulba'
     | '/api/public/card-image'
@@ -202,6 +260,8 @@ export interface FileRouteTypes {
     | '/api/public/mcp'
     | '/api/public/poke-radio'
     | '/api/public/prices'
+    | '/api/public/shop'
+    | '/api/public/shop-order'
     | '/api/public/tcg'
     | '/api/public/tcgdex'
     | '/api/public/virus-buster'
@@ -210,6 +270,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  ShopRoute: typeof ShopRouteWithChildren
+  ApiShopRefreshRoute: typeof ApiShopRefreshRoute
   ApiPublicAuthStatusRoute: typeof ApiPublicAuthStatusRoute
   ApiPublicBulbaRoute: typeof ApiPublicBulbaRoute
   ApiPublicCardImageRoute: typeof ApiPublicCardImageRoute
@@ -220,6 +282,8 @@ export interface RootRouteChildren {
   ApiPublicMcpRoute: typeof ApiPublicMcpRoute
   ApiPublicPokeRadioRoute: typeof ApiPublicPokeRadioRoute
   ApiPublicPricesRoute: typeof ApiPublicPricesRoute
+  ApiPublicShopRoute: typeof ApiPublicShopRoute
+  ApiPublicShopOrderRoute: typeof ApiPublicShopOrderRoute
   ApiPublicTcgRoute: typeof ApiPublicTcgRoute
   ApiPublicTcgdexRoute: typeof ApiPublicTcgdexRoute
   ApiPublicVirusBusterRoute: typeof ApiPublicVirusBusterRoute
@@ -227,6 +291,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/shop': {
+      id: '/shop'
+      path: '/shop'
+      fullPath: '/shop'
+      preLoaderRoute: typeof ShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -239,6 +310,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shop/confirmation': {
+      id: '/shop/confirmation'
+      path: '/confirmation'
+      fullPath: '/shop/confirmation'
+      preLoaderRoute: typeof ShopConfirmationRouteImport
+      parentRoute: typeof ShopRoute
+    }
+    '/api/shop-refresh': {
+      id: '/api/shop-refresh'
+      path: '/api/shop-refresh'
+      fullPath: '/api/shop-refresh'
+      preLoaderRoute: typeof ApiShopRefreshRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/virus-buster': {
@@ -260,6 +345,20 @@ declare module '@tanstack/react-router' {
       path: '/api/public/tcg'
       fullPath: '/api/public/tcg'
       preLoaderRoute: typeof ApiPublicTcgRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/shop-order': {
+      id: '/api/public/shop-order'
+      path: '/api/public/shop-order'
+      fullPath: '/api/public/shop-order'
+      preLoaderRoute: typeof ApiPublicShopOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/shop': {
+      id: '/api/public/shop'
+      path: '/api/public/shop'
+      fullPath: '/api/public/shop'
+      preLoaderRoute: typeof ApiPublicShopRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/prices': {
@@ -335,9 +434,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ShopRouteChildren {
+  ShopConfirmationRoute: typeof ShopConfirmationRoute
+}
+
+const ShopRouteChildren: ShopRouteChildren = {
+  ShopConfirmationRoute: ShopConfirmationRoute,
+}
+
+const ShopRouteWithChildren = ShopRoute._addFileChildren(ShopRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  ShopRoute: ShopRouteWithChildren,
+  ApiShopRefreshRoute: ApiShopRefreshRoute,
   ApiPublicAuthStatusRoute: ApiPublicAuthStatusRoute,
   ApiPublicBulbaRoute: ApiPublicBulbaRoute,
   ApiPublicCardImageRoute: ApiPublicCardImageRoute,
@@ -348,6 +459,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicMcpRoute: ApiPublicMcpRoute,
   ApiPublicPokeRadioRoute: ApiPublicPokeRadioRoute,
   ApiPublicPricesRoute: ApiPublicPricesRoute,
+  ApiPublicShopRoute: ApiPublicShopRoute,
+  ApiPublicShopOrderRoute: ApiPublicShopOrderRoute,
   ApiPublicTcgRoute: ApiPublicTcgRoute,
   ApiPublicTcgdexRoute: ApiPublicTcgdexRoute,
   ApiPublicVirusBusterRoute: ApiPublicVirusBusterRoute,

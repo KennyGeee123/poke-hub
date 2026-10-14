@@ -1,0 +1,27 @@
+// GET /api/public/shop?kind=sealed|single&q=&page=1&pageSize=24&sort=price_asc|price_desc|newest
+// Public catalog: sale prices only (no source prices/urls).
+import { createFileRoute } from "@tanstack/react-router";
+import { createClient } from "@supabase/supabase-js";
+
+export const Route = createFileRoute("/api/public/shop")({
+  server: {
+    handlers: {
+      GET: async ({ request }) => {
+        const u = new URL(request.url);
+        const kind = u.searchParams.get("kind");
+        const q = (u.searchParams.get("q") ?? "").slice(0, 80).replace(/[%,()]/g, " ").trim();
+        const page = Math.max(1, Number(u.searchParams.get("page") ?? 1) || 1);
+        const size = Math.min(60, Math.max(1, Number(u.searchParams.get("pageSize") ?? 24) || 24));
+        const sort = u.searchParams.get("sort") ?? "price_asc";
+        const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, { auth: { persistSession: false } });
+        let query = sb.from("shop_catalog").select("*", { count: "exact" }).eq("in_stock", true);
+        if (kind === "sealed" || kind === "single") query = query.eq("kind", kind);
+        if (q) query = query.or(`name.ilike.%${q}%,set_name.ilike.%${q}%`);
+        query = sort === "newest" ? query.order("updated_at", { ascending: false }) : query.order("sale_price", { ascending: sort !== "price_desc" });
+        const { data, count, error } = await query.range((page - 1) * size, page * size - 1);
+        if (error) return Response.json({ error: error.message }, { status: 500 });
+        return Response.json({ items: data ?? [], total: count ?? 0, page, pageSize: size }, { headers: { "Cache-Control": "public, max-age=120" } });
+      },
+    },
+  },
+});
