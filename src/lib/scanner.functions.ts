@@ -142,11 +142,13 @@ export const identifyCard = createServerFn({ method: "POST" })
         const hasNext = i < providers.length - 1;
         try {
           let r = await callProvider(p);
-          // Short per-minute waits are worth one retry only when there is no backup to try.
-          if (!hasNext && r.status === 429) {
+          // Last provider in the chain gets one retry on a short 429 or a 5xx.
+          if (!hasNext && (r.status === 429 || r.status >= 500)) {
             const body = await r.clone().text().catch(() => "");
             const hinted = Number(body.match(/try again in ([\d.]+)s/i)?.[1]);
-            const wait = Number(r.headers.get("retry-after")) || (Number.isFinite(hinted) ? hinted : 99);
+            // 5xx ("model overloaded") is usually momentary: retry once after ~1.5s.
+            const wait =
+              r.status >= 500 ? 1.2 : Number(r.headers.get("retry-after")) || (Number.isFinite(hinted) ? hinted : 99);
             if (wait <= 8) {
               await new Promise((ok) => setTimeout(ok, wait * 1000 + 300));
               r = await callProvider(p);
