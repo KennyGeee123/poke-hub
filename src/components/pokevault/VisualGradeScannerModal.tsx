@@ -70,20 +70,20 @@ export function VisualGradeScannerModal({
   function runDualSideAnalysis(fSrc: string, bSrc: string) {
     setScanning(true);
     setScanProgress(15);
-    setScanStage("Quantum Sub-Pixel Calibration: Front & Back Ingestion...");
+    setScanStage("Loading card data (set, age, print run)...");
     setSelectedFlaw(null);
 
     setTimeout(() => {
       setScanProgress(45);
-      setScanStage("Front Centering (50/50 Grid) & Foil Holography Analysis...");
+      setScanStage("Estimating typical front condition for this set...");
 
       setTimeout(() => {
         setScanProgress(75);
-        setScanStage("Back Centering (75/25 Threshold) & Indigo Border Whitening Scan...");
+        setScanStage("Estimating typical back condition for this era...");
 
         setTimeout(() => {
           setScanProgress(100);
-          setScanStage("Computing True Grade, Market Price & Level 10-100 Stat Boosts...");
+          setScanStage("Computing estimated grade and value...");
 
           const result = performQuantumDualInspection(card);
           setScanResult(result);
@@ -244,7 +244,7 @@ export function VisualGradeScannerModal({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold text-white tracking-wide">
-                  Dual-Sided Quantum Pixel-Level Grade Scanner
+                  Pre-Grade Estimate (from card data)
                 </h2>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
                   FRONT &amp; BACK AST CV
@@ -397,6 +397,10 @@ export function VisualGradeScannerModal({
               />
             </div>
 
+            <p className="mt-3 text-[11px] leading-snug text-amber-300/90" data-testid="pregrade-disclaimer">
+              Estimate only. Grades and flaws below are based on this card's set and age, not on
+              your photos. Uploaded photos are shown for your reference and are not analyzed yet.
+            </p>
             {/* Upload Buttons for Front & Back */}
             <div className="flex items-center gap-2 mt-4">
               <input
@@ -614,7 +618,7 @@ export function VisualGradeScannerModal({
 
         {/* Modal Bottom Footer */}
         <div className="px-6 py-3 border-t border-neutral-800 bg-neutral-950 flex items-center justify-between text-xs text-neutral-400 font-mono">
-          <span>🔬 400x Quantum AST Dual-Sided Ingestion</span>
+          <span>Estimate only: based on set and age, not on your photos</span>
           <button
             type="button"
             onClick={onClose}

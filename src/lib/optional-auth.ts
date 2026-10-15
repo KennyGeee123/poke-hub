@@ -53,6 +53,19 @@ export async function claimGuestScan(device: string, ip: string) {
   return { ...d, limit: GUEST_SCAN_LIMIT };
 }
 
+export async function refundGuestScan(device: string, ip: string) {
+  try {
+    const secret = process.env.QUOTA_REFUND_SECRET;
+    if (!secret) return null;
+    const { data, error } = await quotaClient().rpc("refund_guest_scan" as never, { p_device: device, p_ip: ip, p_secret: secret } as never);
+    if (!error && (data as any)?.ok === false) return null;
+    if (error) return null;
+    return { used: Number((data as any)?.used) || 0 };
+  } catch {
+    return null;
+  }
+}
+
 export async function guestScanStatus(device: string) {
   if (device.length < 16) return { used: 0, limit: GUEST_SCAN_LIMIT };
   let client;

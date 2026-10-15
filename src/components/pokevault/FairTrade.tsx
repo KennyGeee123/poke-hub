@@ -4,7 +4,9 @@ import { searchCards, type TCGCard } from "@/lib/pokemon-api";
 import { formatPrice, useVault } from "@/lib/vault";
 import { identifyCard } from "@/lib/scanner.functions";
 import { friendlyScanError } from "@/lib/scan-errors";
-import { setGuestScansUsed } from "@/lib/premium";
+import { setGuestScansUsed, usePremium } from "@/lib/premium";
+import { useAuth } from "@/lib/auth";
+import { rankCardHits } from "@/lib/card-match";
 import { useLivePrice } from "@/lib/live-prices";
 import { hdImg } from "@/lib/card-images";
 import {
@@ -133,6 +135,10 @@ function ScanSlot({
   const [cam, setCam] = useState(false);
   const identifyFn = useServerFn(identifyCard);
   const { vault } = useVault();
+  const { scansLeft, isPro } = usePremium();
+  const { user } = useAuth();
+  const isGuest = !user && !isPro;
+  const guestOut = isGuest && scansLeft <= 0;
   const vaultList = Object.values(vault)
     .map((e) => e.card)
     .slice(0, 8);
@@ -215,9 +221,13 @@ function ScanSlot({
       }
       setKind("card");
       setQ(name);
-      const res = await searchCards({ q: name, pageSize: 8, orderBy: "-set.releaseDate" });
-      setHits(res.data);
-      if (res.data[0]) onSet(makeCardAsset(res.data[0], grade));
+      const core = String(name).replace(/["“”]/g, "").trim();
+      let res = await searchCards({ q: `name:"${core}"`, pageSize: 30, orderBy: "-set.releaseDate" });
+      if (!res.data?.length) res = await searchCards({ q: core, pageSize: 30, orderBy: "-set.releaseDate" });
+      // Pick the exact printing (collector no. / set / HP), not just the newest card with that name.
+      const ranked = rankCardHits(res.data || [], r.card);
+      setHits(ranked.slice(0, 8));
+      if (ranked[0]) onSet(makeCardAsset(ranked[0], grade));
     } catch (e: any) {
       setErr(friendlyScanError(e?.message, "Scan failed."));
     } finally {
@@ -347,9 +357,20 @@ function ScanSlot({
             </div>
           </div>
         ) : (
-          <button type="button" className="pv-btn pv-btn-fill" onClick={startCam}>
-            📷 Scan card
-          </button>
+          guestOut ? (
+            <a className="pv-btn pv-btn-fill" href="/login" data-testid="ft-signin-cta">
+              Sign in for more scans
+            </a>
+          ) : (
+            <div className="ft-scan-cta">
+              <button type="button" className="pv-btn pv-btn-fill" onClick={startCam} disabled={busy}>
+                {busy ? "Reading card…" : "📷 Scan card"}
+              </button>
+              {isGuest && Number.isFinite(scansLeft) && (
+                <div className="ft-mini">{scansLeft} free scan{scansLeft === 1 ? "" : "s"} left</div>
+              )}
+            </div>
+          )
         ))}
 
       <div className="ft-find">

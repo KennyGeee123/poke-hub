@@ -2,11 +2,20 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import {
   claimGuestScan,
+  refundGuestScan,
   guestIdentity,
   guestScanStatus,
   optionalSupabaseAuth,
 } from "@/lib/optional-auth";
 import { getRequest } from "@tanstack/react-start/server";
+
+/** Accepts ".../openai/v1", ".../openai/v1/", ".../openai" or a full ".../chat/completions" URL. */
+export function chatCompletionsUrl(base: string | undefined): string {
+  const b = String(base || "").trim().replace(/\/+$/, "");
+  if (!b) return "";
+  if (/\/chat\/completions$/.test(b)) return b;
+  return (/\/v1$/.test(b) ? b : b + "/v1") + "/chat/completions";
+}
 
 const SYSTEM = `You are a Pokémon TCG card identifier. Given a photo of a single Pokémon trading card (and optionally OCR text extracted from it), return:
 - name: the Pokémon / card name exactly as printed (e.g. "Charizard ex", "Pikachu V", "Professor's Research")
@@ -59,19 +68,29 @@ export const identifyCard = createServerFn({ method: "POST" })
   .inputValidator(z.object({ imageDataUrl: z.string().min(32).max(8_000_000) }))
   .handler(async ({ data, context }) => {
     const key = process.env.AI_GATEWAY_API_KEY;
-    const gateway = (process.env.AI_GATEWAY_URL || "").replace(/\/$/, "");
+    const gateway = chatCompletionsUrl(process.env.AI_GATEWAY_URL);
     if (!key || !gateway) return { ok: false as const, error: "AI gateway not configured" };
 
     // Guests: server-side quota (2 per device lifetime, 4 per IP per day) BEFORE the paid call.
     let guest: { used: number; limit: number } | null = null;
+    let guestKey: { device: string; ip: string } | null = null;
+    // Give the scan back when OUR side failed (gateway down/404/timeout), not when the photo was unreadable.
+    const refund = async () => {
+      if (!guestKey || !guest) return null;
+      const r = await refundGuestScan(guestKey.device, guestKey.ip);
+      return r ? { used: r.used, limit: guest.limit } : guest;
+    };
     if (!context.userId) {
       const { device, ip } = guestIdentity(context.request);
+      guestKey = { device, ip };
       const q = await claimGuestScan(device, ip);
       if (!q.ok) {
+        if (q.reason === "store") return { ok: false as const, error: "Scan quota unavailable. Try again." };
+        // Any denial (device or network cap) means 0 left for this guest right now.
         return {
           ok: false as const,
-          error: q.reason === "store" ? "Scan quota unavailable. Try again." : "GUEST_LIMIT",
-          guest: { used: q.used, limit: q.limit },
+          error: q.reason === "ip" ? "GUEST_LIMIT_IP" : "GUEST_LIMIT",
+          guest: { used: q.limit, limit: q.limit },
         };
       }
       guest = { used: q.used, limit: q.limit };
@@ -91,7 +110,8 @@ export const identifyCard = createServerFn({ method: "POST" })
         { type: "image_url", image_url: { url: data.imageDataUrl } },
       ];
 
-      const res = await fetch(gateway + "/v1/chat/completions", {
+      const res = await fetch(gateway, {
+        signal: AbortSignal.timeout(25_000),
         method: "POST",
         headers: {
           Authorization: `Bearer ${key}`,
@@ -110,21 +130,29 @@ export const identifyCard = createServerFn({ method: "POST" })
 
       if (!res.ok) {
         const txt = await res.text().catch(() => "");
+        console.error("[identifyCard] gateway", res.status, txt.slice(0, 300));
         return {
           ok: false as const,
-          error: `Gateway ${res.status}: ${txt.slice(0, 200)}`,
+          error: res.status === 429 ? "SCAN_BUSY" : "SCAN_SERVICE_DOWN",
           ocrText,
+          guest: await refund(),
         };
       }
 
       const j: any = await res.json();
       const raw: string = j?.choices?.[0]?.message?.content ?? "";
       const match = raw.match(/\{[\s\S]*\}/);
-      if (!match) return { ok: false as const, error: "No JSON returned", raw, ocrText };
+      if (!match) return { ok: false as const, error: "SCAN_UNREADABLE", raw, ocrText, guest };
       const parsed = JSON.parse(match[0]);
       return { ok: true as const, card: parsed, ocrText, ocrUsed: !!ocr, guest };
     } catch (e: any) {
-      return { ok: false as const, error: e?.message || "Identification failed", ocrText };
+      const timedOut = e?.name === "TimeoutError" || e?.name === "AbortError";
+      return {
+        ok: false as const,
+        error: timedOut ? "SCAN_SERVICE_DOWN" : e?.message || "Identification failed",
+        ocrText,
+        guest: timedOut ? await refund() : guest,
+      };
     }
   });
 

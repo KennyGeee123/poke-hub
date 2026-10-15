@@ -259,7 +259,7 @@ export function CardDetail({
               className="pv-detail-img-wrap"
               style={{ position: "relative", cursor: "pointer" }}
               onClick={() => setShowVisualModal(true)}
-              title="Click to launch AI Visual Pre-Grade Defect Scanner"
+              title="Open the pre-grade estimate"
             >
               <div className="pv-card-skel" style={{ opacity: loaded ? 0 : 1 }} />
               <img
@@ -705,7 +705,7 @@ export function CardDetail({
                 fontSize: 12,
               }}
             >
-              🔬 AI Pre-Grade Predetermination Analyzer
+              🔬 Pre-Grade Estimate (from card data)
             </button>
           </div>
 

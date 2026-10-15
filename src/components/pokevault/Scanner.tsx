@@ -7,6 +7,7 @@ import { identifyCard } from "@/lib/scanner.functions";
 import { friendlyScanError } from "@/lib/scan-errors";
 import { setGuestScansUsed } from "@/lib/premium";
 import { usePremium } from "@/lib/premium";
+import { rankCardHits } from "@/lib/card-match";
 import { useAuth } from "@/lib/auth";
 import { formatCardNumber } from "@/lib/card-identity";
 import { Paywall, TrialBanner } from "./Paywall";
@@ -209,13 +210,13 @@ function ScannerInner({
 
       let data: TCGCard[] = [];
       for (const q of queries) {
-        const r = await searchCards({ q, pageSize: 18, orderBy: "-set.releaseDate" });
+        const r = await searchCards({ q, pageSize: 40, orderBy: "-set.releaseDate" });
         if (r.data?.length) {
           data = r.data;
           break;
         }
       }
-      setResults(data);
+      setResults(hint ? rankCardHits(data, hint) : data);
       setPhase("results");
     } catch {
       setError("Search failed. Try again.");
