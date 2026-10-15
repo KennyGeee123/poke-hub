@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from "react";
 import { easeToward, untiltPoint, MAP_TILT } from "@/lib/adventure-motion";
+import { declutter } from "@/lib/adventure-map-layout";
 import {
   Compass,
   MapPin,
@@ -287,6 +288,17 @@ function latLngToTile(lat: number, lng: number, zoom = 17) {
   };
 }
 
+/** Engine (state clone + spawn checks) update interval while walking. */
+const ENGINE_MOVE_MS = 125;
+
+function prefersReducedMotion(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
 export function AdventureWorldMap({
   adventureState,
   onSelectCreature,
@@ -472,6 +484,32 @@ export function AdventureWorldMap({
   }, [useLiveGps, onUpdateCoords]);
 
   // Joystick walks the planet in meters. Camera stays GO-style: player at screen center.
+  const engineMovePendingRef = useRef<{
+    meters: number;
+    geo: { lat: number; lng: number; accuracy?: number; heading?: number } | null;
+  }>({ meters: 0, geo: null });
+  const engineMoveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onUpdateCoordsRef = useRef(onUpdateCoords);
+  onUpdateCoordsRef.current = onUpdateCoords;
+  const flushEngineMove = () => {
+    engineMoveTimerRef.current = null;
+    const pend = engineMovePendingRef.current;
+    if (!pend.geo) return;
+    const geo = pend.geo;
+    const meters = pend.meters;
+    engineMovePendingRef.current = { meters: 0, geo: null };
+    onUpdateCoordsRef.current({ xPct: 50, yPct: 50 }, meters, geo);
+  };
+  useEffect(
+    () => () => {
+      if (engineMoveTimerRef.current != null) {
+        clearTimeout(engineMoveTimerRef.current);
+        flushEngineMove();
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
   const handleJoystickMove = (dx: number, dy: number, distMeters: number) => {
     setIsWalking(true);
     if (walkTimerRef.current) clearTimeout(walkTimerRef.current);
@@ -493,12 +531,15 @@ export function AdventureWorldMap({
     const nextCoords = { xPct: 50, yPct: 50 };
     setPlayerGeo((prev) => ({ ...prev, lat: nextGeo.lat, lng: nextGeo.lng, heading: deg }));
     setPlayerCoords(nextCoords);
-    onUpdateCoords(nextCoords, stepped ? stepped.meters : Math.max(1, distMeters), {
-      ...here,
-      lat: nextGeo.lat,
-      lng: nextGeo.lng,
-      heading: deg,
-    });
+    // Perf: the map itself moves at the joystick's ~30 Hz, but each engine
+    // update clones the whole AdventureState and re-renders the Adventure
+    // tree. Coalesce those to ~8 Hz (distance is summed, latest geo wins).
+    const pend = engineMovePendingRef.current;
+    pend.meters += stepped ? stepped.meters : Math.max(1, distMeters);
+    pend.geo = { ...here, lat: nextGeo.lat, lng: nextGeo.lng, heading: deg };
+    if (engineMoveTimerRef.current == null) {
+      engineMoveTimerRef.current = setTimeout(flushEngineMove, ENGINE_MOVE_MS);
+    }
   };
 
   // Teleport Hotspot Handler — geo is the source of truth; trainer stays centered.
@@ -669,6 +710,55 @@ export function AdventureWorldMap({
   };
   const worldKm = Math.round(worldPlaneSpanMeters() / 1000);
 
+  // Spread markers that would sit on top of each other (two wilds on one
+  // tile used to stack their CATCH/BATTLE buttons). Offsets are in map px.
+  const markerNudge = useMemo(() => {
+    const pts: { id: string; x: number; y: number }[] = [];
+    const add = (prefix: string, list: { id: string; lat?: number; lng?: number }[]) => {
+      for (const e of list) {
+        if (typeof e.lat !== "number" || typeof e.lng !== "number") continue;
+        const off = geoScreenOffset(playerGeo, { lat: e.lat, lng: e.lng }, zoom);
+        if (Math.abs(off.dx) > 1100 || Math.abs(off.dy) > 800) continue;
+        pts.push({ id: `${prefix}:${e.id}`, x: off.dx, y: off.dy });
+      }
+    };
+    add("gym", adventureState.battleArenas);
+    add("stop", adventureState.discoveryPoints);
+    add("wild", adventureState.wildCreatures);
+    return declutter(pts, 72);
+    // Recompute on coarse moves only; nudges are relative so they stay valid.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    adventureState.battleArenas,
+    adventureState.discoveryPoints,
+    adventureState.wildCreatures,
+    zoom,
+    Math.round(playerGeo.lat * 2e4),
+    Math.round(playerGeo.lng * 2e4),
+  ]);
+  /** Upright-billboard marker style (+declutter nudge) for map entities. */
+  const markerStyle = (prefix: string, entity: { id: string; lat?: number; lng?: number; xPct: number; yPct: number }) => {
+    const n = markerNudge[`${prefix}:${entity.id}`];
+    return {
+      ...screenPos(entity),
+      ["--pv-nx" as string]: `${n ? n.dx.toFixed(1) : 0}px`,
+      ["--pv-ny" as string]: `${n ? n.dy.toFixed(1) : 0}px`,
+    } as React.CSSProperties;
+  };
+  /** Keyboard access for div-based map markers. */
+  const keyActivate = (fn: () => void, label: string) => ({
+    role: "button" as const,
+    tabIndex: 0,
+    "aria-label": label,
+    onKeyDown: (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        e.stopPropagation();
+        fn();
+      }
+    },
+  });
+
   const walkTowardGeo = (target: { lat: number; lng: number }) => {
     const dist = Math.max(1, haversineMeters(playerGeo.lat, playerGeo.lng, target.lat, target.lng));
     const step = Math.min(28, Math.max(8, dist * 0.35));
@@ -769,6 +859,11 @@ export function AdventureWorldMap({
     const dy = b.y - a.y;
     if (Math.hypot(dx, dy) > 240) {
       camOffRef.current = { x: 0, y: 0 }; // teleport: cut, don't glide
+      applyCam();
+      return;
+    }
+    if (prefersReducedMotion()) {
+      camOffRef.current = { x: 0, y: 0 }; // reduced motion: no glide
       applyCam();
       return;
     }
@@ -939,11 +1034,9 @@ export function AdventureWorldMap({
                 e.stopPropagation();
                 onSelectBattleArena(arena);
               }}
-              style={{
-                ...screenPos(arena),
-                transform: "translate(-50%, -50%)",
-              }}
-              className="absolute z-20 cursor-pointer group flex flex-col items-center hover:scale-110 transition-transform duration-200"
+              style={markerStyle("gym", arena)}
+              {...keyActivate(() => onSelectBattleArena(arena), `Gym: ${arena.name ?? "battle arena"}`)}
+              className="pv-go-marker absolute z-20 cursor-pointer group flex flex-col items-center"
             >
               <div className="w-16 h-16 rounded-full bg-gradient-to-b from-rose-400 to-amber-500 p-[3px] shadow-[0_0_18px_rgba(244,63,94,0.55)] flex items-center justify-center">
                 <div className="w-full h-full rounded-full bg-neutral-950 flex flex-col items-center justify-center text-white border border-amber-400/40">
@@ -969,11 +1062,9 @@ export function AdventureWorldMap({
                   e.stopPropagation();
                   onSelectDiscoveryPoint(point);
                 }}
-                style={{
-                  ...screenPos(point),
-                  transform: "translate(-50%, -50%)",
-                }}
-                className="absolute z-20 cursor-pointer group flex flex-col items-center hover:scale-110 transition-transform duration-200"
+                style={markerStyle("stop", point)}
+                {...keyActivate(() => onSelectDiscoveryPoint(point), "PokéStop")}
+                className="pv-go-marker absolute z-20 cursor-pointer group flex flex-col items-center"
               >
                 <div className="relative flex items-center justify-center">
                   {!onCooldown && (
@@ -1010,11 +1101,8 @@ export function AdventureWorldMap({
                   e.stopPropagation();
                   onSelectCardCache(cache);
                 }}
-                style={{
-                  ...screenPos(cache),
-                  transform: "translate(-50%, -50%)",
-                }}
-                className="absolute z-20 cursor-pointer group flex flex-col items-center hover:scale-110 transition-transform duration-200"
+                style={markerStyle("cache", cache)}
+                className="pv-go-marker absolute z-20 cursor-pointer group flex flex-col items-center"
               >
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-amber-500 via-fuchsia-500 to-cyan-400 p-0.5 shadow-[0_0_20px_rgba(217,70,239,0.7)] animate-pulse">
                   <div className="w-full h-full bg-neutral-950 rounded-[10px] flex items-center justify-center">
@@ -1039,11 +1127,8 @@ export function AdventureWorldMap({
               return (
                 <div
                   key={creature.id}
-                  style={{
-                    ...screenPos(creature),
-                    transform: "translate(-50%, -50%)",
-                  }}
-                  className="absolute z-20 flex flex-col items-center group cursor-pointer"
+                  style={markerStyle("wild", creature)}
+                  className="pv-go-marker pv-go-marker-flat absolute z-20 flex flex-col items-center group cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation();
                     if (typeof creature.lat === "number" && typeof creature.lng === "number") {
@@ -1080,11 +1165,9 @@ export function AdventureWorldMap({
                   e.stopPropagation();
                   trySelectCreature(creature, "catch");
                 }}
-                style={{
-                  ...screenPos(creature),
-                  transform: "translate(-50%, -50%)",
-                }}
-                className="absolute z-20 cursor-pointer group flex flex-col items-center hover:scale-115 transition-transform duration-200"
+                style={markerStyle("wild", creature)}
+                {...keyActivate(() => trySelectCreature(creature, "catch"), `Wild ${creature.species}, CP ${creature.cp}`)}
+                className="pv-go-marker absolute z-20 cursor-pointer group flex flex-col items-center"
               >
                 {/* Rarity Ring Aura — GO-style ground disc, not infinite ping */}
                 <div

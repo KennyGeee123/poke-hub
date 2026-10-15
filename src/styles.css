@@ -11787,3 +11787,59 @@ body[data-pv-tab="adventure"] .pv-music-panel,
 @media (prefers-reduced-motion: reduce) {
   .pv-go-target, .pv-go-ball-fly, .pv-go-ball-shake, .pv-go .pv-go-avatar[data-walking] > .relative img { animation: none !important; }
 }
+
+/* ── Review: map items, encounter sizing, a11y (review/map-encounter-perf) ── */
+/* Markers stand up out of the tilted ground (billboards) and accept a
+   declutter nudge. preserve-3d lets the counter-rotation actually cancel. */
+.pv-go .pv-go-viewport > [data-cam]:not([data-cam="tiles"]) {
+  transform-style: preserve-3d;
+}
+.pv-go .pv-go-marker {
+  /* Pivot at the base and lift 2px so no part of the billboard dips behind
+     the ground plane (that made its lower half — the CATCH buttons — untappable). */
+  transform-origin: 50% 100%;
+  transform: translate(-50%, -50%) translate3d(var(--pv-nx, 0px), var(--pv-ny, 0px), 2px)
+    rotateX(calc(-1 * var(--pv-tilt, 20deg)));
+  transition: scale 0.18s ease-out;
+}
+.pv-go .pv-go-marker:hover { scale: 1.1; }
+/* Hidden spawns are ground foliage: stay flat on the map (no billboard). */
+.pv-go .pv-go-marker.pv-go-marker-flat {
+  transform-origin: 50% 50%;
+  transform: translate(-50%, -50%) translate3d(var(--pv-nx, 0px), var(--pv-ny, 0px), 0);
+}
+/* Distance fade toward the horizon, like GO's soft far field. */
+.pv-go .pv-go-sky {
+  height: 34%;
+  background: linear-gradient(180deg, rgba(178, 226, 255, 0.97) 0%, rgba(205, 236, 255, 0.75) 40%, rgba(214, 240, 255, 0) 100%);
+}
+/* Keyboard focus: visible rings on map markers, map buttons, encounter. */
+.pv-go .pv-go-marker:focus-visible,
+.pv-go button:focus-visible,
+.pv-adv-encounter button:focus-visible {
+  outline: 3px solid #fde047;
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+.pv-go .pv-go-marker:focus { outline: none; }
+.pv-go .pv-go-marker:focus-visible { outline: 3px solid #fde047; }
+/* Encounter scene sizing across phones / tablets / short landscape screens. */
+.pv-go-enc-h { height: clamp(19rem, 56dvh, 30rem); }
+.pv-go-enc-sprite { width: clamp(6.5rem, 30vw, 10rem); height: clamp(6.5rem, 30vw, 10rem); }
+.pv-go-cp-num { font-size: clamp(1.9rem, 8vw, 2.6rem); }
+@media (max-height: 640px) {
+  .pv-go-enc-h { height: clamp(16rem, 70dvh, 22rem); }
+  .pv-go-enc-sprite { width: 6rem; height: 6rem; }
+  .pv-go-cp-num { font-size: 1.75rem; }
+}
+@media (min-width: 640px) {
+  .pv-go-enc-sprite { width: 10rem; height: 10rem; }
+}
+/* Reduced motion: stop decorative loops on the map and in the encounter. */
+@media (prefers-reduced-motion: reduce) {
+  .pv-go .animate-pulse, .pv-go .animate-bounce, .pv-go .animate-ping, .pv-go .animate-spin,
+  .pv-adv-encounter .animate-pulse, .pv-adv-encounter .animate-bounce {
+    animation: none !important;
+  }
+  .pv-go .pv-go-marker { transition: none; }
+}

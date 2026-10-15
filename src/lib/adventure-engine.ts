@@ -2669,6 +2669,8 @@ export function updatePlayerLocation(
   newCoords: { xPct: number; yPct: number },
   distMeters: number,
   newGeo?: { lat: number; lng: number; accuracy?: number; heading?: number },
+  /** persist: false lets callers batch localStorage writes while walking. */
+  opts?: { persist?: boolean },
 ): {
   state: AdventureState;
   newlyDiscovered: WildCreature[];
@@ -2766,6 +2768,6 @@ export function updatePlayerLocation(
     }
   });
 
-  saveAdventureState(updated);
+  if (opts?.persist !== false) saveAdventureState(updated);
   return { state: updated, newlyDiscovered };
 }
