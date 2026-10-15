@@ -16,6 +16,7 @@
 | `STRIPE_SECRET_KEY` | optional | Enables Stripe Checkout. Absent → orders stay `pending` and the customer is told a payment link will follow |
 | `STRIPE_WEBHOOK_SECRET` | with Stripe | Verifies `/api/stripe-webhook` (`checkout.session.completed` → `paid`) |
 | `RESEND_API_KEY` | optional | Order emails (received / paid / shipped + admin alert). Absent → silent no-op |
+| `VITE_SHOP_CONTACT_EMAIL` | optional | Shown as "Request a quote" (mailto) on price-on-request grades; without it those grades just say they can't be bought online yet |
 | `SHOP_EMAIL_FROM` | with Resend | e.g. `Kenny's Cards <orders@yourdomain.com>` (domain verified in Resend) |
 | `SHOP_ADMIN_EMAIL` | optional | Receives new-order alerts |
 | `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET` | optional | eBay Browse API as an extra price source |

@@ -58,7 +58,7 @@ function ShopPage() {
           {Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-72 animate-pulse rounded-xl bg-white/5" />)}
         </div>
       )}
-      {data && data.items.length === 0 && <p className="opacity-70">No products yet.</p>}
+      {data && data.items.length === 0 && <p className="opacity-70">{q.trim() ? <>No {kind === "single" ? "cards" : "sealed products"} match “{q.trim()}”. Try another name{kind === "sealed" ? " or the Single cards tab" : ""}.</> : "No products yet."}</p>}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {data?.items.map((it) => (
           <div key={it.id} className="flex flex-col rounded-xl bg-white/5 p-3">
@@ -74,6 +74,8 @@ function ShopPage() {
               </div>
               {it.sell_mode === "affiliate" && it.affiliate_url ? (
                 <a href={it.affiliate_url} target="_blank" rel="sponsored noopener noreferrer" className="rounded-lg bg-yellow-400 px-3 py-1.5 text-sm font-semibold text-black">Buy</a>
+              ) : it.kind === "single" ? (
+                <Link to="/shop/$id" params={{ id: it.id }} className="rounded-lg bg-yellow-400 px-3 py-1.5 text-sm font-semibold text-black">Choose grade</Link>
               ) : (
                 <button onClick={() => setBuying(it)} className="rounded-lg bg-yellow-400 px-3 py-1.5 text-sm font-semibold text-black">Buy</button>
               )}

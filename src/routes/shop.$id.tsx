@@ -53,12 +53,16 @@ function ProductPage() {
             </fieldset>
           )}
           <div className="mb-1 text-3xl font-bold">{onRequest ? "Price on request" : `$${Number(price).toFixed(2)}`}</div>
-          <div className="mb-4 text-xs opacity-60">Best price from {item.seller_count} seller{item.seller_count === 1 ? "" : "s"} we checked · updated {new Date(item.updated_at).toLocaleString()}</div>
+          <div className="mb-4 text-xs opacity-60">{onRequest ? <>Graded prices are quoted on request · we'll reply by email</> : <>Best price from {item.seller_count} seller{item.seller_count === 1 ? "" : "s"} we checked · updated {new Date(item.updated_at).toLocaleString()}</>}</div>
           <div className="mb-4 inline-block rounded-full bg-green-500/20 px-3 py-1 text-xs text-green-300">{item.in_stock ? "In stock" : "Out of stock"}</div>
           {affiliate ? (
             <a href={item.affiliate_url!} target="_blank" rel="sponsored noopener noreferrer" className="block w-full rounded-lg bg-yellow-400 py-3 text-center font-semibold text-black">Buy</a>
           ) : onRequest ? (
-            <a href={`mailto:?subject=${encodeURIComponent(`Quote request: ${item.name} (${chosen ? variantLabel(chosen) : ""})`)}`} className="block w-full rounded-lg bg-white/10 py-3 text-center font-semibold">Request a quote</a>
+            import.meta.env.VITE_SHOP_CONTACT_EMAIL ? (
+              <a href={`mailto:${import.meta.env.VITE_SHOP_CONTACT_EMAIL}?subject=${encodeURIComponent(`Quote request: ${item.name} (${chosen ? variantLabel(chosen) : ""})`)}`} className="block w-full rounded-lg bg-white/10 py-3 text-center font-semibold">Request a quote</a>
+            ) : (
+              <p className="rounded-lg bg-white/10 py-3 text-center text-sm">Not available to buy online yet. Choose a priced grade above.</p>
+            )
           ) : (
             <button onClick={() => setBuying(true)} className="w-full rounded-lg bg-yellow-400 py-3 font-semibold text-black">Buy now</button>
           )}
