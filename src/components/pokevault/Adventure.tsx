@@ -320,6 +320,11 @@ export function AdventureView() {
     saveAdventureState(updated);
   };
 
+  const moveSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastMoveSaveRef = useRef(Date.now());
+  useEffect(() => () => {
+    if (moveSaveTimerRef.current) clearTimeout(moveSaveTimerRef.current);
+  }, []);
   // Update Coordinates from Virtual Joystick, Real GPS, or Map Clicks
   const handleUpdateCoords = (
     newCoords: { xPct: number; yPct: number },
@@ -327,7 +332,7 @@ export function AdventureView() {
     newGeo?: { lat: number; lng: number; accuracy?: number; heading?: number },
   ) => {
     setAdventureState((prev) => {
-      const result = updatePlayerLocation(prev, newCoords, distMeters, newGeo);
+      const result = updatePlayerLocation(prev, newCoords, distMeters, newGeo, { persist: false });
       if (result.newlyDiscovered && result.newlyDiscovered.length > 0) {
         const first = result.newlyDiscovered[0];
         toast.success(`✨ Wild ${first.species} nearby! Walk up & catch · CP ${first.cp}`, {
@@ -348,6 +353,22 @@ export function AdventureView() {
       }
       return result.state;
     });
+    // Perf: moves no longer write localStorage each time (it was a full
+    // JSON.stringify of the world ~30×/s). Save at most every 2 s while
+    // walking, plus once ~0.8 s after you stop.
+    const flush = () => {
+      lastMoveSaveRef.current = Date.now();
+      setAdventureState((cur) => {
+        saveAdventureState(cur);
+        return cur;
+      });
+    };
+    if (moveSaveTimerRef.current) clearTimeout(moveSaveTimerRef.current);
+    if (Date.now() - lastMoveSaveRef.current > 2000) {
+      setTimeout(flush, 0);
+    } else {
+      moveSaveTimerRef.current = setTimeout(flush, 800);
+    }
   };
 
   // Hometown partner leads gym fights for this era. Sparky still leads until one is chosen.

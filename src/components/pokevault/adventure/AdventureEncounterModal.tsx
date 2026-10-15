@@ -150,10 +150,10 @@ export function AdventureEncounterModal({
 
   return (
     <div className="pv-adv-encounter fixed inset-0 z-50 flex justify-center overflow-y-auto p-3 sm:p-4 pb-[calc(var(--pv-tabbar-h,84px)+var(--pv-safe-b,0px)+16px)] bg-sky-950/60 backdrop-blur-md">
-      <div className="relative my-auto w-full max-w-lg rounded-3xl bg-white/95 border border-white shadow-2xl flex flex-col items-center gap-3 text-center overflow-hidden pb-5">
+      <div role="dialog" aria-modal="true" aria-label={`Wild ${creature.species} encounter`} className="relative my-auto w-full max-w-lg rounded-3xl bg-white/95 border border-white shadow-2xl flex flex-col items-center gap-3 text-center overflow-hidden pb-5">
         {/* GO-style scene: sky, hills, ground disc, Pokémon centred, ring + ball */}
         <div
-          className="pv-go-enc-scene relative w-full h-[27rem] sm:h-[29rem] overflow-hidden"
+          className="pv-go-enc-scene pv-go-enc-h relative w-full overflow-hidden"
           data-throw-phase={throwPhase}
         >
           <div className="pv-go-enc-hill" aria-hidden />
@@ -183,7 +183,7 @@ export function AdventureEncounterModal({
           {/* Name + CP label, GO-style, above the Pokémon */}
           <div className="absolute top-12 inset-x-0 flex flex-col items-center z-30 pv-go-cp">
             <span className="text-sm font-bold tracking-wide opacity-95">CP</span>
-            <span className="text-4xl font-extrabold leading-none" data-testid="enc-cp">
+            <span className="pv-go-cp-num font-extrabold leading-none" data-testid="enc-cp">
               {creature.cp}
             </span>
             <span className="mt-1 text-lg font-bold">{creature.species}</span>
@@ -195,7 +195,7 @@ export function AdventureEncounterModal({
           {/* Pokémon */}
           <WorldSprite
             name={creature.species}
-            className={`absolute left-1/2 bottom-[33%] -translate-x-1/2 w-36 h-36 object-contain z-20 drop-shadow-[0_10px_10px_rgba(0,0,0,0.35)] transition-all duration-300 ${
+            className={`absolute left-1/2 bottom-[33%] -translate-x-1/2 pv-go-enc-sprite object-contain z-20 drop-shadow-[0_10px_10px_rgba(0,0,0,0.35)] transition-all duration-300 ${
               throwPhase === "shaking"
                 ? "scale-0 opacity-0"
                 : throwPhase === "caught"
