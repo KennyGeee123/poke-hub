@@ -5,7 +5,9 @@ import { searchCards, getMarketPrice, type TCGCard } from "@/lib/pokemon-api";
 import { useVault, formatPrice } from "@/lib/vault";
 import { identifyCard } from "@/lib/scanner.functions";
 import { friendlyScanError } from "@/lib/scan-errors";
+import { setGuestScansUsed } from "@/lib/premium";
 import { usePremium } from "@/lib/premium";
+import { useAuth } from "@/lib/auth";
 import { formatCardNumber } from "@/lib/card-identity";
 import { Paywall, TrialBanner } from "./Paywall";
 
@@ -21,16 +23,24 @@ type Identified = {
 
 export function ScannerView({ onOpen }: { onOpen: (id: string) => void }) {
   const { scanLocked, incScan, isPro } = usePremium();
+  const { user } = useAuth();
   if (scanLocked) {
     return (
-      <Paywall reason="You've used your 10 free scans. Upgrade to keep scanning unlimited cards." />
+      <Paywall
+        reason={
+          user
+            ? "You've used your free scans. Upgrade to keep scanning unlimited cards."
+            : "Sign in for more scans. Your free guest scans on this device are used up."
+        }
+      />
     );
   }
   return (
     <ScannerInner
       onOpen={onOpen}
       onScanSuccess={() => {
-        if (!isPro) incScan();
+        // Guests: the server owns the count (synced via setGuestScansUsed).
+        if (!isPro && user) incScan();
       }}
       showTrial={!isPro}
     />
@@ -150,6 +160,7 @@ function ScannerInner({
     setError(null);
     try {
       const r: any = await identifyFn({ data: { imageDataUrl: dataUrl } });
+      if (r?.guest && typeof r.guest.used === "number") setGuestScansUsed(r.guest.used);
       if (!r?.ok) {
         setError(friendlyScanError(r?.error, "Could not identify card. Try typing the name."));
         setPhase("captured");

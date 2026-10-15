@@ -25,12 +25,19 @@ function readScans(): number {
   return Number(localStorage.getItem(SCAN_KEY) ?? "0") || 0;
 }
 
+/** Guests: mirror the server-side guest scan count (the server is the source of truth). */
+export function setGuestScansUsed(n: number) {
+  if (typeof localStorage === "undefined") return;
+  localStorage.setItem(SCAN_KEY, String(Math.max(0, n | 0)));
+  emit();
+}
+
 function emit() {
   window.dispatchEvent(new CustomEvent("pv-sub-change"));
 }
 
 export function usePremium() {
-  const { isOwner } = useAuth();
+  const { isOwner, user } = useAuth();
   const [tier, setTierState] = useState<Tier>("free");
   const [scansUsed, setScansUsed] = useState(0);
 
@@ -48,6 +55,20 @@ export function usePremium() {
       window.removeEventListener("storage", h);
     };
   }, []);
+
+  useEffect(() => {
+    if (user) return;
+    let alive = true;
+    import("./scanner.functions")
+      .then((m) => m.getGuestScanStatus())
+      .then((r) => {
+        if (alive && r && typeof r.used === "number") setGuestScansUsed(r.used);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [user]);
 
   const setTier = useCallback((t: Tier) => {
     localStorage.setItem(SUB_KEY, t);

@@ -4,6 +4,7 @@ import { searchCards, type TCGCard } from "@/lib/pokemon-api";
 import { formatPrice, useVault } from "@/lib/vault";
 import { identifyCard } from "@/lib/scanner.functions";
 import { friendlyScanError } from "@/lib/scan-errors";
+import { setGuestScansUsed } from "@/lib/premium";
 import { useLivePrice } from "@/lib/live-prices";
 import { hdImg } from "@/lib/card-images";
 import {
@@ -205,6 +206,7 @@ function ScanSlot({
     setBusy(true);
     try {
       const r: any = await identifyFn({ data: { imageDataUrl: dataUrl } });
+      if (r?.guest && typeof r.guest.used === "number") setGuestScansUsed(r.guest.used);
       const name = r?.card?.name || (r?.ok && r?.card?.name);
       if (!name) {
         setErr(friendlyScanError(r?.error, "Could not read the card. Search Find instead."));

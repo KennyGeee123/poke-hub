@@ -3,6 +3,7 @@
 // guests, so the SDK is not part of the first-paint bundle.
 import { createMiddleware } from "@tanstack/react-start";
 import { loadSupabase } from "@/integrations/supabase/lazy";
+import { getDeviceId } from "@/lib/device-id";
 
 function hasStoredSession(): boolean {
   try {
@@ -24,8 +25,10 @@ export const attachSupabaseAuthLazy = createMiddleware({ type: "function" }).cli
         token = undefined;
       }
     }
-    return next({
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const device = typeof window !== "undefined" ? getDeviceId() : "";
+    if (device) headers["x-pv-device"] = device;
+    return next({ headers });
   },
 );

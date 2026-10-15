@@ -1,6 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import {
+  claimGuestScan,
+  guestIdentity,
+  guestScanStatus,
+  optionalSupabaseAuth,
+} from "@/lib/optional-auth";
+import { getRequest } from "@tanstack/react-start/server";
 
 const SYSTEM = `You are a Pokémon TCG card identifier. Given a photo of a single Pokémon trading card (and optionally OCR text extracted from it), return:
 - name: the Pokémon / card name exactly as printed (e.g. "Charizard ex", "Pikachu V", "Professor's Research")
@@ -49,12 +55,27 @@ async function googleVisionOcr(dataUrl: string): Promise<{ text: string; raw?: a
 }
 
 export const identifyCard = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([optionalSupabaseAuth])
   .inputValidator(z.object({ imageDataUrl: z.string().min(32).max(8_000_000) }))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const key = process.env.AI_GATEWAY_API_KEY;
     const gateway = (process.env.AI_GATEWAY_URL || "").replace(/\/$/, "");
     if (!key || !gateway) return { ok: false as const, error: "AI gateway not configured" };
+
+    // Guests: server-side quota (2 per device lifetime, 4 per IP per day) BEFORE the paid call.
+    let guest: { used: number; limit: number } | null = null;
+    if (!context.userId) {
+      const { device, ip } = guestIdentity(context.request);
+      const q = await claimGuestScan(device, ip);
+      if (!q.ok) {
+        return {
+          ok: false as const,
+          error: q.reason === "store" ? "Scan quota unavailable. Try again." : "GUEST_LIMIT",
+          guest: { used: q.used, limit: q.limit },
+        };
+      }
+      guest = { used: q.used, limit: q.limit };
+    }
 
     // Google Vision OCR is optional — the scan still works without the key.
     const visionConfigured = !!process.env.GOOGLE_VISION_API_KEY;
@@ -99,8 +120,13 @@ export const identifyCard = createServerFn({ method: "POST" })
       const match = raw.match(/\{[\s\S]*\}/);
       if (!match) return { ok: false as const, error: "No JSON returned", raw, ocrText };
       const parsed = JSON.parse(match[0]);
-      return { ok: true as const, card: parsed, ocrText, ocrUsed: !!ocr };
+      return { ok: true as const, card: parsed, ocrText, ocrUsed: !!ocr, guest };
     } catch (e: any) {
       return { ok: false as const, error: e?.message || "Identification failed", ocrText };
     }
   });
+
+export const getGuestScanStatus = createServerFn({ method: "GET" }).handler(async () => {
+  const { device } = guestIdentity(getRequest());
+  return guestScanStatus(device);
+});
