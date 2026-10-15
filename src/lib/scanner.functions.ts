@@ -110,39 +110,66 @@ export const identifyCard = createServerFn({ method: "POST" })
         { type: "image_url", image_url: { url: data.imageDataUrl } },
       ];
 
-      const call = () => fetch(gateway, {
-        signal: AbortSignal.timeout(25_000),
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${key}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: process.env.AI_SCAN_MODEL || "qwen/qwen3.8-27b",
-          // Groq reasoning models: keep <think> text out of the JSON reply.
-          ...(gateway.includes("groq.com") ? { reasoning_format: "hidden" } : {}),
-          messages: [
-            { role: "system", content: SYSTEM },
-            { role: "user", content: userContent },
-          ],
-        }),
-      });
-      let res = await call();
-      // Free-tier per-minute cap: retry (max 2x) when Groq says capacity frees up within 8s.
-      for (let attempt = 0; attempt < 2 && res.status === 429; attempt++) {
-        const body = await res.clone().text().catch(() => "");
-        const hinted = Number(body.match(/try again in ([\d.]+)s/i)?.[1]);
-        const wait = Number(res.headers.get("retry-after")) || (Number.isFinite(hinted) ? hinted : 3);
-        if (wait > 8) break;
-        await new Promise((r) => setTimeout(r, wait * 1000 + 300));
-        res = await call();
+      type Provider = { name: string; url: string; key: string; model: string };
+      const providers: Provider[] = [
+        { name: "primary", url: gateway, key, model: process.env.AI_SCAN_MODEL || "qwen/qwen3.8-27b" },
+      ];
+      const fbUrl = chatCompletionsUrl(process.env.AI_FALLBACK_URL);
+      const fbKey = process.env.AI_FALLBACK_API_KEY;
+      if (fbUrl && fbKey) {
+        providers.push({ name: "fallback", url: fbUrl, key: fbKey, model: process.env.AI_FALLBACK_MODEL || "gemini-2.5-flash" });
       }
-      if (!res.ok) {
-        const txt = await res.text().catch(() => "");
-        console.error("[identifyCard] gateway", res.status, txt.slice(0, 300));
+      const callProvider = (p: Provider) =>
+        fetch(p.url, {
+          signal: AbortSignal.timeout(20_000),
+          method: "POST",
+          headers: { Authorization: `Bearer ${p.key}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: p.model,
+            // Groq reasoning models: keep <think> text out of the JSON reply.
+            ...(p.url.includes("groq.com") ? { reasoning_format: "hidden" } : {}),
+            messages: [
+              { role: "system", content: SYSTEM },
+              { role: "user", content: userContent },
+            ],
+          }),
+        });
+
+      let res: Response | null = null;
+      let lastStatus = 0;
+      let provider = "";
+      for (const [i, p] of providers.entries()) {
+        const hasNext = i < providers.length - 1;
+        try {
+          let r = await callProvider(p);
+          // Short per-minute waits are worth one retry only when there is no backup to try.
+          if (!hasNext && r.status === 429) {
+            const body = await r.clone().text().catch(() => "");
+            const hinted = Number(body.match(/try again in ([\d.]+)s/i)?.[1]);
+            const wait = Number(r.headers.get("retry-after")) || (Number.isFinite(hinted) ? hinted : 99);
+            if (wait <= 8) {
+              await new Promise((ok) => setTimeout(ok, wait * 1000 + 300));
+              r = await callProvider(p);
+            }
+          }
+          if (r.ok) {
+            res = r;
+            provider = p.name;
+            break;
+          }
+          lastStatus = r.status;
+          const txt = await r.text().catch(() => "");
+          console.error(`[identifyCard] ${p.name} ${r.status}`, txt.slice(0, 300));
+        } catch (e: any) {
+          lastStatus = 504;
+          console.error(`[identifyCard] ${p.name} error`, e?.name || e?.message);
+        }
+      }
+      if (!res) {
+        // Every provider failed on our side: give the guest scan back.
         return {
           ok: false as const,
-          error: res.status === 429 ? "SCAN_BUSY" : "SCAN_SERVICE_DOWN",
+          error: lastStatus === 429 ? "SCAN_BUSY" : "SCAN_SERVICE_DOWN",
           ocrText,
           guest: await refund(),
         };
@@ -153,7 +180,7 @@ export const identifyCard = createServerFn({ method: "POST" })
       const match = raw.match(/\{[\s\S]*\}/);
       if (!match) return { ok: false as const, error: "SCAN_UNREADABLE", raw, ocrText, guest };
       const parsed = JSON.parse(match[0]);
-      return { ok: true as const, card: parsed, ocrText, ocrUsed: !!ocr, guest };
+      return { ok: true as const, card: parsed, ocrText, ocrUsed: !!ocr, guest, provider };
     } catch (e: any) {
       const timedOut = e?.name === "TimeoutError" || e?.name === "AbortError";
       return {
