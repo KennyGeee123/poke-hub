@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-export const Route = createFileRoute("/shop")({
+export const Route = createFileRoute("/shop/")({
   head: () => ({
     meta: [
       { title: "Shop sealed & singles — PokéVault Pro" },

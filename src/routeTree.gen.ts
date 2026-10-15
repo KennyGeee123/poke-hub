@@ -9,9 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ShopRouteImport } from './routes/shop'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ShopIndexRouteImport } from './routes/shop.index'
 import { Route as ShopConfirmationRouteImport } from './routes/shop.confirmation'
 import { Route as ShopAdminRouteImport } from './routes/shop.admin'
 import { Route as ApiShopRefreshRouteImport } from './routes/api/shop-refresh'
@@ -32,11 +32,6 @@ import { Route as ApiPublicCardImageRouteImport } from './routes/api/public/card
 import { Route as ApiPublicBulbaRouteImport } from './routes/api/public/bulba'
 import { Route as ApiPublicAuthStatusRouteImport } from './routes/api/public/auth-status'
 
-const ShopRoute = ShopRouteImport.update({
-  id: '/shop',
-  path: '/shop',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -47,15 +42,20 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ShopIndexRoute = ShopIndexRouteImport.update({
+  id: '/shop/',
+  path: '/shop/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShopConfirmationRoute = ShopConfirmationRouteImport.update({
-  id: '/confirmation',
-  path: '/confirmation',
-  getParentRoute: () => ShopRoute,
+  id: '/shop/confirmation',
+  path: '/shop/confirmation',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ShopAdminRoute = ShopAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => ShopRoute,
+  id: '/shop/admin',
+  path: '/shop/admin',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiShopRefreshRoute = ApiShopRefreshRouteImport.update({
   id: '/api/shop-refresh',
@@ -146,11 +146,11 @@ const ApiPublicAuthStatusRoute = ApiPublicAuthStatusRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/shop': typeof ShopRouteWithChildren
   '/api/shop-admin': typeof ApiShopAdminRoute
   '/api/shop-refresh': typeof ApiShopRefreshRoute
   '/shop/admin': typeof ShopAdminRoute
   '/shop/confirmation': typeof ShopConfirmationRoute
+  '/shop/': typeof ShopIndexRoute
   '/api/public/auth-status': typeof ApiPublicAuthStatusRoute
   '/api/public/bulba': typeof ApiPublicBulbaRoute
   '/api/public/card-image': typeof ApiPublicCardImageRoute
@@ -170,11 +170,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/shop': typeof ShopRouteWithChildren
   '/api/shop-admin': typeof ApiShopAdminRoute
   '/api/shop-refresh': typeof ApiShopRefreshRoute
   '/shop/admin': typeof ShopAdminRoute
   '/shop/confirmation': typeof ShopConfirmationRoute
+  '/shop': typeof ShopIndexRoute
   '/api/public/auth-status': typeof ApiPublicAuthStatusRoute
   '/api/public/bulba': typeof ApiPublicBulbaRoute
   '/api/public/card-image': typeof ApiPublicCardImageRoute
@@ -195,11 +195,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/shop': typeof ShopRouteWithChildren
   '/api/shop-admin': typeof ApiShopAdminRoute
   '/api/shop-refresh': typeof ApiShopRefreshRoute
   '/shop/admin': typeof ShopAdminRoute
   '/shop/confirmation': typeof ShopConfirmationRoute
+  '/shop/': typeof ShopIndexRoute
   '/api/public/auth-status': typeof ApiPublicAuthStatusRoute
   '/api/public/bulba': typeof ApiPublicBulbaRoute
   '/api/public/card-image': typeof ApiPublicCardImageRoute
@@ -221,11 +221,11 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
-    | '/shop'
     | '/api/shop-admin'
     | '/api/shop-refresh'
     | '/shop/admin'
     | '/shop/confirmation'
+    | '/shop/'
     | '/api/public/auth-status'
     | '/api/public/bulba'
     | '/api/public/card-image'
@@ -245,11 +245,11 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
-    | '/shop'
     | '/api/shop-admin'
     | '/api/shop-refresh'
     | '/shop/admin'
     | '/shop/confirmation'
+    | '/shop'
     | '/api/public/auth-status'
     | '/api/public/bulba'
     | '/api/public/card-image'
@@ -269,11 +269,11 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/login'
-    | '/shop'
     | '/api/shop-admin'
     | '/api/shop-refresh'
     | '/shop/admin'
     | '/shop/confirmation'
+    | '/shop/'
     | '/api/public/auth-status'
     | '/api/public/bulba'
     | '/api/public/card-image'
@@ -294,9 +294,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
-  ShopRoute: typeof ShopRouteWithChildren
   ApiShopAdminRoute: typeof ApiShopAdminRoute
   ApiShopRefreshRoute: typeof ApiShopRefreshRoute
+  ShopAdminRoute: typeof ShopAdminRoute
+  ShopConfirmationRoute: typeof ShopConfirmationRoute
+  ShopIndexRoute: typeof ShopIndexRoute
   ApiPublicAuthStatusRoute: typeof ApiPublicAuthStatusRoute
   ApiPublicBulbaRoute: typeof ApiPublicBulbaRoute
   ApiPublicCardImageRoute: typeof ApiPublicCardImageRoute
@@ -316,13 +318,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/shop': {
-      id: '/shop'
-      path: '/shop'
-      fullPath: '/shop'
-      preLoaderRoute: typeof ShopRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -337,19 +332,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/shop/': {
+      id: '/shop/'
+      path: '/shop'
+      fullPath: '/shop/'
+      preLoaderRoute: typeof ShopIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/shop/confirmation': {
       id: '/shop/confirmation'
-      path: '/confirmation'
+      path: '/shop/confirmation'
       fullPath: '/shop/confirmation'
       preLoaderRoute: typeof ShopConfirmationRouteImport
-      parentRoute: typeof ShopRoute
+      parentRoute: typeof rootRouteImport
     }
     '/shop/admin': {
       id: '/shop/admin'
-      path: '/admin'
+      path: '/shop/admin'
       fullPath: '/shop/admin'
       preLoaderRoute: typeof ShopAdminRouteImport
-      parentRoute: typeof ShopRoute
+      parentRoute: typeof rootRouteImport
     }
     '/api/shop-refresh': {
       id: '/api/shop-refresh'
@@ -473,24 +475,14 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface ShopRouteChildren {
-  ShopAdminRoute: typeof ShopAdminRoute
-  ShopConfirmationRoute: typeof ShopConfirmationRoute
-}
-
-const ShopRouteChildren: ShopRouteChildren = {
-  ShopAdminRoute: ShopAdminRoute,
-  ShopConfirmationRoute: ShopConfirmationRoute,
-}
-
-const ShopRouteWithChildren = ShopRoute._addFileChildren(ShopRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
-  ShopRoute: ShopRouteWithChildren,
   ApiShopAdminRoute: ApiShopAdminRoute,
   ApiShopRefreshRoute: ApiShopRefreshRoute,
+  ShopAdminRoute: ShopAdminRoute,
+  ShopConfirmationRoute: ShopConfirmationRoute,
+  ShopIndexRoute: ShopIndexRoute,
   ApiPublicAuthStatusRoute: ApiPublicAuthStatusRoute,
   ApiPublicBulbaRoute: ApiPublicBulbaRoute,
   ApiPublicCardImageRoute: ApiPublicCardImageRoute,

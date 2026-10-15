@@ -154,7 +154,11 @@ function Products({ call }: { call: Call }) {
   const [msg, setMsg] = useState<string | null>(null);
   const load = useCallback(() => call("products.list", { q, page }).then(setData).catch((e) => setMsg(e.message)), [call, q, page]);
   useEffect(() => { const t = setTimeout(load, 300); return () => clearTimeout(t); }, [load]);
-  const update = (id: string, patch: Any) => call("product.update", { id, ...patch }).then(load).catch((e) => setMsg(e.message));
+  const update = (id: string, patch: Any) => {
+    // Optimistic: reflect the change immediately, then reconcile with the server.
+    setData((d: Any) => (d ? { ...d, products: d.products.map((p: Any) => (p.id === id ? { ...p, ...patch } : p)) } : d));
+    return call("product.update", { id, ...patch }).then(() => { setMsg(null); load(); }).catch((e) => { setMsg(e.message); load(); });
+  };
   const pages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
   return (
     <div className="space-y-3">
@@ -206,7 +210,7 @@ function Markup({ call }: { call: Call }) {
       </div>
       {msg && <p className="opacity-80">{msg}</p>}
       <div className={box}>
-        <div className="mb-1 font-medium">Preview (saved active tiers)</div>
+        <div className="mb-1 font-medium">Preview (active tiers shown above)</div>
         {[5, 15, 19.99, 25, 60, 99.99, 120, 250, 500].map((p) => <div key={p}>{money(p)} → {money(salePrice(p, active))}</div>)}
       </div>
     </div>
@@ -225,7 +229,8 @@ function Refresh({ call }: { call: Call }) {
     try {
       for (;;) {
         const r = await call("refresh", { offset: off, limit, kinds: Object.entries(kinds).filter(([, v]) => v).map(([k]) => k) });
-        setLog((l) => [`offset ${off} → ${r.nextOffset}: ${r.groups.join(", ")} · ${r.products} products, ${r.listings} listings ${JSON.stringify(r.sources)}`, ...l].slice(0, 100));
+        const line = `offset ${off} → ${r.nextOffset}${r.done ? " (done)" : ""}: ${r.groups.join(", ")} · ${r.products} products, ${r.listings} listings ${JSON.stringify(r.sources)}`;
+        setLog((l) => [line, ...l].slice(0, 100));
         off = r.nextOffset; setOffset(off);
         if (!loop || r.done) break;
       }

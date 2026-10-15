@@ -30,3 +30,4 @@ BEGIN
   RETURN n;
 END $$;
 REVOKE ALL ON FUNCTION public.shop_recompute_prices() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.shop_recompute_prices() TO service_role;
