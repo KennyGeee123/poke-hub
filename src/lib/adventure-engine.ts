@@ -2321,12 +2321,35 @@ export function executeEvolution(
 // ENCOUNTER & CAPTURE LOGIC
 // ─────────────────────────────────────────────────────────────────────────────
 
+export const THROW_MULTIPLIERS = { nice: 1.0, great: 1.3, excellent: 1.7 } as const;
+/** Bonus for a spun (curveball) throw; stacks multiplicatively, once. */
+export const CURVEBALL_MULTIPLIER = 1.3;
+
+/** Final catch chance, always clamped to [0, 1] (bad data can't go negative or NaN). */
+export function captureProbability(
+  baseCatchRate: number,
+  ballMultiplier: number,
+  berryMultiplier: number,
+  throwPrecision: "nice" | "great" | "excellent",
+  curveball: boolean,
+): number {
+  const raw =
+    baseCatchRate *
+    ballMultiplier *
+    berryMultiplier *
+    (THROW_MULTIPLIERS[throwPrecision] ?? 1) *
+    (curveball ? CURVEBALL_MULTIPLIER : 1);
+  if (!Number.isFinite(raw)) return raw > 0 ? 1 : 0;
+  return Math.min(1, Math.max(0, raw));
+}
+
 export function attemptCapture(
   state: AdventureState,
   creatureId: string,
   ballId: CaptureItemId,
   berryId?: CaptureItemId,
   throwPrecision: "nice" | "great" | "excellent" = "great",
+  options: { curveball?: boolean; rng?: () => number } = {},
 ): {
   success: boolean;
   state: AdventureState;
@@ -2351,15 +2374,16 @@ export function attemptCapture(
     if (berryId === "pinap_berry") doubleCandy = true;
   }
 
-  const ballMultiplier = CAPTURE_ITEMS[ballId].multiplier;
-  const throwMultiplier =
-    throwPrecision === "excellent" ? 1.7 : throwPrecision === "great" ? 1.3 : 1.0;
-
-  const finalRate = Math.min(
-    1.0,
-    creature.baseCatchRate * ballMultiplier * berryMultiplier * throwMultiplier,
+  const rng = options.rng ?? Math.random;
+  const finalRate = captureProbability(
+    creature.baseCatchRate,
+    CAPTURE_ITEMS[ballId].multiplier,
+    berryMultiplier,
+    throwPrecision,
+    options.curveball ?? false,
   );
-  const caught = Math.random() <= finalRate || ballId === "master_ball";
+  // Strict `<` so a 0% rate can never succeed even if rng() returns exactly 0.
+  const caught = ballId === "master_ball" || rng() < finalRate;
 
   if (caught) {
     updated.wildCreatures = updated.wildCreatures.filter((c) => c.id !== creatureId);
