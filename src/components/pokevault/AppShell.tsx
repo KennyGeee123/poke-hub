@@ -215,6 +215,12 @@ export function MoreSheet({ open, activeTab, isPro, onClose, onPick }: MoreSheet
           onPick={onPick}
         />
 
+        <div className="pv-more-legal">
+          <a href="/holofare" className="pv-more-legal-link" data-testid="nav-holofare">
+            HoloFare — personal card buyer (demo)
+          </a>
+        </div>
+
         <div className="pv-more-sec">Legal</div>
         <div className="pv-more-legal">
           <a href="/privacy.html" className="pv-more-legal-link">
