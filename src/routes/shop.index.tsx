@@ -69,7 +69,7 @@ function ShopPage() {
             </Link>
             <div className="mt-auto flex items-end justify-between">
               <div>
-                <div className="text-lg font-bold">${Number(it.sale_price).toFixed(2)}</div>
+                <div className="text-lg font-bold">{it.kind === "single" && <span className="text-xs font-normal opacity-60">from </span>}${Number(it.sale_price).toFixed(2)}</div>
                 <div className="text-[10px] opacity-50">Checked {it.seller_count} seller{it.seller_count === 1 ? "" : "s"} · {new Date(it.updated_at).toLocaleDateString()}</div>
               </div>
               {it.sell_mode === "affiliate" && it.affiliate_url ? (

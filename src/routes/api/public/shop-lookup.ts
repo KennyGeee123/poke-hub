@@ -11,7 +11,7 @@ export const Route = createFileRoute("/api/public/shop-lookup")({
         const email = String(b?.email ?? "").trim().toLowerCase().slice(0, 200);
         if (code.length !== 8 || !email) return Response.json({ error: "Enter your 8-character order number and email" }, { status: 400 });
         const { data } = await adminDb().from("shop_orders")
-          .select("order_code,product_id,product_name,quantity,sale_price,status,tracking_number,created_at,paid_at,shipped_at,customer_email")
+          .select("order_code,product_id,product_name,variant_label,quantity,sale_price,status,tracking_number,created_at,paid_at,shipped_at,customer_email")
           .eq("order_code", code);
         const o = (data ?? []).find((r) => String(r.customer_email).toLowerCase() === email);
         if (!o) return Response.json({ error: "No order found for that number and email" }, { status: 404 });

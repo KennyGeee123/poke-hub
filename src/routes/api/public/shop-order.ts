@@ -4,6 +4,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { EMAIL_RE, orderCode, validateShipping } from "@/lib/shop/checkout";
 import { adminDb, createCheckout, notifyOrder, siteUrl } from "@/lib/shop/server";
+import { variantLabel } from "@/lib/shop/grades";
 
 export const Route = createFileRoute("/api/public/shop-order")({
   server: {
@@ -20,13 +21,26 @@ export const Route = createFileRoute("/api/public/shop-order")({
         if (shipErr) return Response.json({ error: shipErr }, { status: 400 });
         const sb = adminDb();
         const { data: p, error } = await sb.from("shop_products").select("id,name,sale_price,cheapest_source_price,cheapest_source,cheapest_source_url,in_stock,sell_mode,hidden,price_override").eq("id", productId).maybeSingle();
-        const price = p?.price_override ?? p?.sale_price;
+        let price = p?.price_override ?? p?.sale_price;
         if (error || !p || price == null || !p.in_stock || p.sell_mode !== "store" || p.hidden) return Response.json({ error: "Product unavailable" }, { status: 404 });
+        // Chosen grade/condition: price and source come from that variant (never from the client).
+        let snap = { price: p.cheapest_source_price, source: p.cheapest_source, url: p.cheapest_source_url };
+        let variant: { id: string; label: string } | null = null;
+        const variantId = b?.variantId ? String(b.variantId).slice(0, 200) : "";
+        if (variantId) {
+          const { data: v } = await sb.from("shop_variants").select("id,product_id,finish,grader,grade,source,source_price,source_url,sale_price,price_status,hidden").eq("id", variantId).maybeSingle();
+          if (!v || v.product_id !== p.id || v.hidden) return Response.json({ error: "That grade isn't available" }, { status: 404 });
+          if (v.price_status !== "priced" || v.sale_price == null) return Response.json({ error: "That grade is price on request — contact us for a quote" }, { status: 409 });
+          price = v.sale_price;
+          snap = { price: v.source_price, source: v.source, url: v.source_url };
+          variant = { id: v.id, label: variantLabel(v) };
+        }
         const { data: order, error: oe } = await sb.from("shop_orders").insert({
           product_id: p.id, product_name: p.name, quantity: qty, sale_price: price,
-          source_price_snapshot: p.cheapest_source_price, source_snapshot: p.cheapest_source, source_url_snapshot: p.cheapest_source_url,
+          source_price_snapshot: snap.price, source_snapshot: snap.source, source_url_snapshot: snap.url,
+          variant_id: variant?.id ?? null, variant_label: variant?.label ?? null,
           customer_email: email, customer_name: String(b?.name ?? "").slice(0, 120), shipping_address: clean,
-        }).select("id,status,sale_price,quantity,product_name,customer_email").single();
+        }).select("id,status,sale_price,quantity,product_name,customer_email,variant_label").single();
         if (oe || !order) return Response.json({ error: "Could not create order" }, { status: 500 });
         const site = siteUrl(request);
         const pub = { id: order.id, code: orderCode(order.id), status: order.status, sale_price: order.sale_price, quantity: order.quantity };

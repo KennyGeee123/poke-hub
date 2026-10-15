@@ -4,6 +4,7 @@ import { ADMIN_HEADER, ORDER_STATUSES } from "@/lib/shop/admin";
 import { DEFAULT_PRICING, type MarkupRule, type PricingSettings, type RoundingMode, normalizePricing, salePrice } from "@/lib/shop/core";
 import { profit as calcProfit, profitPct } from "@/lib/shop/admin";
 import { formatAddress, orderCode, plural } from "@/lib/shop/checkout";
+import { sortVariants, variantLabel } from "@/lib/shop/grades";
 
 export const Route = createFileRoute("/shop/admin")({
   head: () => ({ meta: [{ title: "Shop admin" }, { name: "robots", content: "noindex" }] }),
@@ -104,7 +105,7 @@ function Orders({ call }: { call: Call }) {
           {orders.map((o) => (
             <tr key={o.id} className={`border-t border-white/10 ${o.negative_margin ? "bg-red-500/10" : ""}`}>
               <td className="font-mono">{orderCode(o.id)}</td>
-              <td>{new Date(o.created_at).toLocaleString()}</td><td>{o.product_name}</td><td>{o.quantity}</td>
+              <td>{new Date(o.created_at).toLocaleString()}</td><td>{o.product_name}{o.variant_label && <span className="opacity-60"> · {o.variant_label}</span>}</td><td>{o.quantity}</td>
               <td>{money(o.sale_price)}</td><td>{money(o.source_price_snapshot)} {o.source_snapshot}</td><td>{money(o.profit)}{pct(o.profit_pct)}{o.negative_margin && <span title={`Cheapest source is now ${money(o.current_source_price)}`} className="ml-1 text-red-400">⚠</span>}</td><td>{o.status}</td>
               <td><button className={btn} onClick={() => call("order.get", { id: o.id }).then(setOpen).catch((e) => setMsg(e.message))}>Open</button></td>
             </tr>
@@ -128,6 +129,7 @@ function OrderDetail({ data, call, onClose }: { data: Any; call: Call; onClose: 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
       <div className="max-h-[90vh] w-full max-w-2xl space-y-3 overflow-auto rounded-xl bg-neutral-900 p-4" onClick={(e) => e.stopPropagation()}>
         <h2 className="font-bold">{o.product_name} × {o.quantity}</h2>
+        {o.variant_label && <div className="text-sm text-yellow-300">Grade / condition: {o.variant_label}</div>}
         <div className={box + " text-sm"}>
           <div className="mb-1 opacity-70">Order #{orderCode(o.id)} · {o.customer_email}</div>
           <pre className="whitespace-pre-wrap font-sans">{address}</pre>
@@ -184,6 +186,7 @@ function Products({ call }: { call: Call }) {
           <input defaultValue={p.price_override ?? ""} placeholder="Price override" onBlur={(e) => e.target.value !== String(p.price_override ?? "") && update(p.id, { price_override: e.target.value })} className={input} />
           <input defaultValue={p.affiliate_url ?? ""} placeholder="Affiliate URL" onBlur={(e) => e.target.value !== (p.affiliate_url ?? "") && update(p.id, { affiliate_url: e.target.value })} className={input} />
           <label className="flex items-center gap-1"><input type="checkbox" checked={p.hidden} onChange={(e) => update(p.id, { hidden: e.target.checked })} />Hide</label>
+          {p.kind === "single" && <div className="md:col-span-5"><VariantsPanel call={call} productId={p.id} /></div>}
         </div>
       ))}
       {data && <div className="flex items-center justify-center gap-3 text-sm">
@@ -275,6 +278,52 @@ function Refresh({ call }: { call: Call }) {
         {busy && <span className="opacity-70">Running…</span>}
       </div>
       <pre className="max-h-96 overflow-auto whitespace-pre-wrap rounded bg-black/40 p-2 text-xs">{log.join("\n")}</pre>
+    </div>
+  );
+}
+
+function VariantsPanel({ call, productId }: { call: Call; productId: string }) {
+  const [open, setOpen] = useState(false);
+  const [vs, setVs] = useState<Any[] | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const load = useCallback(() => call("variants.list", { productId }).then((j) => setVs(sortVariants(j.variants))).catch((e) => setMsg(e.message)), [call, productId]);
+  useEffect(() => { if (open) load(); }, [open, load]);
+  const fetchGrades = async () => {
+    setBusy(true); setMsg(null);
+    try {
+      const r = await call("grades.refresh", { productId });
+      const p = r.products[0];
+      setMsg(`Sources: ${Object.entries(r.status).map(([k, v]) => `${k}=${v}`).join(", ")}. Priced: ${p?.priced.length ? p.priced.join("; ") : "none"}${p?.onRequest.length ? `. On request: ${p.onRequest.join(", ")}` : ""}`);
+      await load();
+    } catch (e) { setMsg((e as Error).message); }
+    setBusy(false);
+  };
+  return (
+    <div className="mt-1">
+      <button className={btn} onClick={() => setOpen(!open)}>{open ? "Hide" : "Show"} grades / conditions</button>
+      {open && (
+        <div className="mt-2 rounded bg-black/30 p-2">
+          <table className="w-full text-xs">
+            <thead className="text-left opacity-60"><tr><th>Variant</th><th>Source</th><th>Source $</th><th>Sale $</th><th>Profit</th><th>Samples</th><th>Updated</th><th>Hide</th></tr></thead>
+            <tbody>{(vs ?? []).map((v) => (
+              <tr key={v.id} className="border-t border-white/10">
+                <td>{variantLabel(v as never)}</td>
+                <td>{v.source_url ? <a href={v.source_url} target="_blank" rel="noreferrer" className="underline">{v.source}</a> : v.source ?? "—"}</td>
+                <td>{money(v.source_price)}</td>
+                <td>{v.price_status === "priced" ? money(v.sale_price) : "on request"}</td>
+                <td>{v.price_status === "priced" ? <>{money(calcProfit(v.sale_price, v.source_price))}{pct(profitPct(v.sale_price, v.source_price))}</> : ""}</td>
+                <td>{v.sample_size ?? ""}</td>
+                <td>{new Date(v.updated_at).toLocaleDateString()}</td>
+                <td><input type="checkbox" checked={v.hidden} onChange={(e) => call("variant.update", { id: v.id, hidden: e.target.checked }).then(load)} /></td>
+              </tr>))}
+              {vs && !vs.length && <tr><td colSpan={8} className="opacity-60">No variants yet. Run a refresh.</td></tr>}
+            </tbody>
+          </table>
+          <button disabled={busy} onClick={fetchGrades} className="mt-2 rounded bg-yellow-400 px-3 py-1 text-xs font-semibold text-black disabled:opacity-50">{busy ? "Fetching graded prices…" : "Fetch graded prices (eBay / PriceCharting)"}</button>
+          {msg && <p className="mt-1 text-xs opacity-80">{msg}</p>}
+        </div>
+      )}
     </div>
   );
 }

@@ -10,7 +10,7 @@ export const Route = createFileRoute("/shop/order")({
 const STEPS = ["pending", "paid", "ordered_from_source", "shipped", "delivered"];
 const LABEL: Record<string, string> = { pending: "Awaiting payment", paid: "Paid", ordered_from_source: "Being prepared", shipped: "Shipped", delivered: "Delivered", cancelled: "Cancelled", refunded: "Refunded" };
 
-type Order = { order_code: string; product_id: string; product_name: string; quantity: number; total: number; status: string; tracking_number: string | null; created_at: string };
+type Order = { order_code: string; product_id: string; product_name: string; variant_label: string | null; quantity: number; total: number; status: string; tracking_number: string | null; created_at: string };
 
 function Lookup() {
   const search = Route.useSearch();
@@ -38,7 +38,7 @@ function Lookup() {
       {order && (
         <div className="mt-6 space-y-3 rounded-xl bg-white/5 p-4">
           <div className="text-sm opacity-60">Order #{order.order_code} · {new Date(order.created_at).toLocaleDateString()}</div>
-          <div className="font-medium">{order.quantity} × <Link to="/shop/$id" params={{ id: order.product_id }} className="underline">{order.product_name}</Link></div>
+          <div className="font-medium">{order.quantity} × <Link to="/shop/$id" params={{ id: order.product_id }} className="underline">{order.product_name}</Link>{order.variant_label && <span className="opacity-70"> · {order.variant_label}</span>}</div>
           <div>Total ${order.total.toFixed(2)}</div>
           <div className="text-lg font-bold">{LABEL[order.status] ?? order.status}</div>
           {idx >= 0 && <div className="flex gap-1">{STEPS.map((s, i) => <div key={s} title={LABEL[s]} className={`h-2 flex-1 rounded ${i <= idx ? "bg-yellow-400" : "bg-white/10"}`} />)}</div>}

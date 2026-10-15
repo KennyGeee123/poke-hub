@@ -26,9 +26,9 @@ export async function sendEmail(to: string | undefined | null, subject: string, 
   }
 }
 
-type OrderRow = { id: string; product_name: string; quantity: number; sale_price: number; tracking_number?: string | null; customer_email: string };
+type OrderRow = { id: string; product_name: string; variant_label?: string | null; quantity: number; sale_price: number; tracking_number?: string | null; customer_email: string };
 export function emailInput(o: OrderRow, site: string): OrderEmailInput {
-  return { code: orderCode(o.id), productName: o.product_name, quantity: o.quantity, total: Number(o.sale_price) * o.quantity, tracking: o.tracking_number, siteUrl: site };
+  return { code: orderCode(o.id), productName: o.variant_label ? `${o.product_name} (${o.variant_label})` : o.product_name, quantity: o.quantity, total: Number(o.sale_price) * o.quantity, tracking: o.tracking_number, siteUrl: site };
 }
 export async function notifyOrder(kind: "received" | "paid" | "shipped", o: OrderRow, site: string) {
   const e = orderEmail(kind, emailInput(o, site));
@@ -55,7 +55,7 @@ export async function createCheckout(o: OrderRow, site: string): Promise<{ id: s
     "line_items[0][quantity]": String(o.quantity),
     "line_items[0][price_data][currency]": "usd",
     "line_items[0][price_data][unit_amount]": String(Math.round(Number(o.sale_price) * 100)),
-    "line_items[0][price_data][product_data][name]": o.product_name,
+    "line_items[0][price_data][product_data][name]": o.variant_label ? `${o.product_name} (${o.variant_label})` : o.product_name,
   });
   const r = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",

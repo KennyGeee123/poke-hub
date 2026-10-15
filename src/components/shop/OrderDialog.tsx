@@ -15,7 +15,8 @@ export const TYPE_LABEL: Record<string, string> = {
 const lbl = "mb-0.5 block text-xs opacity-70";
 const inp = "w-full rounded bg-white/10 px-3 py-2 text-sm";
 
-export function OrderDialog({ item, onClose }: { item: ShopItem; onClose: () => void }) {
+export function OrderDialog({ item, onClose, variant }: { item: ShopItem; onClose: () => void; variant?: { id: string; label: string; sale_price: number } | null }) {
+  const unit = Number(variant?.sale_price ?? item.sale_price);
   const [f, setF] = useState({ name: "", email: "", line1: "", line2: "", city: "", state: "", zip: "", country: "US", quantity: 1 });
   const [sending, setSending] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -30,7 +31,7 @@ export function OrderDialog({ item, onClose }: { item: ShopItem; onClose: () => 
     setSending(true); setMsg(null);
     const r = await fetch("/api/public/shop-order", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ productId: item.id, quantity: qty, email: f.email, name: f.name, shipping: f }),
+      body: JSON.stringify({ productId: item.id, variantId: variant?.id, quantity: qty, email: f.email, name: f.name, shipping: f }),
     }).then((r) => r.json()).catch(() => ({ error: "Network error" }));
     if (r.error) { setMsg(r.error); setSending(false); return; }
     if (r.checkoutUrl) { window.location.href = r.checkoutUrl; return; }
@@ -41,7 +42,8 @@ export function OrderDialog({ item, onClose }: { item: ShopItem; onClose: () => 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
       <form onSubmit={submit} onClick={(e) => e.stopPropagation()} noValidate className="max-h-[92vh] w-full max-w-md space-y-2 overflow-auto rounded-xl bg-neutral-900 p-4 text-white">
         <h2 className="font-bold">{item.name}</h2>
-        <p className="text-sm">${Number(item.sale_price).toFixed(2)} each</p>
+        {variant && <p className="text-sm text-yellow-300">{variant.label}</p>}
+        <p className="text-sm">${unit.toFixed(2)} each</p>
         <label className={lbl}>Full name<input required value={f.name} onChange={set("name")} className={inp} autoComplete="name" /></label>
         <label className={lbl}>Email<input type="email" required value={f.email} onChange={set("email")} className={inp} autoComplete="email" /></label>
         <label className={lbl}>Address<input required value={f.line1} onChange={set("line1")} className={inp} autoComplete="address-line1" /></label>
@@ -62,7 +64,7 @@ export function OrderDialog({ item, onClose }: { item: ShopItem; onClose: () => 
         <label className={lbl}>Quantity<input type="number" min={1} max={20} value={f.quantity} onChange={set("quantity")} className={`${inp} w-24`} /></label>
         {msg && <p role="alert" className="text-sm text-red-400">{msg}</p>}
         <button disabled={sending} className="w-full rounded bg-yellow-400 py-2 font-semibold text-black disabled:opacity-60">
-          {sending ? "Placing order…" : `Place order · $${(Number(item.sale_price) * qty).toFixed(2)}`}
+          {sending ? "Placing order…" : `Place order · $${(unit * qty).toFixed(2)}`}
         </button>
         <button type="button" onClick={onClose} className="w-full rounded bg-white/10 py-2 text-sm">Cancel</button>
       </form>

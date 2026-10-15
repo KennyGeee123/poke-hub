@@ -22,6 +22,10 @@ export const Route = createFileRoute("/api/public/shop")({
         query = sort === "newest" ? query.order("updated_at", { ascending: false }) : query.order("sale_price", { ascending: sort !== "price_desc" });
         const { data, count, error } = await query.range((page - 1) * size, page * size - 1);
         if (error) return Response.json({ error: error.message }, { status: 500 });
+        if (id && data?.length) {
+          const { data: variants } = await sb.from("shop_catalog_variants").select("id,product_id,finish,grader,grade,sale_price,price_status,updated_at").eq("product_id", data[0].id);
+          return Response.json({ items: data, total: count ?? 0, page, pageSize: size, variants: variants ?? [] }, { headers: { "Cache-Control": "public, max-age=120" } });
+        }
         return Response.json({ items: data ?? [], total: count ?? 0, page, pageSize: size }, { headers: { "Cache-Control": "public, max-age=120" } });
       },
     },

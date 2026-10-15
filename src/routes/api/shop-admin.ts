@@ -3,7 +3,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { ADMIN_HEADER, ORDER_STATUSES, profit, profitPct, validatePricing, safeEqual, validateOrderPatch, validateProductPatch, validateRule } from "@/lib/shop/admin";
-import { refreshBatch } from "@/lib/shop/refresh.server";
+import { refreshBatch, refreshGrades } from "@/lib/shop/refresh.server";
 import { ROUNDING_MODES, normalizePricing } from "@/lib/shop/core";
 import { notifyOrder, siteUrl } from "@/lib/shop/server";
 
@@ -128,6 +128,20 @@ async function handle(action: string, a: Args, request: Request): Promise<Respon
       return error || !data ? bad(error?.message ?? "Product not found") : Response.json({ ok: true });
     }
 
+    case "variants.list": {
+      const { data, error } = await sb.from("shop_variants").select("*").eq("product_id", str(a.productId, 64)).order("grader").order("grade", { ascending: false });
+      return error ? bad(error.message, 500) : Response.json({ variants: data ?? [] });
+    }
+    case "variant.update": {
+      const patch: Args = {};
+      if (a.hidden !== undefined) patch.hidden = a.hidden === true;
+      const { error } = await sb.from("shop_variants").update(patch).eq("id", str(a.id, 200));
+      return error ? bad(error.message) : Response.json({ ok: true });
+    }
+    case "grades.refresh": {
+      const ids = Array.isArray(a.productIds) ? a.productIds.map((x) => str(x, 64)) : [str(a.productId, 64)];
+      return Response.json(await refreshGrades(ids));
+    }
     case "refresh": {
       const kinds = (Array.isArray(a.kinds) ? a.kinds : ["sealed", "single"]).filter((k): k is "sealed" | "single" => k === "sealed" || k === "single");
       const r = await refreshBatch({
