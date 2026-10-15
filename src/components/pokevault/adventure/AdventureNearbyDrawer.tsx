@@ -36,7 +36,7 @@ export function AdventureNearbyDrawer({
     .filter((a) => (a.distanceMeters ?? 0) <= 2000)
     .slice(0, 6);
   return (
-    <div className="absolute inset-x-3 sm:inset-x-auto sm:right-6 bottom-20 sm:w-96 max-h-[500px] z-50 rounded-3xl bg-neutral-950/95 backdrop-blur-md border border-neutral-800 shadow-2xl p-4 flex flex-col gap-3 font-mono">
+    <div className="absolute inset-x-3 sm:inset-x-auto sm:right-6 bottom-[4.5rem] sm:w-96 max-h-[min(500px,calc(100%-6rem))] z-50 rounded-3xl bg-neutral-950/95 ring-2 ring-white/80 backdrop-blur-md border border-neutral-800 shadow-2xl p-4 flex flex-col gap-3 font-mono">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
         <div className="flex items-center gap-2">
@@ -48,18 +48,23 @@ export function AdventureNearbyDrawer({
         <button
           type="button"
           onClick={onClose}
+          aria-label="Close nearby"
           className="p-1 rounded-lg text-neutral-400 hover:text-white transition"
         >
           <X className="w-4 h-4" />
         </button>
       </div>
 
-      <div className="flex flex-col gap-3 overflow-y-auto pr-1 max-h-[400px]">
+      <div
+        className="flex flex-col gap-3 overflow-y-auto pr-1 max-h-[min(400px,calc(100vh-14rem))]"
+        data-go-nearby-list="1"
+      >
         {/* Wild Creatures Section */}
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
             <span className="text-[10px] uppercase font-bold text-neutral-400">
-              Walk window ({walkCreatures.length} of {adventureState.wildCreatures.length} · ×{WORLD_SCALE} · {worldKm} km)
+              Walk window ({walkCreatures.length} of {adventureState.wildCreatures.length} · ×
+              {WORLD_SCALE} · {worldKm} km)
             </span>
             <span className="text-[9px] text-cyan-400/80">Walk to rustling grass to reveal</span>
           </div>
