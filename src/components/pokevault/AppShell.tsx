@@ -21,6 +21,7 @@ import {
   ArrowLeftRight,
   Globe2,
   Sparkles,
+  WalletCards,
   X,
 } from "lucide-react";
 
@@ -105,7 +106,23 @@ export function BottomTabBar({ activeTab, moreOpen, onPrimary }: TabBarProps) {
       <div className="pv-tabbar-inner">
         {PRIMARY_TABS.map(({ id, label, Icon }) => {
           const on = activePrimary === id;
-          return (
+          const holo =
+            id === "more" ? (
+              <a
+                key="holofare"
+                href="/holofare"
+                className="pv-tabbar-item"
+                data-testid="nav-holofare"
+                aria-label="HoloFare — personal card buyer (demo)"
+              >
+                <span className="pv-tabbar-ico" aria-hidden>
+                  <WalletCards size={22} strokeWidth={2} />
+                </span>
+                <span className="pv-tabbar-lbl">HoloFare</span>
+              </a>
+            ) : null;
+          return [
+            holo,
             <button
               key={id}
               type="button"
@@ -118,8 +135,8 @@ export function BottomTabBar({ activeTab, moreOpen, onPrimary }: TabBarProps) {
               </span>
               <span className="pv-tabbar-lbl">{label}</span>
               {on && <span className="pv-tabbar-glow" aria-hidden />}
-            </button>
-          );
+            </button>,
+          ];
         })}
       </div>
     </nav>
@@ -214,12 +231,6 @@ export function MoreSheet({ open, activeTab, isPro, onClose, onPick }: MoreSheet
           isPro={isPro}
           onPick={onPick}
         />
-
-        <div className="pv-more-legal">
-          <a href="/holofare" className="pv-more-legal-link" data-testid="nav-holofare">
-            HoloFare — personal card buyer (demo)
-          </a>
-        </div>
 
         <div className="pv-more-sec">Legal</div>
         <div className="pv-more-legal">
