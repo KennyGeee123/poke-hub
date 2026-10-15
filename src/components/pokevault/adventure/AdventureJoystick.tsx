@@ -1,4 +1,11 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import {
+  stickToVector,
+  keysToVector,
+  stepVelocity,
+  clampUnit,
+  type Vec2,
+} from "@/lib/adventure-motion";
 import {
   Navigation2,
   Compass,
@@ -138,46 +145,70 @@ export function AdventureJoystick({
 
   const thumbRef = useRef<HTMLDivElement>(null);
   const baseRef = useRef<HTMLDivElement>(null);
-  const activeMoveRef = useRef<{ dx: number; dy: number } | null>(null);
+  /** Stick target from pointer/touch, unit disc (after deadzone + curve). */
+  const stickVecRef = useRef<Vec2 | null>(null);
+  /** Raw thumb offset in px while dragging (visual only). */
+  const thumbPxRef = useRef<Vec2>({ x: 0, y: 0 });
+  const keyVecRef = useRef<Vec2>({ x: 0, y: 0 });
+  const velRef = useRef<Vec2>({ x: 0, y: 0 });
   const isPointerActiveRef = useRef(false);
   const pressedKeysRef = useRef<Set<string>>(new Set());
+  const radiusRef = useRef(40);
 
   // Speed configuration
   const currentSpeedConfig = SPEED_CONFIG[speed];
 
-  function handleSpeedSelect(s: MoveSpeed) {
+  const onSpeedChangeRef = useRef(onSpeedChange);
+  onSpeedChangeRef.current = onSpeedChange;
+  const handleSpeedSelect = useCallback((s: MoveSpeed) => {
     setSpeed(s);
-    onSpeedChange?.(s);
-  }
+    onSpeedChangeRef.current?.(s);
+  }, []);
 
-  // Continuous movement loop while holding joystick or pressing arrow keys.
-  // Time-based (not per-frame) so speed is the same on 60/120 Hz screens, and
-  // batched to ~15 updates/s so the world state is not cloned + saved 60×/s.
+  // Analog movement loop (requestAnimationFrame + delta time).
+  // Velocity eases toward the stick/keyboard target (accel/decel), so starts
+  // and stops feel weighty like GO instead of snapping. Moves are batched at
+  // ~30 Hz so the world state is not cloned + saved every frame; the map's
+  // camera eases between batches so motion still looks continuous.
   const onMoveRef = useRef(onMove);
   onMoveRef.current = onMove;
+  const speedRef = useRef(currentSpeedConfig);
+  speedRef.current = currentSpeedConfig;
+  const autoWalkRef = useRef(autoWalk);
+  autoWalkRef.current = autoWalk;
   useEffect(() => {
     let animId: number;
     let last = performance.now();
     let acc = 0;
     let accDx = 0;
     let accDy = 0;
-    const FLUSH_SEC = 1 / 15;
+    const FLUSH_SEC = 1 / 30;
 
     const tick = (now: number) => {
       const dt = Math.min(0.1, Math.max(0, (now - last) / 1000));
       last = now;
-      let vec: { dx: number; dy: number } | null = activeMoveRef.current;
-      let scale = 1;
-      if (!vec && autoWalk) {
-        // Subtle wander simulation
-        const angle = Date.now() / 4000;
-        vec = { dx: Math.cos(angle), dy: Math.sin(angle) };
-        scale = 0.7;
+      let target: Vec2 = stickVecRef.current ?? keyVecRef.current;
+      if (target.x === 0 && target.y === 0 && autoWalkRef.current) {
+        const angle = now / 4000;
+        target = { x: Math.cos(angle) * 0.7, y: Math.sin(angle) * 0.7 };
       }
-      if (vec) {
-        const step = currentSpeedConfig.stepPct * scale * JOY_UNITS_PER_SEC * dt;
-        accDx += vec.dx * step;
-        accDy += vec.dy * step;
+      target = clampUnit(target);
+      const v = stepVelocity(velRef.current, target, dt);
+      velRef.current = v;
+
+      // Thumb visual: follows the finger while dragging, otherwise shows the
+      // eased velocity so it springs back smoothly.
+      const thumb = thumbRef.current;
+      if (thumb) {
+        const r = radiusRef.current;
+        const t = isPointerActiveRef.current ? thumbPxRef.current : { x: v.x * r, y: v.y * r };
+        thumb.style.transform = `translate3d(${t.x.toFixed(1)}px, ${t.y.toFixed(1)}px, 0)`;
+      }
+
+      if (v.x !== 0 || v.y !== 0) {
+        const step = speedRef.current.stepPct * JOY_UNITS_PER_SEC * dt;
+        accDx += v.x * step;
+        accDy += v.y * step;
         acc += dt;
         if (acc >= FLUSH_SEC) {
           const meters = Math.hypot(accDx, accDy) * JOY_METERS_PER_UNIT;
@@ -186,7 +217,8 @@ export function AdventureJoystick({
           accDx = 0;
           accDy = 0;
         }
-      } else {
+      } else if (accDx !== 0 || accDy !== 0) {
+        onMoveRef.current(accDx, accDy, Math.hypot(accDx, accDy) * JOY_METERS_PER_UNIT);
         acc = 0;
         accDx = 0;
         accDy = 0;
@@ -196,43 +228,24 @@ export function AdventureJoystick({
 
     animId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(animId);
-  }, [currentSpeedConfig, autoWalk]);
+  }, []);
 
-  // Keyboard Arrow Keys & WASD Event Listeners
+  // Keyboard: arrows + WASD (diagonals normalised), 1-4 for speed.
   useEffect(() => {
+    const has = (...k: string[]) => k.some((x) => pressedKeysRef.current.has(x));
     function computeKeyVector() {
-      let kx = 0;
-      let ky = 0;
-      const keys = pressedKeysRef.current;
-
-      if (keys.has("ArrowUp") || keys.has("KeyW") || keys.has("w") || keys.has("W")) ky -= 1;
-      if (keys.has("ArrowDown") || keys.has("KeyS") || keys.has("s") || keys.has("S")) ky += 1;
-      if (keys.has("ArrowLeft") || keys.has("KeyA") || keys.has("a") || keys.has("A")) kx -= 1;
-      if (keys.has("ArrowRight") || keys.has("KeyD") || keys.has("d") || keys.has("D")) kx += 1;
-
-      if (kx !== 0 || ky !== 0) {
-        const len = Math.hypot(kx, ky);
-        const normX = kx / len;
-        const normY = ky / len;
-        activeMoveRef.current = { dx: normX, dy: normY };
-
-        // Animate virtual thumbstick puck
-        if (thumbRef.current) {
-          const maxRadius = 34;
-          thumbRef.current.style.transform = `translate(${normX * maxRadius}px, ${normY * maxRadius}px)`;
-        }
-      } else {
-        if (!isPointerActiveRef.current) {
-          activeMoveRef.current = null;
-          if (thumbRef.current) {
-            thumbRef.current.style.transform = "translate(0px, 0px)";
-          }
-        }
-      }
+      keyVecRef.current = keysToVector(
+        has("ArrowUp", "KeyW"),
+        has("ArrowDown", "KeyS"),
+        has("ArrowLeft", "KeyA"),
+        has("ArrowRight", "KeyD"),
+      );
     }
+    const MONITORED = new Set([
+      "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "KeyW", "KeyS", "KeyA", "KeyD",
+    ]);
 
     function handleKeyDown(e: KeyboardEvent) {
-      // Ignore when user is typing in an input, textarea, or contentEditable
       const target = e.target as HTMLElement | null;
       if (
         target &&
@@ -240,34 +253,11 @@ export function AdventureJoystick({
       ) {
         return;
       }
-
-      const monitored = [
-        "ArrowUp",
-        "ArrowDown",
-        "ArrowLeft",
-        "ArrowRight",
-        "KeyW",
-        "KeyS",
-        "KeyA",
-        "KeyD",
-        "w",
-        "W",
-        "s",
-        "S",
-        "a",
-        "A",
-        "d",
-        "D",
-      ];
-
-      if (monitored.includes(e.code) || monitored.includes(e.key)) {
+      if (MONITORED.has(e.code)) {
         e.preventDefault();
         pressedKeysRef.current.add(e.code);
-        pressedKeysRef.current.add(e.key);
         computeKeyVector();
       }
-
-      // Quick speed toggle via number keys 1, 2, 3, 4
       if (e.key === "1") handleSpeedSelect("walk");
       if (e.key === "2") handleSpeedSelect("jog");
       if (e.key === "3") handleSpeedSelect("bike");
@@ -276,69 +266,80 @@ export function AdventureJoystick({
 
     function handleKeyUp(e: KeyboardEvent) {
       pressedKeysRef.current.delete(e.code);
-      pressedKeysRef.current.delete(e.key);
+      computeKeyVector();
+    }
+    // Releasing keys while the tab is hidden would otherwise leave you walking forever.
+    function clearKeys() {
+      pressedKeysRef.current.clear();
       computeKeyVector();
     }
 
     window.addEventListener("keydown", handleKeyDown, { passive: false });
     window.addEventListener("keyup", handleKeyUp, { passive: false });
-
+    window.addEventListener("blur", clearKeys);
+    document.addEventListener("visibilitychange", clearKeys);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("blur", clearKeys);
+      document.removeEventListener("visibilitychange", clearKeys);
     };
   }, [handleSpeedSelect]);
 
-  // Touch / Pointer Joystick Dragging
-  function handlePointerDown(e: React.PointerEvent) {
+  // Touch / mouse / pen via Pointer Events with pointer capture, so the stick
+  // keeps tracking when the finger slides off the base.
+  function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    if ((e.target as HTMLElement).closest("button")) return;
     e.preventDefault();
     const base = baseRef.current;
     if (!base) return;
-
+    try {
+      base.setPointerCapture(e.pointerId);
+    } catch {
+      /* synthetic events */
+    }
     isPointerActiveRef.current = true;
     const rect = base.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
+    const maxRadius = rect.width / 2 - 20;
+    radiusRef.current = maxRadius;
+    const pointerId = e.pointerId;
 
-    const updateFromPointer = (clientX: number, clientY: number) => {
-      const rawDx = clientX - centerX;
-      const rawDy = clientY - centerY;
-      const distance = Math.sqrt(rawDx * rawDx + rawDy * rawDy);
-      const maxRadius = rect.width / 2 - 16;
-
-      const clampedDist = Math.min(distance, maxRadius);
-      const angle = Math.atan2(rawDy, rawDx);
-
-      const normX = clampedDist > 5 ? (Math.cos(angle) * clampedDist) / maxRadius : 0;
-      const normY = clampedDist > 5 ? (Math.sin(angle) * clampedDist) / maxRadius : 0;
-
-      if (thumbRef.current) {
-        thumbRef.current.style.transform = `translate(${normX * maxRadius}px, ${normY * maxRadius}px)`;
-      }
-
-      activeMoveRef.current = clampedDist > 5 ? { dx: normX, dy: normY } : null;
+    const update = (clientX: number, clientY: number) => {
+      const dx = clientX - centerX;
+      const dy = clientY - centerY;
+      const len = Math.hypot(dx, dy);
+      const k = len > maxRadius ? maxRadius / len : 1;
+      thumbPxRef.current = { x: dx * k, y: dy * k };
+      const v = stickToVector(dx, dy, maxRadius);
+      stickVecRef.current = v.x === 0 && v.y === 0 ? { x: 0, y: 0 } : v;
     };
+    update(e.clientX, e.clientY);
 
-    updateFromPointer(e.clientX, e.clientY);
-
-    const onPointerMove = (moveEvt: PointerEvent) => {
-      updateFromPointer(moveEvt.clientX, moveEvt.clientY);
+    const onPointerMove = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return;
+      update(ev.clientX, ev.clientY);
     };
-
-    const onPointerUp = () => {
+    const end = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return;
+      base.removeEventListener("pointermove", onPointerMove);
+      base.removeEventListener("pointerup", end);
+      base.removeEventListener("pointercancel", end);
+      base.removeEventListener("lostpointercapture", end);
       window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointerup", end);
       isPointerActiveRef.current = false;
-      if (pressedKeysRef.current.size === 0) {
-        if (thumbRef.current) {
-          thumbRef.current.style.transform = `translate(0px, 0px)`;
-        }
-        activeMoveRef.current = null;
-      }
+      stickVecRef.current = null;
+      thumbPxRef.current = { x: 0, y: 0 };
     };
-
+    base.addEventListener("pointermove", onPointerMove);
+    base.addEventListener("pointerup", end);
+    base.addEventListener("pointercancel", end);
+    base.addEventListener("lostpointercapture", end);
+    // Fallback when capture is unavailable.
     window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointerup", end);
   }
 
   // Quick directional step on button tap
@@ -489,7 +490,10 @@ export function AdventureJoystick({
       <div
         ref={baseRef}
         onPointerDown={handlePointerDown}
-        className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-neutral-950/80 backdrop-blur-md border-2 border-cyan-500/40 shadow-[0_0_25px_rgba(6,182,212,0.25)] flex items-center justify-center cursor-grab active:cursor-grabbing touch-none"
+        data-joy-base
+        role="application"
+        aria-label="Movement joystick. Drag, or use arrow keys / WASD."
+        className="pv-go-stick relative w-28 h-28 sm:w-32 sm:h-32 rounded-full flex items-center justify-center cursor-grab active:cursor-grabbing touch-none"
       >
         {/* Cardinal Direction Indicators */}
         <button
@@ -498,7 +502,7 @@ export function AdventureJoystick({
             e.stopPropagation();
             stepDirection(0, -1);
           }}
-          className="absolute top-1 text-[10px] font-mono text-cyan-400/80 hover:text-cyan-200 font-bold p-1"
+          className="pv-go-dir absolute top-1 text-[10px] font-bold p-1"
           title="North / Arrow Up"
         >
           ▲ N
@@ -509,7 +513,7 @@ export function AdventureJoystick({
             e.stopPropagation();
             stepDirection(1, 0);
           }}
-          className="absolute right-1 text-[10px] font-mono text-cyan-400/80 hover:text-cyan-200 font-bold p-1"
+          className="pv-go-dir absolute right-1 text-[10px] font-bold p-1"
           title="East / Arrow Right"
         >
           E ▶
@@ -520,7 +524,7 @@ export function AdventureJoystick({
             e.stopPropagation();
             stepDirection(0, 1);
           }}
-          className="absolute bottom-1 text-[10px] font-mono text-cyan-400/80 hover:text-cyan-200 font-bold p-1"
+          className="pv-go-dir absolute bottom-1 text-[10px] font-bold p-1"
           title="South / Arrow Down"
         >
           ▼ S
@@ -531,19 +535,19 @@ export function AdventureJoystick({
             e.stopPropagation();
             stepDirection(-1, 0);
           }}
-          className="absolute left-1 text-[10px] font-mono text-cyan-400/80 hover:text-cyan-200 font-bold p-1"
+          className="pv-go-dir absolute left-1 text-[10px] font-bold p-1"
           title="West / Arrow Left"
         >
           ◀ W
         </button>
 
         {/* Inner Guide Ring */}
-        <div className="w-16 h-16 rounded-full border border-dashed border-cyan-500/25 pointer-events-none" />
+        <div className="pv-go-ring w-16 h-16 rounded-full pointer-events-none" />
 
         {/* Movable Thumbstick Puck */}
         <div
           ref={thumbRef}
-          className="absolute w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 shadow-[0_0_15px_rgba(6,182,212,0.6)] border-2 border-white/60 flex items-center justify-center pointer-events-none transition-transform duration-75"
+          className="pv-go-thumb absolute w-12 h-12 rounded-full flex items-center justify-center pointer-events-none will-change-transform"
         >
           <Navigation2 className="w-5 h-5 text-white" />
         </div>

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from "react";
+import { easeToward, untiltPoint, MAP_TILT } from "@/lib/adventure-motion";
 import {
   Compass,
   MapPin,
@@ -580,8 +581,13 @@ export function AdventureWorldMap({
   // Map tap walks toward that geo (player stays centered; tiles pan).
   const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const dxPx = e.clientX - rect.left - rect.width / 2;
-    const dyPx = e.clientY - rect.top - rect.height / 2;
+    // Undo the GO tilt camera so a tap lands where it looks like it lands.
+    const flat = untiltPoint(
+      e.clientX - rect.left - rect.width / 2,
+      e.clientY - rect.top - rect.height / 2,
+    );
+    const dxPx = flat.x;
+    const dyPx = flat.y;
     const mpp = metersPerPixel(playerGeo.lat, zoom);
     const metersX = dxPx * mpp;
     const metersY = -dyPx * mpp;
@@ -738,23 +744,84 @@ export function AdventureWorldMap({
       ? "contrast(1.25) brightness(1.25)"
       : "none";
 
+  // ── GO-style camera follow ────────────────────────────────────────────
+  // The world re-renders centred on the player at ~30 Hz. To make that look
+  // continuous, each move offsets the world layers by the pixel delta and
+  // eases the offset back to 0 every animation frame (exponential follow).
+  const camRef = useRef<HTMLDivElement>(null);
+  const camOffRef = useRef({ x: 0, y: 0 });
+  const camPrevRef = useRef<{ lat: number; lng: number } | null>(null);
+  const camRafRef = useRef<number | null>(null);
+  const applyCam = () => {
+    const root = camRef.current;
+    if (!root) return;
+    const { x, y } = camOffRef.current;
+    root.style.setProperty("--pv-cam-x", `${x.toFixed(2)}px`);
+    root.style.setProperty("--pv-cam-y", `${y.toFixed(2)}px`);
+  };
+  useLayoutEffect(() => {
+    const prev = camPrevRef.current;
+    camPrevRef.current = { lat: playerGeo.lat, lng: playerGeo.lng };
+    if (!prev) return;
+    const a = latLngToWorldPixels(prev.lat, prev.lng, zoom);
+    const b = latLngToWorldPixels(playerGeo.lat, playerGeo.lng, zoom);
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    if (Math.hypot(dx, dy) > 240) {
+      camOffRef.current = { x: 0, y: 0 }; // teleport: cut, don't glide
+      applyCam();
+      return;
+    }
+    camOffRef.current = { x: camOffRef.current.x + dx, y: camOffRef.current.y + dy };
+    applyCam();
+    if (camRafRef.current != null) return;
+    let last = performance.now();
+    const step = (now: number) => {
+      const dt = Math.min(0.1, (now - last) / 1000);
+      last = now;
+      const o = camOffRef.current;
+      camOffRef.current = { x: easeToward(o.x, 0, dt), y: easeToward(o.y, 0, dt) };
+      applyCam();
+      if (camOffRef.current.x === 0 && camOffRef.current.y === 0) {
+        camRafRef.current = null;
+        return;
+      }
+      camRafRef.current = requestAnimationFrame(step);
+    };
+    camRafRef.current = requestAnimationFrame(step);
+  }, [playerGeo.lat, playerGeo.lng, zoom]);
+  useEffect(
+    () => () => {
+      if (camRafRef.current != null) cancelAnimationFrame(camRafRef.current);
+    },
+    [],
+  );
+
   const isNight = timeOfDay === "night";
   const isSunset = timeOfDay === "sunset";
 
   return (
-    <div className="pv-adv-stage relative w-full rounded-3xl overflow-hidden border border-neutral-800 bg-neutral-950 shadow-2xl select-none font-mono">
+    <div className="pv-adv-stage pv-go relative w-full rounded-3xl overflow-hidden border border-neutral-800 bg-neutral-950 shadow-2xl select-none font-mono">
       {/* Dynamic 2.5D Map Canvas Viewport */}
       <div
+        ref={camRef}
         onClick={handleMapClick}
-        className="relative w-full h-full cursor-crosshair overflow-hidden bg-[#09111e]"
-        style={{ perspective: "1000px" }}
+        className="pv-go-viewport relative w-full h-full cursor-crosshair overflow-hidden bg-[#09111e]"
+        style={
+          {
+            perspective: `${MAP_TILT.perspective}px`,
+            "--pv-tilt": `${MAP_TILT.deg}deg`,
+            "--pv-tilt-scale": MAP_TILT.scale,
+          } as React.CSSProperties
+        }
       >
+        <div className="pv-go-sky" aria-hidden />
         {/* Real-World Street Map Tile Layer (Esri basemaps; optional Carto with API key) */}
         <div
+          data-cam="tiles"
           className="absolute inset-0 pointer-events-none transition-opacity duration-500 overflow-hidden flex items-center justify-center"
           style={{
             opacity: 1,
-            transform: "none",
             imageRendering: walkSkin === "gba" ? "auto" : undefined,
           }}
         >
@@ -785,10 +852,7 @@ export function AdventureWorldMap({
         </div>
 
         {walkSkin === "gba" && (
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{ transform: "none" }}
-          >
+          <div data-cam className="absolute inset-0 pointer-events-none">
             <GbaWalkLayer
               playerGeo={playerGeo}
               zoom={zoom}
@@ -817,7 +881,7 @@ export function AdventureWorldMap({
         )}
 
         {/* 2.5D Tilt Perspective Surface Layer */}
-        <div className="absolute inset-0">
+        <div data-cam className="absolute inset-0">
           {walkSkin !== "gba" && (
             <div
               className="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(#06b6d4_1px,transparent_1px)]"
@@ -1088,18 +1152,14 @@ export function AdventureWorldMap({
           {/* PLAYER AVATAR & BUDDY COMPANION */}
           {/* ───────────────────────────────────────────────────────────── */}
           <div
-            style={{
-              left: "50%",
-              top: "50%",
-              transform: isWalking ? "translate(-50%, calc(-50% - 3px))" : "translate(-50%, -50%)",
-            }}
-            className="absolute z-30 flex items-center justify-center pointer-events-none"
+            data-cam-inv
+            data-walking={isWalking ? "1" : undefined}
+            style={{ left: "50%", top: "50%" }}
+            className="pv-go-avatar absolute z-30 flex items-center justify-center pointer-events-none"
           >
             {/* 45-Meter Glowing GO Interaction Radar Ring */}
-            <div
-              className="w-40 h-40 rounded-full border border-cyan-200/50 absolute"
-            />
-            <div className="w-56 h-56 rounded-full border border-dashed border-cyan-400/30 absolute" />
+            <div className="pv-go-radius w-40 h-40 rounded-full absolute" />
+            <div className="pv-go-radius-outer w-56 h-56 rounded-full absolute" />
 
             {/* Original 4-dir trainer (adventure-assets), not PokeAPI trainers/1.png */}
             <div
