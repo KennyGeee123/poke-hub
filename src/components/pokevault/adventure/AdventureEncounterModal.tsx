@@ -9,6 +9,13 @@ import {
 } from "@/lib/adventure-engine";
 import { addWildCatchToParty } from "@/lib/adventure-party";
 import { WorldSprite } from "./WorldSprite";
+import { throwRating, pathTurn, type Vec2 } from "@/lib/adventure-motion";
+
+const RING_PERIOD_MS = 1600;
+/** Matches the pv-go-ring keyframes (1 → 0.25 → 1, ease-in-out). */
+function ringScaleAt(ms: number): number {
+  return 0.625 + 0.375 * Math.cos((2 * Math.PI * ms) / RING_PERIOD_MS);
+}
 
 export function AdventureEncounterModal({
   creature,
@@ -64,9 +71,45 @@ export function AdventureEncounterModal({
     if (selectedBerry && !berries.includes(selectedBerry)) setSelectedBerry(undefined);
   }, [ballsKey, berriesKey, selectedBall, selectedBerry]);
 
-  function handleThrow() {
+  const ringStartRef = useRef(performance.now());
+  useEffect(() => {
+    if (throwPhase === "aiming") ringStartRef.current = performance.now();
+  }, [throwPhase]);
+  const [lastThrow, setLastThrow] = useState<{ rating: "nice" | "great" | "excellent"; curve: boolean } | null>(null);
+  const swipeRef = useRef<Vec2[] | null>(null);
+  const ringColor = creature.cp < 500 ? "#4ade80" : creature.cp < 1500 ? "#fb923c" : "#ef4444";
+
+  function onBallPointerDown(e: React.PointerEvent<HTMLButtonElement>) {
+    if (isThrowing || throwPhase !== "aiming" || outOfBalls) return;
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      /* noop */
+    }
+    swipeRef.current = [{ x: e.clientX, y: e.clientY }];
+  }
+  function onBallPointerMove(e: React.PointerEvent<HTMLButtonElement>) {
+    swipeRef.current?.push({ x: e.clientX, y: e.clientY });
+  }
+  function onBallPointerUp(e: React.PointerEvent<HTMLButtonElement>) {
+    const pts = swipeRef.current;
+    swipeRef.current = null;
+    if (!pts) return;
+    pts.push({ x: e.clientX, y: e.clientY });
+    const rise = pts[0].y - pts[pts.length - 1].y;
+    const curve = Math.abs(pathTurn(pts)) > Math.PI * 1.5;
+    // A tap (no swipe) still throws, like the old button; a flick up or a spin
+    // is the GO gesture.
+    if (rise > 40 || curve || Math.hypot(pts[0].x - e.clientX, pts[0].y - e.clientY) < 8) {
+      handleThrow(curve);
+    }
+  }
+
+  function handleThrow(curve = false) {
     if (isThrowing || throwPhase !== "aiming" || outOfBalls) return;
     if ((stateRef.current.inventory.captureItems[selectedBall] || 0) <= 0) return;
+    const rating = throwRating(ringScaleAt(performance.now() - ringStartRef.current));
+    setLastThrow({ rating, curve });
     setIsThrowing(true);
     setThrowPhase("flying");
 
@@ -81,7 +124,7 @@ export function AdventureEncounterModal({
               creature.id,
               selectedBall,
               selectedBerry,
-              "great",
+              rating,
             );
             if (res.success && res.rewards) {
               setThrowPhase("caught");
@@ -106,116 +149,134 @@ export function AdventureEncounterModal({
   }
 
   return (
-    <div className="pv-adv-encounter fixed inset-0 z-50 flex justify-center overflow-y-auto p-3 sm:p-4 pb-[calc(var(--pv-tabbar-h,84px)+var(--pv-safe-b,0px)+16px)] bg-neutral-950/85 backdrop-blur-md">
-      <div className="relative my-auto w-full max-w-lg rounded-3xl bg-neutral-950 border border-cyan-500/40 shadow-2xl p-5 sm:p-7 flex flex-col items-center gap-4 text-center overflow-hidden">
-        {/* Top Header Bar */}
-        <div className="w-full flex items-center justify-between border-b border-neutral-800 pb-2.5">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono text-[10px] font-bold">
-              WILD ENCOUNTER
-            </span>
-            <span className="text-xs font-mono font-bold text-amber-400">
-              CP {creature.cp} · Lv. {creature.level}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
+    <div className="pv-adv-encounter fixed inset-0 z-50 flex justify-center overflow-y-auto p-3 sm:p-4 pb-[calc(var(--pv-tabbar-h,84px)+var(--pv-safe-b,0px)+16px)] bg-sky-950/60 backdrop-blur-md">
+      <div className="relative my-auto w-full max-w-lg rounded-3xl bg-white/95 border border-white shadow-2xl flex flex-col items-center gap-3 text-center overflow-hidden pb-5">
+        {/* GO-style scene: sky, hills, ground disc, Pokémon centred, ring + ball */}
+        <div
+          className="pv-go-enc-scene relative w-full h-[27rem] sm:h-[29rem] overflow-hidden"
+          data-throw-phase={throwPhase}
+        >
+          <div className="pv-go-enc-hill" aria-hidden />
+          <div className="pv-go-enc-ground" aria-hidden />
+
+          {/* Top bar: run away (left), battle (right) */}
+          <div className="absolute top-3 inset-x-3 flex items-center justify-between z-40">
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Run away"
+              className="w-10 h-10 rounded-full bg-white/85 text-sky-900 shadow flex items-center justify-center"
+            >
+              <X className="w-5 h-5" />
+            </button>
             <button
               type="button"
               onClick={onSwitchToBattle}
-              className="px-3 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 font-mono text-xs font-bold flex items-center gap-1.5 transition"
+              className="px-3 py-1.5 rounded-full bg-white/85 text-rose-600 shadow text-xs font-bold flex items-center gap-1.5"
               title="Fight in HD Turn-Based Battle"
             >
               <Swords className="w-3.5 h-3.5" />
               <span>BATTLE</span>
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1.5 rounded-lg text-neutral-400 hover:text-white"
-            >
-              <X className="w-5 h-5" />
-            </button>
           </div>
-        </div>
 
-        {/* Wild Emergence Banner & Classic Battle Switcher */}
-        <div className="w-full flex items-center justify-between p-2.5 rounded-2xl bg-neutral-900/90 border border-neutral-800 text-left">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-base select-none">🌿</span>
-            <div className="flex flex-col min-w-0">
-              <span className="text-xs font-bold text-white truncate">
-                Wild {creature.species} emerged!
-              </span>
-              <span className="text-[9px] text-neutral-400">
-                Discovered in radar pulse (~{creature.distanceMeters}m)
-              </span>
-            </div>
+          {/* Name + CP label, GO-style, above the Pokémon */}
+          <div className="absolute top-12 inset-x-0 flex flex-col items-center z-30 pv-go-cp">
+            <span className="text-sm font-bold tracking-wide opacity-95">CP</span>
+            <span className="text-4xl font-extrabold leading-none" data-testid="enc-cp">
+              {creature.cp}
+            </span>
+            <span className="mt-1 text-lg font-bold">{creature.species}</span>
+            <span className="text-[11px] font-semibold opacity-90">
+              Lv. {creature.level} · {creature.types.join(" / ")} · ~{creature.distanceMeters}m
+            </span>
           </div>
-          <button
-            type="button"
-            onClick={onSwitchToBattle}
-            className="shrink-0 px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-500 hover:brightness-110 text-white font-mono text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-rose-500/25"
-          >
-            <Swords className="w-3.5 h-3.5" />
-            <span>CLASSIC BATTLE</span>
-          </button>
-        </div>
 
-        {/* 3D Creature Arena Stage */}
-        <div className="relative w-full h-44 sm:h-64 rounded-2xl bg-gradient-to-b from-cyan-950/30 via-neutral-900 to-neutral-950 border border-neutral-800/80 flex items-center justify-center overflow-hidden">
-          {/* Floor Shadow Ring */}
-          <div className="absolute bottom-6 w-44 h-12 rounded-full bg-cyan-500/15 filter blur-sm" />
-
-          {/* Creature Image */}
+          {/* Pokémon */}
           <WorldSprite
             name={creature.species}
-            className={`w-36 h-36 object-contain relative z-10 filter drop-shadow-[0_12px_18px_rgba(0,0,0,0.8)] transition-transform duration-300 ${
+            className={`absolute left-1/2 bottom-[33%] -translate-x-1/2 w-36 h-36 object-contain z-20 drop-shadow-[0_10px_10px_rgba(0,0,0,0.35)] transition-all duration-300 ${
               throwPhase === "shaking"
                 ? "scale-0 opacity-0"
                 : throwPhase === "caught"
-                  ? "scale-110"
-                  : "animate-bounce"
+                  ? "scale-0 opacity-0"
+                  : ""
             }`}
           />
 
-          {/* Capture Ball Animation */}
+          {/* Target ring: shrinks and grows; smaller ring = better throw */}
+          {throwPhase === "aiming" && !outOfBalls && (
+            <>
+              <div className="pv-go-target-outer z-20" aria-hidden />
+              <div
+                className="pv-go-target z-20"
+                style={{ ["--pv-ring" as string]: ringColor } as React.CSSProperties}
+                aria-hidden
+              />
+            </>
+          )}
+
+          {/* Ball in flight (straight or curveball arc) */}
           {throwPhase === "flying" && (
-            <div className="absolute w-12 h-12 rounded-full bg-gradient-to-tr from-rose-500 to-white shadow-lg animate-bounce z-20" />
+            <div
+              className="pv-go-ball pv-go-ball-fly"
+              data-ball={selectedBall}
+              data-curve={lastThrow?.curve ? "1" : undefined}
+              aria-hidden
+            />
           )}
-
           {throwPhase === "shaking" && (
-            <div className="absolute bottom-8 w-12 h-12 rounded-full bg-gradient-to-tr from-rose-500 to-white shadow-xl animate-spin z-20" />
+            <div
+              className="absolute left-1/2 bottom-[35%] -ml-6 w-12 h-12 z-30 pv-go-ball pv-go-ball-shake"
+              data-ball={selectedBall}
+              aria-hidden
+            />
           )}
-
-          {/* Pulsing Target Ring (Aiming) */}
-          {throwPhase === "aiming" && (
-            <div className="absolute w-32 h-32 rounded-full border-2 border-dashed border-emerald-400/60 animate-ping pointer-events-none" />
-          )}
-        </div>
-
-        {/* Creature Name & Details */}
-        <div className="flex flex-col items-center">
-          {creature.isParkNest && (
-            <div className="mb-1.5 px-3 py-1 rounded-full bg-emerald-950/90 border border-emerald-400/60 text-emerald-300 font-mono text-[11px] font-bold shadow-[0_0_15px_rgba(16,185,129,0.4)] flex items-center gap-1.5 animate-pulse">
-              <span>🌳</span>
-              <span>DRESDEN PARK RARE NEST</span>
-              <span className="text-amber-400">· +50% CANDY BONUS</span>
+          {lastThrow && (throwPhase === "shaking" || throwPhase === "flying") && (
+            <div className="absolute inset-x-0 top-[42%] z-40 text-2xl font-extrabold text-white pv-go-rating">
+              {lastThrow.rating === "excellent" ? "Excellent!" : lastThrow.rating === "great" ? "Great!" : "Nice!"}
+              {lastThrow.curve && <span className="block text-sm">Curveball!</span>}
             </div>
           )}
-          <h3 className="text-xl font-extrabold text-white font-mono tracking-wide">
-            {creature.species}
-          </h3>
-          <div className="flex items-center gap-1.5 mt-1 text-xs font-mono">
-            {creature.types.map((t) => (
-              <span key={t} className="px-2 py-0.5 rounded bg-neutral-800 text-neutral-300">
-                {t}
+
+          {/* Ball at bottom centre: tap, flick up, or spin then flick */}
+          {throwPhase !== "caught" && (
+            <div className="absolute bottom-4 inset-x-0 flex flex-col items-center z-40">
+              <button
+                type="button"
+                data-testid="go-ball"
+                aria-label={`Throw ${CAPTURE_ITEMS[selectedBall].name}`}
+                disabled={isThrowing || outOfBalls || throwPhase !== "aiming"}
+                onPointerDown={onBallPointerDown}
+                onPointerMove={onBallPointerMove}
+                onPointerUp={onBallPointerUp}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleThrow(false);
+                  }
+                }}
+                className={`pv-go-ball ${throwPhase === "flying" ? "opacity-0" : ""} disabled:opacity-40`}
+                data-ball={selectedBall}
+              />
+              <span className="mt-1 px-2 py-0.5 rounded-full bg-white/85 text-[10px] font-bold text-sky-900">
+                {CAPTURE_ITEMS[selectedBall].name} × {adventureState.inventory.captureItems[selectedBall] || 0}
               </span>
-            ))}
-            <span className="text-neutral-500">·</span>
-            <span className="text-neutral-400">{creature.relatedCardsCount} related TCG cards</span>
-          </div>
+            </div>
+          )}
         </div>
 
+        {creature.isParkNest && (
+          <div className="px-3 py-1 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-700 text-[11px] font-bold flex items-center gap-1.5">
+            <span>🌳</span>
+            <span>DRESDEN PARK RARE NEST</span>
+            <span className="text-amber-600">· +50% CANDY BONUS</span>
+          </div>
+        )}
+        <div className="text-[11px] text-slate-500">
+          {creature.relatedCardsCount} related TCG cards · tap the ball, flick it up, or spin it first for a curveball
+        </div>
+        <div className="w-full px-5 flex flex-col gap-3 pv-go-enc-dock">
         {/* Post-Catch Celebration */}
         {throwPhase === "caught" && captureReward ? (
           <div className="w-full p-4 rounded-2xl bg-neutral-900 border border-emerald-500/40 flex flex-col gap-2 font-mono">
@@ -261,7 +322,7 @@ export function AdventureEncounterModal({
           <div className="w-full flex flex-col gap-3">
             {/* Balls Picker */}
             <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-neutral-400 font-bold">POKÉ BALLS</span>
+              <span className="text-slate-500 font-bold">POKÉ BALLS</span>
               <div className="flex items-center gap-1.5">
                 {availableBalls.map((b) => (
                   <button
@@ -271,7 +332,7 @@ export function AdventureEncounterModal({
                     className={`px-2.5 py-1 rounded-lg border text-[11px] font-bold transition ${
                       selectedBall === b
                         ? "bg-cyan-500 text-neutral-950 border-cyan-400 shadow"
-                        : "bg-neutral-900 border-neutral-800 text-neutral-300"
+                        : "bg-slate-100 border-slate-200 text-slate-700"
                     }`}
                   >
                     {CAPTURE_ITEMS[b].name} ({adventureState.inventory.captureItems[b] || 0})
@@ -282,7 +343,7 @@ export function AdventureEncounterModal({
 
             {/* Berries Picker */}
             <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-neutral-400 font-bold">BERRIES</span>
+              <span className="text-slate-500 font-bold">BERRIES</span>
               <div className="flex items-center gap-1.5">
                 {availableBerries.map((berry) => (
                   <button
@@ -292,7 +353,7 @@ export function AdventureEncounterModal({
                     className={`px-2 py-1 rounded-lg border text-[10px] font-bold transition ${
                       selectedBerry === berry
                         ? "bg-amber-500 text-neutral-950 border-amber-400 shadow"
-                        : "bg-neutral-900 border-neutral-800 text-neutral-400"
+                        : "bg-slate-100 border-slate-200 text-slate-600"
                     }`}
                   >
                     {CAPTURE_ITEMS[berry].name} ({adventureState.inventory.captureItems[berry] || 0}
@@ -317,7 +378,7 @@ export function AdventureEncounterModal({
             <button
               type="button"
               disabled={isThrowing || outOfBalls || throwPhase !== "aiming"}
-              onClick={handleThrow}
+              onClick={() => handleThrow(false)}
               className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:brightness-110 text-neutral-950 font-mono font-bold text-xs tracking-wider shadow-xl shadow-cyan-500/25 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Target className="w-4 h-4" />
@@ -331,6 +392,7 @@ export function AdventureEncounterModal({
             </button>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
