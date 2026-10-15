@@ -20,7 +20,7 @@ export function chatCompletionsUrl(base: string | undefined): string {
 const SYSTEM = `You are a Pokémon TCG card identifier. Given a photo of a single Pokémon trading card (and optionally OCR text extracted from it), return:
 - name: the Pokémon / card name exactly as printed (e.g. "Charizard ex", "Pikachu V", "Professor's Research")
 - hp: HP number if visible, else null
-- setNumber: collector number like "4/102" if visible, else null
+- setNumber: collector number exactly as printed in the bottom corner, e.g. "4/102" or "199/165" (secret rares can exceed the set total), else null
 - setName: printed set name / symbol hint if visible, else null
 - supertype: one of "Pokémon" | "Trainer" | "Energy"
 - confidence: 0-1 self-rated confidence
