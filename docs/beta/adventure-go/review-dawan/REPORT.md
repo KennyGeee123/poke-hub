@@ -32,3 +32,7 @@ Script: `shots.mjs <label> <port> [video]`. Video: `walkthrough.mp4`.
 - bun test: 214 pass, 0 fail.
 - tsc is clean and vite build passes.
 - No page errors.
+
+## Follow-up: landscape encounter covered by the tab bar
+While an encounter is open, the bottom tab bar, the app header and the footer are now hidden (CSS `body:has(.pv-adv-encounter)`). The encounter also drops the padding it kept for the tab bar.
+Screenshots: fix-encounter-740x360.png, fix-encounter-360x640.png. The ball and Throw button are no longer covered at 740×360, and the close/Battle buttons are visible at the top.

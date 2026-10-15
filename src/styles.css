@@ -11843,3 +11843,15 @@ body[data-pv-tab="adventure"] .pv-music-panel,
   }
   .pv-go .pv-go-marker { transition: none; }
 }
+/* While a wild encounter is open, hide the bottom tab bar (it covered the
+   ball/throw controls on short landscape screens) and reclaim its padding. */
+body:has(.pv-adv-encounter) .pv-tabbar,
+body:has(.pv-adv-encounter) .pv-hdr,
+body:has(.pv-adv-encounter) .pv-gb-footer {
+  display: none !important;
+}
+body:has(.pv-adv-encounter) .pv-adv-encounter {
+  padding-bottom: calc(var(--pv-safe-b, 0px) + 12px) !important;
+  /* The app header is hidden too, so Run away / CP stay visible. */
+  z-index: 1000 !important;
+}
