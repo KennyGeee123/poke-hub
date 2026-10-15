@@ -20,6 +20,8 @@ describe("shop admin", () => {
     expect(validateRule({ min_price: 0, max_price: null, flat_usd: 0, percent: 0 })).not.toBeNull();
     expect(validateRule({ min_price: 0, max_price: 1, flat_usd: 0, percent: 50, min_profit_usd: 0.1 })).toBeNull();
     expect(validateRule({ min_price: 0, max_price: 1, flat_usd: 0, percent: 50, min_profit_usd: -1 })).not.toBeNull();
+    expect(validateRule({ min_price: 0, max_price: 1, flat_usd: 0, percent: 0, fixed_price_usd: 1 })).toBeNull();
+    expect(validateRule({ min_price: 0, max_price: 1, flat_usd: 0, percent: 0, fixed_price_usd: 0.5 })).not.toBeNull();
   });
   it("patches", () => {
     expect(validateOrderPatch({ status: "shipped", tracking_number: "1Z" })).toBeNull();

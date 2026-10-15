@@ -32,7 +32,11 @@ export function validateRule(r: Partial<MarkupRule>): string | null {
   if (!Number.isFinite(pct) || pct < 0 || pct > 500) return "percent must be 0–500";
   const floor = Number(r.min_profit_usd ?? 0);
   if (!Number.isFinite(floor) || floor < 0 || floor > 1000) return "min profit must be 0–1000";
-  if (flat === 0 && pct === 0 && floor === 0) return "set a percent, flat or minimum profit";
+  const fixedRaw = r.fixed_price_usd as unknown;
+  const fixed = fixedRaw == null || fixedRaw === "" ? null : Number(fixedRaw);
+  if (fixed != null && (!Number.isFinite(fixed) || fixed <= 0 || fixed > 100000)) return "fixed price must be > 0";
+  if (fixed != null && max != null && fixed < max) return "fixed price should be at least the tier's max source price (or you sell at a loss)";
+  if (fixed == null && flat === 0 && pct === 0 && floor === 0) return "set a percent, flat, minimum profit or fixed price";
   if (Math.round(pct * 100) !== pct * 100 && Math.abs(Math.round(pct * 100) - pct * 100) > 1e-6) return "percent allows at most 2 decimals";
   return null;
 }

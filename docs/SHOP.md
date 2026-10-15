@@ -38,5 +38,6 @@ Images go through `/api/public/shop-image?id=` so upstream CDNs are never expose
 
 ## Pricing
 Sale price = cheapest source + tier markup (percent of source, at least the tier's min profit, at least the store-wide floor), then rounded.
+A tier may set a **fixed sale price** that overrides markup, floors and rounding. By default every card under $1 sells for exactly **$1**.
 Rounding modes: `whole` (default, ceil to the next whole dollar; already-whole stays), `99` (up to X.99), `none`.
 All math uses integer cents. `scripts/shop-price-parity.ts` checks that SQL `shop_sale_price()` matches TypeScript `salePrice()` against a database.

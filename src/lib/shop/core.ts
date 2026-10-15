@@ -1,12 +1,12 @@
 // Dropship shop core: pure helpers (classification, matching, pricing, parsers).
-export type MarkupRule = { min_price: number; max_price: number | null; flat_usd: number; percent: number; min_profit_usd?: number | null };
+export type MarkupRule = { min_price: number; max_price: number | null; flat_usd: number; percent: number; min_profit_usd?: number | null; fixed_price_usd?: number | null };
 export const ROUNDING_MODES = ["whole", "99", "none"] as const;
 export type RoundingMode = (typeof ROUNDING_MODES)[number];
 export type PricingSettings = { min_profit_usd: number; rounding: RoundingMode };
 
 /** Default sliding-scale tiers (admin-editable via public.shop_markup_rules). Percent of the source price. */
 export const DEFAULT_MARKUP_RULES: MarkupRule[] = [
-  { min_price: 0, max_price: 1, flat_usd: 0, percent: 25, min_profit_usd: 0.25 },
+  { min_price: 0, max_price: 1, flat_usd: 0, percent: 25, min_profit_usd: 0.25, fixed_price_usd: 1 }, // every sub-$1 card sells for exactly $1
   { min_price: 1, max_price: 5, flat_usd: 0, percent: 30, min_profit_usd: 0.5 },
   { min_price: 5, max_price: 20, flat_usd: 0, percent: 30, min_profit_usd: 0 },
   { min_price: 20, max_price: 50, flat_usd: 0, percent: 20, min_profit_usd: 0 },
@@ -57,6 +57,9 @@ export function roundUpWhole(cents: number): number {
 }
 
 export function salePriceCents(sourceCents: number, rules: MarkupRule[] = DEFAULT_MARKUP_RULES, settings: PricingSettings = DEFAULT_PRICING): number {
+  // A tier with a fixed sale price overrides markup, floors and rounding.
+  const fixed = tierFor(sourceCents, rules)?.fixed_price_usd;
+  if (fixed != null && Number(fixed) > 0) return toCents(fixed);
   const c = sourceCents + markupCents(sourceCents, rules, settings);
   if (settings.rounding === "whole") return roundUpWhole(c);
   if (settings.rounding === "99") return roundUp99(c);

@@ -28,6 +28,8 @@ GRANT SELECT ON public.shop_catalog TO anon, authenticated;
 
 -- Sliding-scale pricing: percent tiers with a per-tier minimum profit, optional store-wide floor and .99 rounding.
 ALTER TABLE public.shop_markup_rules ADD COLUMN IF NOT EXISTS min_profit_usd numeric(10,2) NOT NULL DEFAULT 0;
+-- Optional fixed sale price for a tier (overrides markup, floors and rounding). Default: every sub-$1 card sells for $1.
+ALTER TABLE public.shop_markup_rules ADD COLUMN IF NOT EXISTS fixed_price_usd numeric(10,2) CHECK (fixed_price_usd IS NULL OR fixed_price_usd > 0);
 -- Replace the earlier default tiers if the admin hasn't customised them.
 DO $$
 DECLARE sig text;
@@ -38,9 +40,9 @@ BEGIN
      OR sig = '0.00:20.00:5.00:0.00,20.00:100.00:10.00:0.00,100.00:-:0.00:8.00'
      OR sig = '0.00:5.00:0.00:50.00,5.00:20.00:0.00:30.00,20.00:50.00:0.00:20.00,50.00:100.00:0.00:15.00,100.00:250.00:0.00:10.00,250.00:-:0.00:8.00' THEN
     DELETE FROM public.shop_markup_rules;
-    INSERT INTO public.shop_markup_rules (min_price, max_price, flat_usd, percent, min_profit_usd) VALUES
-      (0, 1, 0, 25, 0.25), (1, 5, 0, 30, 0.50), (5, 20, 0, 30, 0), (20, 50, 0, 20, 0),
-      (50, 100, 0, 15, 0), (100, 250, 0, 10, 0), (250, NULL, 0, 8, 0);
+    INSERT INTO public.shop_markup_rules (min_price, max_price, flat_usd, percent, min_profit_usd, fixed_price_usd) VALUES
+      (0, 1, 0, 25, 0.25, 1.00), (1, 5, 0, 30, 0.50, NULL), (5, 20, 0, 30, 0, NULL), (20, 50, 0, 20, 0, NULL),
+      (50, 100, 0, 15, 0, NULL), (100, 250, 0, 10, 0, NULL), (250, NULL, 0, 8, 0, NULL);
   END IF;
 END $$;
 -- rounding: 'whole' (default, ceil to next dollar) | '99' (up to X.99) | 'none'
@@ -67,6 +69,9 @@ BEGIN
   SELECT * INTO r FROM public.shop_markup_rules
    WHERE active AND c >= round(min_price * 100) AND (max_price IS NULL OR c < round(max_price * 100))
    ORDER BY min_price DESC LIMIT 1;
+  IF FOUND AND r.fixed_price_usd IS NOT NULL AND r.fixed_price_usd > 0 THEN
+    RETURN r.fixed_price_usd;
+  END IF;
   IF FOUND THEN
     m := round(r.flat_usd * 100) + floor((c * round(r.percent * 100) + 5000) / 10000.0);
     m := greatest(m, round(r.min_profit_usd * 100));
@@ -75,7 +80,7 @@ BEGIN
   IF mode = 'whole' THEN total := ceil(total / 100.0) * 100;
   ELSIF mode = '99' THEN total := ceil((total + 1) / 100.0) * 100 - 1;
   END IF;
-  RETURN total / 100.0;
+  RETURN round(total / 100.0, 2);
 END $$;
 REVOKE ALL ON FUNCTION public.shop_sale_price(numeric) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.shop_sale_price(numeric) TO service_role;

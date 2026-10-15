@@ -75,6 +75,7 @@ async function handle(action: string, a: Args, request: Request): Promise<Respon
         flat_usd: Number(r?.flat_usd ?? 0),
         percent: Number(r?.percent ?? 0),
         min_profit_usd: Number(r?.min_profit_usd ?? 0) || 0,
+        fixed_price_usd: r?.fixed_price_usd === "" || r?.fixed_price_usd == null ? null : Number(r.fixed_price_usd),
         active: r?.active !== false,
       };
       const err = validateRule(row);

@@ -9,8 +9,8 @@ describe("shop core", () => {
     const table: [number, number, number, number][] = [
       [0.05, 1, 0.95, 1900],
       [0.2, 1, 0.8, 400],
-      [0.8, 2, 1.2, 150],
-      [0.99, 2, 1.01, 102],
+      [0.8, 1, 0.2, 25],
+      [0.99, 1, 0.01, 1],
       [1, 2, 1, 100],
       [2.5, 4, 1.5, 60],
       [4.99, 7, 2.01, 40.3],
@@ -34,6 +34,17 @@ describe("shop core", () => {
     expect(salePrice(45)).toBe(54);     // 45 + 9.00 = 54.00 exactly → stays 54
     expect(salePrice(300)).toBe(324);   // 300 + 24.00 → 324
   });
+  it("under-$1 tier: fixed $1 sale price regardless of rounding/floors", () => {
+    for (const src of [0.01, 0.05, 0.2, 0.8, 0.99]) {
+      expect(salePrice(src)).toBe(1);
+      expect(salePrice(src, DEFAULT_MARKUP_RULES, { min_profit_usd: 5, rounding: "none" })).toBe(1);
+    }
+    expect(salePrice(1)).toBe(2); // $1.00 is the next tier (30%, min $0.50, ceil)
+    const custom = DEFAULT_MARKUP_RULES.map((r) => (r.max_price === 1 ? { ...r, fixed_price_usd: 1.5 } : r));
+    expect(salePrice(0.5, custom)).toBe(1.5);
+    const noFixed = DEFAULT_MARKUP_RULES.map((r) => ({ ...r, fixed_price_usd: null }));
+    expect(salePrice(0.8, noFixed)).toBe(2); // percent path when fixed price cleared
+  });
   it("tier boundaries before rounding (exact cents)", () => {
     const cases: [number, number][] = [
       [0.01, 0.26],   // 25% = 0.0025 → 0, floor $0.25
@@ -52,7 +63,8 @@ describe("shop core", () => {
       [250.0, 270.0], // 8%
       [0.1 + 0.2, 0.55], // float noise → 30¢ + floor 25¢
     ];
-    for (const [src, sale] of cases) expect([src, salePrice(src, DEFAULT_MARKUP_RULES, NONE)]).toEqual([src, sale]);
+    const pct = DEFAULT_MARKUP_RULES.map((r) => ({ ...r, fixed_price_usd: null }));
+    for (const [src, sale] of cases) expect([src, salePrice(src, pct, NONE)]).toEqual([src, sale]);
   });
   it("defaults have no flat dollar markups", () => {
     expect(DEFAULT_MARKUP_RULES.every((r) => r.flat_usd === 0)).toBe(true);
@@ -68,7 +80,7 @@ describe("shop core", () => {
     expect(salePrice(12, DEFAULT_MARKUP_RULES, { min_profit_usd: 0, rounding: "99" })).toBe(15.99); // 15.60 → 15.99
     expect(salePrice(12, DEFAULT_MARKUP_RULES, { min_profit_usd: 0, rounding: "none" })).toBe(15.6);
     expect(salePrice(12, DEFAULT_MARKUP_RULES, { min_profit_usd: 0, rounding: "whole" })).toBe(16);
-    expect(salePrice(0.2, DEFAULT_MARKUP_RULES, { min_profit_usd: 0.5, rounding: "none" })).toBe(0.7);
+    expect(salePrice(0.2, DEFAULT_MARKUP_RULES.map((r) => ({ ...r, fixed_price_usd: null })), { min_profit_usd: 0.5, rounding: "none" })).toBe(0.7);
     expect(salePrice(2, [{ min_price: 0, max_price: null, flat_usd: 0, percent: 10, min_profit_usd: 1 }], NONE)).toBe(3);
     expect(roundUp99(1799)).toBe(1799);
     expect(roundUp99(1800)).toBe(1899);

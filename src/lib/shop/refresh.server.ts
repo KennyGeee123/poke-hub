@@ -119,7 +119,7 @@ export type RefreshResult = { groups: string[]; products: number; listings: numb
  */
 export async function refreshBatch(opts: { offset: number; limit: number; kinds: ("sealed" | "single")[]; external: boolean }): Promise<RefreshResult> {
   const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } });
-  const { data: ruleRows } = await sb.from("shop_markup_rules").select("min_price,max_price,flat_usd,percent,min_profit_usd").eq("active", true);
+  const { data: ruleRows } = await sb.from("shop_markup_rules").select("min_price,max_price,flat_usd,percent,min_profit_usd,fixed_price_usd").eq("active", true);
   const rules: MarkupRule[] = ruleRows?.length ? (ruleRows as MarkupRule[]) : DEFAULT_MARKUP_RULES;
   const { data: ps } = await sb.from("shop_state").select("value").eq("key", "pricing").maybeSingle();
   const pricing: PricingSettings = normalizePricing(ps?.value);

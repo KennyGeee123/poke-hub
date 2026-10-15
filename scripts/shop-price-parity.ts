@@ -4,8 +4,8 @@
 import { normalizePricing, salePrice, type MarkupRule } from "../src/lib/shop/core";
 const psql = (q: string) => Bun.spawnSync(["psql", "-tAF,", "-c", q]).stdout.toString().trim();
 const S = normalizePricing(JSON.parse(psql("select value from shop_state where key='pricing'") || "{}"));
-const rules: MarkupRule[] = psql("select min_price,coalesce(max_price::text,''),flat_usd,percent,min_profit_usd from shop_markup_rules where active")
-  .split("\n").filter(Boolean).map((l) => { const [a, b, c, d, e] = l.split(","); return { min_price: +a, max_price: b === "" ? null : +b, flat_usd: +c, percent: +d, min_profit_usd: +e }; });
+const rules: MarkupRule[] = psql("select min_price,coalesce(max_price::text,''),flat_usd,percent,min_profit_usd,coalesce(fixed_price_usd::text,'') from shop_markup_rules where active")
+  .split("\n").filter(Boolean).map((l) => { const [a, b, c, d, e, f] = l.split(","); return { min_price: +a, max_price: b === "" ? null : +b, flat_usd: +c, percent: +d, min_profit_usd: +e, fixed_price_usd: f === "" ? null : +f }; });
 const vals: number[] = [];
 for (let c = 1; c <= 30000; c += 7) vals.push(c / 100);
 vals.push(0.05, 0.2, 0.8, 0.99, 1, 2.5, 4.99, 7, 19.99, 45, 111, 300, 1000, 99999.99);

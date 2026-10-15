@@ -202,16 +202,16 @@ function Markup({ call }: { call: Call }) {
     call("pricing.get").then((j) => setPricing(normalizePricing(j.pricing))),
   ]).catch((e) => setMsg(e.message)), [call]);
   useEffect(() => { load(); }, [load]);
-  const active: MarkupRule[] = rules.filter((r) => r.active).map((r) => ({ min_price: Number(r.min_price), max_price: r.max_price == null ? null : Number(r.max_price), flat_usd: Number(r.flat_usd), percent: Number(r.percent), min_profit_usd: Number(r.min_profit_usd ?? 0) }));
+  const active: MarkupRule[] = rules.filter((r) => r.active).map((r) => ({ min_price: Number(r.min_price), max_price: r.max_price == null ? null : Number(r.max_price), flat_usd: Number(r.flat_usd), percent: Number(r.percent), min_profit_usd: Number(r.min_profit_usd ?? 0), fixed_price_usd: r.fixed_price_usd == null || r.fixed_price_usd === "" ? null : Number(r.fixed_price_usd) }));
   const edit = (i: number, k: string, v: unknown) => setRules(rules.map((r, j) => (j === i ? { ...r, [k]: v } : r)));
   const save = (r: Any) => call("rules.save", { rule: r }).then(() => { setMsg("Saved"); load(); }).catch((e) => setMsg(e.message));
   return (
     <div className="space-y-3 text-sm">
       <table className="w-full">
-        <thead className="text-left opacity-60"><tr><th>Min $</th><th>Max $ (blank = none)</th><th>Flat $ (optional)</th><th>Percent of price %</th><th>Min profit $</th><th>Active</th><th /></tr></thead>
+        <thead className="text-left opacity-60"><tr><th>Min $</th><th>Max $ (blank = none)</th><th>Flat $ (optional)</th><th>Percent of price %</th><th>Min profit $</th><th>Fixed sale $ (overrides)</th><th>Active</th><th /></tr></thead>
         <tbody>{rules.map((r, i) => (
           <tr key={r.id ?? `new-${i}`}>
-            {(["min_price", "max_price", "flat_usd", "percent", "min_profit_usd"] as const).map((k) => (
+            {(["min_price", "max_price", "flat_usd", "percent", "min_profit_usd", "fixed_price_usd"] as const).map((k) => (
               <td key={k}><input value={r[k] ?? ""} onChange={(e) => edit(i, k, e.target.value)} className={`${input} w-24`} /></td>
             ))}
             <td><input type="checkbox" checked={r.active !== false} onChange={(e) => edit(i, "active", e.target.checked)} /></td>
