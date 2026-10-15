@@ -125,6 +125,7 @@ export function AdventureEncounterModal({
               selectedBall,
               selectedBerry,
               rating,
+              { curveball: curve },
             );
             if (res.success && res.rewards) {
               setThrowPhase("caught");
