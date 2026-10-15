@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { searchCards, getMarketPrice, type TCGCard } from "@/lib/pokemon-api";
 import { useVault, formatPrice } from "@/lib/vault";
 import { identifyCard } from "@/lib/scanner.functions";
+import { friendlyScanError } from "@/lib/scan-errors";
 import { usePremium } from "@/lib/premium";
 import { formatCardNumber } from "@/lib/card-identity";
 import { Paywall, TrialBanner } from "./Paywall";
@@ -150,7 +151,7 @@ function ScannerInner({
     try {
       const r: any = await identifyFn({ data: { imageDataUrl: dataUrl } });
       if (!r?.ok) {
-        setError(r?.error || "Could not identify card. Try typing the name.");
+        setError(friendlyScanError(r?.error, "Could not identify card. Try typing the name."));
         setPhase("captured");
         return;
       }
@@ -160,7 +161,7 @@ function ScannerInner({
       onScanSuccess();
       await runSearch(card);
     } catch (e: any) {
-      setError(e?.message || "Identification failed.");
+      setError(friendlyScanError(e?.message, "Identification failed."));
       setPhase("captured");
     }
   }

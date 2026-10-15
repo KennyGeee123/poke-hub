@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { searchCards, type TCGCard } from "@/lib/pokemon-api";
 import { formatPrice, useVault } from "@/lib/vault";
 import { identifyCard } from "@/lib/scanner.functions";
+import { friendlyScanError } from "@/lib/scan-errors";
 import { useLivePrice } from "@/lib/live-prices";
 import { hdImg } from "@/lib/card-images";
 import {
@@ -206,7 +207,7 @@ function ScanSlot({
       const r: any = await identifyFn({ data: { imageDataUrl: dataUrl } });
       const name = r?.card?.name || (r?.ok && r?.card?.name);
       if (!name) {
-        setErr(r?.error || "Could not read the card. Search Find instead.");
+        setErr(friendlyScanError(r?.error, "Could not read the card. Search Find instead."));
         setBusy(false);
         return;
       }
@@ -216,7 +217,7 @@ function ScanSlot({
       setHits(res.data);
       if (res.data[0]) onSet(makeCardAsset(res.data[0], grade));
     } catch (e: any) {
-      setErr(e?.message || "Scan failed.");
+      setErr(friendlyScanError(e?.message, "Scan failed."));
     } finally {
       setBusy(false);
     }
