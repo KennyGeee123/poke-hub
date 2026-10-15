@@ -98,7 +98,9 @@ export const identifyCard = createServerFn({ method: "POST" })
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: process.env.AI_SCAN_MODEL || "qwen/qwen3.8-27b",
+          // Groq reasoning models: keep <think> text out of the JSON reply.
+          ...(gateway.includes("groq.com") ? { reasoning_format: "hidden" } : {}),
           messages: [
             { role: "system", content: SYSTEM },
             { role: "user", content: userContent },
