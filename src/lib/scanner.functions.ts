@@ -128,15 +128,15 @@ export const identifyCard = createServerFn({ method: "POST" })
         }),
       });
       let res = await call();
-      // Free-tier per-minute cap: one short retry if Groq says it frees up within 4s.
-      if (res.status === 429) {
-        const wait = Number(res.headers.get("retry-after")) || 3;
-        if (wait <= 4) {
-          await new Promise((r) => setTimeout(r, wait * 1000 + 250));
-          res = await call();
-        }
+      // Free-tier per-minute cap: retry (max 2x) when Groq says capacity frees up within 8s.
+      for (let attempt = 0; attempt < 2 && res.status === 429; attempt++) {
+        const body = await res.clone().text().catch(() => "");
+        const hinted = Number(body.match(/try again in ([\d.]+)s/i)?.[1]);
+        const wait = Number(res.headers.get("retry-after")) || (Number.isFinite(hinted) ? hinted : 3);
+        if (wait > 8) break;
+        await new Promise((r) => setTimeout(r, wait * 1000 + 300));
+        res = await call();
       }
-
       if (!res.ok) {
         const txt = await res.text().catch(() => "");
         console.error("[identifyCard] gateway", res.status, txt.slice(0, 300));
