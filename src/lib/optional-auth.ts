@@ -16,6 +16,17 @@ function anonClient() {
   });
 }
 
+// Guest quota lives in a separate Supabase project (km-command); anon key only,
+// access is limited to the SECURITY DEFINER RPCs.
+function quotaClient() {
+  const url = process.env.QUOTA_SUPABASE_URL;
+  const key = process.env.QUOTA_SUPABASE_ANON_KEY;
+  if (!url || !key) throw new Error("Missing QUOTA_SUPABASE_URL / QUOTA_SUPABASE_ANON_KEY");
+  return createClient(url, key, {
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+  });
+}
+
 export function guestIdentity(request: Request | undefined) {
   const h = request?.headers;
   const device = (h?.get("x-pv-device") || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 64);
@@ -25,7 +36,13 @@ export function guestIdentity(request: Request | undefined) {
 }
 
 export async function claimGuestScan(device: string, ip: string) {
-  const { data, error } = await anonClient().rpc("claim_guest_scan" as never, {
+  let client;
+  try {
+    client = quotaClient();
+  } catch (e: any) {
+    return { ok: false as const, reason: "store" as const, used: 0, limit: GUEST_SCAN_LIMIT, error: e?.message };
+  }
+  const { data, error } = await client.rpc("claim_guest_scan" as never, {
     p_device: device,
     p_ip: ip,
     p_device_limit: GUEST_SCAN_LIMIT,
@@ -38,7 +55,13 @@ export async function claimGuestScan(device: string, ip: string) {
 
 export async function guestScanStatus(device: string) {
   if (device.length < 16) return { used: 0, limit: GUEST_SCAN_LIMIT };
-  const { data, error } = await anonClient().rpc("guest_scan_status" as never, { p_device: device } as never);
+  let client;
+  try {
+    client = quotaClient();
+  } catch {
+    return { used: 0, limit: GUEST_SCAN_LIMIT };
+  }
+  const { data, error } = await client.rpc("guest_scan_status" as never, { p_device: device } as never);
   return { used: error ? 0 : Number(data) || 0, limit: GUEST_SCAN_LIMIT };
 }
 
