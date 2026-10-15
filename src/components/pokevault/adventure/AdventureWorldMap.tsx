@@ -1162,10 +1162,9 @@ export function AdventureWorldMap({
             <div className="pv-go-radius-outer w-56 h-56 rounded-full absolute" />
 
             {/* Original 4-dir trainer (adventure-assets), not PokeAPI trainers/1.png */}
-            <div
-              className="relative flex items-center justify-center"
-              style={{ transform: isWalking ? "translateY(-2px)" : undefined }}
-            >
+            {/* Billboard wrapper: CSS rotateX counters the map tilt so the trainer stands upright.
+                No inline transform here — it would override the billboard while walking. */}
+            <div className="relative flex items-center justify-center">
               <div className="absolute w-10 h-4 rounded-full bg-black/40 blur-[2px] top-[52px]" />
               <img
                 src={trainerFacingUrl(facingAngle)}
@@ -1175,18 +1174,29 @@ export function AdventureWorldMap({
               />
             </div>
 
-            {/* Buddy follows beside you while you roam */}
-            <div
-              className={`absolute -right-11 -bottom-1 flex items-center justify-center ${
-                isWalking ? "animate-bounce" : ""
-              }`}
-            >
-              <WorldSprite
-                name={adventureState.buddy.species}
-                alt={adventureState.buddy.species}
-                className="w-10 h-10 object-contain filter drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)]"
-              />
-            </div>
+            {/* Buddy trails behind the trainer (opposite the heading), eased via CSS transition,
+                billboarded upright and mirrored to face the same way. */}
+            {(() => {
+              const rad = (facingAngle * Math.PI) / 180;
+              const bx = -Math.sin(rad) * 44;
+              const by = Math.cos(rad) * 22 + 6;
+              const faceLeft = Math.sin(rad) < -0.2;
+              return (
+                <div
+                  className="pv-go-buddy absolute flex items-center justify-center"
+                  style={{ ["--pv-buddy-x" as string]: `${bx.toFixed(1)}px`, ["--pv-buddy-y" as string]: `${by.toFixed(1)}px` }}
+                >
+                  <div className="pv-go-buddy-bb relative" data-face-left={faceLeft ? "1" : undefined}>
+                    <div className="absolute w-7 h-2.5 rounded-full bg-black/35 blur-[2px] left-1/2 -translate-x-1/2 top-[34px]" />
+                    <WorldSprite
+                      name={adventureState.buddy.species}
+                      alt={adventureState.buddy.species}
+                      className="w-10 h-10 object-contain relative z-10 filter drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)]"
+                    />
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>

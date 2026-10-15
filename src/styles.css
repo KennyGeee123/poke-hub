@@ -11618,7 +11618,14 @@ body[data-pv-tab="adventure"] .pv-music-panel,
   pointer-events: none;
 }
 /* Avatar stays pinned at screen centre and stands up out of the tilted map. */
+/* Single upright mechanism: the item layer and avatar keep a 3D context so the
+   avatar's rotateX(-tilt) cancels the layer's rotateX(tilt) exactly once
+   (without preserve-3d it would flatten into a vertical squash on the tilted plane). */
+.pv-go .pv-go-viewport > [data-cam]:not([data-cam="tiles"]) {
+  transform-style: preserve-3d;
+}
 .pv-go .pv-go-avatar {
+  transform-style: preserve-3d;
   transform-origin: 50% 50%;
   transform: translate(-50%, -50%) translate3d(calc(-1 * var(--pv-cam-x)), calc(-1 * var(--pv-cam-y)), 0);
 }
@@ -11632,6 +11639,26 @@ body[data-pv-tab="adventure"] .pv-music-panel,
 @keyframes pv-go-bob {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-3px); }
+}
+/* Buddy: trails opposite the heading with an eased glide, stands upright, mirrors facing. */
+.pv-go .pv-go-avatar .pv-go-buddy {
+  transform-style: preserve-3d;
+  transform: translate(var(--pv-buddy-x, 40px), var(--pv-buddy-y, 6px));
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pv-go .pv-go-avatar .pv-go-buddy-bb {
+  transform-origin: 50% 85%;
+  transform: rotateX(calc(-1 * var(--pv-tilt, 20deg)));
+}
+.pv-go .pv-go-avatar .pv-go-buddy-bb[data-face-left] {
+  transform: rotateX(calc(-1 * var(--pv-tilt, 20deg))) scaleX(-1);
+}
+.pv-go .pv-go-avatar[data-walking] .pv-go-buddy-bb > :last-child {
+  animation: pv-go-bob 0.42s ease-in-out 0.12s infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pv-go .pv-go-avatar .pv-go-buddy { transition: none; }
+  .pv-go .pv-go-avatar[data-walking] .pv-go-buddy-bb > :last-child { animation: none !important; }
 }
 .pv-go .pv-go-radius {
   border: 2px solid rgba(255, 255, 255, 0.85);
