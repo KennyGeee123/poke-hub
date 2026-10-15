@@ -5,6 +5,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { EMAIL_RE, orderCode, validateShipping } from "@/lib/shop/checkout";
 import { adminDb, createCheckout, notifyOrder, siteUrl } from "@/lib/shop/server";
 import { variantLabel } from "@/lib/shop/grades";
+import { COMING_SOON, shopUnavailable } from "@/lib/shop/core";
 
 export const Route = createFileRoute("/api/public/shop-order")({
   server: {
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/api/public/shop-order")({
         if (shipErr) return Response.json({ error: shipErr }, { status: 400 });
         const sb = adminDb();
         const { data: p, error } = await sb.from("shop_products").select("id,name,sale_price,cheapest_source_price,cheapest_source,cheapest_source_url,in_stock,sell_mode,hidden,price_override").eq("id", productId).maybeSingle();
+        if (shopUnavailable(error)) return Response.json({ error: COMING_SOON, comingSoon: true }, { status: 503 });
         let price = p?.price_override ?? p?.sale_price;
         if (error || !p || price == null || !p.in_stock || p.sell_mode !== "store" || p.hidden) return Response.json({ error: "Product unavailable" }, { status: 404 });
         // Chosen grade/condition: price and source come from that variant (never from the client).

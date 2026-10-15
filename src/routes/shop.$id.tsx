@@ -11,12 +11,13 @@ export const Route = createFileRoute("/shop/$id")({
 function ProductPage() {
   const { id } = Route.useParams();
   const [item, setItem] = useState<ShopItem | null>(null);
-  const [state, setState] = useState<"loading" | "ok" | "missing">("loading");
+  const [state, setState] = useState<"loading" | "ok" | "missing" | "soon">("loading");
   const [buying, setBuying] = useState(false);
   const [variants, setVariants] = useState<Variant[]>([]);
   const [vid, setVid] = useState<string>("");
   useEffect(() => {
     fetch(`/api/public/shop?id=${encodeURIComponent(id)}`).then((r) => r.json()).then((j) => {
+      if (j.comingSoon) { setState("soon"); return; }
       const it = j.items?.[0];
       const vs = sortVariants((j.variants ?? []) as Variant[]);
       setVariants(vs);
@@ -25,6 +26,7 @@ function ProductPage() {
     }).catch(() => setState("missing"));
   }, [id]);
   if (state === "loading") return <main className="mx-auto max-w-4xl p-6 text-white"><div className="h-96 animate-pulse rounded-xl bg-white/5" /></main>;
+  if (state === "soon") return <main className="mx-auto max-w-4xl p-6 text-center text-white"><h1 className="text-2xl font-bold">Shop coming soon</h1><p className="my-2 opacity-80">This product page will be live once the shop opens.</p><Link to="/shop" className="underline">Back to shop</Link></main>;
   if (!item) return <main className="mx-auto max-w-4xl p-6 text-white"><p>This product isn't available.</p><Link to="/shop" className="underline">Back to shop</Link></main>;
   const affiliate = item.sell_mode === "affiliate" && item.affiliate_url;
   const chosen = variants.find((v) => v.id === vid) ?? null;

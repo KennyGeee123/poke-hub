@@ -168,3 +168,10 @@ export function cheapest<T extends { price: number; inStock: boolean; currency: 
   ok.sort((a, b) => toUsd(a.price, a.currency) - toUsd(b.price, b.currency));
   return ok[0] ?? null;
 }
+
+/** True when the shop tables/views aren't deployed in this database yet (or the server lacks DB config). */
+export function shopUnavailable(error: { code?: string; message?: string } | null | undefined): boolean {
+  if (!error) return false;
+  return ["PGRST205", "PGRST202", "42P01", "42883"].includes(error.code ?? "") || /does not exist|could not find the (table|function)|schema cache|supabaseUrl is required|supabaseKey is required/i.test(error.message ?? "");
+}
+export const COMING_SOON = "The shop is coming soon — check back shortly!";

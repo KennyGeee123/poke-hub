@@ -18,7 +18,7 @@ function ShopPage() {
   const [debounced, setDebounced] = useState("");
   const [sort, setSort] = useState("price_asc");
   const [page, setPage] = useState(1);
-  const [data, setData] = useState<{ items: Item[]; total: number; pageSize: number } | null>(null);
+  const [data, setData] = useState<{ items: Item[]; total: number; pageSize: number; comingSoon?: boolean } | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [buying, setBuying] = useState<Item | null>(null);
 
@@ -53,12 +53,13 @@ function ShopPage() {
         </select>
       </div>
       {err && <p className="text-red-400">{err}</p>}
+      {data?.comingSoon && <div className="rounded-xl border border-yellow-400/40 bg-yellow-400/10 p-6 text-center"><h2 className="text-xl font-bold">Shop coming soon</h2><p className="mt-1 opacity-80">We're stocking the shelves with sealed product and single cards. Check back shortly!</p></div>}
       {!data && !err && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-72 animate-pulse rounded-xl bg-white/5" />)}
         </div>
       )}
-      {data && data.items.length === 0 && <p className="opacity-70">{q.trim() ? <>No {kind === "single" ? "cards" : "sealed products"} match “{q.trim()}”. Try another name{kind === "sealed" ? " or the Single cards tab" : ""}.</> : "No products yet."}</p>}
+      {data && !data.comingSoon && data.items.length === 0 && <p className="opacity-70">{q.trim() ? <>No {kind === "single" ? "cards" : "sealed products"} match “{q.trim()}”. Try another name{kind === "sealed" ? " or the Single cards tab" : ""}.</> : "No products yet."}</p>}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {data?.items.map((it) => (
           <div key={it.id} className="flex flex-col rounded-xl bg-white/5 p-3">
