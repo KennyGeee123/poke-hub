@@ -1,5 +1,5 @@
 {
-"updated": "Oct 14, 2026 10:51 PM ET",
+"updated": "Oct 15, 2026 1:04 AM ET",
 "items": [
 {
 "id": "HF-001",
@@ -8,7 +8,7 @@
 "title": "Customer journey step 1: Name it",
 "navi": "leadman",
 "naviName": "Singularity (leadman)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-002",
@@ -17,7 +17,7 @@
 "title": "Customer journey step 2: Match",
 "navi": "engine",
 "naviName": "Quark (engine)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-003",
@@ -26,7 +26,7 @@
 "title": "Customer journey step 3: Decide",
 "navi": "engine",
 "naviName": "Quark (engine)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-004",
@@ -35,7 +35,7 @@
 "title": "Customer journey step 4: Hold",
 "navi": "money",
 "naviName": "Quanta (money)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-005",
@@ -44,7 +44,7 @@
 "title": "Customer journey step 5: Buy",
 "navi": "money",
 "naviName": "Quanta (money)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-006",
@@ -53,7 +53,7 @@
 "title": "Customer journey step 6: Verify",
 "navi": "guardian",
 "naviName": "Barrier (guardian)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-007",
@@ -62,7 +62,7 @@
 "title": "Customer journey step 7: Ship",
 "navi": "globetrotter",
 "naviName": "Vector (globetrotter)",
-"status": "pending"
+"status": "stub"
 },
 {
 "id": "HF-008",
@@ -71,7 +71,7 @@
 "title": "Why the countdown exists",
 "navi": "storyteller",
 "naviName": "Wavelength (storyteller)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-009",
@@ -80,7 +80,7 @@
 "title": "Glossary (15 terms)",
 "navi": "professor",
 "naviName": "Archimedes (professor)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-010",
@@ -89,7 +89,7 @@
 "title": "Orbitz rule",
 "navi": "guardian",
 "naviName": "Barrier (guardian)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-011",
@@ -98,7 +98,7 @@
 "title": "No technical details in shared docs",
 "navi": "settings",
 "naviName": "Cipher (settings)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-012",
@@ -107,7 +107,7 @@
 "title": "Name: HoloFare",
 "navi": "designforge",
 "naviName": "Spectrum (designforge)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-013",
@@ -116,7 +116,7 @@
 "title": "Name clearance checklist",
 "navi": "govcon",
 "naviName": "Meridian (govcon)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-014",
@@ -125,7 +125,7 @@
 "title": "Pok\u00e9mon trademark rule",
 "navi": "aegis",
 "naviName": "Aegis (aegis)",
-"status": "pending"
+"status": "stub"
 },
 {
 "id": "HF-015",
@@ -134,7 +134,7 @@
 "title": "Not-affiliated footer line",
 "navi": "guardian",
 "naviName": "Barrier (guardian)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-016",
@@ -143,7 +143,7 @@
 "title": "Primary tagline",
 "navi": "campaign",
 "naviName": "Nova (campaign)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-017",
@@ -152,7 +152,7 @@
 "title": "Backup taglines",
 "navi": "campaign",
 "naviName": "Nova (campaign)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-018",
@@ -161,7 +161,7 @@
 "title": "Voice",
 "navi": "inkwell",
 "naviName": "Inkwell (inkwell)",
-"status": "pending"
+"status": "stub"
 },
 {
 "id": "HF-019",
@@ -170,7 +170,7 @@
 "title": "Voice rule: say what a button does",
 "navi": "inkwell",
 "naviName": "Inkwell (inkwell)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-020",
@@ -179,7 +179,7 @@
 "title": "Voice rule: show full prices",
 "navi": "inkwell",
 "naviName": "Inkwell (inkwell)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-021",
@@ -188,7 +188,7 @@
 "title": "Voice rule: honest about time",
 "navi": "inkwell",
 "naviName": "Inkwell (inkwell)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-022",
@@ -197,7 +197,7 @@
 "title": "Voice rule: explain failures",
 "navi": "inkwell",
 "naviName": "Inkwell (inkwell)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-023",
@@ -206,7 +206,7 @@
 "title": "Voice rule: one name per action",
 "navi": "inkwell",
 "naviName": "Inkwell (inkwell)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-024",
@@ -215,7 +215,7 @@
 "title": "Voice rule: sentence case",
 "navi": "inkwell",
 "naviName": "Inkwell (inkwell)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-025",
@@ -224,7 +224,7 @@
 "title": "Logo mark",
 "navi": "designforge",
 "naviName": "Spectrum (designforge)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-026",
@@ -233,7 +233,7 @@
 "title": "Logo usage rules",
 "navi": "designforge",
 "naviName": "Spectrum (designforge)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-027",
@@ -242,7 +242,7 @@
 "title": "Color token: Void Navy #0B0F2A",
 "navi": "lumina",
 "naviName": "Prism (lumina)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-028",
@@ -251,7 +251,7 @@
 "title": "Color token: Deep Orbit #151B45",
 "navi": "lumina",
 "naviName": "Prism (lumina)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-029",
@@ -260,7 +260,7 @@
 "title": "Color token: Electric Cyan #19E3FF",
 "navi": "lumina",
 "naviName": "Prism (lumina)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-030",
@@ -269,7 +269,7 @@
 "title": "Color token: Holo Magenta #FF3DCB",
 "navi": "lumina",
 "naviName": "Prism (lumina)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-031",
@@ -278,7 +278,7 @@
 "title": "Color token: Foil Gold #FFC93C",
 "navi": "lumina",
 "naviName": "Prism (lumina)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-032",
@@ -287,7 +287,7 @@
 "title": "Color token: Mint Pull #3DFFA2",
 "navi": "lumina",
 "naviName": "Prism (lumina)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-033",
@@ -296,7 +296,7 @@
 "title": "Color token: Frost White #F4F7FF",
 "navi": "lumina",
 "naviName": "Prism (lumina)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-034",
@@ -305,7 +305,7 @@
 "title": "Neutral token: Soft Lilac #A9B2E8",
 "navi": "designforge",
 "naviName": "Spectrum (designforge)",
-"status": "pending"
+"status": "stub"
 },
 {
 "id": "HF-035",
@@ -314,7 +314,7 @@
 "title": "Neutral token: Dim Lilac #7F89C9",
 "navi": "designforge",
 "naviName": "Spectrum (designforge)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-036",
@@ -323,7 +323,7 @@
 "title": "Neutral token: Panel Border #2B3578",
 "navi": "designforge",
 "naviName": "Spectrum (designforge)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-037",
@@ -332,7 +332,7 @@
 "title": "Neutral token: Input Border #3A4488",
 "navi": "designforge",
 "naviName": "Spectrum (designforge)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-038",
@@ -341,7 +341,7 @@
 "title": "Neutral token: Track Blue #232B63",
 "navi": "designforge",
 "naviName": "Spectrum (designforge)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-039",
@@ -350,7 +350,7 @@
 "title": "Neutral token: Board Navy #0E1336",
 "navi": "designforge",
 "naviName": "Spectrum (designforge)",
-"status": "pending"
+"status": "stub"
 },
 {
 "id": "HF-040",
@@ -359,7 +359,7 @@
 "title": "Holo Shimmer gradient",
 "navi": "lumina",
 "naviName": "Prism (lumina)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-041",
@@ -368,7 +368,7 @@
 "title": "Color meanings (never break)",
 "navi": "lumina",
 "naviName": "Prism (lumina)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-042",
@@ -377,7 +377,7 @@
 "title": "60 / 30 / 10 rule",
 "navi": "designforge",
 "naviName": "Spectrum (designforge)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-043",
@@ -386,7 +386,7 @@
 "title": "Status pill colors",
 "navi": "dashboard",
 "naviName": "Tensor (dashboard)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-044",
@@ -395,7 +395,7 @@
 "title": "Contrast table",
 "navi": "scriptguard",
 "naviName": "Script Guard (scriptguard)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-045",
@@ -404,7 +404,7 @@
 "title": "Two things never to do",
 "navi": "scriptguard",
 "naviName": "Script Guard (scriptguard)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-046",
@@ -413,7 +413,7 @@
 "title": "Optional light theme: Sunburst",
 "navi": "designforge",
 "naviName": "Spectrum (designforge)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-047",
@@ -422,7 +422,7 @@
 "title": "Font: Unbounded",
 "navi": "designforge",
 "naviName": "Spectrum (designforge)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-048",
@@ -431,7 +431,7 @@
 "title": "Font: DM Sans",
 "navi": "designforge",
 "naviName": "Spectrum (designforge)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-049",
@@ -440,7 +440,7 @@
 "title": "Font: JetBrains Mono",
 "navi": "designforge",
 "naviName": "Spectrum (designforge)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-050",
@@ -449,7 +449,7 @@
 "title": "Type size scale",
 "navi": "archify",
 "naviName": "Archify (archify)",
-"status": "pending"
+"status": "stub"
 },
 {
 "id": "HF-051",
@@ -458,7 +458,7 @@
 "title": "Type rules",
 "navi": "archify",
 "naviName": "Archify (archify)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-052",
@@ -467,7 +467,7 @@
 "title": "Shared header",
 "navi": "dashboard",
 "naviName": "Tensor (dashboard)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-053",
@@ -476,7 +476,7 @@
 "title": "Home: headline + subtext",
 "navi": "dashboard",
 "naviName": "Tensor (dashboard)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-054",
@@ -485,7 +485,7 @@
 "title": "Home: search panel",
 "navi": "signup",
 "naviName": "Genesis (signup)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-055",
@@ -494,7 +494,7 @@
 "title": "Home: condition chips",
 "navi": "signup",
 "naviName": "Genesis (signup)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-056",
@@ -503,7 +503,7 @@
 "title": "Home: Recently fetched board",
 "navi": "channel",
 "naviName": "Photon (channel)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-057",
@@ -512,7 +512,7 @@
 "title": "Home: data note",
 "navi": "channel",
 "naviName": "Photon (channel)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-058",
@@ -521,7 +521,7 @@
 "title": "Match: card image with tilt",
 "navi": "megaman",
 "naviName": "Flux Lead (megaman)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-059",
@@ -530,7 +530,7 @@
 "title": "Match: Fare Lock ring",
 "navi": "appointment",
 "naviName": "Chronos (appointment)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-060",
@@ -539,7 +539,7 @@
 "title": "Match: demand label",
 "navi": "timeflow",
 "naviName": "Aquifer (timeflow)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-061",
@@ -548,7 +548,7 @@
 "title": "Match: viewer count",
 "navi": "analytics",
 "naviName": "Sigma (analytics)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-062",
@@ -557,7 +557,7 @@
 "title": "Match: price breakdown",
 "navi": "money",
 "naviName": "Quanta (money)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-063",
@@ -566,7 +566,7 @@
 "title": "Match: price protection note",
 "navi": "money",
 "naviName": "Quanta (money)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-064",
@@ -575,7 +575,7 @@
 "title": "Match: buttons",
 "navi": "engine",
 "naviName": "Quark (engine)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-065",
@@ -584,7 +584,7 @@
 "title": "Match: hold explanation",
 "navi": "callcenter",
 "naviName": "Pulsar (callcenter)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-066",
@@ -593,7 +593,7 @@
 "title": "Match: Also found rows",
 "navi": "bizreach",
 "naviName": "Continuum (bizreach)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-067",
@@ -602,7 +602,7 @@
 "title": "Match: moment behaviors",
 "navi": "operator",
 "naviName": "Vernier (operator)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-068",
@@ -611,7 +611,7 @@
 "title": "Match: demo toggle (prototype only)",
 "navi": "timeflow",
 "naviName": "Aquifer (timeflow)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-069",
@@ -620,7 +620,7 @@
 "title": "Expired panel",
 "navi": "storyteller",
 "naviName": "Wavelength (storyteller)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-070",
@@ -629,7 +629,7 @@
 "title": "Tracker: five steps",
 "navi": "quantumops",
 "naviName": "Coherence (quantumops)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-071",
@@ -638,7 +638,7 @@
 "title": "Tracker: step styling",
 "navi": "quantumops",
 "naviName": "Coherence (quantumops)",
-"status": "pending"
+"status": "stub"
 },
 {
 "id": "HF-072",
@@ -647,7 +647,7 @@
 "title": "Tracker: changing title",
 "navi": "orion",
 "naviName": "Orion (orion)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-073",
@@ -656,7 +656,7 @@
 "title": "Tracker: Payment box",
 "navi": "money",
 "naviName": "Quanta (money)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-074",
@@ -665,7 +665,7 @@
 "title": "Tracker: bottom actions",
 "navi": "orion",
 "naviName": "Orion (orion)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-075",
@@ -674,7 +674,7 @@
 "title": "Later screen: Search results",
 "navi": "peoplefinder",
 "naviName": "Parallax (peoplefinder)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-076",
@@ -683,7 +683,7 @@
 "title": "Later screen: Card detail",
 "navi": "analytics",
 "naviName": "Sigma (analytics)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-077",
@@ -692,7 +692,7 @@
 "title": "Later screen: Deals",
 "navi": "affiliate",
 "naviName": "Orbit (affiliate)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-078",
@@ -701,7 +701,7 @@
 "title": "Later screen: Watchlist and Binder",
 "navi": "memory",
 "naviName": "Lattice (memory)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-079",
@@ -710,7 +710,7 @@
 "title": "Later screen: Pack Radar",
 "navi": "gravityclaw",
 "naviName": "Graviton (gravityclaw)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-080",
@@ -719,7 +719,7 @@
 "title": "Later screen: Account and payment",
 "navi": "signup",
 "naviName": "Genesis (signup)",
-"status": "pending"
+"status": "stub"
 },
 {
 "id": "HF-081",
@@ -728,7 +728,7 @@
 "title": "Later screen: Orders and support",
 "navi": "callcenter",
 "naviName": "Pulsar (callcenter)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-082",
@@ -737,7 +737,7 @@
 "title": "Later screen: Legal pages",
 "navi": "govcon",
 "naviName": "Meridian (govcon)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-083",
@@ -746,7 +746,7 @@
 "title": "Demand tiers",
 "navi": "timeflow",
 "naviName": "Aquifer (timeflow)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-084",
@@ -755,7 +755,7 @@
 "title": "Tier signals",
 "navi": "analytics",
 "naviName": "Sigma (analytics)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-085",
@@ -764,7 +764,7 @@
 "title": "Viewer count honesty rule",
 "navi": "aegis",
 "naviName": "Aegis (aegis)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-086",
@@ -773,7 +773,7 @@
 "title": "Timer vs hold (two clocks)",
 "navi": "appointment",
 "naviName": "Chronos (appointment)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-087",
@@ -782,7 +782,7 @@
 "title": "Edge case: listing sells while deciding",
 "navi": "operator",
 "naviName": "Vernier (operator)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-088",
@@ -791,7 +791,7 @@
 "title": "Edge case: price changes before buy",
 "navi": "money",
 "naviName": "Quanta (money)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-089",
@@ -800,7 +800,7 @@
 "title": "Edge case: two customers same listing",
 "navi": "operator",
 "naviName": "Vernier (operator)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-090",
@@ -809,7 +809,7 @@
 "title": "Edge case: slow connection",
 "navi": "proxy",
 "naviName": "Horizon (proxy)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-091",
@@ -818,7 +818,7 @@
 "title": "Why hold instead of charge",
 "navi": "money",
 "naviName": "Quanta (money)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-092",
@@ -827,7 +827,7 @@
 "title": "Money flow 1: Customer taps Lock it in",
 "navi": "bookkeeper",
 "naviName": "Codex (bookkeeper)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-093",
@@ -836,7 +836,7 @@
 "title": "Money flow 2: HoloFare buys the listing",
 "navi": "bookkeeper",
 "naviName": "Codex (bookkeeper)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-094",
@@ -845,7 +845,7 @@
 "title": "Money flow 3: Seller confirms the sale",
 "navi": "bookkeeper",
 "naviName": "Codex (bookkeeper)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-095",
@@ -854,7 +854,7 @@
 "title": "Money flow 4: HoloFare verifies the proof",
 "navi": "bookkeeper",
 "naviName": "Codex (bookkeeper)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-096",
@@ -863,7 +863,7 @@
 "title": "Money flow 5: Seller ships",
 "navi": "bookkeeper",
 "naviName": "Codex (bookkeeper)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-097",
@@ -872,7 +872,7 @@
 "title": "Money flow 6: Package arrives",
 "navi": "bookkeeper",
 "naviName": "Codex (bookkeeper)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-098",
@@ -881,7 +881,7 @@
 "title": "Failure case: Listing sold before we could buy",
 "navi": "operator",
 "naviName": "Vernier (operator)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-099",
@@ -890,7 +890,7 @@
 "title": "Failure case: Price rose a little",
 "navi": "money",
 "naviName": "Quanta (money)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-100",
@@ -899,7 +899,7 @@
 "title": "Failure case: Price rose more than the cushion",
 "navi": "money",
 "naviName": "Quanta (money)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-101",
@@ -908,7 +908,7 @@
 "title": "Failure case: Seller rejects or cancels",
 "navi": "callcenter",
 "naviName": "Pulsar (callcenter)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-102",
@@ -917,7 +917,7 @@
 "title": "Failure case: Proof is missing",
 "navi": "guardian",
 "naviName": "Barrier (guardian)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-103",
@@ -926,7 +926,7 @@
 "title": "Failure case: Card declined at hold",
 "navi": "settings",
 "naviName": "Cipher (settings)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-104",
@@ -935,7 +935,7 @@
 "title": "Failure case: Item arrives wrong or damaged",
 "navi": "callcenter",
 "naviName": "Pulsar (callcenter)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-105",
@@ -944,7 +944,7 @@
 "title": "Failure case: Customer disputes the charge",
 "navi": "bookkeeper",
 "naviName": "Codex (bookkeeper)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-106",
@@ -953,7 +953,7 @@
 "title": "Fee and margin worksheet",
 "navi": "investor",
 "naviName": "Momentum (investor)",
-"status": "pending"
+"status": "stub"
 },
 {
 "id": "HF-107",
@@ -962,7 +962,7 @@
 "title": "Pricing worksheet questions",
 "navi": "investor",
 "naviName": "Momentum (investor)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-108",
@@ -971,7 +971,7 @@
 "title": "Price cushion rules",
 "navi": "money",
 "naviName": "Quanta (money)",
-"status": "pending"
+"status": "stub"
 },
 {
 "id": "HF-109",
@@ -980,7 +980,7 @@
 "title": "Cushion example",
 "navi": "investor",
 "naviName": "Momentum (investor)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-110",
@@ -989,7 +989,7 @@
 "title": "Cushion honesty",
 "navi": "aegis",
 "naviName": "Aegis (aegis)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-111",
@@ -998,7 +998,7 @@
 "title": "Rules for showing prices",
 "navi": "bookkeeper",
 "naviName": "Codex (bookkeeper)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-112",
@@ -1007,7 +1007,7 @@
 "title": "Shipping decision: direct to buyer",
 "navi": "globetrotter",
 "naviName": "Vector (globetrotter)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-113",
@@ -1016,7 +1016,7 @@
 "title": "Standard disclaimer (draft)",
 "navi": "guardian",
 "naviName": "Barrier (guardian)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-114",
@@ -1025,7 +1025,7 @@
 "title": "Lawyer review required",
 "navi": "govcon",
 "naviName": "Meridian (govcon)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-115",
@@ -1034,7 +1034,7 @@
 "title": "What to promise customers",
 "navi": "callcenter",
 "naviName": "Pulsar (callcenter)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-116",
@@ -1043,7 +1043,7 @@
 "title": "Tracking and emails",
 "navi": "globetrotter",
 "naviName": "Vector (globetrotter)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-117",
@@ -1052,7 +1052,7 @@
 "title": "Risk: Marketplace rules",
 "navi": "govcon",
 "naviName": "Meridian (govcon)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-118",
@@ -1061,7 +1061,7 @@
 "title": "Risk: Fake or misdescribed cards",
 "navi": "guardian",
 "naviName": "Barrier (guardian)",
-"status": "pending"
+"status": "stub"
 },
 {
 "id": "HF-119",
@@ -1070,7 +1070,7 @@
 "title": "Risk: Listings vanishing",
 "navi": "operator",
 "naviName": "Vernier (operator)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-120",
@@ -1079,7 +1079,7 @@
 "title": "Risk: Prices moving after the fare",
 "navi": "investor",
 "naviName": "Momentum (investor)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-121",
@@ -1088,7 +1088,7 @@
 "title": "Risk: Chargebacks",
 "navi": "bookkeeper",
 "naviName": "Codex (bookkeeper)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-122",
@@ -1097,7 +1097,7 @@
 "title": "Risk: Payment card safety",
 "navi": "settings",
 "naviName": "Cipher (settings)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-123",
@@ -1106,7 +1106,7 @@
 "title": "Risk: Taxes",
 "navi": "bookkeeper",
 "naviName": "Codex (bookkeeper)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-124",
@@ -1115,7 +1115,7 @@
 "title": "Risk: Trademarks",
 "navi": "aegis",
 "naviName": "Aegis (aegis)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-125",
@@ -1124,7 +1124,7 @@
 "title": "Risk: Fake urgency",
 "navi": "aegis",
 "naviName": "Aegis (aegis)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-126",
@@ -1133,7 +1133,7 @@
 "title": "Risk: Customer support load",
 "navi": "callcenter",
 "naviName": "Pulsar (callcenter)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-127",
@@ -1142,7 +1142,7 @@
 "title": "Risk: Privacy",
 "navi": "scriptguard",
 "naviName": "Script Guard (scriptguard)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-128",
@@ -1151,7 +1151,7 @@
 "title": "Phase 0: Decisions (Week 1)",
 "navi": "leadman",
 "naviName": "Singularity (leadman)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-129",
@@ -1160,7 +1160,7 @@
 "title": "Phase 1: Look and feel",
 "navi": "designforge",
 "naviName": "Spectrum (designforge)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-130",
@@ -1169,7 +1169,7 @@
 "title": "Phase 2: Concierge test (Weeks 2 to 5)",
 "navi": "odysseus",
 "naviName": "Voyager (odysseus)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-131",
@@ -1178,7 +1178,7 @@
 "title": "Phase 3 build 1: Search and matching",
 "navi": "peoplefinder",
 "naviName": "Parallax (peoplefinder)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-132",
@@ -1187,7 +1187,7 @@
 "title": "Phase 3 build 2: Price and fee calculation",
 "navi": "money",
 "naviName": "Quanta (money)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-133",
@@ -1196,7 +1196,7 @@
 "title": "Phase 3 build 3: The match screen with the Fare Lock timer",
 "navi": "engine",
 "naviName": "Quark (engine)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-134",
@@ -1205,7 +1205,7 @@
 "title": "Phase 3 build 4: Accounts and saved payment method",
 "navi": "signup",
 "naviName": "Genesis (signup)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-135",
@@ -1214,7 +1214,7 @@
 "title": "Phase 3 build 5: Hold and release",
 "navi": "money",
 "naviName": "Quanta (money)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-136",
@@ -1223,7 +1223,7 @@
 "title": "Phase 3 build 6: Purchase and verification",
 "navi": "guardian",
 "naviName": "Barrier (guardian)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-137",
@@ -1232,7 +1232,7 @@
 "title": "Phase 3 build 7: Order tracker and emails",
 "navi": "quantumops",
 "naviName": "Coherence (quantumops)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-138",
@@ -1241,7 +1241,7 @@
 "title": "Phase 3 build 8: Support tools",
 "navi": "callcenter",
 "naviName": "Pulsar (callcenter)",
-"status": "pending"
+"status": "stub"
 },
 {
 "id": "HF-139",
@@ -1250,7 +1250,7 @@
 "title": "Phase 3 build 9: Legal pages",
 "navi": "govcon",
 "naviName": "Meridian (govcon)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-140",
@@ -1259,7 +1259,7 @@
 "title": "Phase 3 build 10: Viewer count",
 "navi": "analytics",
 "naviName": "Sigma (analytics)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-141",
@@ -1268,7 +1268,7 @@
 "title": "Who you need",
 "navi": "leadman",
 "naviName": "Singularity (leadman)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-142",
@@ -1277,7 +1277,7 @@
 "title": "Phase 4: Private beta (Weeks 16 to 20)",
 "navi": "campaign",
 "naviName": "Nova (campaign)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-143",
@@ -1286,7 +1286,7 @@
 "title": "Phase 5: Public launch",
 "navi": "openseo",
 "naviName": "OpenSEO (openseo)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-144",
@@ -1295,7 +1295,7 @@
 "title": "Flashy: Holo card tilt and sheen (Must have)",
 "navi": "megaman",
 "naviName": "Flux Lead (megaman)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-145",
@@ -1304,7 +1304,7 @@
 "title": "Flashy: Fare Lock ring (Must have)",
 "navi": "appointment",
 "naviName": "Chronos (appointment)",
-"status": "pending"
+"status": "stub"
 },
 {
 "id": "HF-146",
@@ -1313,7 +1313,7 @@
 "title": "Flashy: Departure board (Must have)",
 "navi": "channel",
 "naviName": "Photon (channel)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-147",
@@ -1322,7 +1322,7 @@
 "title": "Flashy: Verified stamp (Must have)",
 "navi": "antigravity",
 "naviName": "Tachyon (antigravity)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-148",
@@ -1331,7 +1331,7 @@
 "title": "Flashy: Pack-opening animation (Nice to have)",
 "navi": "antigravity",
 "naviName": "Tachyon (antigravity)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-149",
@@ -1340,7 +1340,7 @@
 "title": "Flashy: Confetti on great deals (Nice to have)",
 "navi": "affiliate",
 "naviName": "Orbit (affiliate)",
-"status": "pending"
+"status": "stub"
 },
 {
 "id": "HF-150",
@@ -1349,7 +1349,7 @@
 "title": "Flashy: Live price ticker (Nice to have)",
 "navi": "channel",
 "naviName": "Photon (channel)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-151",
@@ -1358,7 +1358,7 @@
 "title": "Accessibility and motion rules",
 "navi": "scriptguard",
 "naviName": "Script Guard (scriptguard)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-152",
@@ -1367,7 +1367,7 @@
 "title": "Responsive layout",
 "navi": "archify",
 "naviName": "Archify (archify)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-153",
@@ -1376,7 +1376,7 @@
 "title": "Metric: Match rate",
 "navi": "analytics",
 "naviName": "Sigma (analytics)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-154",
@@ -1385,7 +1385,7 @@
 "title": "Metric: Lock rate",
 "navi": "analytics",
 "naviName": "Sigma (analytics)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-155",
@@ -1394,7 +1394,7 @@
 "title": "Metric: Expiry rate",
 "navi": "analytics",
 "naviName": "Sigma (analytics)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-156",
@@ -1403,7 +1403,7 @@
 "title": "Metric: Purchase success rate",
 "navi": "analytics",
 "naviName": "Sigma (analytics)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-157",
@@ -1412,7 +1412,7 @@
 "title": "Metric: Time to verify",
 "navi": "analytics",
 "naviName": "Sigma (analytics)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-158",
@@ -1421,7 +1421,7 @@
 "title": "Metric: Margin per order",
 "navi": "analytics",
 "naviName": "Sigma (analytics)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-159",
@@ -1430,7 +1430,7 @@
 "title": "Metric: Problem rate",
 "navi": "analytics",
 "naviName": "Sigma (analytics)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-160",
@@ -1439,7 +1439,7 @@
 "title": "Metric: Cushion use",
 "navi": "analytics",
 "naviName": "Sigma (analytics)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-161",
@@ -1448,7 +1448,7 @@
 "title": "Metric: Repeat rate",
 "navi": "analytics",
 "naviName": "Sigma (analytics)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-162",
@@ -1457,7 +1457,7 @@
 "title": "Button library",
 "navi": "inkwell",
 "naviName": "Inkwell (inkwell)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-163",
@@ -1466,7 +1466,7 @@
 "title": "Status messages",
 "navi": "storyteller",
 "naviName": "Wavelength (storyteller)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-164",
@@ -1475,7 +1475,7 @@
 "title": "Error messages",
 "navi": "storyteller",
 "naviName": "Wavelength (storyteller)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-165",
@@ -1484,7 +1484,7 @@
 "title": "Email subject lines",
 "navi": "campaign",
 "naviName": "Nova (campaign)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-166",
@@ -1493,7 +1493,7 @@
 "title": "Footer text (every page)",
 "navi": "guardian",
 "naviName": "Barrier (guardian)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-167",
@@ -1502,7 +1502,7 @@
 "title": "What to send",
 "navi": "professor",
 "naviName": "Archimedes (professor)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-168",
@@ -1511,7 +1511,7 @@
 "title": "What to ask for back",
 "navi": "notebooklm",
 "naviName": "Akasha (notebooklm)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-169",
@@ -1520,7 +1520,7 @@
 "title": "Open decisions",
 "navi": "leadman",
 "naviName": "Singularity (leadman)",
-"status": "pending"
+"status": "usable"
 },
 {
 "id": "HF-170",
@@ -1529,7 +1529,7 @@
 "title": "Color quick card",
 "navi": "lumina",
 "naviName": "Prism (lumina)",
-"status": "pending"
+"status": "usable"
 }
 ]
 }
