@@ -7,7 +7,20 @@ export const ADMIN_HEADER = "x-shop-admin";
 
 export function profit(salePrice: number | null, sourcePrice: number | null, qty = 1): number | null {
   if (salePrice == null || sourcePrice == null) return null;
-  return Math.round((Number(salePrice) - Number(sourcePrice)) * qty * 100) / 100;
+  return ((Math.round(Number(salePrice) * 100) - Math.round(Number(sourcePrice) * 100)) * qty) / 100;
+}
+
+/** Profit as % of source cost, 1 decimal (null when no source). */
+export function profitPct(salePrice: number | null, sourcePrice: number | null): number | null {
+  if (salePrice == null || sourcePrice == null || Number(sourcePrice) <= 0) return null;
+  const s = Math.round(Number(salePrice) * 100), c = Math.round(Number(sourcePrice) * 100);
+  return Math.round(((s - c) * 1000) / c) / 10;
+}
+
+export function validatePricing(p: Record<string, unknown>): string | null {
+  const f = Number(p.min_profit_usd);
+  if (!Number.isFinite(f) || f < 0 || f > 1000) return "min_profit_usd must be 0–1000";
+  return null;
 }
 
 export function validateRule(r: Partial<MarkupRule>): string | null {
@@ -17,7 +30,10 @@ export function validateRule(r: Partial<MarkupRule>): string | null {
   if (max != null && (!Number.isFinite(max) || max <= min)) return "max_price must be greater than min_price";
   if (!Number.isFinite(flat) || flat < 0 || flat > 1000) return "flat_usd must be 0–1000";
   if (!Number.isFinite(pct) || pct < 0 || pct > 500) return "percent must be 0–500";
-  if (flat === 0 && pct === 0) return "set a flat or percent markup";
+  const floor = Number(r.min_profit_usd ?? 0);
+  if (!Number.isFinite(floor) || floor < 0 || floor > 1000) return "min profit must be 0–1000";
+  if (flat === 0 && pct === 0 && floor === 0) return "set a percent, flat or minimum profit";
+  if (Math.round(pct * 100) !== pct * 100 && Math.abs(Math.round(pct * 100) - pct * 100) > 1e-6) return "percent allows at most 2 decimals";
   return null;
 }
 

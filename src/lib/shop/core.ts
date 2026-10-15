@@ -1,16 +1,52 @@
 // Dropship shop core: pure helpers (classification, matching, pricing, parsers).
-export type MarkupRule = { min_price: number; max_price: number | null; flat_usd: number; percent: number };
-/** Default tiers (admin can override via public.shop_markup_rules). */
-export const DEFAULT_MARKUP_RULES: MarkupRule[] = [
-  { min_price: 0, max_price: 20, flat_usd: 5, percent: 0 },
-  { min_price: 20, max_price: 100, flat_usd: 10, percent: 0 },
-  { min_price: 100, max_price: null, flat_usd: 0, percent: 8 },
-];
+export type MarkupRule = { min_price: number; max_price: number | null; flat_usd: number; percent: number; min_profit_usd?: number | null };
+export type PricingSettings = { min_profit_usd: number; round_99: boolean };
 
-export function markupFor(price: number, rules: MarkupRule[] = DEFAULT_MARKUP_RULES): number {
-  const r = [...rules].sort((a, b) => b.min_price - a.min_price).find((r) => price >= r.min_price && (r.max_price == null || price < r.max_price));
-  if (!r) return 0;
-  return Number(r.flat_usd || 0) + (price * Number(r.percent || 0)) / 100;
+/** Default sliding-scale tiers (admin-editable via public.shop_markup_rules). Percent of the source price. */
+export const DEFAULT_MARKUP_RULES: MarkupRule[] = [
+  { min_price: 0, max_price: 1, flat_usd: 0, percent: 50, min_profit_usd: 0.1 },
+  { min_price: 1, max_price: 5, flat_usd: 0, percent: 40, min_profit_usd: 0.25 },
+  { min_price: 5, max_price: 20, flat_usd: 0, percent: 30, min_profit_usd: 0 },
+  { min_price: 20, max_price: 50, flat_usd: 0, percent: 20, min_profit_usd: 0 },
+  { min_price: 50, max_price: 100, flat_usd: 0, percent: 15, min_profit_usd: 0 },
+  { min_price: 100, max_price: 250, flat_usd: 0, percent: 10, min_profit_usd: 0 },
+  { min_price: 250, max_price: null, flat_usd: 0, percent: 8, min_profit_usd: 0 },
+];
+/** Global settings: an optional store-wide profit floor (default 0, per-tier floors do the work) and .99 rounding. */
+export const DEFAULT_PRICING: PricingSettings = { min_profit_usd: 0, round_99: false };
+
+/** Dollars → integer cents (exact for 2-decimal inputs; tolerates float noise like 19.999999). */
+export const toCents = (usd: number): number => Math.round(Number(usd) * 100);
+export const fromCents = (c: number): number => c / 100;
+
+/** Tier for a source price (in cents). Highest matching min wins; min inclusive, max exclusive. */
+export function tierFor(sourceCents: number, rules: MarkupRule[] = DEFAULT_MARKUP_RULES): MarkupRule | null {
+  return [...rules].sort((a, b) => b.min_price - a.min_price)
+    .find((r) => sourceCents >= toCents(r.min_price) && (r.max_price == null || sourceCents < toCents(r.max_price))) ?? null;
+}
+
+/** Markup in integer cents: flat + percent (half-up), then max(tier floor, global floor). */
+export function markupCents(sourceCents: number, rules: MarkupRule[] = DEFAULT_MARKUP_RULES, settings: PricingSettings = DEFAULT_PRICING): number {
+  const r = tierFor(sourceCents, rules);
+  const bp = r ? Math.round(Number(r.percent || 0) * 100) : 0; // basis points, e.g. 12.5% → 1250
+  const pct = Math.floor((sourceCents * bp + 5000) / 10000);
+  const m = (r ? toCents(r.flat_usd || 0) : 0) + pct;
+  return Math.max(m, toCents(r?.min_profit_usd || 0), toCents(settings.min_profit_usd || 0));
+}
+
+/** Smallest X.99 at or above the given cents (e.g. 1720 → 1799, 1800 → 1899, 1799 → 1799). */
+export function roundUp99(cents: number): number {
+  return Math.ceil((cents + 1) / 100) * 100 - 1;
+}
+
+export function salePriceCents(sourceCents: number, rules: MarkupRule[] = DEFAULT_MARKUP_RULES, settings: PricingSettings = DEFAULT_PRICING): number {
+  const c = sourceCents + markupCents(sourceCents, rules, settings);
+  return settings.round_99 ? roundUp99(c) : c;
+}
+
+/** Back-compat: dollars in, dollars out (computed in cents). */
+export function markupFor(price: number, rules: MarkupRule[] = DEFAULT_MARKUP_RULES, settings: PricingSettings = DEFAULT_PRICING): number {
+  return fromCents(markupCents(toCents(price), rules, settings));
 }
 export const SOURCE_FX: Record<string, number> = { USD: 1, CAD: 0.73 };
 
@@ -24,8 +60,8 @@ export type SourceListing = {
   inStock: boolean;
 };
 
-export function salePrice(sourcePriceUsd: number, rules: MarkupRule[] = DEFAULT_MARKUP_RULES): number {
-  return Math.round((sourcePriceUsd + markupFor(sourcePriceUsd, rules)) * 100) / 100;
+export function salePrice(sourcePriceUsd: number, rules: MarkupRule[] = DEFAULT_MARKUP_RULES, settings: PricingSettings = DEFAULT_PRICING): number {
+  return fromCents(salePriceCents(toCents(sourcePriceUsd), rules, settings));
 }
 
 export function toUsd(price: number, currency: string): number {

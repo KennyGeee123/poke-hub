@@ -12,14 +12,20 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ShopIndexRouteImport } from './routes/shop.index'
+import { Route as ShopOrderRouteImport } from './routes/shop.order'
 import { Route as ShopConfirmationRouteImport } from './routes/shop.confirmation'
 import { Route as ShopAdminRouteImport } from './routes/shop.admin'
+import { Route as ShopIdRouteImport } from './routes/shop.$id'
+import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe-webhook'
 import { Route as ApiShopRefreshRouteImport } from './routes/api/shop-refresh'
+import { Route as ApiShopCronRouteImport } from './routes/api/shop-cron'
 import { Route as ApiShopAdminRouteImport } from './routes/api/shop-admin'
 import { Route as ApiPublicVirusBusterRouteImport } from './routes/api/public/virus-buster'
 import { Route as ApiPublicTcgdexRouteImport } from './routes/api/public/tcgdex'
 import { Route as ApiPublicTcgRouteImport } from './routes/api/public/tcg'
 import { Route as ApiPublicShopOrderRouteImport } from './routes/api/public/shop-order'
+import { Route as ApiPublicShopLookupRouteImport } from './routes/api/public/shop-lookup'
+import { Route as ApiPublicShopImageRouteImport } from './routes/api/public/shop-image'
 import { Route as ApiPublicShopRouteImport } from './routes/api/public/shop'
 import { Route as ApiPublicPricesRouteImport } from './routes/api/public/prices'
 import { Route as ApiPublicPokeRadioRouteImport } from './routes/api/public/poke-radio'
@@ -47,6 +53,11 @@ const ShopIndexRoute = ShopIndexRouteImport.update({
   path: '/shop/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ShopOrderRoute = ShopOrderRouteImport.update({
+  id: '/shop/order',
+  path: '/shop/order',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShopConfirmationRoute = ShopConfirmationRouteImport.update({
   id: '/shop/confirmation',
   path: '/shop/confirmation',
@@ -57,9 +68,24 @@ const ShopAdminRoute = ShopAdminRouteImport.update({
   path: '/shop/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ShopIdRoute = ShopIdRouteImport.update({
+  id: '/shop/$id',
+  path: '/shop/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
+  id: '/api/stripe-webhook',
+  path: '/api/stripe-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiShopRefreshRoute = ApiShopRefreshRouteImport.update({
   id: '/api/shop-refresh',
   path: '/api/shop-refresh',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopCronRoute = ApiShopCronRouteImport.update({
+  id: '/api/shop-cron',
+  path: '/api/shop-cron',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiShopAdminRoute = ApiShopAdminRouteImport.update({
@@ -85,6 +111,16 @@ const ApiPublicTcgRoute = ApiPublicTcgRouteImport.update({
 const ApiPublicShopOrderRoute = ApiPublicShopOrderRouteImport.update({
   id: '/api/public/shop-order',
   path: '/api/public/shop-order',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicShopLookupRoute = ApiPublicShopLookupRouteImport.update({
+  id: '/api/public/shop-lookup',
+  path: '/api/public/shop-lookup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicShopImageRoute = ApiPublicShopImageRouteImport.update({
+  id: '/api/public/shop-image',
+  path: '/api/public/shop-image',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicShopRoute = ApiPublicShopRouteImport.update({
@@ -147,9 +183,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/api/shop-admin': typeof ApiShopAdminRoute
+  '/api/shop-cron': typeof ApiShopCronRoute
   '/api/shop-refresh': typeof ApiShopRefreshRoute
+  '/api/stripe-webhook': typeof ApiStripeWebhookRoute
+  '/shop/$id': typeof ShopIdRoute
   '/shop/admin': typeof ShopAdminRoute
   '/shop/confirmation': typeof ShopConfirmationRoute
+  '/shop/order': typeof ShopOrderRoute
   '/shop/': typeof ShopIndexRoute
   '/api/public/auth-status': typeof ApiPublicAuthStatusRoute
   '/api/public/bulba': typeof ApiPublicBulbaRoute
@@ -162,6 +202,8 @@ export interface FileRoutesByFullPath {
   '/api/public/poke-radio': typeof ApiPublicPokeRadioRoute
   '/api/public/prices': typeof ApiPublicPricesRoute
   '/api/public/shop': typeof ApiPublicShopRoute
+  '/api/public/shop-image': typeof ApiPublicShopImageRoute
+  '/api/public/shop-lookup': typeof ApiPublicShopLookupRoute
   '/api/public/shop-order': typeof ApiPublicShopOrderRoute
   '/api/public/tcg': typeof ApiPublicTcgRoute
   '/api/public/tcgdex': typeof ApiPublicTcgdexRoute
@@ -171,9 +213,13 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/api/shop-admin': typeof ApiShopAdminRoute
+  '/api/shop-cron': typeof ApiShopCronRoute
   '/api/shop-refresh': typeof ApiShopRefreshRoute
+  '/api/stripe-webhook': typeof ApiStripeWebhookRoute
+  '/shop/$id': typeof ShopIdRoute
   '/shop/admin': typeof ShopAdminRoute
   '/shop/confirmation': typeof ShopConfirmationRoute
+  '/shop/order': typeof ShopOrderRoute
   '/shop': typeof ShopIndexRoute
   '/api/public/auth-status': typeof ApiPublicAuthStatusRoute
   '/api/public/bulba': typeof ApiPublicBulbaRoute
@@ -186,6 +232,8 @@ export interface FileRoutesByTo {
   '/api/public/poke-radio': typeof ApiPublicPokeRadioRoute
   '/api/public/prices': typeof ApiPublicPricesRoute
   '/api/public/shop': typeof ApiPublicShopRoute
+  '/api/public/shop-image': typeof ApiPublicShopImageRoute
+  '/api/public/shop-lookup': typeof ApiPublicShopLookupRoute
   '/api/public/shop-order': typeof ApiPublicShopOrderRoute
   '/api/public/tcg': typeof ApiPublicTcgRoute
   '/api/public/tcgdex': typeof ApiPublicTcgdexRoute
@@ -196,9 +244,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/api/shop-admin': typeof ApiShopAdminRoute
+  '/api/shop-cron': typeof ApiShopCronRoute
   '/api/shop-refresh': typeof ApiShopRefreshRoute
+  '/api/stripe-webhook': typeof ApiStripeWebhookRoute
+  '/shop/$id': typeof ShopIdRoute
   '/shop/admin': typeof ShopAdminRoute
   '/shop/confirmation': typeof ShopConfirmationRoute
+  '/shop/order': typeof ShopOrderRoute
   '/shop/': typeof ShopIndexRoute
   '/api/public/auth-status': typeof ApiPublicAuthStatusRoute
   '/api/public/bulba': typeof ApiPublicBulbaRoute
@@ -211,6 +263,8 @@ export interface FileRoutesById {
   '/api/public/poke-radio': typeof ApiPublicPokeRadioRoute
   '/api/public/prices': typeof ApiPublicPricesRoute
   '/api/public/shop': typeof ApiPublicShopRoute
+  '/api/public/shop-image': typeof ApiPublicShopImageRoute
+  '/api/public/shop-lookup': typeof ApiPublicShopLookupRoute
   '/api/public/shop-order': typeof ApiPublicShopOrderRoute
   '/api/public/tcg': typeof ApiPublicTcgRoute
   '/api/public/tcgdex': typeof ApiPublicTcgdexRoute
@@ -222,9 +276,13 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/api/shop-admin'
+    | '/api/shop-cron'
     | '/api/shop-refresh'
+    | '/api/stripe-webhook'
+    | '/shop/$id'
     | '/shop/admin'
     | '/shop/confirmation'
+    | '/shop/order'
     | '/shop/'
     | '/api/public/auth-status'
     | '/api/public/bulba'
@@ -237,6 +295,8 @@ export interface FileRouteTypes {
     | '/api/public/poke-radio'
     | '/api/public/prices'
     | '/api/public/shop'
+    | '/api/public/shop-image'
+    | '/api/public/shop-lookup'
     | '/api/public/shop-order'
     | '/api/public/tcg'
     | '/api/public/tcgdex'
@@ -246,9 +306,13 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/api/shop-admin'
+    | '/api/shop-cron'
     | '/api/shop-refresh'
+    | '/api/stripe-webhook'
+    | '/shop/$id'
     | '/shop/admin'
     | '/shop/confirmation'
+    | '/shop/order'
     | '/shop'
     | '/api/public/auth-status'
     | '/api/public/bulba'
@@ -261,6 +325,8 @@ export interface FileRouteTypes {
     | '/api/public/poke-radio'
     | '/api/public/prices'
     | '/api/public/shop'
+    | '/api/public/shop-image'
+    | '/api/public/shop-lookup'
     | '/api/public/shop-order'
     | '/api/public/tcg'
     | '/api/public/tcgdex'
@@ -270,9 +336,13 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/api/shop-admin'
+    | '/api/shop-cron'
     | '/api/shop-refresh'
+    | '/api/stripe-webhook'
+    | '/shop/$id'
     | '/shop/admin'
     | '/shop/confirmation'
+    | '/shop/order'
     | '/shop/'
     | '/api/public/auth-status'
     | '/api/public/bulba'
@@ -285,6 +355,8 @@ export interface FileRouteTypes {
     | '/api/public/poke-radio'
     | '/api/public/prices'
     | '/api/public/shop'
+    | '/api/public/shop-image'
+    | '/api/public/shop-lookup'
     | '/api/public/shop-order'
     | '/api/public/tcg'
     | '/api/public/tcgdex'
@@ -295,9 +367,13 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   ApiShopAdminRoute: typeof ApiShopAdminRoute
+  ApiShopCronRoute: typeof ApiShopCronRoute
   ApiShopRefreshRoute: typeof ApiShopRefreshRoute
+  ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
+  ShopIdRoute: typeof ShopIdRoute
   ShopAdminRoute: typeof ShopAdminRoute
   ShopConfirmationRoute: typeof ShopConfirmationRoute
+  ShopOrderRoute: typeof ShopOrderRoute
   ShopIndexRoute: typeof ShopIndexRoute
   ApiPublicAuthStatusRoute: typeof ApiPublicAuthStatusRoute
   ApiPublicBulbaRoute: typeof ApiPublicBulbaRoute
@@ -310,6 +386,8 @@ export interface RootRouteChildren {
   ApiPublicPokeRadioRoute: typeof ApiPublicPokeRadioRoute
   ApiPublicPricesRoute: typeof ApiPublicPricesRoute
   ApiPublicShopRoute: typeof ApiPublicShopRoute
+  ApiPublicShopImageRoute: typeof ApiPublicShopImageRoute
+  ApiPublicShopLookupRoute: typeof ApiPublicShopLookupRoute
   ApiPublicShopOrderRoute: typeof ApiPublicShopOrderRoute
   ApiPublicTcgRoute: typeof ApiPublicTcgRoute
   ApiPublicTcgdexRoute: typeof ApiPublicTcgdexRoute
@@ -339,6 +417,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/shop/order': {
+      id: '/shop/order'
+      path: '/shop/order'
+      fullPath: '/shop/order'
+      preLoaderRoute: typeof ShopOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/shop/confirmation': {
       id: '/shop/confirmation'
       path: '/shop/confirmation'
@@ -353,11 +438,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/shop/$id': {
+      id: '/shop/$id'
+      path: '/shop/$id'
+      fullPath: '/shop/$id'
+      preLoaderRoute: typeof ShopIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/stripe-webhook': {
+      id: '/api/stripe-webhook'
+      path: '/api/stripe-webhook'
+      fullPath: '/api/stripe-webhook'
+      preLoaderRoute: typeof ApiStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/shop-refresh': {
       id: '/api/shop-refresh'
       path: '/api/shop-refresh'
       fullPath: '/api/shop-refresh'
       preLoaderRoute: typeof ApiShopRefreshRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shop-cron': {
+      id: '/api/shop-cron'
+      path: '/api/shop-cron'
+      fullPath: '/api/shop-cron'
+      preLoaderRoute: typeof ApiShopCronRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/shop-admin': {
@@ -393,6 +499,20 @@ declare module '@tanstack/react-router' {
       path: '/api/public/shop-order'
       fullPath: '/api/public/shop-order'
       preLoaderRoute: typeof ApiPublicShopOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/shop-lookup': {
+      id: '/api/public/shop-lookup'
+      path: '/api/public/shop-lookup'
+      fullPath: '/api/public/shop-lookup'
+      preLoaderRoute: typeof ApiPublicShopLookupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/shop-image': {
+      id: '/api/public/shop-image'
+      path: '/api/public/shop-image'
+      fullPath: '/api/public/shop-image'
+      preLoaderRoute: typeof ApiPublicShopImageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/shop': {
@@ -479,9 +599,13 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   ApiShopAdminRoute: ApiShopAdminRoute,
+  ApiShopCronRoute: ApiShopCronRoute,
   ApiShopRefreshRoute: ApiShopRefreshRoute,
+  ApiStripeWebhookRoute: ApiStripeWebhookRoute,
+  ShopIdRoute: ShopIdRoute,
   ShopAdminRoute: ShopAdminRoute,
   ShopConfirmationRoute: ShopConfirmationRoute,
+  ShopOrderRoute: ShopOrderRoute,
   ShopIndexRoute: ShopIndexRoute,
   ApiPublicAuthStatusRoute: ApiPublicAuthStatusRoute,
   ApiPublicBulbaRoute: ApiPublicBulbaRoute,
@@ -494,6 +618,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPokeRadioRoute: ApiPublicPokeRadioRoute,
   ApiPublicPricesRoute: ApiPublicPricesRoute,
   ApiPublicShopRoute: ApiPublicShopRoute,
+  ApiPublicShopImageRoute: ApiPublicShopImageRoute,
+  ApiPublicShopLookupRoute: ApiPublicShopLookupRoute,
   ApiPublicShopOrderRoute: ApiPublicShopOrderRoute,
   ApiPublicTcgRoute: ApiPublicTcgRoute,
   ApiPublicTcgdexRoute: ApiPublicTcgdexRoute,

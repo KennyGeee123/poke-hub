@@ -15,6 +15,8 @@ export const Route = createFileRoute("/api/public/shop")({
         const sort = u.searchParams.get("sort") ?? "price_asc";
         const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, { auth: { persistSession: false } });
         let query = sb.from("shop_catalog").select("*", { count: "exact" }).eq("in_stock", true);
+        const id = u.searchParams.get("id");
+        if (id) query = query.eq("id", id.slice(0, 64));
         if (kind === "sealed" || kind === "single") query = query.eq("kind", kind);
         if (q) query = query.or(`name.ilike.%${q}%,set_name.ilike.%${q}%`);
         query = sort === "newest" ? query.order("updated_at", { ascending: false }) : query.order("sale_price", { ascending: sort !== "price_desc" });

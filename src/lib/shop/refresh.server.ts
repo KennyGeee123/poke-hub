@@ -2,6 +2,8 @@
 import { createClient } from "@supabase/supabase-js";
 import {
   DEFAULT_MARKUP_RULES,
+  DEFAULT_PRICING,
+  type PricingSettings,
   type MarkupRule,
   type SourceListing,
   cheapest,
@@ -117,8 +119,10 @@ export type RefreshResult = { groups: string[]; products: number; listings: numb
  */
 export async function refreshBatch(opts: { offset: number; limit: number; kinds: ("sealed" | "single")[]; external: boolean }): Promise<RefreshResult> {
   const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } });
-  const { data: ruleRows } = await sb.from("shop_markup_rules").select("min_price,max_price,flat_usd,percent").eq("active", true);
+  const { data: ruleRows } = await sb.from("shop_markup_rules").select("min_price,max_price,flat_usd,percent,min_profit_usd").eq("active", true);
   const rules: MarkupRule[] = ruleRows?.length ? (ruleRows as MarkupRule[]) : DEFAULT_MARKUP_RULES;
+  const { data: ps } = await sb.from("shop_state").select("value").eq("key", "pricing").maybeSingle();
+  const pricing: PricingSettings = { ...DEFAULT_PRICING, ...((ps?.value as Partial<PricingSettings>) ?? {}) };
   const gj = (await getJson(`${TCGCSV}/groups`)) as { results: Group[] } | null;
   const groups = (gj?.results ?? []).sort((a, b) => b.publishedOn.localeCompare(a.publishedOn));
   const batch = groups.slice(opts.offset, opts.offset + opts.limit);
@@ -164,7 +168,7 @@ export async function refreshBatch(opts: { offset: number; limit: number; kinds:
         id, kind, product_type: type, name: p.name, set_name: setName, card_number: number ?? null, image_url: p.imageUrl,
         match_key: kind === "sealed" ? sealedMatchKey(setName, type) : null,
         cheapest_source_price: bestUsd, cheapest_source: best?.source ?? null, cheapest_source_url: best?.url ?? null,
-        sale_price: bestUsd != null ? salePrice(bestUsd, rules) : null, in_stock: !!best, updated_at: new Date().toISOString(),
+        sale_price: bestUsd != null ? salePrice(bestUsd, rules, pricing) : null, in_stock: !!best, updated_at: new Date().toISOString(),
       });
       for (const l of listings) {
         sources[l.source] = (sources[l.source] ?? 0) + 1;

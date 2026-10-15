@@ -63,7 +63,7 @@ CREATE TABLE public.shop_markup_rules (
   active boolean NOT NULL DEFAULT true
 );
 INSERT INTO public.shop_markup_rules (min_price, max_price, flat_usd, percent) VALUES
-  (0, 20, 5, 0), (20, 100, 10, 0), (100, NULL, 0, 8);
+  (0, 5, 0, 50), (5, 20, 0, 30), (20, 50, 0, 20), (50, 100, 0, 15), (100, 250, 0, 10), (250, NULL, 0, 8);
 ALTER TABLE public.shop_markup_rules ENABLE ROW LEVEL SECURITY;
 
 -- Per-product choice: sell on-site (store) or link out via affiliate_url (affiliate).

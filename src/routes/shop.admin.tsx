@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { ADMIN_HEADER, ORDER_STATUSES } from "@/lib/shop/admin";
-import { type MarkupRule, salePrice } from "@/lib/shop/core";
+import { DEFAULT_PRICING, type MarkupRule, type PricingSettings, salePrice } from "@/lib/shop/core";
+import { profit as calcProfit, profitPct } from "@/lib/shop/admin";
+import { formatAddress, orderCode, plural } from "@/lib/shop/checkout";
 
 export const Route = createFileRoute("/shop/admin")({
   head: () => ({ meta: [{ title: "Shop admin" }, { name: "robots", content: "noindex" }] }),
@@ -10,6 +12,7 @@ export const Route = createFileRoute("/shop/admin")({
 
 const KEY = "shop-admin-secret";
 type Any = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+const pct = (n: unknown) => (n == null ? "" : ` (${Number(n).toFixed(1)}%)`);
 const money = (n: unknown) => (n == null || n === "" ? "—" : `$${Number(n).toFixed(2)}`);
 const box = "rounded-xl bg-white/5 p-3";
 const btn = "rounded bg-white/10 px-3 py-1 text-sm hover:bg-white/20 disabled:opacity-40";
@@ -92,16 +95,17 @@ function Orders({ call }: { call: Call }) {
           {ORDER_STATUSES.map((s) => <option key={s}>{s}</option>)}
         </select>
         <button onClick={load} className={btn}>Reload</button>
-        <span className="ml-auto text-sm opacity-70">{orders.length} orders · est. profit {money(total)}</span>
+        <span className="ml-auto text-sm opacity-70">{plural(orders.length, "order")} · est. profit {money(total)}{orders.some((o) => o.negative_margin) && <span className="ml-2 text-red-400">⚠ {plural(orders.filter((o) => o.negative_margin).length, "order")} now cost more than sale price</span>}</span>
       </div>
       {msg && <p className="text-sm text-red-400">{msg}</p>}
       <table className="w-full text-sm">
-        <thead className="text-left opacity-60"><tr><th>Date</th><th>Product</th><th>Qty</th><th>Sale</th><th>Source</th><th>Profit</th><th>Status</th><th /></tr></thead>
+        <thead className="text-left opacity-60"><tr><th>#</th><th>Date</th><th>Product</th><th>Qty</th><th>Sale</th><th>Source</th><th>Profit</th><th>Status</th><th /></tr></thead>
         <tbody>
           {orders.map((o) => (
-            <tr key={o.id} className="border-t border-white/10">
+            <tr key={o.id} className={`border-t border-white/10 ${o.negative_margin ? "bg-red-500/10" : ""}`}>
+              <td className="font-mono">{orderCode(o.id)}</td>
               <td>{new Date(o.created_at).toLocaleString()}</td><td>{o.product_name}</td><td>{o.quantity}</td>
-              <td>{money(o.sale_price)}</td><td>{money(o.source_price_snapshot)} {o.source_snapshot}</td><td>{money(o.profit)}</td><td>{o.status}</td>
+              <td>{money(o.sale_price)}</td><td>{money(o.source_price_snapshot)} {o.source_snapshot}</td><td>{money(o.profit)}{pct(o.profit_pct)}{o.negative_margin && <span title={`Cheapest source is now ${money(o.current_source_price)}`} className="ml-1 text-red-400">⚠</span>}</td><td>{o.status}</td>
               <td><button className={btn} onClick={() => call("order.get", { id: o.id }).then(setOpen).catch((e) => setMsg(e.message))}>Open</button></td>
             </tr>
           ))}
@@ -116,19 +120,27 @@ function OrderDetail({ data, call, onClose }: { data: Any; call: Call; onClose: 
   const o = data.order;
   const [f, setF] = useState({ status: o.status, tracking_number: o.tracking_number ?? "", notes: o.notes ?? "" });
   const [msg, setMsg] = useState<string | null>(null);
-  const a = o.shipping_address ?? {};
+  const address = formatAddress(o.customer_name, o.shipping_address);
+  const cheapestUrl = data.product?.cheapest_source_url ?? o.source_url_snapshot;
+  const now = data.product?.cheapest_source_price;
+  const negative = (o.status === "pending" || o.status === "paid") && now != null && Number(now) > Number(o.sale_price);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
       <div className="max-h-[90vh] w-full max-w-2xl space-y-3 overflow-auto rounded-xl bg-neutral-900 p-4" onClick={(e) => e.stopPropagation()}>
         <h2 className="font-bold">{o.product_name} × {o.quantity}</h2>
         <div className={box + " text-sm"}>
-          <div>{o.customer_name} · {o.customer_email}</div>
-          <div>{[a.line1, a.line2, a.city, a.state, a.zip, a.country].filter(Boolean).join(", ")}</div>
+          <div className="mb-1 opacity-70">Order #{orderCode(o.id)} · {o.customer_email}</div>
+          <pre className="whitespace-pre-wrap font-sans">{address}</pre>
+          <div className="mt-2 flex gap-2">
+            <button className={btn} onClick={() => navigator.clipboard.writeText(address).then(() => setMsg("Address copied"), () => setMsg("Copy failed"))}>Copy address</button>
+            {cheapestUrl && <a href={cheapestUrl} target="_blank" rel="noreferrer" className="rounded bg-yellow-400 px-3 py-1 text-sm font-semibold text-black">Open cheapest source</a>}
+          </div>
         </div>
         <div className={box + " text-sm"}>
-          <div>Sold at {money(o.sale_price)} · Snapshot source: {o.source_snapshot} {money(o.source_price_snapshot)} · Profit {money(o.profit)}</div>
+          <div>Sold at {money(o.sale_price)} · Snapshot source: {o.source_snapshot} {money(o.source_price_snapshot)} · Profit {money(o.profit)}{pct(o.profit_pct)}</div>
           {o.source_url_snapshot && <a href={o.source_url_snapshot} target="_blank" rel="noreferrer" className="text-yellow-300 underline">Snapshot source link</a>}
-          <div className="mt-1">Current cheapest: {data.product?.cheapest_source} {money(data.product?.cheapest_source_price)} · Profit now {money(data.currentProfit)}
+          {negative && <div className="my-1 rounded bg-red-500/20 p-2 text-red-300">⚠ Cheapest source is now {money(now)}, above the sale price {money(o.sale_price)}. You would lose money fulfilling this order.</div>}
+          <div className="mt-1">Current cheapest: {data.product?.cheapest_source} {money(data.product?.cheapest_source_price)} · Profit now {money(data.currentProfit)}{pct(data.currentProfitPct)}
             {data.product?.cheapest_source_url && <> · <a href={data.product.cheapest_source_url} target="_blank" rel="noreferrer" className="text-yellow-300 underline">buy</a></>}</div>
           <ul className="mt-1 opacity-70">{data.listings.map((l: Any) => <li key={l.source}>{l.source}: {money(l.source_price)} {l.currency} {l.in_stock ? "" : "(out of stock)"}</li>)}</ul>
         </div>
@@ -137,7 +149,7 @@ function OrderDetail({ data, call, onClose }: { data: Any; call: Call; onClose: 
           <input value={f.tracking_number} onChange={(e) => setF({ ...f, tracking_number: e.target.value })} placeholder="Tracking number" className={input} />
           <textarea value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} placeholder="Notes" className={`${input} col-span-2 h-20`} />
         </div>
-        {msg && <p className="text-sm text-red-400">{msg}</p>}
+        {msg && <p className="text-sm text-yellow-300">{msg}</p>}
         <div className="flex gap-2">
           <button className="rounded bg-yellow-400 px-4 py-1 font-semibold text-black" onClick={() => call("order.update", { id: o.id, ...f }).then(onClose).catch((e) => setMsg(e.message))}>Save</button>
           <button className={btn} onClick={onClose}>Close</button>
@@ -167,7 +179,7 @@ function Products({ call }: { call: Call }) {
       {data?.products.map((p: Any) => (
         <div key={p.id} className={`${box} grid grid-cols-1 gap-2 text-sm md:grid-cols-[2fr_1fr_1fr_2fr_auto]`}>
           <div><div className="font-medium">{p.name}</div><div className="opacity-60">{p.kind} · {p.set_name}{p.card_number ? ` #${p.card_number}` : ""}</div>
-            <div className="opacity-60">Source {p.cheapest_source} {money(p.cheapest_source_price)} → sale {money(p.sale_price)}</div></div>
+            <div className="opacity-60">Source {p.cheapest_source} {money(p.cheapest_source_price)} → sale {money(p.price_override ?? p.sale_price)} · profit {money(calcProfit(p.price_override ?? p.sale_price, p.cheapest_source_price))}{pct(profitPct(p.price_override ?? p.sale_price, p.cheapest_source_price))}</div></div>
           <select defaultValue={p.sell_mode} onChange={(e) => update(p.id, { sell_mode: e.target.value })} className={input}><option value="store">store</option><option value="affiliate">affiliate</option></select>
           <input defaultValue={p.price_override ?? ""} placeholder="Price override" onBlur={(e) => e.target.value !== String(p.price_override ?? "") && update(p.id, { price_override: e.target.value })} className={input} />
           <input defaultValue={p.affiliate_url ?? ""} placeholder="Affiliate URL" onBlur={(e) => e.target.value !== (p.affiliate_url ?? "") && update(p.id, { affiliate_url: e.target.value })} className={input} />
@@ -175,7 +187,7 @@ function Products({ call }: { call: Call }) {
         </div>
       ))}
       {data && <div className="flex items-center justify-center gap-3 text-sm">
-        <button disabled={page <= 1} onClick={() => setPage(page - 1)} className={btn}>Prev</button><span>Page {page} of {pages} · {data.total} products</span>
+        <button disabled={page <= 1} onClick={() => setPage(page - 1)} className={btn}>Prev</button><span>Page {page} of {pages} · {plural(data.total, "product")}</span>
         <button disabled={page >= pages} onClick={() => setPage(page + 1)} className={btn}>Next</button></div>}
     </div>
   );
@@ -184,18 +196,22 @@ function Products({ call }: { call: Call }) {
 function Markup({ call }: { call: Call }) {
   const [rules, setRules] = useState<Any[]>([]);
   const [msg, setMsg] = useState<string | null>(null);
-  const load = useCallback(() => call("rules.list").then((j) => setRules(j.rules)).catch((e) => setMsg(e.message)), [call]);
+  const [pricing, setPricing] = useState<PricingSettings>(DEFAULT_PRICING);
+  const load = useCallback(() => Promise.all([
+    call("rules.list").then((j) => setRules(j.rules)),
+    call("pricing.get").then((j) => setPricing({ min_profit_usd: Number(j.pricing.min_profit_usd), round_99: !!j.pricing.round_99 })),
+  ]).catch((e) => setMsg(e.message)), [call]);
   useEffect(() => { load(); }, [load]);
-  const active: MarkupRule[] = rules.filter((r) => r.active).map((r) => ({ min_price: Number(r.min_price), max_price: r.max_price == null ? null : Number(r.max_price), flat_usd: Number(r.flat_usd), percent: Number(r.percent) }));
+  const active: MarkupRule[] = rules.filter((r) => r.active).map((r) => ({ min_price: Number(r.min_price), max_price: r.max_price == null ? null : Number(r.max_price), flat_usd: Number(r.flat_usd), percent: Number(r.percent), min_profit_usd: Number(r.min_profit_usd ?? 0) }));
   const edit = (i: number, k: string, v: unknown) => setRules(rules.map((r, j) => (j === i ? { ...r, [k]: v } : r)));
   const save = (r: Any) => call("rules.save", { rule: r }).then(() => { setMsg("Saved"); load(); }).catch((e) => setMsg(e.message));
   return (
     <div className="space-y-3 text-sm">
       <table className="w-full">
-        <thead className="text-left opacity-60"><tr><th>Min $</th><th>Max $ (blank = none)</th><th>Flat $</th><th>Percent %</th><th>Active</th><th /></tr></thead>
+        <thead className="text-left opacity-60"><tr><th>Min $</th><th>Max $ (blank = none)</th><th>Flat $ (optional)</th><th>Percent of price %</th><th>Min profit $</th><th>Active</th><th /></tr></thead>
         <tbody>{rules.map((r, i) => (
           <tr key={r.id ?? `new-${i}`}>
-            {(["min_price", "max_price", "flat_usd", "percent"] as const).map((k) => (
+            {(["min_price", "max_price", "flat_usd", "percent", "min_profit_usd"] as const).map((k) => (
               <td key={k}><input value={r[k] ?? ""} onChange={(e) => edit(i, k, e.target.value)} className={`${input} w-24`} /></td>
             ))}
             <td><input type="checkbox" checked={r.active !== false} onChange={(e) => edit(i, "active", e.target.checked)} /></td>
@@ -204,14 +220,23 @@ function Markup({ call }: { call: Call }) {
           </tr>))}
         </tbody>
       </table>
+      <div className="flex flex-wrap items-center gap-3">
+        <label>Store-wide minimum profit $ <input value={pricing.min_profit_usd} onChange={(e) => setPricing({ ...pricing, min_profit_usd: e.target.value as unknown as number })} className={`${input} w-20`} /></label>
+        <label><input type="checkbox" checked={pricing.round_99} onChange={(e) => setPricing({ ...pricing, round_99: e.target.checked })} /> Round up to .99</label>
+        <button className={btn} onClick={() => call("pricing.save", { pricing: { ...pricing, min_profit_usd: Number(pricing.min_profit_usd) } }).then(() => setMsg("Pricing settings saved")).catch((e) => setMsg(e.message))}>Save settings</button>
+      </div>
       <div className="flex gap-2">
-        <button className={btn} onClick={() => setRules([...rules, { min_price: 0, max_price: "", flat_usd: 5, percent: 0, active: true }])}>Add tier</button>
+        <button className={btn} onClick={() => setRules([...rules, { min_price: 0, max_price: "", flat_usd: 0, percent: 10, min_profit_usd: 0, active: true }])}>Add tier</button>
         <button className="rounded bg-yellow-400 px-3 py-1 font-semibold text-black" onClick={() => call("prices.recompute").then((j) => setMsg(`Recomputed ${j.updated} products`)).catch((e) => setMsg(e.message))}>Recompute all sale prices</button>
       </div>
       {msg && <p className="opacity-80">{msg}</p>}
       <div className={box}>
         <div className="mb-1 font-medium">Preview (active tiers shown above)</div>
-        {[5, 15, 19.99, 25, 60, 99.99, 120, 250, 500].map((p) => <div key={p}>{money(p)} → {money(salePrice(p, active))}</div>)}
+        <table className="text-sm"><thead className="text-left opacity-60"><tr><th className="pr-6">Source</th><th className="pr-6">Sale</th><th>Profit</th></tr></thead><tbody>
+        {[0.05, 0.2, 0.99, 1, 4.99, 5, 12, 19.99, 20, 35, 50, 99.99, 100, 250, 500].map((p) => {
+          const sp = salePrice(p, active, { min_profit_usd: Number(pricing.min_profit_usd) || 0, round_99: pricing.round_99 });
+          return <tr key={p}><td className="pr-6">{money(p)}</td><td className="pr-6">{money(sp)}</td><td>{money(calcProfit(sp, p))}{pct(profitPct(sp, p))}</td></tr>;
+        })}</tbody></table>
       </div>
     </div>
   );
