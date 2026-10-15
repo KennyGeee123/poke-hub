@@ -134,6 +134,7 @@ function ScanSlot({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [cam, setCam] = useState(false);
+  const [camReady, setCamReady] = useState(false);
   const identifyFn = useServerFn(identifyCard);
   const { vault } = useVault();
   const { scansLeft, isPro } = usePremium();
@@ -203,7 +204,8 @@ function ScanSlot({
   async function snap() {
     const v = videoRef.current;
     const c = canvasRef.current;
-    if (!v || !c) return;
+    // Never send a blank frame (and burn a scan) before the camera has a picture.
+    if (!v || !c || !v.videoWidth) return;
     const dataUrl = frameToDataUrl(v, c);
     streamRef.current?.getTracks().forEach((t) => t.stop());
     setCam(false);
@@ -332,11 +334,19 @@ function ScanSlot({
       {kind === "card" &&
         (cam ? (
           <div className="ft-cam">
-            <video ref={videoRef} playsInline muted autoPlay className="ft-video" />
+            <video
+              ref={videoRef}
+              playsInline
+              muted
+              autoPlay
+              className="ft-video"
+              onLoadedData={() => setCamReady(true)}
+              onEmptied={() => setCamReady(false)}
+            />
             <canvas ref={canvasRef} hidden />
             <div className="flex gap-2">
-              <button type="button" className="pv-btn pv-btn-fill" onClick={snap}>
-                Capture
+              <button type="button" className="pv-btn pv-btn-fill" onClick={snap} disabled={!camReady}>
+                {camReady ? "Capture" : "Starting camera…"}
               </button>
               <button
                 type="button"

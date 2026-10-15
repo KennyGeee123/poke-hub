@@ -135,7 +135,7 @@ function ScannerInner({
   async function capture() {
     const v = videoRef.current,
       c = canvasRef.current;
-    if (!v || !c) return;
+    if (!v || !c || !v.videoWidth) return; // camera not producing frames yet
     const dataUrl = frameToDataUrl(v, c);
     setSnap(dataUrl);
     setPhase("identifying");
