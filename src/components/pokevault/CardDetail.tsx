@@ -379,7 +379,7 @@ export function CardDetail({
                 gap: 4,
               }}
             >
-              🔬 Dual-Sided Scan
+              🔬 Pre-Grade Estimate
             </button>
             <button
               onClick={() => setShowTradeModal(true)}

@@ -110,7 +110,7 @@ export const identifyCard = createServerFn({ method: "POST" })
         { type: "image_url", image_url: { url: data.imageDataUrl } },
       ];
 
-      const res = await fetch(gateway, {
+      const call = () => fetch(gateway, {
         signal: AbortSignal.timeout(25_000),
         method: "POST",
         headers: {
@@ -127,6 +127,15 @@ export const identifyCard = createServerFn({ method: "POST" })
           ],
         }),
       });
+      let res = await call();
+      // Free-tier per-minute cap: one short retry if Groq says it frees up within 4s.
+      if (res.status === 429) {
+        const wait = Number(res.headers.get("retry-after")) || 3;
+        if (wait <= 4) {
+          await new Promise((r) => setTimeout(r, wait * 1000 + 250));
+          res = await call();
+        }
+      }
 
       if (!res.ok) {
         const txt = await res.text().catch(() => "");

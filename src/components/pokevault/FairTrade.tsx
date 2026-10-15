@@ -6,7 +6,8 @@ import { identifyCard } from "@/lib/scanner.functions";
 import { friendlyScanError } from "@/lib/scan-errors";
 import { setGuestScansUsed, usePremium } from "@/lib/premium";
 import { useAuth } from "@/lib/auth";
-import { rankCardHits } from "@/lib/card-match";
+import { frameToDataUrl } from "@/lib/scan-capture";
+import { findCardsForHint } from "@/lib/card-lookup";
 import { useLivePrice } from "@/lib/live-prices";
 import { hdImg } from "@/lib/card-images";
 import {
@@ -203,10 +204,7 @@ function ScanSlot({
     const v = videoRef.current;
     const c = canvasRef.current;
     if (!v || !c) return;
-    c.width = v.videoWidth || 720;
-    c.height = v.videoHeight || 1280;
-    c.getContext("2d")?.drawImage(v, 0, 0, c.width, c.height);
-    const dataUrl = c.toDataURL("image/jpeg", 0.8);
+    const dataUrl = frameToDataUrl(v, c);
     streamRef.current?.getTracks().forEach((t) => t.stop());
     setCam(false);
     setBusy(true);
@@ -221,11 +219,7 @@ function ScanSlot({
       }
       setKind("card");
       setQ(name);
-      const core = String(name).replace(/["“”]/g, "").trim();
-      let res = await searchCards({ q: `name:"${core}"`, pageSize: 30, orderBy: "-set.releaseDate" });
-      if (!res.data?.length) res = await searchCards({ q: core, pageSize: 30, orderBy: "-set.releaseDate" });
-      // Pick the exact printing (collector no. / set / HP), not just the newest card with that name.
-      const ranked = rankCardHits(res.data || [], r.card);
+      const ranked = await findCardsForHint(r.card);
       setHits(ranked.slice(0, 8));
       if (ranked[0]) onSet(makeCardAsset(ranked[0], grade));
     } catch (e: any) {

@@ -8,6 +8,8 @@ import { friendlyScanError } from "@/lib/scan-errors";
 import { setGuestScansUsed } from "@/lib/premium";
 import { usePremium } from "@/lib/premium";
 import { rankCardHits } from "@/lib/card-match";
+import { frameToDataUrl } from "@/lib/scan-capture";
+import { findCardsForHint } from "@/lib/card-lookup";
 import { useAuth } from "@/lib/auth";
 import { formatCardNumber } from "@/lib/card-identity";
 import { Paywall, TrialBanner } from "./Paywall";
@@ -134,14 +136,7 @@ function ScannerInner({
     const v = videoRef.current,
       c = canvasRef.current;
     if (!v || !c) return;
-    const w = v.videoWidth || 720,
-      h = v.videoHeight || 1280;
-    c.width = w;
-    c.height = h;
-    const ctx = c.getContext("2d");
-    if (!ctx) return;
-    ctx.drawImage(v, 0, 0, w, h);
-    const dataUrl = c.toDataURL("image/jpeg", 0.8);
+    const dataUrl = frameToDataUrl(v, c);
     setSnap(dataUrl);
     setPhase("identifying");
     stopCamera();
@@ -208,8 +203,8 @@ function ScannerInner({
       queries.push(`name:${quote(core)}*`);
       queries.push(`name:${quote(cleaned)}*`);
 
-      let data: TCGCard[] = [];
-      for (const q of queries) {
+      let data: TCGCard[] = hint?.setNumber ? await findCardsForHint(hint) : [];
+      for (const q of data.length ? [] : queries) {
         const r = await searchCards({ q, pageSize: 40, orderBy: "-set.releaseDate" });
         if (r.data?.length) {
           data = r.data;
