@@ -35,3 +35,8 @@ its position in `shop_state`, wrapping to 0 after the last set. Call it every ~1
 ## Customer pages
 `/shop` (catalog), `/shop/$id` (product), `/shop/confirmation`, `/shop/order` (lookup by order number + email).
 Images go through `/api/public/shop-image?id=` so upstream CDNs are never exposed.
+
+## Pricing
+Sale price = cheapest source + tier markup (percent of source, at least the tier's min profit, at least the store-wide floor), then rounded.
+Rounding modes: `whole` (default, ceil to the next whole dollar; already-whole stays), `99` (up to X.99), `none`.
+All math uses integer cents. `scripts/shop-price-parity.ts` checks that SQL `shop_sale_price()` matches TypeScript `salePrice()` against a database.

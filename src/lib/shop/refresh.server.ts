@@ -2,7 +2,7 @@
 import { createClient } from "@supabase/supabase-js";
 import {
   DEFAULT_MARKUP_RULES,
-  DEFAULT_PRICING,
+  normalizePricing,
   type PricingSettings,
   type MarkupRule,
   type SourceListing,
@@ -122,7 +122,7 @@ export async function refreshBatch(opts: { offset: number; limit: number; kinds:
   const { data: ruleRows } = await sb.from("shop_markup_rules").select("min_price,max_price,flat_usd,percent,min_profit_usd").eq("active", true);
   const rules: MarkupRule[] = ruleRows?.length ? (ruleRows as MarkupRule[]) : DEFAULT_MARKUP_RULES;
   const { data: ps } = await sb.from("shop_state").select("value").eq("key", "pricing").maybeSingle();
-  const pricing: PricingSettings = { ...DEFAULT_PRICING, ...((ps?.value as Partial<PricingSettings>) ?? {}) };
+  const pricing: PricingSettings = normalizePricing(ps?.value);
   const gj = (await getJson(`${TCGCSV}/groups`)) as { results: Group[] } | null;
   const groups = (gj?.results ?? []).sort((a, b) => b.publishedOn.localeCompare(a.publishedOn));
   const batch = groups.slice(opts.offset, opts.offset + opts.limit);

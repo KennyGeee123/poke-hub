@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { ADMIN_HEADER, ORDER_STATUSES } from "@/lib/shop/admin";
-import { DEFAULT_PRICING, type MarkupRule, type PricingSettings, salePrice } from "@/lib/shop/core";
+import { DEFAULT_PRICING, type MarkupRule, type PricingSettings, type RoundingMode, normalizePricing, salePrice } from "@/lib/shop/core";
 import { profit as calcProfit, profitPct } from "@/lib/shop/admin";
 import { formatAddress, orderCode, plural } from "@/lib/shop/checkout";
 
@@ -199,7 +199,7 @@ function Markup({ call }: { call: Call }) {
   const [pricing, setPricing] = useState<PricingSettings>(DEFAULT_PRICING);
   const load = useCallback(() => Promise.all([
     call("rules.list").then((j) => setRules(j.rules)),
-    call("pricing.get").then((j) => setPricing({ min_profit_usd: Number(j.pricing.min_profit_usd), round_99: !!j.pricing.round_99 })),
+    call("pricing.get").then((j) => setPricing(normalizePricing(j.pricing))),
   ]).catch((e) => setMsg(e.message)), [call]);
   useEffect(() => { load(); }, [load]);
   const active: MarkupRule[] = rules.filter((r) => r.active).map((r) => ({ min_price: Number(r.min_price), max_price: r.max_price == null ? null : Number(r.max_price), flat_usd: Number(r.flat_usd), percent: Number(r.percent), min_profit_usd: Number(r.min_profit_usd ?? 0) }));
@@ -222,7 +222,9 @@ function Markup({ call }: { call: Call }) {
       </table>
       <div className="flex flex-wrap items-center gap-3">
         <label>Store-wide minimum profit $ <input value={pricing.min_profit_usd} onChange={(e) => setPricing({ ...pricing, min_profit_usd: e.target.value as unknown as number })} className={`${input} w-20`} /></label>
-        <label><input type="checkbox" checked={pricing.round_99} onChange={(e) => setPricing({ ...pricing, round_99: e.target.checked })} /> Round up to .99</label>
+        <label htmlFor="pricing-rounding">Rounding </label><select id="pricing-rounding" value={pricing.rounding} onChange={(e) => setPricing({ ...pricing, rounding: e.target.value as RoundingMode })} className={input}>
+          <option value="whole">Up to whole dollar (default)</option><option value="99">Up to .99</option><option value="none">None (exact cents)</option>
+        </select>
         <button className={btn} onClick={() => call("pricing.save", { pricing: { ...pricing, min_profit_usd: Number(pricing.min_profit_usd) } }).then(() => setMsg("Pricing settings saved")).catch((e) => setMsg(e.message))}>Save settings</button>
       </div>
       <div className="flex gap-2">
@@ -233,8 +235,8 @@ function Markup({ call }: { call: Call }) {
       <div className={box}>
         <div className="mb-1 font-medium">Preview (active tiers shown above)</div>
         <table className="text-sm"><thead className="text-left opacity-60"><tr><th className="pr-6">Source</th><th className="pr-6">Sale</th><th>Profit</th></tr></thead><tbody>
-        {[0.05, 0.2, 0.99, 1, 4.99, 5, 12, 19.99, 20, 35, 50, 99.99, 100, 250, 500].map((p) => {
-          const sp = salePrice(p, active, { min_profit_usd: Number(pricing.min_profit_usd) || 0, round_99: pricing.round_99 });
+        {[0.05, 0.2, 0.8, 0.99, 1, 2.5, 4.99, 7, 19.99, 45, 111, 300].map((p) => {
+          const sp = salePrice(p, active, { min_profit_usd: Number(pricing.min_profit_usd) || 0, rounding: pricing.rounding });
           return <tr key={p}><td className="pr-6">{money(p)}</td><td className="pr-6">{money(sp)}</td><td>{money(calcProfit(sp, p))}{pct(profitPct(sp, p))}</td></tr>;
         })}</tbody></table>
       </div>

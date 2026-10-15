@@ -1,49 +1,86 @@
 import { describe, expect, it } from "bun:test";
-import { DEFAULT_MARKUP_RULES, cheapest, markupCents, parseShopifySuggest, roundUp99, salePrice, salePriceCents, sealedType, titleMatches, toCents } from "./core";
+import { profit, profitPct } from "./admin";
+import { DEFAULT_MARKUP_RULES, DEFAULT_PRICING, cheapest, normalizePricing, roundUpWhole, markupCents, parseShopifySuggest, roundUp99, salePrice, salePriceCents, sealedType, titleMatches, toCents } from "./core";
 
 describe("shop core", () => {
-  it("sliding-scale tiers at every boundary (exact cents)", () => {
+  const NONE = { min_profit_usd: 0, rounding: "none" as const };
+  it("default: whole-dollar ceiling — Kenneth's example table", () => {
+    // [source, sale, profit $, profit % of source]
+    const table: [number, number, number, number][] = [
+      [0.05, 1, 0.95, 1900],
+      [0.2, 1, 0.8, 400],
+      [0.8, 2, 1.2, 150],
+      [0.99, 2, 1.01, 102],
+      [1, 2, 1, 100],
+      [2.5, 4, 1.5, 60],
+      [4.99, 7, 2.01, 40.3],
+      [7, 10, 3, 42.9],
+      [19.99, 26, 6.01, 30.1],
+      [45, 54, 9, 20],
+      [111, 123, 12, 10.8],
+      [300, 324, 24, 8],
+    ];
+    for (const [src, sale, p, pct] of table) {
+      const sp = salePrice(src);
+      expect([src, sp]).toEqual([src, sale]);
+      expect(profit(sp, src)).toBe(p);
+      expect(profitPct(sp, src)).toBe(pct);
+    }
+  });
+  it("whole-dollar keeps exact dollars, ceils everything else", () => {
+    expect(roundUpWhole(1800)).toBe(1800);
+    expect(roundUpWhole(1801)).toBe(1900);
+    expect(roundUpWhole(1)).toBe(100);
+    expect(salePrice(45)).toBe(54);     // 45 + 9.00 = 54.00 exactly → stays 54
+    expect(salePrice(300)).toBe(324);   // 300 + 24.00 → 324
+  });
+  it("tier boundaries before rounding (exact cents)", () => {
     const cases: [number, number][] = [
-      [0.01, 0.11],   // 50% = 0.005 → 0.01, tier floor $0.10
-      [0.05, 0.15],   // 50% = 0.025 → 0.03, floor $0.10
-      [0.2, 0.3],     // 50% = 0.10 (= floor)
-      [0.5, 0.75],    // 50% = 0.25
-      [0.99, 1.49],   // 50% = 0.495 → 0.50 half-up
-      [1.0, 1.4],     // 40% tier, floor $0.25
-      [4.99, 6.99],   // 40% = 1.996 → 2.00
-      [5.0, 6.5],     // 30% tier
-      [19.99, 25.99], // 30% = 5.997 → 6.00
+      [0.01, 0.26],   // 25% = 0.0025 → 0, floor $0.25
+      [0.99, 1.24],   // 25% = 0.2475 → 0.25
+      [1.0, 1.5],     // 30% = 0.30 → floor $0.50
+      [1.67, 2.17],   // 30% = 0.501 → 0.50
+      [4.99, 6.49],   // 30% = 1.497 → 1.50
+      [5.0, 6.5],     // 30% tier ($5–20)
+      [19.99, 25.99],
       [20.0, 24.0],   // 20%
-      [49.99, 59.99], // 20% = 9.998 → 10.00
+      [49.99, 59.99],
       [50.0, 57.5],   // 15%
-      [99.99, 114.99],// 15% = 14.9985 → 15.00
+      [99.99, 114.99],
       [100.0, 110.0], // 10%
       [249.99, 274.99],
       [250.0, 270.0], // 8%
-      [1000.0, 1080.0],
-      [0.1 + 0.2, 0.45], // float noise 0.30000000000000004 → 30¢, 50% = 15¢
+      [0.1 + 0.2, 0.55], // float noise → 30¢ + floor 25¢
     ];
-    for (const [src, sale] of cases) expect([src, salePrice(src)]).toEqual([src, sale]);
+    for (const [src, sale] of cases) expect([src, salePrice(src, DEFAULT_MARKUP_RULES, NONE)]).toEqual([src, sale]);
   });
   it("defaults have no flat dollar markups", () => {
     expect(DEFAULT_MARKUP_RULES.every((r) => r.flat_usd === 0)).toBe(true);
+    expect(DEFAULT_PRICING.rounding).toBe("whole");
   });
   it("cents math has no float drift", () => {
     expect(toCents(19.99)).toBe(1999);
-    expect(salePriceCents(1999)).toBe(2599);
+    expect(salePriceCents(1999, DEFAULT_MARKUP_RULES, NONE)).toBe(2599);
     expect(markupCents(3333)).toBe(667); // 20% of 33.33 = 6.666 → 6.67
-    expect(markupCents(1)).toBe(10);     // tier floor 10¢
+    expect(markupCents(1)).toBe(25);     // tier floor 25¢
   });
-  it("floors: per-tier, global, and .99 rounding", () => {
-    expect(salePrice(0.2, DEFAULT_MARKUP_RULES, { min_profit_usd: 0.5, round_99: false })).toBe(0.7);
-    expect(salePrice(2, [{ min_price: 0, max_price: null, flat_usd: 0, percent: 10, min_profit_usd: 1 }])).toBe(3);
-    expect(salePrice(12, DEFAULT_MARKUP_RULES, { min_profit_usd: 0, round_99: true })).toBe(15.99); // 15.60 → 15.99
+  it("rounding modes + floors", () => {
+    expect(salePrice(12, DEFAULT_MARKUP_RULES, { min_profit_usd: 0, rounding: "99" })).toBe(15.99); // 15.60 → 15.99
+    expect(salePrice(12, DEFAULT_MARKUP_RULES, { min_profit_usd: 0, rounding: "none" })).toBe(15.6);
+    expect(salePrice(12, DEFAULT_MARKUP_RULES, { min_profit_usd: 0, rounding: "whole" })).toBe(16);
+    expect(salePrice(0.2, DEFAULT_MARKUP_RULES, { min_profit_usd: 0.5, rounding: "none" })).toBe(0.7);
+    expect(salePrice(2, [{ min_price: 0, max_price: null, flat_usd: 0, percent: 10, min_profit_usd: 1 }], NONE)).toBe(3);
     expect(roundUp99(1799)).toBe(1799);
     expect(roundUp99(1800)).toBe(1899);
-    expect(roundUp99(1720)).toBe(1799);
+  });
+  it("normalizePricing accepts legacy round_99", () => {
+    expect(normalizePricing({ min_profit_usd: 0, round_99: true }).rounding).toBe("99");
+    expect(normalizePricing({}).rounding).toBe("whole");
+    expect(normalizePricing({ rounding: "none" }).rounding).toBe("none");
+    expect(normalizePricing({ rounding: "bogus" }).rounding).toBe("whole");
   });
   it("custom tiers with flat + decimal percent", () => {
-    expect(salePrice(10, [{ min_price: 0, max_price: null, flat_usd: 2, percent: 12.5 }])).toBe(13.25);
+    expect(salePrice(10, [{ min_price: 0, max_price: null, flat_usd: 2, percent: 12.5 }], NONE)).toBe(13.25);
   });
   it("keeps cases separate", () => expect(sealedType("30th Celebration Booster Bundle Case")).toBe("case"));
   it("classifies sealed", () => {

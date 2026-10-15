@@ -39,11 +39,12 @@ BEGIN
      OR sig = '0.00:5.00:0.00:50.00,5.00:20.00:0.00:30.00,20.00:50.00:0.00:20.00,50.00:100.00:0.00:15.00,100.00:250.00:0.00:10.00,250.00:-:0.00:8.00' THEN
     DELETE FROM public.shop_markup_rules;
     INSERT INTO public.shop_markup_rules (min_price, max_price, flat_usd, percent, min_profit_usd) VALUES
-      (0, 1, 0, 50, 0.10), (1, 5, 0, 40, 0.25), (5, 20, 0, 30, 0), (20, 50, 0, 20, 0),
+      (0, 1, 0, 25, 0.25), (1, 5, 0, 30, 0.50), (5, 20, 0, 30, 0), (20, 50, 0, 20, 0),
       (50, 100, 0, 15, 0), (100, 250, 0, 10, 0), (250, NULL, 0, 8, 0);
   END IF;
 END $$;
-INSERT INTO public.shop_state (key, value) VALUES ('pricing', '{"min_profit_usd": 0, "round_99": false}')
+-- rounding: 'whole' (default, ceil to next dollar) | '99' (up to X.99) | 'none'
+INSERT INTO public.shop_state (key, value) VALUES ('pricing', '{"min_profit_usd": 0, "rounding": "whole"}')
 ON CONFLICT (key) DO NOTHING;
 
 -- Must match src/lib/shop/core.ts salePriceCents(): all math in exact numeric cents.
@@ -54,12 +55,15 @@ DECLARE
   r record;
   m bigint := 0;
   floor_c bigint;
-  r99 boolean;
+  mode text;
   total bigint;
 BEGIN
-  SELECT round(COALESCE((value->>'min_profit_usd')::numeric, 0) * 100), COALESCE((value->>'round_99')::boolean, false)
-    INTO floor_c, r99 FROM public.shop_state WHERE key = 'pricing';
-  floor_c := COALESCE(floor_c, 0); r99 := COALESCE(r99, false);
+  SELECT round(COALESCE((value->>'min_profit_usd')::numeric, 0) * 100),
+         CASE WHEN value->>'rounding' IN ('whole', '99', 'none') THEN value->>'rounding'
+              WHEN (value->>'round_99')::boolean THEN '99'
+              ELSE 'whole' END
+    INTO floor_c, mode FROM public.shop_state WHERE key = 'pricing';
+  floor_c := COALESCE(floor_c, 0); mode := COALESCE(mode, 'whole');
   SELECT * INTO r FROM public.shop_markup_rules
    WHERE active AND c >= round(min_price * 100) AND (max_price IS NULL OR c < round(max_price * 100))
    ORDER BY min_price DESC LIMIT 1;
@@ -68,7 +72,9 @@ BEGIN
     m := greatest(m, round(r.min_profit_usd * 100));
   END IF;
   total := c + greatest(m, floor_c);
-  IF r99 THEN total := ceil((total + 1) / 100.0) * 100 - 1; END IF;
+  IF mode = 'whole' THEN total := ceil(total / 100.0) * 100;
+  ELSIF mode = '99' THEN total := ceil((total + 1) / 100.0) * 100 - 1;
+  END IF;
   RETURN total / 100.0;
 END $$;
 REVOKE ALL ON FUNCTION public.shop_sale_price(numeric) FROM PUBLIC, anon, authenticated;

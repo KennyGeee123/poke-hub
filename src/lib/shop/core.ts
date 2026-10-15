@@ -1,19 +1,31 @@
 // Dropship shop core: pure helpers (classification, matching, pricing, parsers).
 export type MarkupRule = { min_price: number; max_price: number | null; flat_usd: number; percent: number; min_profit_usd?: number | null };
-export type PricingSettings = { min_profit_usd: number; round_99: boolean };
+export const ROUNDING_MODES = ["whole", "99", "none"] as const;
+export type RoundingMode = (typeof ROUNDING_MODES)[number];
+export type PricingSettings = { min_profit_usd: number; rounding: RoundingMode };
 
 /** Default sliding-scale tiers (admin-editable via public.shop_markup_rules). Percent of the source price. */
 export const DEFAULT_MARKUP_RULES: MarkupRule[] = [
-  { min_price: 0, max_price: 1, flat_usd: 0, percent: 50, min_profit_usd: 0.1 },
-  { min_price: 1, max_price: 5, flat_usd: 0, percent: 40, min_profit_usd: 0.25 },
+  { min_price: 0, max_price: 1, flat_usd: 0, percent: 25, min_profit_usd: 0.25 },
+  { min_price: 1, max_price: 5, flat_usd: 0, percent: 30, min_profit_usd: 0.5 },
   { min_price: 5, max_price: 20, flat_usd: 0, percent: 30, min_profit_usd: 0 },
   { min_price: 20, max_price: 50, flat_usd: 0, percent: 20, min_profit_usd: 0 },
   { min_price: 50, max_price: 100, flat_usd: 0, percent: 15, min_profit_usd: 0 },
   { min_price: 100, max_price: 250, flat_usd: 0, percent: 10, min_profit_usd: 0 },
   { min_price: 250, max_price: null, flat_usd: 0, percent: 8, min_profit_usd: 0 },
 ];
-/** Global settings: an optional store-wide profit floor (default 0, per-tier floors do the work) and .99 rounding. */
-export const DEFAULT_PRICING: PricingSettings = { min_profit_usd: 0, round_99: false };
+/** Global settings: optional store-wide profit floor (default 0; per-tier floors do the work) and rounding mode
+ * (default "whole": ceil to the next whole dollar, unchanged if already whole). */
+export const DEFAULT_PRICING: PricingSettings = { min_profit_usd: 0, rounding: "whole" };
+
+/** Normalise stored settings (accepts legacy { round_99: boolean }). */
+export function normalizePricing(v: unknown): PricingSettings {
+  const o = (v ?? {}) as Record<string, unknown>;
+  const rounding = ROUNDING_MODES.includes(o.rounding as RoundingMode) ? (o.rounding as RoundingMode)
+    : o.round_99 === true ? "99" : DEFAULT_PRICING.rounding;
+  const f = Number(o.min_profit_usd ?? 0);
+  return { min_profit_usd: Number.isFinite(f) && f >= 0 ? f : 0, rounding };
+}
 
 /** Dollars → integer cents (exact for 2-decimal inputs; tolerates float noise like 19.999999). */
 export const toCents = (usd: number): number => Math.round(Number(usd) * 100);
@@ -39,9 +51,16 @@ export function roundUp99(cents: number): number {
   return Math.ceil((cents + 1) / 100) * 100 - 1;
 }
 
+/** Ceil to the next whole dollar in cents (1720 → 1800, 1800 → 1800). */
+export function roundUpWhole(cents: number): number {
+  return Math.ceil(cents / 100) * 100;
+}
+
 export function salePriceCents(sourceCents: number, rules: MarkupRule[] = DEFAULT_MARKUP_RULES, settings: PricingSettings = DEFAULT_PRICING): number {
   const c = sourceCents + markupCents(sourceCents, rules, settings);
-  return settings.round_99 ? roundUp99(c) : c;
+  if (settings.rounding === "whole") return roundUpWhole(c);
+  if (settings.rounding === "99") return roundUp99(c);
+  return c;
 }
 
 /** Back-compat: dollars in, dollars out (computed in cents). */

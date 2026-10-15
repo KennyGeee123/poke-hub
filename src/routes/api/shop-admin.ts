@@ -4,6 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { ADMIN_HEADER, ORDER_STATUSES, profit, profitPct, validatePricing, safeEqual, validateOrderPatch, validateProductPatch, validateRule } from "@/lib/shop/admin";
 import { refreshBatch } from "@/lib/shop/refresh.server";
+import { ROUNDING_MODES, normalizePricing } from "@/lib/shop/core";
 import { notifyOrder, siteUrl } from "@/lib/shop/server";
 
 type Args = Record<string, unknown>;
@@ -88,13 +89,14 @@ async function handle(action: string, a: Args, request: Request): Promise<Respon
     }
     case "pricing.get": {
       const { data } = await sb.from("shop_state").select("value").eq("key", "pricing").maybeSingle();
-      return Response.json({ pricing: { min_profit_usd: 0, round_99: false, ...((data?.value as object) ?? {}) } });
+      return Response.json({ pricing: normalizePricing(data?.value) });
     }
     case "pricing.save": {
       const p = (a.pricing ?? {}) as Args;
       const err = validatePricing(p);
       if (err) return bad(err);
-      const value = { min_profit_usd: Math.round(Number(p.min_profit_usd) * 100) / 100, round_99: p.round_99 === true };
+      if (!ROUNDING_MODES.includes(p.rounding as never)) return bad("rounding must be whole, 99 or none");
+      const value = { min_profit_usd: Math.round(Number(p.min_profit_usd) * 100) / 100, rounding: p.rounding };
       const { error } = await sb.from("shop_state").upsert({ key: "pricing", value, updated_at: new Date().toISOString() });
       return error ? bad(error.message, 500) : Response.json({ pricing: value });
     }
