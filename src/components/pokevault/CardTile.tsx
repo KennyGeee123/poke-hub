@@ -15,6 +15,7 @@ import {
   getGradeMeta,
 } from "@/lib/card-grades";
 import { getCardLevelAndStats } from "@/lib/card-stats";
+import { isGoldBorderCard } from "@/lib/gold-border";
 import {
   applyLiveQuote,
   cachedLivePriceSource,
@@ -128,15 +129,16 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
   const art = useCardImageChain(card, { tile: true });
   const loaded = art.loaded;
 
-  const isGold =
-    /\b(hyper\s*rare|mega\s*hyper|rare\s*holo\s*star|gold\s*star|secret\s*rare|rare\s*secret)\b/i.test(
-      `${card.rarity || ""} ${card.name || ""}`,
-    );
+  const isGold = isGoldBorderCard(card);
   const isShadowless = /shadowless/i.test(`${card.set?.name || ""} ${card.rarity || ""}`);
   const isError = /\b(error|misprint)/i.test(
     `${card.set?.name || ""} ${card.rarity || ""} ${card.name || ""}`,
   );
-  const setLine = [card.set?.name, card.number ? `#${card.number}` : null]
+  // "30th Classic Collection" cut the card number off the 140px caption — keep the number visible.
+  const setLine = [
+    card.set?.name?.replace(/classic collection/i, "Classic"),
+    card.number ? `#${card.number}` : null,
+  ]
     .filter(Boolean)
     .join(" · ");
   // Sold averages stay labeled as sold. Listing lows are the buy price.
@@ -181,7 +183,11 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
           }
         }}
       >
-        <div className="pv-card-img-wrap" style={{ position: "relative" }}>
+        <div
+          className={`pv-card-img-wrap${isGold ? " pv-gold-card" : ""}`}
+          data-gold={isGold ? "1" : undefined}
+          style={{ position: "relative" }}
+        >
           {!loaded && <div className="pv-card-skel" />}
           <img
             ref={art.ref}
@@ -251,7 +257,10 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
             </div>
             {priceLabel ? <span className="pv-c-price-lbl">{priceLabel}</span> : null}
             {isGold ? (
-              <span className="pv-gold-chip" title="Gold / Hyper / Secret Rare">
+              <span
+                className="pv-gold-chip"
+                title="Gold frame: Hyper / Secret / Special Illustration Rare or Classic Collection"
+              >
                 GOLD
               </span>
             ) : null}
@@ -316,9 +325,7 @@ function CardTileInner({ card, onClick, qty, onRemove, eager, defaultGrade = "ra
             width: "100%",
             background: "rgba(10, 15, 29, 0.95)",
             color: gradeMeta.isSlab ? "#fbbf24" : "var(--t1)",
-            border: gradeMeta.isSlab
-              ? "1px solid rgba(251, 191, 36, 0.5)"
-              : "1px solid var(--brd)",
+            border: gradeMeta.isSlab ? "1px solid rgba(251, 191, 36, 0.5)" : "1px solid var(--brd)",
             borderRadius: 5,
             fontSize: 10,
             fontFamily: "var(--mono, monospace)",

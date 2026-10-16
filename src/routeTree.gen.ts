@@ -11,9 +11,18 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ApiShopAdminRouteImport } from './routes/api/shop-admin'
+import { Route as ApiShopCronRouteImport } from './routes/api/shop-cron'
+import { Route as ApiShopRefreshRouteImport } from './routes/api/shop-refresh'
+import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe-webhook'
 import { Route as HolofareIndexRouteImport } from './routes/holofare.index'
 import { Route as HolofareBuildLogRouteImport } from './routes/holofare.build-log'
 import { Route as HolofareHowMoneyWorksRouteImport } from './routes/holofare.how-money-works'
+import { Route as ShopIndexRouteImport } from './routes/shop.index'
+import { Route as ShopIdRouteImport } from './routes/shop.$id'
+import { Route as ShopAdminRouteImport } from './routes/shop.admin'
+import { Route as ShopConfirmationRouteImport } from './routes/shop.confirmation'
+import { Route as ShopOrderRouteImport } from './routes/shop.order'
 import { Route as ApiPublicAuthStatusRouteImport } from './routes/api/public/auth-status'
 import { Route as ApiPublicBulbaRouteImport } from './routes/api/public/bulba'
 import { Route as ApiPublicCardImageRouteImport } from './routes/api/public/card-image'
@@ -24,6 +33,10 @@ import { Route as ApiPublicFullartHfRouteImport } from './routes/api/public/full
 import { Route as ApiPublicMcpRouteImport } from './routes/api/public/mcp'
 import { Route as ApiPublicPokeRadioRouteImport } from './routes/api/public/poke-radio'
 import { Route as ApiPublicPricesRouteImport } from './routes/api/public/prices'
+import { Route as ApiPublicShopRouteImport } from './routes/api/public/shop'
+import { Route as ApiPublicShopImageRouteImport } from './routes/api/public/shop-image'
+import { Route as ApiPublicShopLookupRouteImport } from './routes/api/public/shop-lookup'
+import { Route as ApiPublicShopOrderRouteImport } from './routes/api/public/shop-order'
 import { Route as ApiPublicTcgRouteImport } from './routes/api/public/tcg'
 import { Route as ApiPublicTcgdexRouteImport } from './routes/api/public/tcgdex'
 import { Route as ApiPublicVirusBusterRouteImport } from './routes/api/public/virus-buster'
@@ -36,6 +49,26 @@ const IndexRoute = IndexRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopAdminRoute = ApiShopAdminRouteImport.update({
+  id: '/api/shop-admin',
+  path: '/api/shop-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopCronRoute = ApiShopCronRouteImport.update({
+  id: '/api/shop-cron',
+  path: '/api/shop-cron',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopRefreshRoute = ApiShopRefreshRouteImport.update({
+  id: '/api/shop-refresh',
+  path: '/api/shop-refresh',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
+  id: '/api/stripe-webhook',
+  path: '/api/stripe-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HolofareIndexRoute = HolofareIndexRouteImport.update({
@@ -51,6 +84,31 @@ const HolofareBuildLogRoute = HolofareBuildLogRouteImport.update({
 const HolofareHowMoneyWorksRoute = HolofareHowMoneyWorksRouteImport.update({
   id: '/holofare/how-money-works',
   path: '/holofare/how-money-works',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShopIndexRoute = ShopIndexRouteImport.update({
+  id: '/shop/',
+  path: '/shop/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShopIdRoute = ShopIdRouteImport.update({
+  id: '/shop/$id',
+  path: '/shop/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShopAdminRoute = ShopAdminRouteImport.update({
+  id: '/shop/admin',
+  path: '/shop/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShopConfirmationRoute = ShopConfirmationRouteImport.update({
+  id: '/shop/confirmation',
+  path: '/shop/confirmation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShopOrderRoute = ShopOrderRouteImport.update({
+  id: '/shop/order',
+  path: '/shop/order',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicAuthStatusRoute = ApiPublicAuthStatusRouteImport.update({
@@ -103,6 +161,26 @@ const ApiPublicPricesRoute = ApiPublicPricesRouteImport.update({
   path: '/api/public/prices',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicShopRoute = ApiPublicShopRouteImport.update({
+  id: '/api/public/shop',
+  path: '/api/public/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicShopImageRoute = ApiPublicShopImageRouteImport.update({
+  id: '/api/public/shop-image',
+  path: '/api/public/shop-image',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicShopLookupRoute = ApiPublicShopLookupRouteImport.update({
+  id: '/api/public/shop-lookup',
+  path: '/api/public/shop-lookup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicShopOrderRoute = ApiPublicShopOrderRouteImport.update({
+  id: '/api/public/shop-order',
+  path: '/api/public/shop-order',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTcgRoute = ApiPublicTcgRouteImport.update({
   id: '/api/public/tcg',
   path: '/api/public/tcg',
@@ -122,9 +200,18 @@ const ApiPublicVirusBusterRoute = ApiPublicVirusBusterRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/api/shop-admin': typeof ApiShopAdminRoute
+  '/api/shop-cron': typeof ApiShopCronRoute
+  '/api/shop-refresh': typeof ApiShopRefreshRoute
+  '/api/stripe-webhook': typeof ApiStripeWebhookRoute
   '/holofare/build-log': typeof HolofareBuildLogRoute
   '/holofare/how-money-works': typeof HolofareHowMoneyWorksRoute
+  '/shop/$id': typeof ShopIdRoute
+  '/shop/admin': typeof ShopAdminRoute
+  '/shop/confirmation': typeof ShopConfirmationRoute
+  '/shop/order': typeof ShopOrderRoute
   '/holofare/': typeof HolofareIndexRoute
+  '/shop/': typeof ShopIndexRoute
   '/api/public/auth-status': typeof ApiPublicAuthStatusRoute
   '/api/public/bulba': typeof ApiPublicBulbaRoute
   '/api/public/card-image': typeof ApiPublicCardImageRoute
@@ -135,6 +222,10 @@ export interface FileRoutesByFullPath {
   '/api/public/mcp': typeof ApiPublicMcpRoute
   '/api/public/poke-radio': typeof ApiPublicPokeRadioRoute
   '/api/public/prices': typeof ApiPublicPricesRoute
+  '/api/public/shop': typeof ApiPublicShopRoute
+  '/api/public/shop-image': typeof ApiPublicShopImageRoute
+  '/api/public/shop-lookup': typeof ApiPublicShopLookupRoute
+  '/api/public/shop-order': typeof ApiPublicShopOrderRoute
   '/api/public/tcg': typeof ApiPublicTcgRoute
   '/api/public/tcgdex': typeof ApiPublicTcgdexRoute
   '/api/public/virus-buster': typeof ApiPublicVirusBusterRoute
@@ -142,9 +233,18 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/api/shop-admin': typeof ApiShopAdminRoute
+  '/api/shop-cron': typeof ApiShopCronRoute
+  '/api/shop-refresh': typeof ApiShopRefreshRoute
+  '/api/stripe-webhook': typeof ApiStripeWebhookRoute
   '/holofare/build-log': typeof HolofareBuildLogRoute
   '/holofare/how-money-works': typeof HolofareHowMoneyWorksRoute
+  '/shop/$id': typeof ShopIdRoute
+  '/shop/admin': typeof ShopAdminRoute
+  '/shop/confirmation': typeof ShopConfirmationRoute
+  '/shop/order': typeof ShopOrderRoute
   '/holofare': typeof HolofareIndexRoute
+  '/shop': typeof ShopIndexRoute
   '/api/public/auth-status': typeof ApiPublicAuthStatusRoute
   '/api/public/bulba': typeof ApiPublicBulbaRoute
   '/api/public/card-image': typeof ApiPublicCardImageRoute
@@ -155,6 +255,10 @@ export interface FileRoutesByTo {
   '/api/public/mcp': typeof ApiPublicMcpRoute
   '/api/public/poke-radio': typeof ApiPublicPokeRadioRoute
   '/api/public/prices': typeof ApiPublicPricesRoute
+  '/api/public/shop': typeof ApiPublicShopRoute
+  '/api/public/shop-image': typeof ApiPublicShopImageRoute
+  '/api/public/shop-lookup': typeof ApiPublicShopLookupRoute
+  '/api/public/shop-order': typeof ApiPublicShopOrderRoute
   '/api/public/tcg': typeof ApiPublicTcgRoute
   '/api/public/tcgdex': typeof ApiPublicTcgdexRoute
   '/api/public/virus-buster': typeof ApiPublicVirusBusterRoute
@@ -163,9 +267,18 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/api/shop-admin': typeof ApiShopAdminRoute
+  '/api/shop-cron': typeof ApiShopCronRoute
+  '/api/shop-refresh': typeof ApiShopRefreshRoute
+  '/api/stripe-webhook': typeof ApiStripeWebhookRoute
   '/holofare/build-log': typeof HolofareBuildLogRoute
   '/holofare/how-money-works': typeof HolofareHowMoneyWorksRoute
+  '/shop/$id': typeof ShopIdRoute
+  '/shop/admin': typeof ShopAdminRoute
+  '/shop/confirmation': typeof ShopConfirmationRoute
+  '/shop/order': typeof ShopOrderRoute
   '/holofare/': typeof HolofareIndexRoute
+  '/shop/': typeof ShopIndexRoute
   '/api/public/auth-status': typeof ApiPublicAuthStatusRoute
   '/api/public/bulba': typeof ApiPublicBulbaRoute
   '/api/public/card-image': typeof ApiPublicCardImageRoute
@@ -176,6 +289,10 @@ export interface FileRoutesById {
   '/api/public/mcp': typeof ApiPublicMcpRoute
   '/api/public/poke-radio': typeof ApiPublicPokeRadioRoute
   '/api/public/prices': typeof ApiPublicPricesRoute
+  '/api/public/shop': typeof ApiPublicShopRoute
+  '/api/public/shop-image': typeof ApiPublicShopImageRoute
+  '/api/public/shop-lookup': typeof ApiPublicShopLookupRoute
+  '/api/public/shop-order': typeof ApiPublicShopOrderRoute
   '/api/public/tcg': typeof ApiPublicTcgRoute
   '/api/public/tcgdex': typeof ApiPublicTcgdexRoute
   '/api/public/virus-buster': typeof ApiPublicVirusBusterRoute
@@ -185,9 +302,18 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/api/shop-admin'
+    | '/api/shop-cron'
+    | '/api/shop-refresh'
+    | '/api/stripe-webhook'
     | '/holofare/build-log'
     | '/holofare/how-money-works'
+    | '/shop/$id'
+    | '/shop/admin'
+    | '/shop/confirmation'
+    | '/shop/order'
     | '/holofare/'
+    | '/shop/'
     | '/api/public/auth-status'
     | '/api/public/bulba'
     | '/api/public/card-image'
@@ -198,6 +324,10 @@ export interface FileRouteTypes {
     | '/api/public/mcp'
     | '/api/public/poke-radio'
     | '/api/public/prices'
+    | '/api/public/shop'
+    | '/api/public/shop-image'
+    | '/api/public/shop-lookup'
+    | '/api/public/shop-order'
     | '/api/public/tcg'
     | '/api/public/tcgdex'
     | '/api/public/virus-buster'
@@ -205,9 +335,18 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/api/shop-admin'
+    | '/api/shop-cron'
+    | '/api/shop-refresh'
+    | '/api/stripe-webhook'
     | '/holofare/build-log'
     | '/holofare/how-money-works'
+    | '/shop/$id'
+    | '/shop/admin'
+    | '/shop/confirmation'
+    | '/shop/order'
     | '/holofare'
+    | '/shop'
     | '/api/public/auth-status'
     | '/api/public/bulba'
     | '/api/public/card-image'
@@ -218,6 +357,10 @@ export interface FileRouteTypes {
     | '/api/public/mcp'
     | '/api/public/poke-radio'
     | '/api/public/prices'
+    | '/api/public/shop'
+    | '/api/public/shop-image'
+    | '/api/public/shop-lookup'
+    | '/api/public/shop-order'
     | '/api/public/tcg'
     | '/api/public/tcgdex'
     | '/api/public/virus-buster'
@@ -225,9 +368,18 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/login'
+    | '/api/shop-admin'
+    | '/api/shop-cron'
+    | '/api/shop-refresh'
+    | '/api/stripe-webhook'
     | '/holofare/build-log'
     | '/holofare/how-money-works'
+    | '/shop/$id'
+    | '/shop/admin'
+    | '/shop/confirmation'
+    | '/shop/order'
     | '/holofare/'
+    | '/shop/'
     | '/api/public/auth-status'
     | '/api/public/bulba'
     | '/api/public/card-image'
@@ -238,6 +390,10 @@ export interface FileRouteTypes {
     | '/api/public/mcp'
     | '/api/public/poke-radio'
     | '/api/public/prices'
+    | '/api/public/shop'
+    | '/api/public/shop-image'
+    | '/api/public/shop-lookup'
+    | '/api/public/shop-order'
     | '/api/public/tcg'
     | '/api/public/tcgdex'
     | '/api/public/virus-buster'
@@ -246,9 +402,18 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  ApiShopAdminRoute: typeof ApiShopAdminRoute
+  ApiShopCronRoute: typeof ApiShopCronRoute
+  ApiShopRefreshRoute: typeof ApiShopRefreshRoute
+  ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
   HolofareBuildLogRoute: typeof HolofareBuildLogRoute
   HolofareHowMoneyWorksRoute: typeof HolofareHowMoneyWorksRoute
+  ShopIdRoute: typeof ShopIdRoute
+  ShopAdminRoute: typeof ShopAdminRoute
+  ShopConfirmationRoute: typeof ShopConfirmationRoute
+  ShopOrderRoute: typeof ShopOrderRoute
   HolofareIndexRoute: typeof HolofareIndexRoute
+  ShopIndexRoute: typeof ShopIndexRoute
   ApiPublicAuthStatusRoute: typeof ApiPublicAuthStatusRoute
   ApiPublicBulbaRoute: typeof ApiPublicBulbaRoute
   ApiPublicCardImageRoute: typeof ApiPublicCardImageRoute
@@ -259,6 +424,10 @@ export interface RootRouteChildren {
   ApiPublicMcpRoute: typeof ApiPublicMcpRoute
   ApiPublicPokeRadioRoute: typeof ApiPublicPokeRadioRoute
   ApiPublicPricesRoute: typeof ApiPublicPricesRoute
+  ApiPublicShopRoute: typeof ApiPublicShopRoute
+  ApiPublicShopImageRoute: typeof ApiPublicShopImageRoute
+  ApiPublicShopLookupRoute: typeof ApiPublicShopLookupRoute
+  ApiPublicShopOrderRoute: typeof ApiPublicShopOrderRoute
   ApiPublicTcgRoute: typeof ApiPublicTcgRoute
   ApiPublicTcgdexRoute: typeof ApiPublicTcgdexRoute
   ApiPublicVirusBusterRoute: typeof ApiPublicVirusBusterRoute
@@ -280,6 +449,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/shop-admin': {
+      id: '/api/shop-admin'
+      path: '/api/shop-admin'
+      fullPath: '/api/shop-admin'
+      preLoaderRoute: typeof ApiShopAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shop-cron': {
+      id: '/api/shop-cron'
+      path: '/api/shop-cron'
+      fullPath: '/api/shop-cron'
+      preLoaderRoute: typeof ApiShopCronRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shop-refresh': {
+      id: '/api/shop-refresh'
+      path: '/api/shop-refresh'
+      fullPath: '/api/shop-refresh'
+      preLoaderRoute: typeof ApiShopRefreshRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/stripe-webhook': {
+      id: '/api/stripe-webhook'
+      path: '/api/stripe-webhook'
+      fullPath: '/api/stripe-webhook'
+      preLoaderRoute: typeof ApiStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/holofare/': {
       id: '/holofare/'
       path: '/holofare'
@@ -299,6 +496,41 @@ declare module '@tanstack/react-router' {
       path: '/holofare/how-money-works'
       fullPath: '/holofare/how-money-works'
       preLoaderRoute: typeof HolofareHowMoneyWorksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shop/': {
+      id: '/shop/'
+      path: '/shop'
+      fullPath: '/shop/'
+      preLoaderRoute: typeof ShopIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shop/$id': {
+      id: '/shop/$id'
+      path: '/shop/$id'
+      fullPath: '/shop/$id'
+      preLoaderRoute: typeof ShopIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shop/admin': {
+      id: '/shop/admin'
+      path: '/shop/admin'
+      fullPath: '/shop/admin'
+      preLoaderRoute: typeof ShopAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shop/confirmation': {
+      id: '/shop/confirmation'
+      path: '/shop/confirmation'
+      fullPath: '/shop/confirmation'
+      preLoaderRoute: typeof ShopConfirmationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shop/order': {
+      id: '/shop/order'
+      path: '/shop/order'
+      fullPath: '/shop/order'
+      preLoaderRoute: typeof ShopOrderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/auth-status': {
@@ -371,6 +603,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPricesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/shop': {
+      id: '/api/public/shop'
+      path: '/api/public/shop'
+      fullPath: '/api/public/shop'
+      preLoaderRoute: typeof ApiPublicShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/shop-image': {
+      id: '/api/public/shop-image'
+      path: '/api/public/shop-image'
+      fullPath: '/api/public/shop-image'
+      preLoaderRoute: typeof ApiPublicShopImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/shop-lookup': {
+      id: '/api/public/shop-lookup'
+      path: '/api/public/shop-lookup'
+      fullPath: '/api/public/shop-lookup'
+      preLoaderRoute: typeof ApiPublicShopLookupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/shop-order': {
+      id: '/api/public/shop-order'
+      path: '/api/public/shop-order'
+      fullPath: '/api/public/shop-order'
+      preLoaderRoute: typeof ApiPublicShopOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/tcg': {
       id: '/api/public/tcg'
       path: '/api/public/tcg'
@@ -398,9 +658,18 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  ApiShopAdminRoute: ApiShopAdminRoute,
+  ApiShopCronRoute: ApiShopCronRoute,
+  ApiShopRefreshRoute: ApiShopRefreshRoute,
+  ApiStripeWebhookRoute: ApiStripeWebhookRoute,
   HolofareBuildLogRoute: HolofareBuildLogRoute,
   HolofareHowMoneyWorksRoute: HolofareHowMoneyWorksRoute,
+  ShopIdRoute: ShopIdRoute,
+  ShopAdminRoute: ShopAdminRoute,
+  ShopConfirmationRoute: ShopConfirmationRoute,
+  ShopOrderRoute: ShopOrderRoute,
   HolofareIndexRoute: HolofareIndexRoute,
+  ShopIndexRoute: ShopIndexRoute,
   ApiPublicAuthStatusRoute: ApiPublicAuthStatusRoute,
   ApiPublicBulbaRoute: ApiPublicBulbaRoute,
   ApiPublicCardImageRoute: ApiPublicCardImageRoute,
@@ -411,6 +680,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicMcpRoute: ApiPublicMcpRoute,
   ApiPublicPokeRadioRoute: ApiPublicPokeRadioRoute,
   ApiPublicPricesRoute: ApiPublicPricesRoute,
+  ApiPublicShopRoute: ApiPublicShopRoute,
+  ApiPublicShopImageRoute: ApiPublicShopImageRoute,
+  ApiPublicShopLookupRoute: ApiPublicShopLookupRoute,
+  ApiPublicShopOrderRoute: ApiPublicShopOrderRoute,
   ApiPublicTcgRoute: ApiPublicTcgRoute,
   ApiPublicTcgdexRoute: ApiPublicTcgdexRoute,
   ApiPublicVirusBusterRoute: ApiPublicVirusBusterRoute,

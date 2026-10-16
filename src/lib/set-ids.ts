@@ -288,8 +288,16 @@ export function uniqueBoxPrints<T extends SetCardLike>(cards: T[], printedTotal 
   return kept;
 }
 
+/** 1 for the 30th Classic Collection family, else 0 (keeps the box's two lists apart when sorting). */
+function classicGroup(c: SetCardLike): number {
+  return /^(30th-c|me55c)(-|$)/i.test(String(c.id || "")) ? 1 : 0;
+}
+
 export function sortSetCards<T extends SetCardLike>(cards: T[]): T[] {
   return cards.slice().sort((a, b) => {
+    const ga = classicGroup(a);
+    const gb = classicGroup(b);
+    if (ga !== gb) return ga - gb;
     // Letter-only prints (Unown A-Z, !, ?) sort after the numbered checklist.
     const digits = (c: SetCardLike) => String(c.number || "").replace(/[^\d]/g, "");
     const na = digits(a) ? Number(digits(a)) : Number.MAX_SAFE_INTEGER;
