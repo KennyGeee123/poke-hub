@@ -1,5 +1,7 @@
 /** Virus Buster — PokéVault site shield (not desktop antivirus). */
 
+import { checkGate, reportBlock, GATE_NAME, GATE_NAVI } from "./bot-gate";
+
 export const XSS_SCRIPT_TAG = /<\s*\/?\s*script\b/i;
 export const JAVASCRIPT_URL = /javascript\s*:/i;
 export const EVENT_HANDLER =
@@ -119,6 +121,17 @@ function shouldScanBody(req: Request): boolean {
 }
 
 export async function scanRequest(req: Request): Promise<{ blocked: boolean; reason?: string }> {
+  // Navi Gate first: bots without a GitHub OIDC token or owner Navi Pass stop here.
+  const gate = await checkGate(req);
+  if (!gate.allow) return { blocked: true, reason: `navi-gate:${gate.reason}` };
+
+  const hit = await scanPayload(req);
+  // A hack probe is reported as virus:* — Decoherence deletes (bans) that IP at once.
+  if (hit.blocked) await reportBlock(req, `virus:${hit.reason}`, ["hack-probe"]);
+  return hit;
+}
+
+async function scanPayload(req: Request): Promise<{ blocked: boolean; reason?: string }> {
   const urlHit = scanText(req.url);
   if (urlHit.blocked) return urlHit;
 
@@ -163,8 +176,11 @@ export function blockedResponse(): Response {
   return applySecurityHeaders(
     new Response(
       JSON.stringify({
-        error: "DECOHERENCE: Virus Buster blocked this request",
+        error: "DECOHERENCE: Virus Buster blocked this request. Repeat offenders and hack probes are deleted (banned) by Decoherence.",
         code: "DECOHERENCE",
+        gate: GATE_NAME,
+        navi: GATE_NAVI,
+        bots: "Bots are blocked unless the owner approved them with Touch ID (owner-signed Navi Pass or approved GitHub repo).",
       }),
       {
         status: 403,
@@ -185,4 +201,5 @@ export const VIRUS_BUSTER_SHIELDS = [
   "null-byte",
   "webshell",
   "security-headers",
+  "navi-gate-bot-block",
 ] as const;

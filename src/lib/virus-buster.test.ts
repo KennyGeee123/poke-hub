@@ -27,7 +27,12 @@ describe("virus-buster patterns", () => {
   });
 
   test("scanRequest allows clean GET", async () => {
-    const req = new Request("https://x.test/api/public/ebay-sold?q=Charizard");
+    const req = new Request("https://x.test/api/public/ebay-sold?q=Charizard", {
+      headers: {
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
+        "accept-language": "en-US",
+      },
+    });
     const r = await scanRequest(req);
     expect(r.blocked).toBe(false);
   });
