@@ -52,6 +52,11 @@ describe("Classic Collection: only prints with a real gold frame are framed", ()
     expect(isGoldBorderCard({ id: "30th-c-001", name: "Charizard", set: { id: "30th-c" } })).toBe(
       true,
     );
+    // Search still serves the pokemontcg id, which is the same full-bleed print.
+    expect(isGoldBorderCard({ id: "me55c-4", name: "Charizard", set: { id: "me55c" } })).toBe(
+      false,
+    );
+    expect(isGoldBorderCard({ id: "me55c-004", name: "Charizard" })).toBe(false);
     expect(isGoldBorderCard({ id: "30th-c-030", name: "Magikarp", set: { id: "30th-c" } })).toBe(
       true,
     );

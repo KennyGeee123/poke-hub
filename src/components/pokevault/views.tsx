@@ -623,7 +623,7 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
           return (
             <div
               key={s.id}
-              className="pv-set-el"
+              className={`pv-set-el${chip === "box" ? " pv-gold-set" : ""}`}
               onClick={() => onPickSet(s)}
               role="button"
               tabIndex={0}

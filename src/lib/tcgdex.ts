@@ -480,9 +480,11 @@ export async function tcgdexGetSetCards(setId: string, lang = "en"): Promise<TCG
     }
     if (mapped.length > best.length) best = mapped;
     const want = Number(raw?.cardCount?.total || raw?.cardCount?.official || 0);
-    if (want > 0 && mapped.length >= want) return mapped;
+    // Every box, not only the 30th family: the set payload has no rarity, so gold frames
+    // never appeared until these ids were stamped.
+    if (want > 0 && mapped.length >= want) return stampGoldRarities(mapped, lang);
   }
-  return mergeFamilies && best.length ? await stampGoldRarities(best, lang) : best;
+  return best.length ? stampGoldRarities(best, lang) : best;
 }
 
 const SET_GOLD_RARITIES = [
@@ -493,9 +495,9 @@ const SET_GOLD_RARITIES = [
 ];
 
 /**
- * TCGdex's set listing carries no rarity, so gold-tier prints (the 30th box's Special Illustration Rares)
- * could never get their gold frame. Ask TCGdex's own rarity filter which ids in this box are gold-tier
- * and stamp exactly those. 4 small requests; any miss leaves the cards untouched.
+ * TCGdex's set listing carries no rarity, so gold-tier prints never got a gold frame.
+ * Ask TCGdex's own rarity filter which ids in this box are gold-tier and stamp exactly those.
+ * One small request per gold rarity; any miss leaves the cards untouched.
  */
 export async function stampGoldRarities(cards: TCGCard[], lang = "en"): Promise<TCGCard[]> {
   const setIds = [...new Set(cards.map((c) => cardSetKey(c.id)).filter(Boolean))].filter((id) =>

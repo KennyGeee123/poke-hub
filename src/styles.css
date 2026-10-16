@@ -11583,31 +11583,77 @@ body[data-pv-tab="adventure"] .pv-music-panel,
   }
 }
 
-/* Gold frame: Hyper / Secret / Special Illustration Rare and Classic Collection prints (src/lib/gold-border.ts). */
+/* Gold frame: Hyper / Secret / Special Illustration Rare and Classic Collection prints (src/lib/gold-border.ts).
+   The old foil kill-switch sets content:none !important on every tile ::after, and the holo rule
+   sets background !important. Gold tiles have to beat both or the glitter never paints. */
 .pv-card-wrap .pv-card-img-wrap.pv-gold-card {
-  border: 2px solid #e2b53a;
+  border: 2px solid #e2b53a !important;
   background: linear-gradient(135deg, #3a2c08, #0b1220 55%);
   box-shadow:
     0 0 0 1px rgba(253, 230, 138, 0.45),
     0 0 14px rgba(226, 181, 58, 0.55),
-    0 8px 18px rgba(11, 18, 32, 0.28);
+    0 8px 18px rgba(11, 18, 32, 0.28) !important;
 }
 .pv-card-wrap:hover .pv-card-img-wrap.pv-gold-card,
 .pv-card-wrap:focus-within .pv-card-img-wrap.pv-gold-card {
-  border-color: #fde68a;
+  border-color: #fde68a !important;
   box-shadow:
     0 0 0 1px rgba(253, 230, 138, 0.8),
     0 0 22px rgba(251, 191, 36, 0.8),
-    0 10px 22px rgba(11, 18, 32, 0.32);
+    0 10px 22px rgba(11, 18, 32, 0.32) !important;
 }
 @media (prefers-reduced-motion: no-preference) {
   .pv-card-wrap .pv-card-img-wrap.pv-gold-card::after {
+    content: "" !important;
+    display: block !important;
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    border-radius: inherit;
+    mix-blend-mode: screen !important;
+    background: linear-gradient(
+      115deg,
+      transparent 36%,
+      rgba(253, 230, 138, 0.15) 46%,
+      rgba(255, 248, 220, 0.72) 50%,
+      rgba(226, 181, 58, 0.4) 54%,
+      transparent 64%
+    ) !important;
+    background-size: 250% 100% !important;
+    animation: pv-gold-sweep 4.5s ease-in-out infinite;
+  }
+}
+/* Box-sets tab: every set tile carries the same gold glitter, not only the 30th box. */
+.pv-app-shell .pv-box-tab-grid .pv-set-el.pv-gold-set,
+.pv-box-tab-grid .pv-set-el.pv-gold-set {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid #e2b53a !important;
+  box-shadow:
+    0 0 0 1px rgba(253, 230, 138, 0.45),
+    0 0 16px rgba(226, 181, 58, 0.4) !important;
+}
+.pv-box-tab-grid .pv-set-el.pv-gold-set > * {
+  position: relative;
+  z-index: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pv-box-tab-grid .pv-set-el.pv-gold-set::after {
     content: "";
     position: absolute;
     inset: 0;
+    z-index: 0;
     pointer-events: none;
-    border-radius: inherit;
-    background: linear-gradient(115deg, transparent 40%, rgba(253, 230, 138, 0.22) 50%, transparent 60%);
+    background: linear-gradient(
+      115deg,
+      transparent 38%,
+      rgba(253, 230, 138, 0.08) 46%,
+      rgba(255, 248, 220, 0.42) 50%,
+      rgba(226, 181, 58, 0.22) 54%,
+      transparent 62%
+    );
     background-size: 250% 100%;
     animation: pv-gold-sweep 4.5s ease-in-out infinite;
   }

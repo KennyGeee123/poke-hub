@@ -30,11 +30,19 @@ export function isClassicCollectionCard(card: GoldBorderInput): boolean {
  */
 export const CLASSIC_NOT_GOLD_FRAMED = new Set(["30th-c-004", "30th-c-023", "30th-c-026"]);
 
+/** Same three prints under every id spelling (30th-c-004, me55c-4, me55c-004). */
+const PLAIN_CLASSIC_NUMBERS = new Set(["4", "23", "26"]);
+
+function classicLocalNumber(id?: string): string {
+  const raw = String(id || "").split("-").pop() || "";
+  const n = parseInt(raw, 10);
+  return Number.isFinite(n) ? String(n) : "";
+}
+
 export function isGoldBorderCard(card: GoldBorderInput): boolean {
-  if (
-    isClassicCollectionCard(card) &&
-    !CLASSIC_NOT_GOLD_FRAMED.has(String(card.id || "").toLowerCase())
-  )
+  if (isClassicCollectionCard(card)) {
+    if (PLAIN_CLASSIC_NUMBERS.has(classicLocalNumber(card.id))) return false;
     return true;
+  }
   return GOLD_RARITY.test(`${card.rarity || ""} ${card.name || ""}`);
 }
