@@ -3,6 +3,11 @@
 import type { TCGCard } from "@/lib/pokemon-api";
 import { isAllowedCardImageUrl } from "@/lib/card-image-hosts";
 import { pokemontcgImagePath } from "@/lib/tcgdex";
+import {
+  isScrydexPlaceholderSize,
+  scrydexClassicImages,
+  scrydexScanUrls,
+} from "@/lib/classic-scans";
 import { cardLocalId, cardSetId, isSameCard, parseCardId } from "@/lib/card-identity";
 import { applyImagePolicy } from "@/lib/image-policy";
 import { isAppOnlyCardId } from "@/lib/tcgdex";
@@ -68,6 +73,9 @@ export function looksLikePlaceholderScan(
   const src = img.currentSrc || img.src || "";
   if (src.startsWith("data:")) return false;
   if (w < 40 || h < 40) return true;
+  // Scrydex serves a fixed placeholder for unknown ids (HTTP 200). Real medium
+  // scans are 367×512, one pixel taller than the placeholder.
+  if (/images\.scrydex\.com/i.test(src) && isScrydexPlaceholderSize(w, h)) return true;
   return /images\.pokemontcg\.io/i.test(src) && w === 640 && h === 892;
 }
 
@@ -110,9 +118,18 @@ function tcgdexBase(url: string): string | null {
 }
 
 export function hdImg(
-  card: Pick<TCGCard, "images">,
+  card: Pick<TCGCard, "images"> & { id?: string },
   opts?: { tile?: boolean },
 ): { src: string; srcSet?: string; sizes?: string } {
+  const scan = scrydexClassicImages(card.id);
+  if (scan) {
+    if (opts?.tile) return { src: scan.small, sizes: "140px" };
+    return {
+      src: scan.large,
+      srcSet: `${scan.small} 480w, ${scan.large} 900w`,
+      sizes: "600px",
+    };
+  }
   const small = card.images?.small ?? "";
   const large = card.images?.large ?? small;
   if (opts?.tile) {
@@ -131,7 +148,9 @@ export function hdImg(
   };
 }
 
-export function hdLarge(card: Pick<TCGCard, "images">): string {
+export function hdLarge(card: Pick<TCGCard, "images"> & { id?: string }): string {
+  const scan = scrydexClassicImages(card.id);
+  if (scan) return scan.large;
   return card.images?.large || card.images?.small || "";
 }
 
@@ -168,6 +187,12 @@ export function fallbackCardImages(card: ImgCard, opts?: { tile?: boolean }): st
     if (!v || urls.includes(v)) return;
     urls.push(v);
   };
+
+  const scan = scrydexClassicImages(card.id);
+  if (scan) {
+    add(tile ? scan.small : scan.large);
+    add(tile ? scan.large : scan.small);
+  }
 
   const small = (card.images?.small || "").trim();
   const large = (card.images?.large || "").trim();
@@ -207,6 +232,7 @@ export function fallbackCardImages(card: ImgCard, opts?: { tile?: boolean }): st
     if (parentSet && num) {
       add(proxiedCardImage(`https://images.pokemontcg.io/${parentSet}/${num}.png`));
     }
+    for (const u of scrydexScanUrls(setId, num, card.id, true)) add(u);
     add(generateCardSvgFallback(card.name || "Pokémon Card", card.number, card.set?.name));
     return applyImagePolicy(urls);
   }
@@ -234,6 +260,7 @@ export function fallbackCardImages(card: ImgCard, opts?: { tile?: boolean }): st
   if (!tcgBase && serie && num) {
     add(proxiedCardImage(`https://assets.tcgdex.net/en/${serie}/${setId}/${num}/high.webp`));
   }
+  for (const u of scrydexScanUrls(setId, num, card.id, false)) add(u);
   add(generateCardSvgFallback(card.name || "Pokémon Card", card.number, card.set?.name));
   return applyImagePolicy(urls);
 }
@@ -241,20 +268,27 @@ export function fallbackCardImages(card: ImgCard, opts?: { tile?: boolean }): st
 /**
  * v2: v1 ("pv-hd-img:") resolved 30th-c-001 as 30th-001 and cached
  * Exeggcute's scan for Classic Charizard (and the other 29 Classic cards).
- * Those poisoned entries are ignored and dropped.
+ * v3: v2 cached the TCGPlayer product photo. Classic cards now use the Scrydex
+ * scan of the printed card, so those entries are dropped.
  */
-const HD_CACHE_KEY = "pv-hd-img2:";
+const HD_CACHE_KEY = "pv-hd-img3:";
+const HD_CACHE_KEY_V2 = "pv-hd-img2:";
 const HD_CACHE_KEY_V1 = "pv-hd-img:";
 
 export async function resolveHDImage(
   card: Pick<TCGCard, "id" | "name" | "number" | "set" | "images">,
 ): Promise<string> {
+  const scan = scrydexClassicImages(card.id);
   if (typeof localStorage !== "undefined") {
     try {
       localStorage.removeItem(HD_CACHE_KEY_V1 + card.id);
+      localStorage.removeItem(HD_CACHE_KEY_V2 + card.id);
     } catch {}
-    const cached = localStorage.getItem(HD_CACHE_KEY + card.id);
-    if (cached) return cached;
+    // A Classic scan is a fixed URL. Do not let an older cached photo win.
+    if (!scan) {
+      const cached = localStorage.getItem(HD_CACHE_KEY + card.id);
+      if (cached) return cached;
+    }
   }
   const fallback = hdLarge(card);
   try {
@@ -276,7 +310,7 @@ export async function resolveHDImage(
         };
         // Only take the scan when TCGdex answered with THIS card (same set,
         // number and name); otherwise keep the card's own image.
-        if (j.image && isSameCard({ ...card, set: { id: setId } }, j)) {
+        if (j.image && isSameCard({ ...card, set: { id: setId } }, j) && !scan) {
           const url = `${j.image}/high.webp`;
           try {
             localStorage.setItem(HD_CACHE_KEY + card.id, url);
@@ -286,6 +320,7 @@ export async function resolveHDImage(
       }
     }
   } catch {}
+  if (scan) return scan.large;
   return fallback;
 }
 
@@ -295,6 +330,7 @@ export function refreshAllImageCaches() {
   for (const k of Object.keys(localStorage)) {
     if (
       k.startsWith(HD_CACHE_KEY) ||
+      k.startsWith(HD_CACHE_KEY_V2) ||
       k.startsWith(HD_CACHE_KEY_V1) ||
       k.startsWith("pv-tcg-cache:")
     ) {

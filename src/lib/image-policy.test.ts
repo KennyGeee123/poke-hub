@@ -13,13 +13,15 @@ describe("image policy", () => {
     expect(isApiArtUrl(proxied)).toBe(true);
     expect(isApiArtUrl(pending)).toBe(true);
     expect(isApiArtUrl(tcgp)).toBe(false);
-    expect(isApiArtUrl(scry)).toBe(false);
+    expect(isApiArtUrl(scry)).toBe(true);
     expect(isApiArtUrl(`/api/public/card-image?url=${encodeURIComponent(tcgp)}`)).toBe(false);
+    expect(isApiArtUrl(`/api/public/card-image?url=${encodeURIComponent(scry)}`)).toBe(true);
   });
 
   it("strict mode drops every non-API host and keeps the Art pending tile last", () => {
     expect(applyImagePolicy([tcgp, api, scry, proxied, pending], true)).toEqual([
       api,
+      scry,
       proxied,
       pending,
     ]);
