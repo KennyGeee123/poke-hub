@@ -29,9 +29,9 @@ export const Route = createFileRoute("/api/public/shop")({
         if (error) return Response.json({ error: "Could not load the shop." }, { status: 500 });
         if (id && data?.length) {
           const { data: variants } = await sb.from("shop_catalog_variants").select("id,product_id,finish,grader,grade,sale_price,price_status,updated_at").eq("product_id", data[0].id);
-          return Response.json({ items: data, total: count ?? 0, page, pageSize: size, variants: variants ?? [] }, { headers: { "Cache-Control": "public, max-age=120" } });
+          return Response.json({ items: data, total: count ?? 0, page, pageSize: size, variants: variants ?? [] }, { headers: { "Cache-Control": "public, max-age=30, s-maxage=30, stale-while-revalidate=300" } });
         }
-        return Response.json({ items: data ?? [], total: count ?? 0, page, pageSize: size }, { headers: { "Cache-Control": "public, max-age=120" } });
+        return Response.json({ items: data ?? [], total: count ?? 0, page, pageSize: size }, { headers: { "Cache-Control": "public, max-age=30, s-maxage=30, stale-while-revalidate=300" } });
         } catch (e) {
           if (shopUnavailable(e as Error)) return comingSoon();
           throw e;
