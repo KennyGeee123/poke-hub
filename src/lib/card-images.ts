@@ -4,6 +4,8 @@ import type { TCGCard } from "@/lib/pokemon-api";
 import { isAllowedCardImageUrl } from "@/lib/card-image-hosts";
 import { pokemontcgImagePath } from "@/lib/tcgdex";
 import { cardLocalId, cardSetId, isSameCard, parseCardId } from "@/lib/card-identity";
+import { applyImagePolicy } from "@/lib/image-policy";
+import { isAppOnlyCardId } from "@/lib/tcgdex";
 
 /**
  * Branded "Art pending" tile: silhouette + name + set code. Never a blank or
@@ -176,7 +178,8 @@ export function fallbackCardImages(card: ImgCard, opts?: { tile?: boolean }): st
   const serie = safeSet ? setId.replace(/[0-9].*$/, "").replace(/\.$/, "") : "";
   const tcgBase = tcgdexBase(small) || tcgdexBase(large);
   // TCGdex-only boxes (30th, 30th-c, dotted ids) have no pokemontcg.io scans.
-  const ptcgOk = safeSet && !setId.includes(".") && !/^(30th|30th-c|me55c)$/i.test(setId);
+  const ptcgOk =
+    safeSet && !setId.includes(".") && !/^(30th|30th-c|me55c|base1sl|bss|error)$/i.test(setId);
   // Dotted TCGdex ids (sm7.5, swsh4.5sv, cel25cc…) keep their scans under
   // pokemontcg's own id — reach them even when a cached card has the old URL.
   const ptcgAlias =
@@ -205,7 +208,7 @@ export function fallbackCardImages(card: ImgCard, opts?: { tile?: boolean }): st
       add(proxiedCardImage(`https://images.pokemontcg.io/${parentSet}/${num}.png`));
     }
     add(generateCardSvgFallback(card.name || "Pokémon Card", card.number, card.set?.name));
-    return urls;
+    return applyImagePolicy(urls);
   }
 
   // Detail / fullscreen — keep high/hires preference
@@ -232,7 +235,7 @@ export function fallbackCardImages(card: ImgCard, opts?: { tile?: boolean }): st
     add(proxiedCardImage(`https://assets.tcgdex.net/en/${serie}/${setId}/${num}/high.webp`));
   }
   add(generateCardSvgFallback(card.name || "Pokémon Card", card.number, card.set?.name));
-  return urls;
+  return applyImagePolicy(urls);
 }
 
 /**
@@ -258,7 +261,8 @@ export async function resolveHDImage(
     // Set id = everything before the LAST hyphen; never `id.split("-")[0]`.
     const setId = cardSetId(card) || parseCardId(card.id || "").setId;
     const num = cardLocalId(card);
-    if (setId && num) {
+    // App-only sets (Shadowless / Error prints) are not on TCGdex; skip the guaranteed 404.
+    if (setId && num && !isAppOnlyCardId(card.id)) {
       const r = await fetch(
         `https://api.tcgdex.net/v2/en/cards/${encodeURIComponent(`${setId}-${num}`)}`,
       );

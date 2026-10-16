@@ -775,7 +775,8 @@ function pickGroupId(groups: any[], qClean: string): number | null {
     if (!gn || !(id > 0)) continue;
     let score = 0;
     if (gn === qClean) score = 1000 + qClean.length;
-    else if (qWords.length && qWords.every((w) => gn.split(" ").includes(w))) score = 500 + qWords.length;
+    else if (qWords.length && qWords.every((w) => gn.split(" ").includes(w)))
+      score = 500 + qWords.length;
     else if (qClean.length > 3 && (gn.includes(qClean) || qClean.includes(gn))) {
       score = 200 + Math.min(gn.length, qClean.length);
     }
@@ -833,7 +834,9 @@ async function tcgcsvSealed(q: string): Promise<Listing[]> {
       const low = Number(p.lowPrice) || 0;
       const direct = Number(p.directLowPrice) || 0;
       const asks = [low, direct].filter((n) => n > 0);
-      const ask = asks.length ? Math.min(...asks) : Number(p.marketPrice) || Number(p.midPrice) || 0;
+      const ask = asks.length
+        ? Math.min(...asks)
+        : Number(p.marketPrice) || Number(p.midPrice) || 0;
       if (!(pid > 0) || !(ask > 0)) continue;
       const prev = priceMap.get(pid);
       if (prev == null || ask < prev) priceMap.set(pid, ask);
@@ -915,7 +918,13 @@ function shopUrl(name: string, q: string, condition?: string): string {
     case "CoolStuffInc":
       return `https://www.coolstuffinc.com/main_search.php?pa=searchOnLoad&page=1&resultsPerPage=25&q=${nkw}`;
     case "Amazon":
-      return `https://www.amazon.com/s?k=${nkw}`;
+      // Amazon blocks automated price reads (HTTP 503), so this is a one-click search sorted lowest price
+      // first; sealed products stay in Toys & Games so accessories/clones don't crowd the top.
+      return `https://www.amazon.com/s?k=${nkw}&s=price-asc-rank${
+        /booster|sealed|bundle|elite\s*trainer|\betb\b|display|box/i.test(q)
+          ? "&i=toys-and-games"
+          : ""
+      }`;
     case "Whatnot":
       return `https://www.whatnot.com/search?q=${nkw}`;
     case "Dave & Adam's":
@@ -1186,7 +1195,9 @@ export const Route = createFileRoute("/api/public/card-prices")({
           .filter((l) => !isShopRow(l) && l.price > 0 && matchesCond(l));
         const setQuery = cleanSetQuery(q);
         const mentionsSet = (title: string) => {
-          const words = setQuery.split(" ").filter((w) => w.length > 2 && w !== "and" && w !== "the");
+          const words = setQuery
+            .split(" ")
+            .filter((w) => w.length > 2 && w !== "and" && w !== "the");
           const n = title.toLowerCase();
           if (!words.length) return false;
           const digits = words.filter((w) => /\d/.test(w));
