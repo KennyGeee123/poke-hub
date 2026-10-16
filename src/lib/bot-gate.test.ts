@@ -257,3 +257,68 @@ describe("Decoherence delete", () => {
     }
   });
 });
+
+describe("Navi Gate machine callers", () => {
+  const bot = { "user-agent": "Stripe/1.0 (+https://stripe.com/docs/webhooks)" };
+  async function stripeSig(payload: string, secret: string) {
+    const t = Math.floor(Date.now() / 1000);
+    const key = await crypto.subtle.importKey(
+      "raw",
+      enc.encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"],
+    );
+    const mac = await crypto.subtle.sign("HMAC", key, enc.encode(`${t}.${payload}`));
+    return `t=${t},v1=${[...new Uint8Array(mac)].map((b) => b.toString(16).padStart(2, "0")).join("")}`;
+  }
+  const post = (path: string, headers: Record<string, string>, body = "{}") =>
+    new Request(`https://x.test${path}`, { method: "POST", headers, body });
+
+  test("Stripe webhook with a valid signature passes; forged or unset secret is blocked", async () => {
+    const env = { STRIPE_WEBHOOK_SECRET: "whsec_test_secret" };
+    const body = '{"type":"checkout.session.completed"}';
+    const good = await checkGate(
+      post(
+        "/api/stripe-webhook",
+        { ...bot, "stripe-signature": await stripeSig(body, env.STRIPE_WEBHOOK_SECRET) },
+        body,
+      ),
+      env,
+    );
+    expect(good).toEqual({ allow: true, who: "machine:stripe-webhook" });
+    const forged = await checkGate(
+      post(
+        "/api/stripe-webhook",
+        { ...bot, "stripe-signature": await stripeSig(body, "wrong") },
+        body,
+      ),
+      env,
+    );
+    expect(forged.allow).toBe(false);
+    const unset = await checkGate(
+      post(
+        "/api/stripe-webhook",
+        { ...bot, "stripe-signature": await stripeSig(body, "any-secret") },
+        body,
+      ),
+      {},
+    );
+    expect(unset.allow).toBe(false);
+  });
+  test("cron/admin secrets only open their own routes", async () => {
+    const env = { CRON_SECRET: "c".repeat(32), SHOP_ADMIN_SECRET: "a".repeat(32) };
+    const cron = { "user-agent": "vercel-cron/1.0", authorization: `Bearer ${env.CRON_SECRET}` };
+    expect((await checkGate(post("/api/shop-cron", cron), env)).allow).toBe(true);
+    expect((await checkGate(post("/api/public/tcg", cron), env)).allow).toBe(false);
+    expect(
+      (await checkGate(post("/api/shop-cron", { ...cron, authorization: "Bearer nope" }), env))
+        .allow,
+    ).toBe(false);
+    const admin = { "user-agent": "curl/8", "x-shop-admin": env.SHOP_ADMIN_SECRET };
+    expect((await checkGate(post("/api/shop-admin", admin), env)).allow).toBe(true);
+    expect(
+      (await checkGate(post("/api/shop-admin", { ...admin, "x-shop-admin": "" }), {})).allow,
+    ).toBe(false);
+  });
+});

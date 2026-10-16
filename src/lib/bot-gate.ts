@@ -9,6 +9,10 @@
  *      GitHub's JWKS) from a repo listed in the signed gate policy.
  *   3. Search crawlers listed in the signed policy, proven by reverse +
  *      forward DNS — never by user agent alone. None are listed by default.
+ *   4. The owner's own machine callers on their one route each, only with that
+ *      route's real secret checked HERE first (Stripe signature on
+ *      /api/stripe-webhook, CRON_SECRET bearer on /api/shop-cron, x-shop-admin
+ *      on shop-cron/shop-refresh/shop-admin). Unset secret → door stays shut.
  *
  * Passes and the policy (VB_GATE_POLICY env) are ECDSA P-256 signatures by the
  * owner's private key, which lives only in the owner's macOS keychain and is
@@ -27,6 +31,9 @@
  * A bot that fully impersonates a browser is not caught here — that needs a
  * JS challenge (Vercel BotID / Firewall Bot Protection) on top.
  */
+
+import { ADMIN_HEADER, safeEqual } from "./shop/admin";
+import { verifyStripeSignature } from "./shop/checkout";
 
 export const GATE_NAVI = "Decoherence";
 export const GATE_NAME = "Navi Gate";
@@ -286,6 +293,31 @@ async function verifyCrawler(
   return { ok: false };
 }
 
+// ── door 4: owner machine callers, each pinned to its route + its secret ───
+export async function verifyMachineCaller(
+  req: Request,
+  e: Env,
+): Promise<{ ok: boolean; who?: string }> {
+  const path = new URL(req.url).pathname;
+  const admin = req.headers.get(ADMIN_HEADER) ?? "";
+  if (path === "/api/stripe-webhook" && req.method === "POST") {
+    const sig = req.headers.get("stripe-signature");
+    const secret = e.STRIPE_WEBHOOK_SECRET ?? "";
+    if (!sig || !secret) return { ok: false };
+    const ok = await verifyStripeSignature(await req.clone().text(), sig, secret);
+    return ok ? { ok: true, who: "machine:stripe-webhook" } : { ok: false };
+  }
+  if (path === "/api/shop-cron") {
+    const bearer = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
+    if (safeEqual(bearer, e.CRON_SECRET ?? "")) return { ok: true, who: "machine:shop-cron" };
+  }
+  if (path === "/api/shop-cron" || path === "/api/shop-refresh" || path === "/api/shop-admin") {
+    if (safeEqual(admin, e.SHOP_ADMIN_SECRET ?? ""))
+      return { ok: true, who: `machine:${path.slice(5)}` };
+  }
+  return { ok: false };
+}
+
 // ── KM Command Virus Buster feed + Decoherence ban list ────────────────────
 const recentLogs = new Map<string, number>();
 
@@ -444,6 +476,10 @@ async function runGate(req: Request, e: Env): Promise<GateVerdict> {
     if (r.ok) return { allow: true, who: r.who! };
     reason = r.reason ?? reason;
   }
+  const machine = await verifyMachineCaller(req, e).catch(
+    () => ({ ok: false }) as { ok: boolean; who?: string },
+  );
+  if (machine.ok) return { allow: true, who: machine.who! };
   const crawler = await verifyCrawler(req, ip, await getPolicy()).catch(
     () => ({ ok: false }) as { ok: boolean; who?: string },
   );
