@@ -9,63 +9,43 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as ApiShopAdminRouteImport } from './routes/api/shop-admin'
-import { Route as ApiShopCronRouteImport } from './routes/api/shop-cron'
-import { Route as ApiShopRefreshRouteImport } from './routes/api/shop-refresh'
-import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe-webhook'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as ShopIndexRouteImport } from './routes/shop.index'
-import { Route as ShopIdRouteImport } from './routes/shop.$id'
-import { Route as ShopAdminRouteImport } from './routes/shop.admin'
-import { Route as ShopConfirmationRouteImport } from './routes/shop.confirmation'
 import { Route as ShopOrderRouteImport } from './routes/shop.order'
-import { Route as ApiPublicAuthStatusRouteImport } from './routes/api/public/auth-status'
-import { Route as ApiPublicBulbaRouteImport } from './routes/api/public/bulba'
-import { Route as ApiPublicCardImageRouteImport } from './routes/api/public/card-image'
-import { Route as ApiPublicCardPricesRouteImport } from './routes/api/public/card-prices'
-import { Route as ApiPublicEbaySoldRouteImport } from './routes/api/public/ebay-sold'
-import { Route as ApiPublicFullartAiRouteImport } from './routes/api/public/fullart-ai'
-import { Route as ApiPublicFullartHfRouteImport } from './routes/api/public/fullart-hf'
-import { Route as ApiPublicMcpRouteImport } from './routes/api/public/mcp'
-import { Route as ApiPublicPokeRadioRouteImport } from './routes/api/public/poke-radio'
-import { Route as ApiPublicPricesRouteImport } from './routes/api/public/prices'
-import { Route as ApiPublicShopRouteImport } from './routes/api/public/shop'
-import { Route as ApiPublicShopImageRouteImport } from './routes/api/public/shop-image'
-import { Route as ApiPublicShopLookupRouteImport } from './routes/api/public/shop-lookup'
-import { Route as ApiPublicShopOrderRouteImport } from './routes/api/public/shop-order'
-import { Route as ApiPublicTcgRouteImport } from './routes/api/public/tcg'
-import { Route as ApiPublicTcgdexRouteImport } from './routes/api/public/tcgdex'
+import { Route as ShopConfirmationRouteImport } from './routes/shop.confirmation'
+import { Route as ShopAdminRouteImport } from './routes/shop.admin'
+import { Route as ShopIdRouteImport } from './routes/shop.$id'
+import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe-webhook'
+import { Route as ApiShopRefreshRouteImport } from './routes/api/shop-refresh'
+import { Route as ApiShopCronRouteImport } from './routes/api/shop-cron'
+import { Route as ApiShopAdminRouteImport } from './routes/api/shop-admin'
 import { Route as ApiPublicVirusBusterRouteImport } from './routes/api/public/virus-buster'
+import { Route as ApiPublicTcgdexRouteImport } from './routes/api/public/tcgdex'
+import { Route as ApiPublicTcgRouteImport } from './routes/api/public/tcg'
+import { Route as ApiPublicShopOrderRouteImport } from './routes/api/public/shop-order'
+import { Route as ApiPublicShopLookupRouteImport } from './routes/api/public/shop-lookup'
+import { Route as ApiPublicShopImageRouteImport } from './routes/api/public/shop-image'
+import { Route as ApiPublicShopRouteImport } from './routes/api/public/shop'
+import { Route as ApiPublicPricesRouteImport } from './routes/api/public/prices'
+import { Route as ApiPublicPokeRadioRouteImport } from './routes/api/public/poke-radio'
+import { Route as ApiPublicMcpRouteImport } from './routes/api/public/mcp'
+import { Route as ApiPublicFullartHfRouteImport } from './routes/api/public/fullart-hf'
+import { Route as ApiPublicFullartAiRouteImport } from './routes/api/public/fullart-ai'
+import { Route as ApiPublicEbaySoldRouteImport } from './routes/api/public/ebay-sold'
+import { Route as ApiPublicCardPricesRouteImport } from './routes/api/public/card-prices'
+import { Route as ApiPublicCardImageRouteImport } from './routes/api/public/card-image'
+import { Route as ApiPublicBulbaRouteImport } from './routes/api/public/bulba'
+import { Route as ApiPublicAuthStatusRouteImport } from './routes/api/public/auth-status'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiShopAdminRoute = ApiShopAdminRouteImport.update({
-  id: '/api/shop-admin',
-  path: '/api/shop-admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiShopCronRoute = ApiShopCronRouteImport.update({
-  id: '/api/shop-cron',
-  path: '/api/shop-cron',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiShopRefreshRoute = ApiShopRefreshRouteImport.update({
-  id: '/api/shop-refresh',
-  path: '/api/shop-refresh',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
-  id: '/api/stripe-webhook',
-  path: '/api/stripe-webhook',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShopIndexRoute = ShopIndexRouteImport.update({
@@ -73,14 +53,9 @@ const ShopIndexRoute = ShopIndexRouteImport.update({
   path: '/shop/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ShopIdRoute = ShopIdRouteImport.update({
-  id: '/shop/$id',
-  path: '/shop/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ShopAdminRoute = ShopAdminRouteImport.update({
-  id: '/shop/admin',
-  path: '/shop/admin',
+const ShopOrderRoute = ShopOrderRouteImport.update({
+  id: '/shop/order',
+  path: '/shop/order',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShopConfirmationRoute = ShopConfirmationRouteImport.update({
@@ -88,84 +63,39 @@ const ShopConfirmationRoute = ShopConfirmationRouteImport.update({
   path: '/shop/confirmation',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ShopOrderRoute = ShopOrderRouteImport.update({
-  id: '/shop/order',
-  path: '/shop/order',
+const ShopAdminRoute = ShopAdminRouteImport.update({
+  id: '/shop/admin',
+  path: '/shop/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicAuthStatusRoute = ApiPublicAuthStatusRouteImport.update({
-  id: '/api/public/auth-status',
-  path: '/api/public/auth-status',
+const ShopIdRoute = ShopIdRouteImport.update({
+  id: '/shop/$id',
+  path: '/shop/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicBulbaRoute = ApiPublicBulbaRouteImport.update({
-  id: '/api/public/bulba',
-  path: '/api/public/bulba',
+const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
+  id: '/api/stripe-webhook',
+  path: '/api/stripe-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicCardImageRoute = ApiPublicCardImageRouteImport.update({
-  id: '/api/public/card-image',
-  path: '/api/public/card-image',
+const ApiShopRefreshRoute = ApiShopRefreshRouteImport.update({
+  id: '/api/shop-refresh',
+  path: '/api/shop-refresh',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicCardPricesRoute = ApiPublicCardPricesRouteImport.update({
-  id: '/api/public/card-prices',
-  path: '/api/public/card-prices',
+const ApiShopCronRoute = ApiShopCronRouteImport.update({
+  id: '/api/shop-cron',
+  path: '/api/shop-cron',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicEbaySoldRoute = ApiPublicEbaySoldRouteImport.update({
-  id: '/api/public/ebay-sold',
-  path: '/api/public/ebay-sold',
+const ApiShopAdminRoute = ApiShopAdminRouteImport.update({
+  id: '/api/shop-admin',
+  path: '/api/shop-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicFullartAiRoute = ApiPublicFullartAiRouteImport.update({
-  id: '/api/public/fullart-ai',
-  path: '/api/public/fullart-ai',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicFullartHfRoute = ApiPublicFullartHfRouteImport.update({
-  id: '/api/public/fullart-hf',
-  path: '/api/public/fullart-hf',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicMcpRoute = ApiPublicMcpRouteImport.update({
-  id: '/api/public/mcp',
-  path: '/api/public/mcp',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicPokeRadioRoute = ApiPublicPokeRadioRouteImport.update({
-  id: '/api/public/poke-radio',
-  path: '/api/public/poke-radio',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicPricesRoute = ApiPublicPricesRouteImport.update({
-  id: '/api/public/prices',
-  path: '/api/public/prices',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicShopRoute = ApiPublicShopRouteImport.update({
-  id: '/api/public/shop',
-  path: '/api/public/shop',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicShopImageRoute = ApiPublicShopImageRouteImport.update({
-  id: '/api/public/shop-image',
-  path: '/api/public/shop-image',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicShopLookupRoute = ApiPublicShopLookupRouteImport.update({
-  id: '/api/public/shop-lookup',
-  path: '/api/public/shop-lookup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicShopOrderRoute = ApiPublicShopOrderRouteImport.update({
-  id: '/api/public/shop-order',
-  path: '/api/public/shop-order',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicTcgRoute = ApiPublicTcgRouteImport.update({
-  id: '/api/public/tcg',
-  path: '/api/public/tcg',
+const ApiPublicVirusBusterRoute = ApiPublicVirusBusterRouteImport.update({
+  id: '/api/public/virus-buster',
+  path: '/api/public/virus-buster',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicTcgdexRoute = ApiPublicTcgdexRouteImport.update({
@@ -173,9 +103,79 @@ const ApiPublicTcgdexRoute = ApiPublicTcgdexRouteImport.update({
   path: '/api/public/tcgdex',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicVirusBusterRoute = ApiPublicVirusBusterRouteImport.update({
-  id: '/api/public/virus-buster',
-  path: '/api/public/virus-buster',
+const ApiPublicTcgRoute = ApiPublicTcgRouteImport.update({
+  id: '/api/public/tcg',
+  path: '/api/public/tcg',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicShopOrderRoute = ApiPublicShopOrderRouteImport.update({
+  id: '/api/public/shop-order',
+  path: '/api/public/shop-order',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicShopLookupRoute = ApiPublicShopLookupRouteImport.update({
+  id: '/api/public/shop-lookup',
+  path: '/api/public/shop-lookup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicShopImageRoute = ApiPublicShopImageRouteImport.update({
+  id: '/api/public/shop-image',
+  path: '/api/public/shop-image',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicShopRoute = ApiPublicShopRouteImport.update({
+  id: '/api/public/shop',
+  path: '/api/public/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPricesRoute = ApiPublicPricesRouteImport.update({
+  id: '/api/public/prices',
+  path: '/api/public/prices',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPokeRadioRoute = ApiPublicPokeRadioRouteImport.update({
+  id: '/api/public/poke-radio',
+  path: '/api/public/poke-radio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicMcpRoute = ApiPublicMcpRouteImport.update({
+  id: '/api/public/mcp',
+  path: '/api/public/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicFullartHfRoute = ApiPublicFullartHfRouteImport.update({
+  id: '/api/public/fullart-hf',
+  path: '/api/public/fullart-hf',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicFullartAiRoute = ApiPublicFullartAiRouteImport.update({
+  id: '/api/public/fullart-ai',
+  path: '/api/public/fullart-ai',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicEbaySoldRoute = ApiPublicEbaySoldRouteImport.update({
+  id: '/api/public/ebay-sold',
+  path: '/api/public/ebay-sold',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicCardPricesRoute = ApiPublicCardPricesRouteImport.update({
+  id: '/api/public/card-prices',
+  path: '/api/public/card-prices',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicCardImageRoute = ApiPublicCardImageRouteImport.update({
+  id: '/api/public/card-image',
+  path: '/api/public/card-image',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicBulbaRoute = ApiPublicBulbaRouteImport.update({
+  id: '/api/public/bulba',
+  path: '/api/public/bulba',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAuthStatusRoute = ApiPublicAuthStatusRouteImport.update({
+  id: '/api/public/auth-status',
+  path: '/api/public/auth-status',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -396,13 +396,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -410,32 +403,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/shop-admin': {
-      id: '/api/shop-admin'
-      path: '/api/shop-admin'
-      fullPath: '/api/shop-admin'
-      preLoaderRoute: typeof ApiShopAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/shop-cron': {
-      id: '/api/shop-cron'
-      path: '/api/shop-cron'
-      fullPath: '/api/shop-cron'
-      preLoaderRoute: typeof ApiShopCronRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/shop-refresh': {
-      id: '/api/shop-refresh'
-      path: '/api/shop-refresh'
-      fullPath: '/api/shop-refresh'
-      preLoaderRoute: typeof ApiShopRefreshRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/stripe-webhook': {
-      id: '/api/stripe-webhook'
-      path: '/api/stripe-webhook'
-      fullPath: '/api/stripe-webhook'
-      preLoaderRoute: typeof ApiStripeWebhookRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shop/': {
@@ -445,18 +417,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/shop/$id': {
-      id: '/shop/$id'
-      path: '/shop/$id'
-      fullPath: '/shop/$id'
-      preLoaderRoute: typeof ShopIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/shop/admin': {
-      id: '/shop/admin'
-      path: '/shop/admin'
-      fullPath: '/shop/admin'
-      preLoaderRoute: typeof ShopAdminRouteImport
+    '/shop/order': {
+      id: '/shop/order'
+      path: '/shop/order'
+      fullPath: '/shop/order'
+      preLoaderRoute: typeof ShopOrderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shop/confirmation': {
@@ -466,116 +431,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopConfirmationRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/shop/order': {
-      id: '/shop/order'
-      path: '/shop/order'
-      fullPath: '/shop/order'
-      preLoaderRoute: typeof ShopOrderRouteImport
+    '/shop/admin': {
+      id: '/shop/admin'
+      path: '/shop/admin'
+      fullPath: '/shop/admin'
+      preLoaderRoute: typeof ShopAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/auth-status': {
-      id: '/api/public/auth-status'
-      path: '/api/public/auth-status'
-      fullPath: '/api/public/auth-status'
-      preLoaderRoute: typeof ApiPublicAuthStatusRouteImport
+    '/shop/$id': {
+      id: '/shop/$id'
+      path: '/shop/$id'
+      fullPath: '/shop/$id'
+      preLoaderRoute: typeof ShopIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/bulba': {
-      id: '/api/public/bulba'
-      path: '/api/public/bulba'
-      fullPath: '/api/public/bulba'
-      preLoaderRoute: typeof ApiPublicBulbaRouteImport
+    '/api/stripe-webhook': {
+      id: '/api/stripe-webhook'
+      path: '/api/stripe-webhook'
+      fullPath: '/api/stripe-webhook'
+      preLoaderRoute: typeof ApiStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/card-image': {
-      id: '/api/public/card-image'
-      path: '/api/public/card-image'
-      fullPath: '/api/public/card-image'
-      preLoaderRoute: typeof ApiPublicCardImageRouteImport
+    '/api/shop-refresh': {
+      id: '/api/shop-refresh'
+      path: '/api/shop-refresh'
+      fullPath: '/api/shop-refresh'
+      preLoaderRoute: typeof ApiShopRefreshRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/card-prices': {
-      id: '/api/public/card-prices'
-      path: '/api/public/card-prices'
-      fullPath: '/api/public/card-prices'
-      preLoaderRoute: typeof ApiPublicCardPricesRouteImport
+    '/api/shop-cron': {
+      id: '/api/shop-cron'
+      path: '/api/shop-cron'
+      fullPath: '/api/shop-cron'
+      preLoaderRoute: typeof ApiShopCronRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/ebay-sold': {
-      id: '/api/public/ebay-sold'
-      path: '/api/public/ebay-sold'
-      fullPath: '/api/public/ebay-sold'
-      preLoaderRoute: typeof ApiPublicEbaySoldRouteImport
+    '/api/shop-admin': {
+      id: '/api/shop-admin'
+      path: '/api/shop-admin'
+      fullPath: '/api/shop-admin'
+      preLoaderRoute: typeof ApiShopAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/fullart-ai': {
-      id: '/api/public/fullart-ai'
-      path: '/api/public/fullart-ai'
-      fullPath: '/api/public/fullart-ai'
-      preLoaderRoute: typeof ApiPublicFullartAiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/fullart-hf': {
-      id: '/api/public/fullart-hf'
-      path: '/api/public/fullart-hf'
-      fullPath: '/api/public/fullart-hf'
-      preLoaderRoute: typeof ApiPublicFullartHfRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/mcp': {
-      id: '/api/public/mcp'
-      path: '/api/public/mcp'
-      fullPath: '/api/public/mcp'
-      preLoaderRoute: typeof ApiPublicMcpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/poke-radio': {
-      id: '/api/public/poke-radio'
-      path: '/api/public/poke-radio'
-      fullPath: '/api/public/poke-radio'
-      preLoaderRoute: typeof ApiPublicPokeRadioRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/prices': {
-      id: '/api/public/prices'
-      path: '/api/public/prices'
-      fullPath: '/api/public/prices'
-      preLoaderRoute: typeof ApiPublicPricesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/shop': {
-      id: '/api/public/shop'
-      path: '/api/public/shop'
-      fullPath: '/api/public/shop'
-      preLoaderRoute: typeof ApiPublicShopRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/shop-image': {
-      id: '/api/public/shop-image'
-      path: '/api/public/shop-image'
-      fullPath: '/api/public/shop-image'
-      preLoaderRoute: typeof ApiPublicShopImageRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/shop-lookup': {
-      id: '/api/public/shop-lookup'
-      path: '/api/public/shop-lookup'
-      fullPath: '/api/public/shop-lookup'
-      preLoaderRoute: typeof ApiPublicShopLookupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/shop-order': {
-      id: '/api/public/shop-order'
-      path: '/api/public/shop-order'
-      fullPath: '/api/public/shop-order'
-      preLoaderRoute: typeof ApiPublicShopOrderRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/tcg': {
-      id: '/api/public/tcg'
-      path: '/api/public/tcg'
-      fullPath: '/api/public/tcg'
-      preLoaderRoute: typeof ApiPublicTcgRouteImport
+    '/api/public/virus-buster': {
+      id: '/api/public/virus-buster'
+      path: '/api/public/virus-buster'
+      fullPath: '/api/public/virus-buster'
+      preLoaderRoute: typeof ApiPublicVirusBusterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/tcgdex': {
@@ -585,11 +487,109 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicTcgdexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/virus-buster': {
-      id: '/api/public/virus-buster'
-      path: '/api/public/virus-buster'
-      fullPath: '/api/public/virus-buster'
-      preLoaderRoute: typeof ApiPublicVirusBusterRouteImport
+    '/api/public/tcg': {
+      id: '/api/public/tcg'
+      path: '/api/public/tcg'
+      fullPath: '/api/public/tcg'
+      preLoaderRoute: typeof ApiPublicTcgRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/shop-order': {
+      id: '/api/public/shop-order'
+      path: '/api/public/shop-order'
+      fullPath: '/api/public/shop-order'
+      preLoaderRoute: typeof ApiPublicShopOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/shop-lookup': {
+      id: '/api/public/shop-lookup'
+      path: '/api/public/shop-lookup'
+      fullPath: '/api/public/shop-lookup'
+      preLoaderRoute: typeof ApiPublicShopLookupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/shop-image': {
+      id: '/api/public/shop-image'
+      path: '/api/public/shop-image'
+      fullPath: '/api/public/shop-image'
+      preLoaderRoute: typeof ApiPublicShopImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/shop': {
+      id: '/api/public/shop'
+      path: '/api/public/shop'
+      fullPath: '/api/public/shop'
+      preLoaderRoute: typeof ApiPublicShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/prices': {
+      id: '/api/public/prices'
+      path: '/api/public/prices'
+      fullPath: '/api/public/prices'
+      preLoaderRoute: typeof ApiPublicPricesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/poke-radio': {
+      id: '/api/public/poke-radio'
+      path: '/api/public/poke-radio'
+      fullPath: '/api/public/poke-radio'
+      preLoaderRoute: typeof ApiPublicPokeRadioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/mcp': {
+      id: '/api/public/mcp'
+      path: '/api/public/mcp'
+      fullPath: '/api/public/mcp'
+      preLoaderRoute: typeof ApiPublicMcpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/fullart-hf': {
+      id: '/api/public/fullart-hf'
+      path: '/api/public/fullart-hf'
+      fullPath: '/api/public/fullart-hf'
+      preLoaderRoute: typeof ApiPublicFullartHfRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/fullart-ai': {
+      id: '/api/public/fullart-ai'
+      path: '/api/public/fullart-ai'
+      fullPath: '/api/public/fullart-ai'
+      preLoaderRoute: typeof ApiPublicFullartAiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ebay-sold': {
+      id: '/api/public/ebay-sold'
+      path: '/api/public/ebay-sold'
+      fullPath: '/api/public/ebay-sold'
+      preLoaderRoute: typeof ApiPublicEbaySoldRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/card-prices': {
+      id: '/api/public/card-prices'
+      path: '/api/public/card-prices'
+      fullPath: '/api/public/card-prices'
+      preLoaderRoute: typeof ApiPublicCardPricesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/card-image': {
+      id: '/api/public/card-image'
+      path: '/api/public/card-image'
+      fullPath: '/api/public/card-image'
+      preLoaderRoute: typeof ApiPublicCardImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/bulba': {
+      id: '/api/public/bulba'
+      path: '/api/public/bulba'
+      fullPath: '/api/public/bulba'
+      preLoaderRoute: typeof ApiPublicBulbaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/auth-status': {
+      id: '/api/public/auth-status'
+      path: '/api/public/auth-status'
+      fullPath: '/api/public/auth-status'
+      preLoaderRoute: typeof ApiPublicAuthStatusRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
