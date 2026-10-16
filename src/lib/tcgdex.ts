@@ -435,6 +435,12 @@ async function fetchTcgdexSetPayload(setId: string, lang: string): Promise<any |
 }
 
 export async function tcgdexGetSetCards(setId: string, lang = "en"): Promise<TCGCard[]> {
+  // Every return path gets gold-tier rarities stamped (the early "full set" return used to skip it).
+  const cards = await loadTcgdexSetCards(setId, lang);
+  return cards.length ? await stampGoldRarities(cards, lang) : cards;
+}
+
+async function loadTcgdexSetCards(setId: string, lang: string): Promise<TCGCard[]> {
   let best: TCGCard[] = [];
   const aliases = setIdAliases(setId);
   const mergeFamilies = aliases.some((a) => /^(30th|me55)/i.test(a));
@@ -482,7 +488,7 @@ export async function tcgdexGetSetCards(setId: string, lang = "en"): Promise<TCG
     const want = Number(raw?.cardCount?.total || raw?.cardCount?.official || 0);
     if (want > 0 && mapped.length >= want) return mapped;
   }
-  return best.length ? await stampGoldRarities(best, lang) : best;
+  return best;
 }
 
 const SET_GOLD_RARITIES = [
