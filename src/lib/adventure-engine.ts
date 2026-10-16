@@ -5,7 +5,26 @@ import {
   getRandomPokemon,
   type NationalDexPokemon,
 } from "./all-pokemon-data";
-import { learnPrintedMoves, type ScannedFighter } from "./card-moves";
+import {
+  installCardLearnset,
+  learnExtraMoves,
+  learnPrintedMoves,
+  teachMachineMove,
+  type LearnsetRow,
+  type ScannedFighter,
+  type ScannedMove,
+} from "./card-moves";
+import { defaultTmCounts, tmDisc } from "./tm-catalog";
+import { BALLS, defaultBallCounts, type BallColors, type BallId } from "./ball-catalog";
+import {
+  defaultRepelCounts,
+  readRepelSteps,
+  REPEL_ITEMS,
+  writeRepelSteps,
+  type RepelItemId,
+} from "./repel";
+export type { BallColors, RepelItemId };
+export { REPEL_ITEMS };
 /**
  * PokéVault Pro — Adventure Living World Engine
  *
@@ -217,10 +236,7 @@ export const EVOLUTION_STONES: Record<EvolutionStoneId, EvolutionStoneDef> = {
 };
 
 export type CaptureItemId =
-  | "poke_ball"
-  | "great_ball"
-  | "ultra_ball"
-  | "master_ball"
+  | BallId
   | "razz_berry"
   | "nanab_berry"
   | "pinap_berry"
@@ -233,41 +249,27 @@ export interface CaptureItemDef {
   multiplier: number;
   description: string;
   priceCoins: number;
+  colors?: BallColors;
+}
+
+function ballCaptureItems(): Record<BallId, CaptureItemDef> {
+  const out = {} as Record<BallId, CaptureItemDef>;
+  for (const ball of Object.values(BALLS)) {
+    out[ball.id] = {
+      id: ball.id,
+      name: ball.name,
+      category: "ball",
+      multiplier: ball.multiplier,
+      description: ball.description,
+      priceCoins: ball.priceCoins,
+      colors: ball.colors,
+    };
+  }
+  return out;
 }
 
 export const CAPTURE_ITEMS: Record<CaptureItemId, CaptureItemDef> = {
-  poke_ball: {
-    id: "poke_ball",
-    name: "Poké Ball",
-    category: "ball",
-    multiplier: 1.0,
-    description: "Standard capsule for wild creature capture.",
-    priceCoins: 10,
-  },
-  great_ball: {
-    id: "great_ball",
-    name: "Great Ball",
-    category: "ball",
-    multiplier: 1.5,
-    description: "High-performance ball with a 50% higher capture rate.",
-    priceCoins: 30,
-  },
-  ultra_ball: {
-    id: "ultra_ball",
-    name: "Ultra Ball",
-    category: "ball",
-    multiplier: 2.0,
-    description: "Ultra-grade capsule with double standard capture power.",
-    priceCoins: 80,
-  },
-  master_ball: {
-    id: "master_ball",
-    name: "Master Ball",
-    category: "ball",
-    multiplier: 100.0,
-    description: "The pinnacle of capture tech. Never fails to catch any target.",
-    priceCoins: 1000,
-  },
+  ...ballCaptureItems(),
   razz_berry: {
     id: "razz_berry",
     name: "Razz Berry",
@@ -301,6 +303,12 @@ export const CAPTURE_ITEMS: Record<CaptureItemId, CaptureItemDef> = {
     priceCoins: 150,
   },
 };
+
+export function ballItemIds(): CaptureItemId[] {
+  return Object.values(CAPTURE_ITEMS)
+    .filter((item) => item.category === "ball")
+    .map((item) => item.id);
+}
 
 export type BoostItemId = "incense" | "lucky_egg" | "coin_booster" | "encounter_radar";
 
@@ -352,6 +360,11 @@ export interface AdventureInventory {
   stones: Record<EvolutionStoneId, number>;
   captureItems: Record<CaptureItemId, number>;
   boosts: Record<BoostItemId, number>;
+  repels: Record<RepelItemId, number>;
+  /** One of every Scarlet & Violet TM. Teaching does not use the disc up. */
+  tms: Record<string, number>;
+  /** Steps left on the Repel that is active right now. A new spray replaces this. */
+  repelSteps: number;
   cardCachesDiscovered: number;
 }
 
@@ -1746,10 +1759,7 @@ export function getDefaultAdventureState(): AdventureState {
         ice_stone: 1,
       },
       captureItems: {
-        poke_ball: 45,
-        great_ball: 22,
-        ultra_ball: 8,
-        master_ball: 1,
+        ...defaultBallCounts(),
         razz_berry: 18,
         nanab_berry: 12,
         pinap_berry: 15,
@@ -1761,6 +1771,9 @@ export function getDefaultAdventureState(): AdventureState {
         coin_booster: 2,
         encounter_radar: 1,
       },
+      repels: defaultRepelCounts(),
+      tms: defaultTmCounts(),
+      repelSteps: 0,
       cardCachesDiscovered: 7,
     },
     buddy: {
@@ -2081,17 +2094,57 @@ function hydrateAdventureGeo(state: AdventureState): AdventureState {
   return pinned;
 }
 
+function mergeCounts<K extends string>(
+  defaults: Record<K, number>,
+  saved?: Partial<Record<K, number>> | null,
+): Record<K, number> {
+  const out = { ...defaults };
+  if (!saved) return out;
+  for (const key of Object.keys(defaults) as K[]) {
+    const n = saved[key];
+    if (typeof n === "number" && Number.isFinite(n)) out[key] = n;
+  }
+  return out;
+}
+
+/** Old saves keep the balls they already had. New balls and Repels fill in. */
+export function mergeBag(saved?: Partial<AdventureInventory> | null): AdventureInventory {
+  const def = getDefaultAdventureState().inventory;
+  const src = saved || {};
+  const bag: AdventureInventory = {
+    ...def,
+    ...src,
+    speciesCandies: { ...def.speciesCandies, ...(src.speciesCandies || {}) },
+    stones: { ...def.stones, ...(src.stones || {}) },
+    captureItems: mergeCounts(def.captureItems, src.captureItems),
+    boosts: { ...def.boosts, ...(src.boosts || {}) },
+    repels: mergeCounts(def.repels, src.repels),
+    tms: mergeCounts(def.tms, src.tms),
+    repelSteps: typeof src.repelSteps === "number" ? src.repelSteps : 0,
+    cardCachesDiscovered: src.cardCachesDiscovered ?? def.cardCachesDiscovered,
+  };
+  const live = readRepelSteps();
+  if (live !== null) bag.repelSteps = live;
+  else writeRepelSteps(bag.repelSteps || 0);
+  return bag;
+}
+
+function withBag(state: AdventureState): AdventureState {
+  if (!state?.inventory) return state;
+  return { ...state, inventory: mergeBag(state.inventory) };
+}
+
 export function loadAdventureState(): AdventureState {
   if (typeof window !== "undefined" && window.localStorage) {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        return hydrateAdventureGeo(JSON.parse(raw));
+        return withBag(hydrateAdventureGeo(JSON.parse(raw)));
       }
     } catch {}
   }
   const mem = memoryFallback.get(STORAGE_KEY);
-  if (mem) return hydrateAdventureGeo(mem);
+  if (mem) return withBag(hydrateAdventureGeo(mem));
 
   const def = getDefaultAdventureState();
   saveAdventureState(def);
@@ -2131,6 +2184,68 @@ export function grantScannedCardToAdventure(card: {
     );
   }
   return { added: learned.added, species: learned.species };
+}
+
+/** Level-up and breeding moves for a species already scanned into the adventure. */
+export function grantSpeciesMoves(
+  species: string,
+  moves: ScannedMove[],
+): { added: string[]; species: string } {
+  const state = loadAdventureState();
+  const learned = learnExtraMoves(state.world.scannedFighters, species, moves);
+  const same = JSON.stringify(learned.book) === JSON.stringify(state.world.scannedFighters || {});
+  if (!same) {
+    const next = { ...state, world: { ...state.world, scannedFighters: learned.book } };
+    saveAdventureState(next);
+  }
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent("pv-card-moves", {
+        detail: { species: learned.species, added: learned.added },
+      }),
+    );
+  }
+  return { added: learned.added, species: learned.species };
+}
+
+/** Level-up schedule and TM compatibility for a species that was scanned. */
+export function saveCardLearnset(species: string, learnset: LearnsetRow[]): void {
+  const state = loadAdventureState();
+  const book = installCardLearnset(state.world.scannedFighters, species, learnset);
+  saveAdventureState({ ...state, world: { ...state.world, scannedFighters: book } });
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("pv-card-moves", { detail: { species } }));
+  }
+}
+
+/** Teach a bag TM to one scanned Pokémon that can learn it. The disc stays in the bag. */
+export function teachBagTm(
+  species: string,
+  tmId: string,
+): { success: boolean; state: AdventureState; message: string } {
+  const state = loadAdventureState();
+  const disc = tmDisc(tmId);
+  if (!disc) return { success: false, state, message: "That TM is not in the bag." };
+  if ((state.inventory.tms?.[tmId] || 0) <= 0) {
+    return { success: false, state, message: `${disc.label} is missing from the bag.` };
+  }
+  const taught = teachMachineMove(state.world.scannedFighters, species, {
+    name: disc.move,
+    type: disc.type,
+    power: disc.power,
+    pp: 15,
+    maxPp: 15,
+    description: "TM move.",
+  });
+  if (!taught.added) return { success: false, state, message: taught.reason };
+  const next = { ...state, world: { ...state.world, scannedFighters: taught.book } };
+  saveAdventureState(next);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent("pv-card-moves", { detail: { species, added: [disc.move] } }),
+    );
+  }
+  return { success: true, state: next, message: taught.reason };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -2539,13 +2654,37 @@ export function feedBuddy(
 // SHOP PURCHASE
 // ─────────────────────────────────────────────────────────────────────────────
 
+export function useRepel(
+  state: AdventureState,
+  itemId: RepelItemId,
+): { success: boolean; state: AdventureState; message: string } {
+  const item = REPEL_ITEMS[itemId];
+  if (!item) return { success: false, state, message: "Unknown Repel." };
+  const bag = mergeBag(state.inventory);
+  if ((bag.repels[itemId] || 0) <= 0) {
+    return { success: false, state, message: `No ${item.name} left in the bag.` };
+  }
+  const updated = cloneAdventureState(state);
+  updated.inventory = bag;
+  updated.inventory.repels[itemId] -= 1;
+  updated.inventory.repelSteps = item.steps;
+  writeRepelSteps(item.steps);
+  saveAdventureState(updated);
+  return {
+    success: true,
+    state: updated,
+    message: `${item.name} is active for ${item.steps} steps. A new spray replaces the old one.`,
+  };
+}
+
 export function buyShopItem(
   state: AdventureState,
-  itemType: "stone" | "capture" | "boost" | "rare_candy",
+  itemType: "stone" | "capture" | "boost" | "rare_candy" | "repel",
   itemId: string,
   quantity: number = 1,
 ): { success: boolean; state: AdventureState; error?: string } {
   const updated = cloneAdventureState(state);
+  updated.inventory = mergeBag(updated.inventory);
   let unitPrice = 0;
 
   if (itemType === "rare_candy") {
@@ -2562,6 +2701,10 @@ export function buyShopItem(
     const b = BOOST_ITEMS[itemId as BoostItemId];
     if (!b) return { success: false, state, error: "Invalid boost" };
     unitPrice = b.priceCoins;
+  } else if (itemType === "repel") {
+    const r = REPEL_ITEMS[itemId as RepelItemId];
+    if (!r) return { success: false, state, error: "Invalid repel" };
+    unitPrice = r.priceCoins;
   }
 
   const totalCost = unitPrice * quantity;
@@ -2586,6 +2729,9 @@ export function buyShopItem(
   } else if (itemType === "boost") {
     const bId = itemId as BoostItemId;
     updated.inventory.boosts[bId] = (updated.inventory.boosts[bId] || 0) + quantity;
+  } else if (itemType === "repel") {
+    const rId = itemId as RepelItemId;
+    updated.inventory.repels[rId] = (updated.inventory.repels[rId] || 0) + quantity;
   }
 
   saveAdventureState(updated);

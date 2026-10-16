@@ -240,6 +240,16 @@ export function mapTcgdexSet(s: any, lang = "en"): TCGSet {
   };
 }
 
+/** TCGdex categories are unaccented. The app stores the accented Pokémon supertype. */
+function appSupertype(category?: string): string | undefined {
+  if (!category) return undefined;
+  const folded = category.toLowerCase().replace(/é/g, "e");
+  if (folded === "pokemon") return "Pokémon";
+  if (folded === "trainer") return "Trainer";
+  if (folded === "energy") return "Energy";
+  return category;
+}
+
 export function mapTcgdexCard(card: any, setOverride?: any, lang = "en"): TCGCard {
   const setSrc = setOverride ?? card?.set ?? {};
   const setMapped = mapTcgdexSet(setSrc, lang);
@@ -275,7 +285,7 @@ export function mapTcgdexCard(card: any, setOverride?: any, lang = "en"): TCGCar
     id: String(card?.id ?? ""),
     name: String(card?.name ?? ""),
     lang,
-    supertype: card?.category,
+    supertype: appSupertype(card?.category),
     hp,
     types: card?.types,
     evolvesFrom: card?.evolveFrom,

@@ -25,23 +25,31 @@ export function isClassicCollectionCard(card: GoldBorderInput): boolean {
 }
 
 /**
- * Classic Collection prints whose real scan has NO gold frame (verified by eye + edge-colour check, 2026-10-16):
- * these are full-bleed EX / VMAX frames that only carry the gold "30" stamp. Everything else in the set is a printed gold frame.
+ * Classic Collection prints whose real scan has NO uniform gold frame
+ * (edge check 2026-10-16). Genesect EX, M Gardevoir EX, and Mew VMAX are
+ * full-bleed and only carry the gold "30" stamp.
+ * me55c-4 is Charizard 4/102, which does have the printed gold edge.
+ * Do not treat every id ending in 4 as that full-bleed slot.
  */
 export const CLASSIC_NOT_GOLD_FRAMED = new Set(["30th-c-004", "30th-c-023", "30th-c-026"]);
 
-/** Same three prints under every id spelling (30th-c-004, me55c-4, me55c-004). */
-const PLAIN_CLASSIC_NUMBERS = new Set(["4", "23", "26"]);
+const FULL_BLEED_SCRYDEX = new Set(["me55c-11g", "me55c-106m", "me55c-114"]);
 
-function classicLocalNumber(id?: string): string {
-  const raw = String(id || "").split("-").pop() || "";
-  const n = parseInt(raw, 10);
+/** Sequential Classic slots only (30th-c-004). Not the number printed on the original card. */
+const FULL_BLEED_SLOTS = new Set(["4", "23", "26"]);
+
+function classicSlot(id?: string): string {
+  const set = String(id || "").match(/^(?:30th-c|cel25c)-(\d+)$/i);
+  if (!set) return "";
+  const n = parseInt(set[1], 10);
   return Number.isFinite(n) ? String(n) : "";
 }
 
 export function isGoldBorderCard(card: GoldBorderInput): boolean {
   if (isClassicCollectionCard(card)) {
-    if (PLAIN_CLASSIC_NUMBERS.has(classicLocalNumber(card.id))) return false;
+    const id = String(card.id || "").toLowerCase();
+    if (FULL_BLEED_SCRYDEX.has(id) || CLASSIC_NOT_GOLD_FRAMED.has(id)) return false;
+    if (FULL_BLEED_SLOTS.has(classicSlot(card.id))) return false;
     return true;
   }
   return GOLD_RARITY.test(`${card.rarity || ""} ${card.name || ""}`);

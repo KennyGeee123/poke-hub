@@ -210,16 +210,16 @@ function Index() {
           </div>
           <button
             onClick={async () => {
-              if (user) {
+              if (user || isOwner) {
                 await signOut();
               } else {
                 nav({ to: "/login" });
               }
             }}
             className="pv-gb-badge pv-auth-btn"
-            aria-label={user ? "Sign out" : "Sign in"}
+            aria-label={user || isOwner ? "Sign out" : "Sign in"}
           >
-            {user ? "Sign out" : "Sign in"}
+            {user || isOwner ? "Sign out" : "Sign in"}
           </button>
           <button
             type="button"

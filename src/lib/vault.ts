@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import type { TCGCard } from "./pokemon-api";
 import { getMarketPrice, getCard } from "./pokemon-api";
-import { scanLearnNote } from "./card-moves";
+import { isPokemonSupertype, scanLearnNote } from "./card-moves";
 
 /** Historical localStorage key — still used for one-time migration + meta stub. */
 const VAULT_KEY = "pokevault.v1";
@@ -364,19 +364,74 @@ async function refreshVaultPrices() {
   lsWriteRaw(PRICE_REFRESH_KEY, String(Date.now()));
 }
 
+/**
+ * Catalog search rows say "Pokemon" and often omit attacks.
+ * The full TCGdex card has the printed attacks. Species moves still load when that fetch fails.
+ */
+async function cardReadyToTeach(card: TCGCard): Promise<TCGCard> {
+  const pokemon =
+    isPokemonSupertype(card.supertype) ||
+    (!card.supertype && (!!card.hp || !!card.types?.length));
+  if (!pokemon) return card;
+  const next: TCGCard = card.supertype === "Pokémon" ? card : { ...card, supertype: "Pokémon" };
+  if (next.attacks?.some((a) => a.name?.trim())) return next;
+  try {
+    const { tcgdexGetCard } = await import("./tcgdex");
+    const full = await tcgdexGetCard(card.id, card.lang || "en");
+    if (full?.attacks?.some((a) => a.name?.trim())) {
+      return {
+        ...next,
+        attacks: full.attacks,
+        hp: next.hp || full.hp,
+        types: next.types?.length ? next.types : full.types,
+        supertype: "Pokémon",
+      };
+    }
+  } catch {
+    /* breeding and level-up moves still load from the species name */
+  }
+  return next;
+}
+
 /** Every Pokémon scan teaches the printed attacks. A repeat scan still adds any new names. */
 async function teachScannedCard(card: TCGCard): Promise<{ added: string[]; species: string | null }> {
-  if (card.supertype !== "Pokémon") return { added: [], species: null };
+  const ready = await cardReadyToTeach(card);
+  if (!isPokemonSupertype(ready.supertype)) return { added: [], species: null };
   try {
     const { grantScannedCardToAdventure } = await import("./adventure-engine");
-    const learned = grantScannedCardToAdventure(card);
-    try {
-      const { mergeCardMoves } = await import("./gbgame");
-      await mergeCardMoves(card, VAULT_START_LEVEL);
-    } catch (e) {
-      console.warn("party learn failed", e);
+    const learned = grantScannedCardToAdventure(ready);
+    const added = [...learned.added];
+    if (learned.species) {
+      try {
+        const { fetchSpeciesMoves } = await import("./pokeapi-moves");
+        const { saveCardLearnset } = await import("./adventure-engine");
+        const packed = await fetchSpeciesMoves(learned.species);
+        saveCardLearnset(
+          learned.species,
+          packed.map((move) => ({
+            name: move.name,
+            type: move.type,
+            power: move.damage,
+            text: move.text,
+            source: move.source,
+            level: move.level,
+          })),
+        );
+        const { mergeCardMoves } = await import("./gbgame");
+        await mergeCardMoves(ready, VAULT_START_LEVEL);
+        const { syncPartyToScannedCards } = await import("./adventure-party");
+        await syncPartyToScannedCards(learned.species);
+      } catch (e) {
+        console.warn("species moves failed", e);
+        try {
+          const { mergeCardMoves } = await import("./gbgame");
+          await mergeCardMoves(ready, VAULT_START_LEVEL);
+        } catch (err) {
+          console.warn("party learn failed", err);
+        }
+      }
     }
-    return learned;
+    return { added, species: learned.species };
   } catch (e) {
     console.warn("scan learn failed", e);
     return { added: [], species: null };

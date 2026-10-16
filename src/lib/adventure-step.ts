@@ -217,6 +217,8 @@ export function marchGbaWalk(opts: {
   eraId?: string;
   rng?: () => number;
   cellPx?: number;
+  /** Return true to skip the wild roll for this grass step. Repel uses this. */
+  holdWild?: () => boolean;
 }): MarchResult {
   const zoom = opts.zoom;
   const cellPx = opts.cellPx ?? GBA_CELL_PX;
@@ -257,8 +259,9 @@ export function marchGbaWalk(opts: {
     lng = landed.lng;
     cell = landed.cell;
     moved = true;
-    if (entered && !encounter && (cell.kind === "tree" || cell.kind === "grass")) {
-      encounter = rollWild(eraId, cell.kind, rng);
+    if (entered && (cell.kind === "tree" || cell.kind === "grass")) {
+      const held = opts.holdWild?.() === true;
+      if (!held && !encounter) encounter = rollWild(eraId, cell.kind, rng);
     }
   }
 

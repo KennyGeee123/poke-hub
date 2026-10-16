@@ -293,13 +293,13 @@ export const GBA_CELL_COLORS: Record<GbaCell, [string, string]> = {
   dirt: ["#8b5a2b", "#6e4620"],
 };
 
-/** Original overworld textures already in public/adventure-assets (not Nintendo rips). */
+/** Blender-rendered GBA tiles in public/adventure-assets. Original geometry, not a Nintendo tileset. */
 export const GBA_CELL_TEXTURE: Record<GbaCell, string> = {
-  grass: "/adventure-assets/tex-grass.jpg",
-  path: "/adventure-assets/tex-path.jpg",
-  water: "/adventure-assets/tex-water.jpg",
-  tree: "/adventure-assets/tex-tallgrass.jpg",
-  dirt: "/adventure-assets/tex-sand.jpg",
+  grass: "/adventure-assets/tex-grass.png",
+  path: "/adventure-assets/tex-path.png",
+  water: "/adventure-assets/tex-water.png",
+  tree: "/adventure-assets/tex-tallgrass.png",
+  dirt: "/adventure-assets/tex-sand.png",
 };
 
 /**

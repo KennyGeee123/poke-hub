@@ -178,7 +178,8 @@ describe("one adventure session", () => {
 
   test("every adventure move travels or hits on a stage, and every partner move is on that list", () => {
     const names = Object.keys(ADVENTURE_MOVE_SHOW);
-    expect(names).toHaveLength(17);
+    expect(names).toHaveLength(18);
+    expect(names).toContain("Transform");
     expect(Object.keys(MOVE_USERS).sort()).toEqual([...names].sort());
     for (const name of names) {
       const show = ADVENTURE_MOVE_SHOW[name];
@@ -191,6 +192,7 @@ describe("one adventure session", () => {
     expect(moveStage("Water Gun", "Water")).toBe("wave");
     expect(moveStage("Vine Whip", "Grass")).toBe("slash");
     expect(moveStage("Tackle", "Normal")).toBe("column");
+    expect(moveStage("Transform", "Normal")).toBe("orbs");
     expect(moveStage("Absorb", "Grass")).toBe("orbs");
     expect(moveStage("Leafage", "Grass")).toBe("swarm");
     expect(moveStage("Fire Blast", "Fire")).toBe("burst");

@@ -662,7 +662,12 @@ describe("Adventure visuals — on-disk trainer + local sprites first", () => {
     expect(trainerFacingUrl(180)).toBe("/adventure-assets/trainer-down.png");
     expect(trainerFacingUrl(270)).toBe("/adventure-assets/trainer-left.png");
     expect(fallbackSpriteUrls("Pikachu")[0]).toBe("/sprites/gen5/pikachu.png");
+    expect(fallbackSpriteUrls("Pikachu").at(-1)).toBe(
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png",
+    );
     expect(fallbackSpriteUrls("Pecharunt")[0]).toContain("pokemondb.net");
+    expect(fallbackSpriteUrls("Pecharunt").at(-1)).toContain("/1025.png");
+    expect(fallbackSpriteUrls("Pikachu").some((u) => u.includes("images.scrydex.com"))).toBe(false);
     const { worldSpriteUrl, worldSpriteUrls } = await import("./sprites");
     expect(worldSpriteUrl("Pikachu")).toBe("https://play.pokemonshowdown.com/sprites/ani/pikachu.gif");
     expect(worldSpriteUrls("Pikachu")[1]).toBe("/sprites/gen5/pikachu.png");

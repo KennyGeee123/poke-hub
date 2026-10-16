@@ -4,6 +4,7 @@ import { loadSupabase } from "@/integrations/supabase/lazy";
 import { isOwnerEmail } from "./owner";
 import { authRedirectUrl } from "./platform";
 import { listenForAuthDeepLinks, openAuthUrl } from "./native";
+import { isLoopbackHost, localOwnerEnabled, setLocalOwnerFlag } from "./local-owner";
 
 type AuthCtx = {
   user: User | null;
@@ -13,6 +14,7 @@ type AuthCtx = {
   signOut: () => Promise<void>;
   signInWithGoogle: () => Promise<{ error: string | null }>;
   signInWithApple: () => Promise<{ error: string | null }>;
+  signInOnThisMac: () => { error: string | null };
   completeOAuth: (code: string) => Promise<{ error: string | null }>;
 };
 
@@ -24,6 +26,7 @@ const Ctx = createContext<AuthCtx>({
   signOut: async () => {},
   signInWithGoogle: async () => ({ error: null }),
   signInWithApple: async () => ({ error: null }),
+  signInOnThisMac: () => ({ error: "This Mac sign-in only runs on localhost." }),
   completeOAuth: async () => ({ error: null }),
 });
 
@@ -32,6 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Default false so SSR + first paint render the guest shell instead of a spinner wall.
   const [loading, setLoading] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const [localOwner, setLocalOwner] = useState(false);
 
   const completeOAuth = async (code: string): Promise<{ error: string | null }> => {
     try {
@@ -134,8 +138,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const emailOwner = isOwnerEmail(user?.email);
 
   useEffect(() => {
+    if (!isLoopbackHost()) return;
+    setLocalOwner(localOwnerEnabled(true));
+    const onFlag = () => setLocalOwner(localOwnerEnabled(false));
+    window.addEventListener("pv-local-owner", onFlag);
+    return () => window.removeEventListener("pv-local-owner", onFlag);
+  }, []);
+
+  useEffect(() => {
     if (!user) {
-      setIsOwner(false);
+      setIsOwner(localOwner);
       return;
     }
     setIsOwner(emailOwner);
@@ -151,7 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [user?.id, emailOwner]);
+  }, [user?.id, emailOwner, localOwner]);
 
   const signInWithOAuth = async (provider: "google" | "apple") => {
     try {
@@ -182,13 +194,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         session,
         loading,
-        isOwner: emailOwner || isOwner,
+        isOwner: emailOwner || isOwner || localOwner,
         signOut: async () => {
-          const supabase = await loadSupabase();
-          await supabase.auth.signOut();
+          if (isLoopbackHost()) {
+            setLocalOwnerFlag(false);
+            setLocalOwner(false);
+          }
+          try {
+            const supabase = await loadSupabase();
+            await supabase.auth.signOut();
+          } catch {
+            /* guest or offline */
+          }
         },
         signInWithGoogle: () => signInWithOAuth("google"),
         signInWithApple: () => signInWithOAuth("apple"),
+        signInOnThisMac: () => {
+          if (!isLoopbackHost()) return { error: "This Mac sign-in only runs on localhost." };
+          setLocalOwnerFlag(true);
+          setLocalOwner(true);
+          return { error: null };
+        },
         completeOAuth,
       }}
     >

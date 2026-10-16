@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { getSets, getAllCardsBySet, type TCGCard, type TCGSet } from "@/lib/pokemon-api";
 import {
   addToParty,
+  attacksAfterTransform,
   fetchParty,
   gainXP,
   levelDamage,
@@ -15,6 +16,7 @@ import {
 } from "@/lib/gbgame";
 import { SpriteImg } from "./SpriteImg";
 import { hpPct } from "@/lib/battle";
+import { movesLearnedOnLevel, settleScannedCardMoves } from "@/lib/adventure-party";
 import { movesAtLevel, newlyLearned } from "@/lib/pokeapi-moves";
 import { appendNamedMoves } from "@/lib/card-moves";
 import { CatchFx, type CatchPhase } from "./CatchFx";
@@ -68,9 +70,11 @@ export function GameBoyView() {
   useEffect(() => {
     (async () => {
       try {
+        await settleScannedCardMoves();
         const p = await fetchParty();
         setParty(p);
         for (const m of p) {
+          if (m.attacks.length >= 4) continue;
           const printed =
             !!m.card_id && m.card_id !== "rental" && !m.card_id.startsWith("species:");
           if (printed) continue;
@@ -239,7 +243,22 @@ export function GameBoyView() {
     if (busy || !active || !foe) return;
     setBusy(true);
     setPane("main");
-    const { dmg, eff } = levelDamage(move, active.level, foe.types, active.types);
+    if (move.name === "Transform") {
+      const copied = attacksAfterTransform(foe.attacks);
+      const next = { ...active, attacks: copied };
+      setActive(next);
+      setParty((p) => p.map((x) => (x.id === next.id ? next : x)));
+      setLog((l) => [
+        `▶ ${active.name.toUpperCase()} transformed into ${foe.name.toUpperCase()}!`,
+        ...l,
+      ]);
+      await wait(180);
+      await foeTurn();
+      return;
+    }
+    const harmless = move.damage <= 0;
+    const rolled = harmless ? { dmg: 0, eff: "normal" as const } : levelDamage(move, active.level, foe.types, active.types);
+    const { dmg, eff } = rolled;
     setAtkClip(battleClipFor(move.name, active.types?.[0]));
     setFoeFx("flash");
     await wait(180);
@@ -247,7 +266,9 @@ export function GameBoyView() {
     const newFoeHp = Math.max(0, foeHp - dmg);
     setFoeHp(newFoeHp);
     setLog((l) => [
-      `▶ ${active.name.toUpperCase()} used ${move.name}!  ${dmg} dmg${eff === "super" ? " ★ super effective!" : eff === "weak" ? " (not very effective)" : ""}`,
+      harmless
+        ? `▶ ${active.name.toUpperCase()} used ${move.name}!`
+        : `▶ ${active.name.toUpperCase()} used ${move.name}!  ${dmg} dmg${eff === "super" ? " ★ super effective!" : eff === "weak" ? " (not very effective)" : ""}`,
       ...l,
     ]);
     await wait(550);
@@ -265,8 +286,23 @@ export function GameBoyView() {
 
   async function foeTurn() {
     if (!active || !foe) return;
-    const fmove = foe.attacks[Math.floor(Math.random() * foe.attacks.length)];
-    const fdmg = levelDamage(fmove, foe.level, active.types, foe.types).dmg;
+    const fmove = foe.attacks[Math.floor(Math.random() * Math.max(1, foe.attacks.length))];
+    if (!fmove) {
+      setBusy(false);
+      return;
+    }
+    if (fmove.name === "Transform") {
+      const copied = attacksAfterTransform(active.attacks);
+      setFoe({ ...foe, attacks: copied });
+      setLog((l) => [
+        `◀ Foe ${foe.name.toUpperCase()} transformed into ${active.name.toUpperCase()}!`,
+        ...l,
+      ]);
+      await wait(180);
+      setBusy(false);
+      return;
+    }
+    const fdmg = fmove.damage > 0 ? levelDamage(fmove, foe.level, active.types, foe.types).dmg : 0;
     setAtkClip(battleClipFor(fmove.name, foe.types?.[0]));
     setMeFx("flash");
     await wait(180);
@@ -397,7 +433,8 @@ export function GameBoyView() {
       const learnedLogs: string[] = [];
       if (leveled) {
         try {
-          const learned = await newlyLearned(mon.name, oldLevel, mon.level);
+          const fromCard = await movesLearnedOnLevel(mon.name, oldLevel, mon.level);
+          const learned = fromCard ?? (await newlyLearned(mon.name, oldLevel, mon.level));
           if (learned.length) {
             const attacks = appendNamedMoves(mon.attacks, learned);
             for (const nm of learned) {
@@ -983,8 +1020,9 @@ function BattleScreen({
               <button
                 key={i}
                 className="gb-move"
-                disabled={busy || !m.damage}
-                onClick={() => m.damage && onMove(m)}
+                disabled={busy}
+                title={m.text || ""}
+                onClick={() => onMove(m)}
               >
                 {m.name} {m.damage ? <span>·{m.damage}</span> : null}
               </button>

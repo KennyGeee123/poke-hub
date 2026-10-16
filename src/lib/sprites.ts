@@ -1,4 +1,7 @@
-// Species sprites from PokeAPI / Pokémon Showdown / Official Pokémon Home 3D Art
+// Species sprites from local Gen 5, Pokémon Home, Showdown, and PokeAPI official artwork.
+// Official artwork is addressed by national dex number. A slug in that URL never resolves.
+import { DEX_BY_SLUG } from "./dex-by-slug";
+
 export const LOCAL_SPRITE_SLUGS = new Set([
   "bulbasaur",
   "charmander",
@@ -56,11 +59,20 @@ export function localGen5BackUrl(name: string): string | null {
   return LOCAL_SPRITE_SLUGS.has(s) ? `/sprites/gen5-back/${s}.png` : null;
 }
 
+/** PokeAPI official artwork. The file name is the national dex number. */
+export function officialArtworkUrl(name: string): string | null {
+  const id = DEX_BY_SLUG[spriteSlug(name)];
+  if (!id) return null;
+  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+}
+
 export function fallbackSpriteUrls(name: string): string[] {
   const s = spriteSlug(name);
   const local = localGen5Url(name);
+  const art = officialArtworkUrl(name);
 
-  // Local gen5 first (already vendored). Remote Home/Showdown are fallbacks, not the live look.
+  // Local gen5 first (already vendored). Home, Showdown, then official artwork by dex number.
+  // Printed card scans stay on the card tile. They are not a creature sprite.
   return [
     ...(local ? [local] : []),
     `https://img.pokemondb.net/sprites/home/normal/${s}.png`,
@@ -68,7 +80,7 @@ export function fallbackSpriteUrls(name: string): string[] {
     `https://play.pokemonshowdown.com/sprites/gen5/${s}.png`,
     `https://play.pokemonshowdown.com/sprites/dex/${s}.png`,
     `https://img.pokemondb.net/artwork/large/${s}.jpg`,
-    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${s}.png`,
+    ...(art ? [art] : []),
   ];
 }
 
@@ -93,12 +105,14 @@ export function trainerFacingUrl(facingAngleDeg: number): string {
 export function worldSpriteUrls(name: string): string[] {
   const s = spriteSlug(name);
   const local = localGen5Url(name);
+  const art = officialArtworkUrl(name);
   return [
     `https://play.pokemonshowdown.com/sprites/ani/${s}.gif`,
     ...(local ? [local] : []),
     `https://img.pokemondb.net/sprites/home/normal/${s}.png`,
     `https://play.pokemonshowdown.com/sprites/gen5/${s}.png`,
     `https://play.pokemonshowdown.com/sprites/dex/${s}.png`,
+    ...(art ? [art] : []),
   ];
 }
 

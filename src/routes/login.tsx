@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { checkAuthService, friendlyAuthError, type AuthServiceStatus } from "@/lib/auth-status";
+import { isLoopbackHost } from "@/lib/local-owner";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -19,7 +20,8 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const nav = useNavigate();
-  const { user, loading, signInWithGoogle, signInWithApple } = useAuth();
+  const { user, loading, isOwner, signInWithGoogle, signInWithApple, signInOnThisMac } = useAuth();
+  const [onThisMac, setOnThisMac] = useState(false);
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,6 +29,10 @@ function LoginPage() {
   const [err, setErr] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [svc, setSvc] = useState<AuthServiceStatus>("checking");
+
+  useEffect(() => {
+    setOnThisMac(isLoopbackHost());
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -165,6 +171,24 @@ function LoginPage() {
           </div>
         )}
 
+        {onThisMac && (
+          <button
+            type="button"
+            className="pv-login-submit"
+            data-local-owner={isOwner ? "on" : "off"}
+            onClick={() => {
+              const res = signInOnThisMac();
+              if (res.error) {
+                setErr(res.error);
+                return;
+              }
+              nav({ to: "/" });
+            }}
+          >
+            {isOwner ? "Owner on this Mac — enter PokéVault" : "Sign in on this Mac"}
+          </button>
+        )}
+
         <button
           type="button"
           onClick={goGuest}
@@ -197,7 +221,7 @@ function LoginPage() {
                 d="M9 3.58c1.32 0 2.5.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.96l2.99 2.34C4.66 5.17 6.65 3.58 9 3.58z"
               />
             </svg>
-            Continue with Google
+            Continue with Gmail
           </button>
           <button type="button" onClick={onApple} className="pv-login-google">
             <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
