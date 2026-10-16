@@ -57,3 +57,14 @@ describe("Classic Collection: only prints with a real gold frame are framed", ()
     );
   });
 });
+
+describe("Crown Zenith", () => {
+  it("gilds TCGdex's Crown rarity but not a card merely named Crown-something", () => {
+    expect(isGoldBorderCard({ id: "swsh12.5-gg70", name: "Arceus VSTAR", rarity: "Crown" })).toBe(
+      true,
+    );
+    expect(
+      isGoldBorderCard({ id: "swsh12.5-001", name: "Crowned Sword Zacian", rarity: "Rare" }),
+    ).toBe(false);
+  });
+});

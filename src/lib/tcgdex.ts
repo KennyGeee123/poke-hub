@@ -482,7 +482,7 @@ export async function tcgdexGetSetCards(setId: string, lang = "en"): Promise<TCG
     const want = Number(raw?.cardCount?.total || raw?.cardCount?.official || 0);
     if (want > 0 && mapped.length >= want) return mapped;
   }
-  return mergeFamilies && best.length ? await stampGoldRarities(best, lang) : best;
+  return best.length ? await stampGoldRarities(best, lang) : best;
 }
 
 const SET_GOLD_RARITIES = [
@@ -490,7 +490,36 @@ const SET_GOLD_RARITIES = [
   "Hyper rare",
   "Mega Hyper Rare",
   "Secret Rare",
+  "Crown",
 ];
+
+/** A set's gold-tier ids never change once printed: cache per set+lang (memory + localStorage, 7 days)
+ * so each viewer asks TCGdex once per set, not on every open. */
+const GOLD_TTL_MS = 7 * 24 * 3600_000;
+const goldMem = new Map<string, [string, string][]>();
+function goldCacheGet(key: string): [string, string][] | null {
+  const m = goldMem.get(key);
+  if (m) return m;
+  try {
+    const raw = globalThis.localStorage?.getItem(`pv-gold:${key}`);
+    const v = raw ? (JSON.parse(raw) as { t: number; ids: [string, string][] }) : null;
+    if (v && Date.now() - v.t < GOLD_TTL_MS && Array.isArray(v.ids)) {
+      goldMem.set(key, v.ids);
+      return v.ids;
+    }
+  } catch {
+    /* storage blocked: fall through to the network */
+  }
+  return null;
+}
+function goldCacheSet(key: string, ids: [string, string][]) {
+  goldMem.set(key, ids);
+  try {
+    globalThis.localStorage?.setItem(`pv-gold:${key}`, JSON.stringify({ t: Date.now(), ids }));
+  } catch {
+    /* quota / private mode: memory cache still holds it */
+  }
+}
 
 /**
  * TCGdex's set listing carries no rarity, so gold-tier prints (the 30th box's Special Illustration Rares)
@@ -502,19 +531,32 @@ export async function stampGoldRarities(cards: TCGCard[], lang = "en"): Promise<
     /^[a-z0-9.-]+$/i.test(id),
   );
   if (!setIds.length) return cards;
+  if (cards.every((c) => c.rarity)) return cards;
   const found = new Map<string, string>();
   await Promise.all(
-    setIds.flatMap((sid) =>
-      SET_GOLD_RARITIES.map(async (rarity) => {
-        // Direct TCGdex call: the app's /api/public/tcgdex proxy ignores set.id filters, and TCGdex
-        // answers [] when `limit` is added to a filtered query.
-        const rows = await j<any[]>(
-          `${BASE}/${lang}/cards?set.id=eq:${encodeURIComponent(sid)}&rarity=${encodeURIComponent(rarity)}`,
-        );
-        if (Array.isArray(rows))
-          for (const r of rows) if (r?.id) found.set(String(r.id).toLowerCase(), rarity);
-      }),
-    ),
+    setIds.map(async (sid) => {
+      const key = `${lang}:${sid.toLowerCase()}`;
+      const hit = goldCacheGet(key);
+      if (hit) {
+        for (const [id, rarity] of hit) found.set(id, rarity);
+        return;
+      }
+      const ids: [string, string][] = [];
+      let complete = true;
+      await Promise.all(
+        SET_GOLD_RARITIES.map(async (rarity) => {
+          // Direct TCGdex call: the app's /api/public/tcgdex proxy ignores set.id filters, and TCGdex
+          // answers [] when `limit` is added to a filtered query.
+          const rows = await j<any[]>(
+            `${BASE}/${lang}/cards?set.id=eq:${encodeURIComponent(sid)}&rarity=${encodeURIComponent(rarity)}`,
+          );
+          if (!Array.isArray(rows)) complete = false;
+          else for (const r of rows) if (r?.id) ids.push([String(r.id).toLowerCase(), rarity]);
+        }),
+      );
+      for (const [id, rarity] of ids) found.set(id, rarity);
+      if (complete) goldCacheSet(key, ids); // never cache a partial answer from a TCGdex blip
+    }),
   );
   if (!found.size) return cards;
   return cards.map((c) =>
