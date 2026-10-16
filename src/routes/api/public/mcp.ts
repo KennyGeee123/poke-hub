@@ -14,7 +14,7 @@ const mcp = createMcpServer({
   name: "pokevault-mcp",
   version: "1.0.0",
   instructions:
-    "Tools for the PokéVault TCG catalog. Use `search_cards` for queries, `get_card` for full card details, `list_sets` to browse box sets, `get_hd_image` for the printed-card scan (TCGdex, then Scrydex, then pokemontcg.io), and `refresh_set_images` to bulk-resolve those scans. Classic Collection (30th-c) art is the Scrydex scan, which includes the real frame.",
+    "Tools for the PokéVault TCG catalog. Use `search_cards` for queries, `get_card` for full card details, `list_sets` to browse box sets, `get_hd_image` for the printed-card scan (Scrydex only; placeholder files are rejected), and `refresh_set_images` to bulk-resolve those scans. Classic Collection (30th-c) art is the Scrydex scan, which includes the real frame.",
   tools: [searchCardsTool, getCardTool, listSetsTool, getHDImageTool, refreshSetImagesTool],
 });
 

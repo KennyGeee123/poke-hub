@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { hdImg } from "@/lib/card-images";
+import { CardScan } from "./CardScan";
 import { useServerFn } from "@tanstack/react-start";
 import { searchCards, getMarketPrice, type TCGCard } from "@/lib/pokemon-api";
 import { useVault, formatPrice } from "@/lib/vault";
@@ -365,7 +365,7 @@ function ScannerInner({
               <div className="pv-scan-grid">
                 {results.map((c) => (
                   <div key={c.id} className="pv-scan-match" onClick={() => onOpen(c.id)}>
-                    <img {...hdImg(c)} alt={c.name} loading="lazy" />
+                    <CardScan card={c} alt={c.name} />
                     <div className="pv-scan-match-info">
                       <div className="pv-scan-match-name">{c.name}</div>
                       <div className="pv-scan-match-set">

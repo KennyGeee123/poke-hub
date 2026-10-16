@@ -22,6 +22,7 @@ import {
 } from "@/lib/friends";
 import { computePvPDamage, joinPvP, pvpChannelName, sendPvP, type PvPMessage } from "@/lib/pvp";
 import { formatPrice } from "@/lib/vault";
+import { CardScan } from "./CardScan";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { SkeletonRows } from "./ui";
 
@@ -397,7 +398,7 @@ function FriendVaultView({
         <div className="pv-fv-grid">
           {snap.cards.map((e) => (
             <button key={e.card.id} className="pv-fv-card" onClick={() => onOpenCard(e.card.id)}>
-              <img src={e.card.images?.small} alt={e.card.name} />
+              <CardScan card={e.card} tile alt={e.card.name} />
               {e.qty > 1 && <div className="pv-fv-qty">×{e.qty}</div>}
             </button>
           ))}

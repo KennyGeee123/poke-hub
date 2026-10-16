@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { hdImg } from "@/lib/card-images";
+import { CardScan } from "./CardScan";
 import { useVault, formatPrice } from "@/lib/vault";
 import { getMarketPrice, searchCards, type TCGCard } from "@/lib/pokemon-api";
 
@@ -199,7 +199,7 @@ export function SellView() {
           return (
             <div key={card.id} className={`pv-mp-row ${open ? "open" : ""}`}>
               <button className="pv-mp-row-hd" onClick={() => setOpenId(open ? null : card.id)}>
-                <img {...hdImg(card, { tile: true })} alt={card.name} loading="lazy" />
+                <CardScan card={card} tile alt={card.name} />
                 <div className="pv-mp-row-meta">
                   <div className="pv-mp-row-name">{card.name}</div>
                   <div className="pv-mp-row-sub">
@@ -346,7 +346,7 @@ export function BuyView({ onOpen }: { onOpen: (id: string) => void }) {
           <div className="pv-mp-grid">
             {results.map((c) => (
               <button key={c.id} className="pv-mp-card" onClick={() => setPicked(c)}>
-                <img {...hdImg(c, { tile: true })} alt={c.name} loading="lazy" />
+                <CardScan card={c} tile alt={c.name} />
                 <div className="pv-mp-card-name">{c.name}</div>
                 <div className="pv-mp-card-sub">
                   {c.set?.name} · #{c.number}
@@ -362,7 +362,7 @@ export function BuyView({ onOpen }: { onOpen: (id: string) => void }) {
       {picked && (
         <div className="pv-mp-picked">
           <div className="pv-mp-picked-hd">
-            <img src={picked.images.large || picked.images.small} alt={picked.name} />
+            <CardScan card={picked} alt={picked.name} />
             <div>
               <div className="pv-mp-picked-name">{picked.name}</div>
               <div className="pv-mp-picked-sub">

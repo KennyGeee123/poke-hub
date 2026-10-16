@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import {
   scrydexClassicImages,
+  scrydexImagesForId,
   scrydexScanUrls,
   scrydexSetCandidates,
   classicScrydexCatalog,
@@ -33,6 +34,12 @@ describe("classic Scrydex ids", () => {
 describe("Scrydex ids for the rest of the box sets", () => {
   it("uses the pokemontcg set id, not the TCGdex pad", () => {
     expect(scrydexSetCandidates("sv08")).toEqual(["sv8"]);
+    expect(scrydexSetCandidates("sv10.5b")[0]).toBe("zsv10pt5");
+    expect(scrydexSetCandidates("sv10pt5b")[0]).toBe("zsv10pt5");
+    expect(scrydexSetCandidates("sv10.5w")[0]).toBe("rsv10pt5");
+    expect(scrydexScanUrls("sv10.5b", "3", "sv10.5b-3", true)[0]).toBe(
+      "https://images.scrydex.com/pokemon/zsv10pt5-3/medium",
+    );
     expect(scrydexSetCandidates("30th")).toEqual(["me55"]);
     expect(scrydexSetCandidates("30th-c")).toEqual([]);
     expect(scrydexSetCandidates("sm7.5")).toContain("sm75");
@@ -44,6 +51,11 @@ describe("Scrydex ids for the rest of the box sets", () => {
       "https://images.scrydex.com/pokemon/me55-148/medium",
     );
     expect(scrydexScanUrls("30th-c", "004", "30th-c-004", true)).toEqual([]);
+    expect(scrydexImagesForId("30th-148", "30th", "148")?.scrydexId).toBe("me55-148");
+    expect(scrydexImagesForId("30th-c-004", "30th-c", "004")?.scrydexId).toBe("me55c-11g");
+    expect(scrydexImagesForId("sv08-001", "sv08", "001")?.small).toBe(
+      "https://images.scrydex.com/pokemon/sv8-1/medium",
+    );
     expect(scrydexScanUrls("swsh4.5sv", "SV001", "swsh45sv-SV001", true)[0]).toContain(
       "swsh45sv-SV001/medium",
     );

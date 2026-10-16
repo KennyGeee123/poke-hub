@@ -1,11 +1,12 @@
 // MCP tools exposing Pokémon TCG card data + HD image resolution.
 import { defineTool } from "mcp-tanstack-start";
 import { z } from "zod";
-import { isSameCard, parseCardId } from "@/lib/card-identity";
+import { parseCardId } from "@/lib/card-identity";
 import {
   SCRYDEX_PLACEHOLDER_BYTES,
   classicScrydexCatalog,
   scrydexClassicImages,
+  scrydexImagesForId,
   scrydexScanUrls,
 } from "@/lib/classic-scans";
 
@@ -100,30 +101,6 @@ async function firstRealScrydex(id: string, number?: string): Promise<string | n
   return null;
 }
 
-async function tcgdexHD(id: string, number?: string): Promise<string | null> {
-  try {
-    // Set id = everything before the LAST hyphen (30th-c-001 → 30th-c, not 30th).
-    const parsed = parseCardId(id);
-    const setId = parsed.setId;
-    const num = number ?? parsed.localId;
-    if (!setId || !num) return null;
-    const r = await fetch(
-      `https://api.tcgdex.net/v2/en/cards/${encodeURIComponent(`${setId}-${num}`)}`,
-    );
-    if (!r.ok) return null;
-    const j = (await r.json()) as {
-      id?: string;
-      localId?: string;
-      image?: string;
-      set?: { id?: string };
-    };
-    if (!isSameCard({ id, number: num, set: { id: setId } }, j)) return null;
-    return j.image ? `${j.image}/high.webp` : null;
-  } catch {
-    return null;
-  }
-}
-
 const j = (v: unknown) => JSON.stringify(v, null, 2);
 
 export const searchCardsTool = defineTool({
@@ -155,10 +132,13 @@ export const searchCardsTool = defineTool({
 export const getCardTool = defineTool({
   name: "get_card",
   description:
-    "Fetch full details for a Pokémon TCG card by id (e.g. `sv3-199`, `30th-c-001`). Classic Collection images are the Scrydex scan of the printed card.",
+    "Fetch full details for a Pokémon TCG card by id (e.g. `sv3-199`, `30th-c-001`). Images are the Scrydex scan of the printed card.",
   parameters: z.object({ id: z.string() }),
   execute: async ({ id }) => {
-    const scan = scrydexClassicImages(id);
+    const parsed = parseCardId(id);
+    const scan =
+      scrydexClassicImages(id) ||
+      scrydexImagesForId(id, parsed.setId, parsed.localId);
     const withScan = (data: Record<string, unknown>) =>
       scan
         ? {
@@ -205,7 +185,7 @@ export const listSetsTool = defineTool({
 export const getHDImageTool = defineTool({
   name: "get_hd_image",
   description:
-    "Resolve the highest-resolution scan of the printed card, frame included. Prefers TCGdex high.webp, then a verified Scrydex scan (Classic Collection and any box-set card the other APIs have no art for), then images.large from pokemontcg.io. Scrydex placeholder files are rejected.",
+    "Resolve the highest-resolution scan of the printed card, frame included. Uses the Scrydex scan. Placeholder files are rejected.",
   parameters: z.object({
     id: z.string().describe("Card id, e.g. `sv3-199` or `30th-c-001`."),
     number: z.string().optional(),
@@ -221,17 +201,16 @@ export const getHDImageTool = defineTool({
         scrydexId: scan.scrydexId,
       });
     }
-    const hd = await tcgdexHD(id, number);
-    if (hd) return j({ id, url: hd, source: "tcgdex" });
-    try {
-      const res = await tcg<{ data: { images: { large: string; small: string }; number: string } }>(
-        `/cards/${encodeURIComponent(id)}`,
-      );
-      const url = res.data.images.large || res.data.images.small;
-      const second = await tcgdexHD(id, res.data.number);
-      if (second || url) return j({ id, url: second || url, source: second ? "tcgdex" : "pokemontcg" });
-    } catch {
-      /* pokemontcg.io is down for some sets (me55c returns 500). */
+    const parsed = parseCardId(id);
+    const built = scrydexImagesForId(id, parsed.setId, number || parsed.localId);
+    if (built && (await scrydexIsReal(built.large))) {
+      return j({
+        id,
+        url: built.large,
+        small: built.small,
+        source: "scrydex",
+        scrydexId: built.scrydexId,
+      });
     }
     const live = await firstRealScrydex(id, number);
     if (live) return j({ id, url: live, source: "scrydex" });
@@ -242,7 +221,7 @@ export const getHDImageTool = defineTool({
 export const refreshSetImagesTool = defineTool({
   name: "refresh_set_images",
   description:
-    "Return HD image URLs for every card in a set. Classic Collection (30th-c / me55c) comes from Scrydex scans of the printed cards. Other sets prefer TCGdex, then pokemontcg.io.",
+    "Return HD image URLs for every card in a set. Every scan is the Scrydex file of the printed card.",
   parameters: z.object({ setId: z.string().describe("e.g. `sv3`, `base1`, `30th-c`.") }),
   execute: async ({ setId }) => {
     if (/^(30th-c|me55c)$/i.test(setId)) {
@@ -266,22 +245,22 @@ export const refreshSetImagesTool = defineTool({
     const res = await tcg<{ data: any[]; totalCount: number }>(`/cards?${params}`);
     const images = await Promise.all(
       res.data.map(async (c) => {
-        const hd = await tcgdexHD(c.id, c.number);
-        let url = hd || c.images?.large || c.images?.small || "";
-        let source = hd ? "tcgdex" : "pokemontcg";
-        if (!url) {
+        const built = scrydexImagesForId(c.id, c.set?.id || setId, c.number);
+        let url = built?.large || "";
+        let source = built ? "scrydex" : "none";
+        if (built && !(await scrydexIsReal(built.large))) {
           const live = await firstRealScrydex(c.id, c.number);
-          if (live) {
-            url = live;
-            source = "scrydex";
-          }
+          url = live || "";
+          source = live ? "scrydex" : "none";
         }
         return {
           id: c.id,
           name: c.name,
           number: c.number,
           url,
+          small: built?.small,
           source,
+          scrydexId: built?.scrydexId,
         };
       }),
     );

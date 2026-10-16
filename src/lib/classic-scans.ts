@@ -158,11 +158,31 @@ export function scrydexSetCandidates(setId?: string): string[] {
     if (/^(30th|me55c|30th-c)$/i.test(id)) return;
     const use = unpadSetId(id);
     if (/^([a-z]+)0\d/i.test(use)) return;
+    // sv10pt5b / sv10pt5w are synthetic pads. Scrydex hosts Black Bolt at
+    // zsv10pt5 and White Flare at rsv10pt5. The pad is a placeholder PNG.
+    const black = use.match(/^sv(\d+)pt(\d+)b$/i);
+    if (black) {
+      push(`zsv${Number(black[1])}pt${black[2]}`);
+      return;
+    }
+    const white = use.match(/^sv(\d+)pt(\d+)w$/i);
+    if (white) {
+      push(`rsv${Number(white[1])}pt${white[2]}`);
+      return;
+    }
     if (!out.some((v) => v.toLowerCase() === use.toLowerCase())) out.push(use);
   };
   for (const alias of setIdAliases(raw)) push(alias);
   push(raw);
+  // Prefixed pokemontcg ids (zsv10pt5, rsv10pt5) host the real scan.
+  out.sort((a, b) => scrydexSetRank(a) - scrydexSetRank(b) || a.localeCompare(b));
   return out.slice(0, 2);
+}
+
+function scrydexSetRank(id: string): number {
+  if (/^(zsv|rsv|wsv)/i.test(id)) return 0;
+  if (/pt\d+[a-z]$/i.test(id)) return 2;
+  return 1;
 }
 
 function scrydexNumber(num: string): string {
@@ -171,7 +191,31 @@ function scrydexNumber(num: string): string {
   return raw;
 }
 
-/** Real-scan URLs to try when TCGdex and pokemontcg.io have no art. Classic ids return [] — use scrydexClassicImages. */
+/**
+ * The printed-card scan for any id we can name on Scrydex.
+ * Classic Collection uses the explicit map (numbers collide). Everything else
+ * uses the first pokemontcg-style set id. Unknown classics return null.
+ */
+export function scrydexImagesForId(
+  id?: string,
+  setId?: string,
+  num?: string,
+): { small: string; large: string; scrydexId: string } | null {
+  const classic = scrydexClassicImages(id);
+  if (classic) return classic;
+  const local = scrydexNumber(String(num || ""));
+  if (!local) return null;
+  const sets = scrydexSetCandidates(setId);
+  if (!sets.length) return null;
+  const scrydexId = `${sets[0]}-${local}`;
+  return {
+    scrydexId,
+    small: `${SCRYDEX}/${scrydexId}/medium`,
+    large: `${SCRYDEX}/${scrydexId}/large`,
+  };
+}
+
+/** Direct Scrydex scan URLs. Classic ids return [] — use scrydexClassicImages. */
 export function scrydexScanUrls(
   setId?: string,
   num?: string,
