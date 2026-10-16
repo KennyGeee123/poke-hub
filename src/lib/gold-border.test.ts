@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { isClassicCollectionCard, isGoldBorderCard } from "./gold-border";
+import { CLASSIC_NOT_GOLD_FRAMED, isClassicCollectionCard, isGoldBorderCard } from "./gold-border";
 
 describe("gold border", () => {
   it("gilds every Classic Collection print, which TCGdex gives no rarity", () => {
@@ -39,5 +39,21 @@ describe("gold border", () => {
     }
     // "30th-001" must not be mistaken for the Classic set by its prefix.
     expect(isClassicCollectionCard({ id: "30th-001" })).toBe(false);
+  });
+});
+
+describe("Classic Collection: only prints with a real gold frame are framed", () => {
+  it("skips the three full-bleed EX/VMAX prints but still gilds the rest", () => {
+    for (const id of CLASSIC_NOT_GOLD_FRAMED) {
+      expect(isClassicCollectionCard({ id })).toBe(true);
+      expect(isGoldBorderCard({ id, name: "x", set: { id: "30th-c" } })).toBe(false);
+    }
+    expect(CLASSIC_NOT_GOLD_FRAMED.size).toBe(3);
+    expect(isGoldBorderCard({ id: "30th-c-001", name: "Charizard", set: { id: "30th-c" } })).toBe(
+      true,
+    );
+    expect(isGoldBorderCard({ id: "30th-c-030", name: "Magikarp", set: { id: "30th-c" } })).toBe(
+      true,
+    );
   });
 });

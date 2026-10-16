@@ -24,7 +24,17 @@ export function isClassicCollectionCard(card: GoldBorderInput): boolean {
   );
 }
 
+/**
+ * Classic Collection prints whose real scan has NO gold frame (verified by eye + edge-colour check, 2026-10-16):
+ * these are full-bleed EX / VMAX frames that only carry the gold "30" stamp. Everything else in the set is a printed gold frame.
+ */
+export const CLASSIC_NOT_GOLD_FRAMED = new Set(["30th-c-004", "30th-c-023", "30th-c-026"]);
+
 export function isGoldBorderCard(card: GoldBorderInput): boolean {
-  if (isClassicCollectionCard(card)) return true;
+  if (
+    isClassicCollectionCard(card) &&
+    !CLASSIC_NOT_GOLD_FRAMED.has(String(card.id || "").toLowerCase())
+  )
+    return true;
   return GOLD_RARITY.test(`${card.rarity || ""} ${card.name || ""}`);
 }
