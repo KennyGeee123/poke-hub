@@ -9,6 +9,7 @@ import {
   type MarkupRule,
   type SourceListing,
   cheapest,
+  cheapestUnclaimed,
   cleanSetName,
   parseShopifySuggest,
   salePrice,
@@ -143,6 +144,13 @@ export async function refreshBatch(opts: { offset: number; limit: number; kinds:
       if (v != null && (!cur || v < (cur.lowPrice ?? cur.marketPrice ?? Infinity))) prices.set(p.productId, p);
     }
     const setName = cleanSetName(g.name);
+    // Sellers claimed by a recent sale stay skipped until the hold ends (see shop_rotate_after_sale).
+    const claims = new Map<string, Map<string, string | null>>();
+    const ids = products.map((p) => `tcgp:${p.productId}`);
+    for (let i = 0; i < ids.length; i += 200) {
+      const { data: cl } = await sb.from("shop_listings").select("product_id,source,claimed_at").in("product_id", ids.slice(i, i + 200)).not("claimed_at", "is", null);
+      for (const c of cl ?? []) claims.set(c.product_id, (claims.get(c.product_id) ?? new Map()).set(c.source, c.claimed_at));
+    }
     const productRows: Record<string, unknown>[] = [];
     const listingRows: Record<string, unknown>[] = [];
     const variantRows: Record<string, unknown>[] = [];
@@ -166,8 +174,8 @@ export async function refreshBatch(opts: { offset: number; limit: number; kinds:
         for (const ls of bySource.values()) { const c = cheapest(ls) ?? [...ls].sort((a, b) => a.price - b.price)[0]; if (c) listings.push(c); }
       }
 
-      const best = cheapest(listings);
       const id = `tcgp:${p.productId}`;
+      const best = cheapestUnclaimed(listings, claims.get(id));
       const bestUsd = best ? toUsd(best.price, best.currency) : null;
       productRows.push({
         id, kind, product_type: type, name: p.name, set_name: setName, card_number: number ?? null, image_url: p.imageUrl,

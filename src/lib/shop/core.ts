@@ -175,3 +175,24 @@ export function shopUnavailable(error: { code?: string; message?: string } | nul
   return ["PGRST205", "PGRST202", "42P01", "42883"].includes(error.code ?? "") || /does not exist|could not find the (table|function)|schema cache|supabaseUrl is required|supabaseKey is required/i.test(error.message ?? "");
 }
 export const COMING_SOON = "The shop is coming soon — check back shortly!";
+
+/**
+ * After a box sells, the listing we bought from is "claimed": it is skipped for CLAIM_HOLD_HOURS so the shop rotates
+ * to the next-cheapest seller (or drops the product if none is left) instead of showing a unit we just used up.
+ * The next refresh after the hold re-checks that seller for real. SQL twin: public.shop_rotate_after_sale().
+ */
+export const CLAIM_HOLD_HOURS = 24;
+
+export function isClaimed(claimedAt: string | null | undefined, now = Date.now()): boolean {
+  if (!claimedAt) return false;
+  const t = Date.parse(claimedAt);
+  return Number.isFinite(t) && now - t < CLAIM_HOLD_HOURS * 3600_000;
+}
+
+export function cheapestUnclaimed<T extends { source: string; price: number; inStock: boolean; currency: string }>(
+  ls: T[],
+  claims: Map<string, string | null> = new Map(),
+  now = Date.now(),
+): T | null {
+  return cheapest(ls.filter((l) => !isClaimed(claims.get(l.source), now)));
+}

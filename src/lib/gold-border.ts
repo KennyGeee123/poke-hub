@@ -36,5 +36,6 @@ export function isGoldBorderCard(card: GoldBorderInput): boolean {
     !CLASSIC_NOT_GOLD_FRAMED.has(String(card.id || "").toLowerCase())
   )
     return true;
+  if (/^crown$/i.test(String(card.rarity || "").trim())) return true; // TCGdex's name for Crown Zenith's gold Crown Rares
   return GOLD_RARITY.test(`${card.rarity || ""} ${card.name || ""}`);
 }

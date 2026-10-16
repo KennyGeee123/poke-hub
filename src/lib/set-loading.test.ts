@@ -180,7 +180,9 @@ describe("prints TCGdex is missing", () => {
 describe("busy TCGdex answers", () => {
   it("retries a 502 once instead of leaving the box empty", async () => {
     let calls = 0;
-    globalThis.fetch = (async () => {
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      // The gold-rarity lookup (rarity=...) is separate; this test counts set loads only.
+      if (/rarity=/.test(String(input))) return new Response("[]", { status: 200 });
       calls += 1;
       if (calls === 1) return new Response("busy", { status: 502 });
       return new Response(JSON.stringify(box("swsh11tg", "Lost Origin Trainer Gallery", 30)), {
