@@ -3,6 +3,7 @@
 // Beta-1005 deploy: keep origin's 3x busy-retry + add tcgdex /high → /low fallback.
 import { createFileRoute } from "@tanstack/react-router";
 import { CARD_IMAGE_HOSTS as ALLOWED } from "@/lib/card-image-hosts";
+import { SCRYDEX_PLACEHOLDER_BYTES } from "@/lib/classic-scans";
 
 function altUrls(target: URL): string[] {
   const primary = target.toString();
@@ -34,6 +35,11 @@ async function fetchImage(
       });
       const type = r.headers.get("content-type") || "";
       if (r.ok && type.startsWith("image/")) {
+        // Scrydex answers unknown ids with HTTP 200 and a fixed placeholder file.
+        if (/images\.scrydex\.com/i.test(url)) {
+          const len = Number(r.headers.get("content-length") || 0);
+          if (SCRYDEX_PLACEHOLDER_BYTES.has(len)) return { ok: false };
+        }
         return { ok: true, body: r.body, type };
       }
       if (r.status < 500 && r.status !== 429) break; // 404 etc: not transient

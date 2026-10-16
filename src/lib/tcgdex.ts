@@ -359,7 +359,13 @@ export function tcgdexSearchName(q?: string): string {
   return s.replace(/\s+/g, " ").trim();
 }
 
+/** App-only sets (Shadowless Base Set, named Error prints) are our own catalog entries; TCGdex has never had them. */
+export function isAppOnlyCardId(id: string): boolean {
+  return /^(base1sl|bss|error)-/i.test(String(id || ""));
+}
+
 export async function tcgdexGetCard(id: string, lang = "en"): Promise<TCGCard | null> {
+  if (isAppOnlyCardId(id)) return null; // would 404 in every language on every load
   const raw = await j<any>(tcgdexUrl(lang, `/cards/${encodeURIComponent(id)}`));
   if (!raw?.id) return null;
   return mapTcgdexCard(raw, undefined, lang);
@@ -434,6 +440,13 @@ export async function tcgdexGetSetCards(setId: string, lang = "en"): Promise<TCG
   const mergeFamilies = aliases.some((a) => /^(30th|me55)/i.test(a));
   const merged = new Set<string>();
   for (const id of aliases) {
+    // TCGdex's real ids are 30th / 30th-c; me55 / me55c answer 404 every time. Skip them when the
+    // real id is in the family so the box never spends two failed requests (and retries) per open.
+    if (
+      /^me55c?$/i.test(id) &&
+      aliases.some((a) => a.toLowerCase() === (/c$/i.test(id) ? "30th-c" : "30th"))
+    )
+      continue;
     let raw = await fetchTcgdexSetPayload(id, lang);
     if (mergeFamilies) {
       // The proxy used to fall back across the alias family, so /sets/30th-c
@@ -467,9 +480,56 @@ export async function tcgdexGetSetCards(setId: string, lang = "en"): Promise<TCG
     }
     if (mapped.length > best.length) best = mapped;
     const want = Number(raw?.cardCount?.total || raw?.cardCount?.official || 0);
-    if (want > 0 && mapped.length >= want) return mapped;
+    // Every box, not only the 30th family: the set payload has no rarity, so gold frames
+    // never appeared until these ids were stamped.
+    if (want > 0 && mapped.length >= want) return stampGoldRarities(mapped, lang);
   }
-  return best;
+  return best.length ? stampGoldRarities(best, lang) : best;
+}
+
+const SET_GOLD_RARITIES = [
+  "Special illustration rare",
+  "Hyper rare",
+  "Mega Hyper Rare",
+  "Secret Rare",
+];
+
+/**
+ * TCGdex's set listing carries no rarity, so gold-tier prints never got a gold frame.
+ * Ask TCGdex's own rarity filter which ids in this box are gold-tier and stamp exactly those.
+ * One small request per gold rarity; any miss leaves the cards untouched.
+ */
+export async function stampGoldRarities(cards: TCGCard[], lang = "en"): Promise<TCGCard[]> {
+  const setIds = [...new Set(cards.map((c) => cardSetKey(c.id)).filter(Boolean))].filter((id) =>
+    /^[a-z0-9.-]+$/i.test(id),
+  );
+  if (!setIds.length) return cards;
+  const found = new Map<string, string>();
+  await Promise.all(
+    setIds.flatMap((sid) =>
+      SET_GOLD_RARITIES.map(async (rarity) => {
+        // Direct TCGdex call: the app's /api/public/tcgdex proxy ignores set.id filters, and TCGdex
+        // answers [] when `limit` is added to a filtered query.
+        const rows = await j<any[]>(
+          `${BASE}/${lang}/cards?set.id=eq:${encodeURIComponent(sid)}&rarity=${encodeURIComponent(rarity)}`,
+        );
+        if (Array.isArray(rows))
+          for (const r of rows) if (r?.id) found.set(String(r.id).toLowerCase(), rarity);
+      }),
+    ),
+  );
+  if (!found.size) return cards;
+  return cards.map((c) =>
+    !c.rarity && found.has(c.id.toLowerCase())
+      ? { ...c, rarity: found.get(c.id.toLowerCase()) }
+      : c,
+  );
+}
+
+/** "30th-c-001" -> "30th-c" (set id = everything before the LAST hyphen). */
+function cardSetKey(id: string): string {
+  const i = String(id || "").lastIndexOf("-");
+  return i > 0 ? id.slice(0, i) : "";
 }
 
 export async function tcgdexRecentCards(limit = 32, lang = "en"): Promise<TCGCard[]> {
@@ -510,9 +570,10 @@ export async function getAltArtworks(card: {
 
   await Promise.all(
     langs.map(async (lang) => {
-      const direct = await j<TCGdexCard>(
-        tcgdexUrl(lang, `/cards/${encodeURIComponent(candidateId)}`),
-      );
+      // App-only ids (Shadowless / Error prints) 404 in all 11 languages — go straight to the name search.
+      const direct = isAppOnlyCardId(candidateId)
+        ? null
+        : await j<TCGdexCard>(tcgdexUrl(lang, `/cards/${encodeURIComponent(candidateId)}`));
       if (direct?.image) {
         results.push({ lang, url: cardImages({ image: direct.image }).large });
         return;

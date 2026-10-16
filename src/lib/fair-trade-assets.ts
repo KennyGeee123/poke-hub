@@ -1,5 +1,6 @@
 // Unified Fair Trade assets: TCG cards (graded) and Pokémon GO creatures (name-keyed eBay values).
 import type { TCGCard } from "./pokemon-api";
+import { fallbackCardImages } from "./card-images";
 import {
   type CardGrade,
   getEstimatedGradePrice,
@@ -72,8 +73,7 @@ export function makeCardAsset(card: TCGCard, grade: CardGrade = "raw_nm"): FairC
   const meta = getGradeMeta(grade);
   const valueUsd = cardAssetValue(card, grade);
   const img =
-    card.images?.large ||
-    card.images?.small ||
+    fallbackCardImages(card).find((u) => u && !u.startsWith("data:")) ||
     gradeMockImg(grade);
   return {
     kind: "card",

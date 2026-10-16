@@ -18,6 +18,7 @@ import {
 import { findSpecies, pogoSpriteUrl } from "@/lib/pogo-market";
 import { goAssetValue, gradeMockImg } from "@/lib/fair-trade-assets";
 import { P2PTradeBeamTransfer } from "./QuantumTransferAnimation";
+import { CardScan } from "./CardScan";
 
 function applyOfferState(offer: TrainerDefaultOffer) {
   return {
@@ -332,8 +333,9 @@ export function P2PTradingHubModal({
                   </div>
 
                   <div className="flex gap-4 items-center">
-                    <img
-                      src={senderItem.card.images.small}
+                    <CardScan
+                      card={senderItem.card}
+                      tile
                       alt={senderItem.card.name}
                       className="w-20 h-28 object-contain rounded-lg border border-neutral-700 bg-black shadow"
                     />

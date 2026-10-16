@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import {
+  sortSetCards,
   canonicalSetId,
   expectedSetTotal,
   localCardNumber,
@@ -138,5 +139,31 @@ describe("mergeSetCardsByLocalId", () => {
     const out = overlaySetPrices(box, quotes);
     expect(out).toHaveLength(1);
     expect(out[0].tcgplayer?.prices).toBeTruthy();
+  });
+});
+
+describe("sortSetCards — 30th box", () => {
+  it("lists Celebration 001-003 before Classic Collection 001-002 (their numbers collide)", () => {
+    const cards = [
+      { id: "30th-c-002", number: "002", name: "Charizard" },
+      { id: "30th-001", number: "001", name: "Exeggcute" },
+      { id: "30th-c-001", number: "001", name: "Blastoise" },
+      { id: "30th-003", number: "003", name: "Volbeat" },
+      { id: "30th-002", number: "002", name: "Alolan Exeggutor" },
+    ];
+    expect(sortSetCards(cards).map((c) => c.id)).toEqual([
+      "30th-001",
+      "30th-002",
+      "30th-003",
+      "30th-c-001",
+      "30th-c-002",
+    ]);
+  });
+  it("does not reorder ordinary sets", () => {
+    const cards = [
+      { id: "sv3-2", number: "2" },
+      { id: "sv3-1", number: "1" },
+    ];
+    expect(sortSetCards(cards).map((c) => c.id)).toEqual(["sv3-1", "sv3-2"]);
   });
 });

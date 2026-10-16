@@ -122,8 +122,12 @@ describe("30th Classic Collection data", () => {
       expect(c.id).toBe(`30th-c-${num}`);
       expect(c.number).toBe(num);
       expect(c.name).toBe(CLASSIC_NAMES[i]);
-      expect(c.images.small).toContain(`/product/${c.tcgplayerProductId}_`);
-      expect(c.images.large).toContain(`/product/${c.tcgplayerProductId}_`);
+      expect(c.images.small).toBe(
+        `https://images.scrydex.com/pokemon/${c.scrydexId}/medium`,
+      );
+      expect(c.images.large).toBe(
+        `https://images.scrydex.com/pokemon/${c.scrydexId}/large`,
+      );
       expect(c.printedNumber).toMatch(/^\d+\/\d+$/);
       pids.add(c.tcgplayerProductId);
     });

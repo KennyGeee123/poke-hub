@@ -1,9 +1,17 @@
-// Card image helpers — promote every TCG card to HD art with TCGdex & SVG fallbacks.
-// Tile grids prefer small/low assets; detail/fullscreen keep high/hires.
+// Card image helpers. Every scan comes from Scrydex (the printed card).
+// Tile grids use the medium file; detail uses large. A placeholder file
+// advances, and the last stop is the "Art pending" tile — never TCGdex,
+// TCGPlayer, or a pokemontcg.io card-back.
 import type { TCGCard } from "@/lib/pokemon-api";
 import { isAllowedCardImageUrl } from "@/lib/card-image-hosts";
-import { pokemontcgImagePath } from "@/lib/tcgdex";
+import {
+  isScrydexPlaceholderSize,
+  scrydexImagesForId,
+  scrydexScanUrls,
+} from "@/lib/classic-scans";
 import { cardLocalId, cardSetId, isSameCard, parseCardId } from "@/lib/card-identity";
+import { applyImagePolicy } from "@/lib/image-policy";
+import { isAppOnlyCardId } from "@/lib/tcgdex";
 
 /**
  * Branded "Art pending" tile: silhouette + name + set code. Never a blank or
@@ -66,6 +74,9 @@ export function looksLikePlaceholderScan(
   const src = img.currentSrc || img.src || "";
   if (src.startsWith("data:")) return false;
   if (w < 40 || h < 40) return true;
+  // Scrydex serves a fixed placeholder for unknown ids (HTTP 200). Real medium
+  // scans are 367×512, one pixel taller than the placeholder.
+  if (/images\.scrydex\.com/i.test(src) && isScrydexPlaceholderSize(w, h)) return true;
   return /images\.pokemontcg\.io/i.test(src) && w === 640 && h === 892;
 }
 
@@ -97,65 +108,43 @@ export function tileImageUrl(url?: string | null): string {
   return tcgplayerDownsizeForTile(tcgdexHighToLow(stripHiresForTile(url.trim())));
 }
 
-function isTcgdex(url: string): boolean {
-  return /assets\.tcgdex\.net/i.test(url);
+type ImgCard = Pick<TCGCard, "id" | "name" | "number" | "set" | "images">;
+
+function isScrydexUrl(url?: string | null): boolean {
+  return !!url && /images\.scrydex\.com/i.test(url);
 }
 
-function tcgdexBase(url: string): string | null {
-  if (!isTcgdex(url)) return null;
-  const m = url.replace(/\/(high|low)\.(webp|png|jpg)$/i, "");
-  return m !== url ? m : null;
+/** Printed-card scan. Stored Scrydex URLs count; TCGdex and TCGPlayer do not. */
+function scrydexFor(card: ImgCard): { small: string; large: string } | null {
+  const built = scrydexImagesForId(card.id, cardSetId(card), cardLocalId(card));
+  const stored = [card.images?.small, card.images?.large].filter(isScrydexUrl);
+  if (!built && stored.length === 0) return null;
+  const small = built?.small || stored[0] || "";
+  const large = built?.large || stored[stored.length - 1] || small;
+  return { small, large };
+}
+
+function directScan(urls: string[]): string {
+  return urls.find((u) => !isArtPending(u) && !u.startsWith("/api/")) || urls[0] || "";
 }
 
 export function hdImg(
-  card: Pick<TCGCard, "images">,
+  card: Pick<TCGCard, "images"> & { id?: string; name?: string; number?: string; set?: ImgCard["set"] },
   opts?: { tile?: boolean },
 ): { src: string; srcSet?: string; sizes?: string } {
-  const small = card.images?.small ?? "";
-  const large = card.images?.large ?? small;
-  if (opts?.tile) {
-    // Tiles take the 245px low.webp only. A 600w high.webp in srcset made every
-    // retina tile pull ~100KB from TCGdex, and 191-card boxes tripped its 503s.
-    const tileSrc = tileImageUrl(small) || tileImageUrl(large) || small || large;
-    const low =
-      (small && isTcgdex(small) ? tcgdexHighToLow(small) : "") ||
-      (large && isTcgdex(large) ? tcgdexHighToLow(large) : "") ||
-      tileSrc;
-    return { src: low || tileSrc, sizes: "140px" };
-  }
-  return {
-    src: large || small,
-    srcSet: small && large ? `${small} 245w, ${large} 600w` : undefined,
-  };
+  const src = directScan(fallbackCardImages(card, { tile: !!opts?.tile }));
+  return { src, sizes: opts?.tile ? "140px" : "600px" };
 }
 
-export function hdLarge(card: Pick<TCGCard, "images">): string {
-  return card.images?.large || card.images?.small || "";
+export function hdLarge(
+  card: Pick<TCGCard, "images"> & { id?: string; name?: string; number?: string; set?: ImgCard["set"] },
+): string {
+  return directScan(fallbackCardImages(card));
 }
 
-type ImgCard = Pick<TCGCard, "id" | "name" | "number" | "set" | "images">;
-
-function parentSetId(setId: string, cardId?: string): string | null {
-  if (setId === "base1sl" || setId === "bss") return "base1";
-  if (setId === "error") {
-    return cardId?.includes("jungle")
-      ? "base2"
-      : cardId?.includes("fossil")
-        ? "base3"
-        : cardId?.includes("rocket")
-          ? "base5"
-          : "base1";
-  }
-  return null;
-}
-
-/** Ordered list of image URLs to try when the primary scan fails.
- *  `{ tile: true }` → small/low first (never hires/high early).
- *  Default / detail → high/hires preference preserved.
- *
- *  Order: real CDN art → same CDN alternate size → same-origin proxy (server
- *  retries 5xx, edge-cached) → constructed URLs (proxy only, so a 404 card-back
- *  can never paint) → branded "Art pending" placeholder. Never blank.
+/** Ordered Scrydex scans. Tile → medium, then large. Detail → large, then medium.
+ *  The same file through the proxy is the retry. Nothing else is requested.
+ *  Last entry is the branded "Art pending" tile. Never blank.
  */
 export function fallbackCardImages(card: ImgCard, opts?: { tile?: boolean }): string[] {
   const tile = !!opts?.tile;
@@ -167,98 +156,47 @@ export function fallbackCardImages(card: ImgCard, opts?: { tile?: boolean }): st
     urls.push(v);
   };
 
-  const small = (card.images?.small || "").trim();
-  const large = (card.images?.large || "").trim();
+  const pair = scrydexFor(card);
+  if (pair) {
+    add(tile ? pair.small : pair.large);
+    add(tile ? pair.large : pair.small);
+  }
   const setId = cardSetId(card);
   const num = cardLocalId(card);
-  const parentSet = setId ? parentSetId(setId, card.id) : null;
-  const safeSet = !!setId && /^[a-z0-9.]+$/.test(setId);
-  const serie = safeSet ? setId.replace(/[0-9].*$/, "").replace(/\.$/, "") : "";
-  const tcgBase = tcgdexBase(small) || tcgdexBase(large);
-  // TCGdex-only boxes (30th, 30th-c, dotted ids) have no pokemontcg.io scans.
-  const ptcgOk = safeSet && !setId.includes(".") && !/^(30th|30th-c|me55c)$/i.test(setId);
-  // Dotted TCGdex ids (sm7.5, swsh4.5sv, cel25cc…) keep their scans under
-  // pokemontcg's own id — reach them even when a cached card has the old URL.
-  const ptcgAlias =
-    safeSet && num && (setId.includes(".") || /^cel25cc$/i.test(setId))
-      ? pokemontcgImagePath(setId, num)
-      : null;
-
-  if (tile) {
-    const first = tileImageUrl(small) || tileImageUrl(large) || small || large;
-    add(first);
-    add(tileImageUrl(large));
-    if (tcgBase) add(`${tcgBase}/low.webp`);
-    // Busy CDN (TCGdex 503 bursts): same art through our proxy, which retries.
-    add(proxiedCardImage(first));
-    if (tcgBase) {
-      add(`${tcgBase}/high.webp`);
-      add(proxiedCardImage(`${tcgBase}/low.png`));
-    }
-    if (large && large !== first) add(proxiedCardImage(large));
-    if (!tcgBase && serie && num) {
-      add(proxiedCardImage(`https://assets.tcgdex.net/en/${serie}/${setId}/${num}/low.webp`));
-    }
-    if (ptcgAlias) add(`https://images.pokemontcg.io/${ptcgAlias}.png`);
-    if (ptcgOk && num) add(proxiedCardImage(`https://images.pokemontcg.io/${setId}/${num}.png`));
-    if (parentSet && num) {
-      add(proxiedCardImage(`https://images.pokemontcg.io/${parentSet}/${num}.png`));
-    }
-    add(generateCardSvgFallback(card.name || "Pokémon Card", card.number, card.set?.name));
-    return urls;
-  }
-
-  // Detail / fullscreen — keep high/hires preference
-  add(large);
-  add(small);
-  if (tcgBase) {
-    add(`${tcgBase}/high.webp`);
-    add(`${tcgBase}/low.webp`);
-  }
-  add(proxiedCardImage(large || small));
-  if (tcgBase) add(proxiedCardImage(`${tcgBase}/high.png`));
-  if (ptcgAlias) {
-    add(`https://images.pokemontcg.io/${ptcgAlias}_hires.png`);
-    add(`https://images.pokemontcg.io/${ptcgAlias}.png`);
-  }
-  if (ptcgOk && num) {
-    add(proxiedCardImage(`https://images.pokemontcg.io/${setId}/${num}_hires.png`));
-    add(proxiedCardImage(`https://images.pokemontcg.io/${setId}/${num}.png`));
-  }
-  if (parentSet && num) {
-    add(proxiedCardImage(`https://images.pokemontcg.io/${parentSet}/${num}_hires.png`));
-  }
-  if (!tcgBase && serie && num) {
-    add(proxiedCardImage(`https://assets.tcgdex.net/en/${serie}/${setId}/${num}/high.webp`));
-  }
+  for (const u of scrydexScanUrls(setId, num, card.id, tile)) add(u);
+  if (urls[0]) add(proxiedCardImage(urls[0]));
   add(generateCardSvgFallback(card.name || "Pokémon Card", card.number, card.set?.name));
-  return urls;
+  return applyImagePolicy(urls);
 }
 
 /**
  * v2: v1 ("pv-hd-img:") resolved 30th-c-001 as 30th-001 and cached
  * Exeggcute's scan for Classic Charizard (and the other 29 Classic cards).
- * Those poisoned entries are ignored and dropped.
+ * v3 cached the TCGPlayer product photo. v4 drops every non-Scrydex entry:
+ * the printed scan is the Scrydex file, not a TCGdex render.
  */
-const HD_CACHE_KEY = "pv-hd-img2:";
+const HD_CACHE_KEY = "pv-hd-img4:";
+const HD_CACHE_KEY_V3 = "pv-hd-img3:";
+const HD_CACHE_KEY_V2 = "pv-hd-img2:";
 const HD_CACHE_KEY_V1 = "pv-hd-img:";
 
 export async function resolveHDImage(
   card: Pick<TCGCard, "id" | "name" | "number" | "set" | "images">,
 ): Promise<string> {
+  const pair = scrydexFor(card);
   if (typeof localStorage !== "undefined") {
     try {
       localStorage.removeItem(HD_CACHE_KEY_V1 + card.id);
+      localStorage.removeItem(HD_CACHE_KEY_V2 + card.id);
+      localStorage.removeItem(HD_CACHE_KEY_V3 + card.id);
     } catch {}
-    const cached = localStorage.getItem(HD_CACHE_KEY + card.id);
-    if (cached) return cached;
   }
-  const fallback = hdLarge(card);
   try {
     // Set id = everything before the LAST hyphen; never `id.split("-")[0]`.
+    // The fetch confirms this card's identity. The image URL is not used.
     const setId = cardSetId(card) || parseCardId(card.id || "").setId;
     const num = cardLocalId(card);
-    if (setId && num) {
+    if (setId && num && !isAppOnlyCardId(card.id)) {
       const r = await fetch(
         `https://api.tcgdex.net/v2/en/cards/${encodeURIComponent(`${setId}-${num}`)}`,
       );
@@ -270,19 +208,17 @@ export async function resolveHDImage(
           image?: string;
           set?: { id?: string };
         };
-        // Only take the scan when TCGdex answered with THIS card (same set,
-        // number and name); otherwise keep the card's own image.
-        if (j.image && isSameCard({ ...card, set: { id: setId } }, j)) {
-          const url = `${j.image}/high.webp`;
-          try {
-            localStorage.setItem(HD_CACHE_KEY + card.id, url);
-          } catch {}
-          return url;
-        }
+        isSameCard({ ...card, set: { id: setId } }, j);
       }
     }
   } catch {}
-  return fallback;
+  if (pair) {
+    try {
+      localStorage.setItem(HD_CACHE_KEY + card.id, pair.large);
+    } catch {}
+    return pair.large;
+  }
+  return "";
 }
 
 export function refreshAllImageCaches() {
@@ -291,6 +227,7 @@ export function refreshAllImageCaches() {
   for (const k of Object.keys(localStorage)) {
     if (
       k.startsWith(HD_CACHE_KEY) ||
+      k.startsWith(HD_CACHE_KEY_V2) ||
       k.startsWith(HD_CACHE_KEY_V1) ||
       k.startsWith("pv-tcg-cache:")
     ) {

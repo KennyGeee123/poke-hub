@@ -4,7 +4,7 @@ import { searchCards, type TCGCard } from "@/lib/pokemon-api";
 import { formatPrice, useVault } from "@/lib/vault";
 import { identifyCard } from "@/lib/scanner.functions";
 import { useLivePrice } from "@/lib/live-prices";
-import { hdImg } from "@/lib/card-images";
+import { CardScan } from "./CardScan";
 import {
   ALL_GRADES,
   type CardGrade,
@@ -27,10 +27,9 @@ import {
 
 function CardHit({ card, onPick }: { card: TCGCard; onPick: (c: TCGCard) => void }) {
   const live = useLivePrice(card);
-  const img = hdImg(card, { tile: true });
   return (
     <button type="button" className="ft-hit" onClick={() => onPick(card)}>
-      <img src={img.src} alt="" className="ft-hit-thumb" />
+      <CardScan card={card} tile alt="" className="ft-hit-thumb" />
       <span className="ft-hit-copy">
         <strong>{card.name}</strong>
         <em>
@@ -62,7 +61,11 @@ function AssetPreview({ asset }: { asset: FairAsset }) {
   return (
     <div className="ft-picked">
       <div className="ft-picked-art">
-        <img src={asset.image} alt={asset.label} className="ft-picked-img" />
+        {asset.kind === "card" ? (
+          <CardScan card={asset.card} alt={asset.label} className="ft-picked-img" />
+        ) : (
+          <img src={asset.image} alt={asset.label} className="ft-picked-img" />
+        )}
         {asset.kind === "card" && (
           <img
             src={gradeMockImg(asset.grade)}

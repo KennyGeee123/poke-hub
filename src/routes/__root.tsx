@@ -114,6 +114,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://images.pokemontcg.io" },
       { rel: "preconnect", href: "https://assets.tcgdex.net" },
       { rel: "preconnect", href: "https://tcgplayer-cdn.tcgplayer.com" },
+      { rel: "preconnect", href: "https://images.scrydex.com" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {

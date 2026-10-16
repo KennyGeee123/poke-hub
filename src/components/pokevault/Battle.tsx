@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { hdImg } from "@/lib/card-images";
+import { CardScan } from "./CardScan";
 import type { TCGCard } from "@/lib/pokemon-api";
 import { searchCards } from "@/lib/pokemon-api";
 import { useVault } from "@/lib/vault";
@@ -179,11 +179,10 @@ function MiniCard({
       }}
     >
       <div style={{ position: "absolute", inset: 0, borderRadius: 9, overflow: "hidden" }}>
-        <img
-          {...hdImg(bc.card)}
+        <CardScan
+          card={bc.card}
           alt={bc.card.name}
           style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-          loading="lazy"
         />
         <div
           style={{
@@ -1159,7 +1158,7 @@ export function BattleView({
                 onClick={() => (isTurn || isSetup) && ok && playCard(card, i)}
                 title={`${card.name} · ${card.supertype}`}
               >
-                <img {...hdImg(card)} alt={card.name} loading="lazy" />
+                <CardScan card={card} alt={card.name} />
                 <span
                   style={{
                     position: "absolute",
@@ -1708,7 +1707,7 @@ function DeckBuilder({
                     className={`pv-dbuild-card ${inDeck ? "in" : ""}`}
                     onClick={() => add(card)}
                   >
-                    <img {...hdImg(card)} alt={card.name} loading="lazy" />
+                    <CardScan card={card} alt={card.name} />
                     <div style={{ padding: 6 }}>
                       <div
                         style={{
@@ -1765,7 +1764,7 @@ function DeckBuilder({
             ) : (
               Object.values(deck).map((e) => (
                 <div key={e.card.id} className="pv-dbuild-row">
-                  <img {...hdImg(e.card)} alt="" />
+                  <CardScan card={e.card} alt="" />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div
                       style={{
