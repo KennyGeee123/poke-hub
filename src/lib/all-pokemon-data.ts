@@ -1596,8 +1596,8 @@ export const ALL_POKEMON: NationalDexPokemon[] = [
   },
   {
     id: 83,
-    name: "Farfetch\\u2019d",
-    slug: "farfetch-u2019d",
+    name: "Farfetch’d",
+    slug: "farfetchd",
     gen: 1,
     types: ["Normal", "Flying"],
     baseStats: {
@@ -12730,8 +12730,8 @@ export const ALL_POKEMON: NationalDexPokemon[] = [
   },
   {
     id: 669,
-    name: "Flabe\\u0301be\\u0301",
-    slug: "flabe-u0301be-u0301",
+    name: "Flabébé",
+    slug: "flabebe",
     gen: 6,
     types: ["Fairy"],
     baseStats: {
@@ -16454,8 +16454,8 @@ export const ALL_POKEMON: NationalDexPokemon[] = [
   },
   {
     id: 865,
-    name: "Sirfetch\\u2019d",
-    slug: "sirfetch-u2019d",
+    name: "Sirfetch’d",
+    slug: "sirfetchd",
     gen: 8,
     types: ["Fighting"],
     baseStats: {

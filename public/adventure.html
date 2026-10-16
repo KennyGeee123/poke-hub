@@ -315,6 +315,7 @@
     </div>
   </div>
 
+<script src="/adventure-dex.js"></script>
 <script src="/adventure-world.js"></script>
 <script>
 /* PokéVault Adventure — original procedural overworld (no ROMs / no ripped assets). */
@@ -569,6 +570,18 @@ function generateWorld(idx) {
     [[20,12,13],[28,12,14],[20,16,15],[28,16,16],[24,20,17]].forEach(([dx,dy,t]) => { map[dy][dx] = t; });
     stampBuilding(map, 24, 34, 18, 5);
   }
+  // Town houses. The 2x2 roofs stamped near the top used to overlap the Poke
+  // Center / gym footprints, so clearAround() erased them and no town had any
+  // houses. Stamp them last, west/south-west of the center, clear of the roads
+  // (column cx, row/column mid), the NPC, buildings and water.
+  [[townX - 4, townY - 3], [townX - 3, townY + 3]].forEach(([hx, hy]) => {
+    const cells = [[hx, hy], [hx + 1, hy], [hx, hy + 1], [hx + 1, hy + 1]];
+    const ok = cells.every(([x, y]) =>
+      x > 1 && y > 1 && x < MAP_SIZE - 2 && y < MAP_SIZE - 2 &&
+      x !== cx && x !== mid && y !== mid &&
+      [0, 1, 7].includes(map[y][x]));
+    if (ok) cells.forEach(([x, y]) => { map[y][x] = 8; });
+  });
   map[0][mid] = portal; map[MAP_SIZE-1][mid] = portal;
   map[mid][0] = portal; map[mid][MAP_SIZE-1] = portal;
 
@@ -578,6 +591,188 @@ function generateWorld(idx) {
 const GENERATED = AREAS.map((_, i) => generateWorld(i));
 const MAPS = GENERATED.map(g => g.map);
 const POI = GENERATED.map(g => ({ center: g.center, gym: g.gym }));
+
+/* Legend shrines (tile 22): each legendary/mythical has one fixed spot in its home
+   town (AREAS[i].legendSpots, from adventure-world.js), beside the main east-west
+   road so it is always reachable. Same spot every visit, no random rolls. */
+const SHRINE = 22;
+const SHRINE_XS = [8, 40, 12, 36, 4, 44, 16, 32];
+const LEGEND_SHRINES = AREAS.map((a, i) => {
+  const m = MAPS[i], mid = Math.floor(MAP_SIZE / 2), cx = POI[i].center.x;
+  const keep = [3, 4, 5, 8, 13, 14, 15, 16, 17, 18, 19, SHRINE];
+  const spots = [];
+  let slot = 0;
+  (a.legendSpots || []).forEach((leg) => {
+    while (slot < SHRINE_XS.length * 2) {
+      const x = SHRINE_XS[slot >> 1], y = slot % 2 ? mid + 1 : mid - 1;
+      slot++;
+      if (x === cx || keep.includes(m[y][x])) continue;
+      m[y][x] = SHRINE;
+      spots.push({ x, y, id: leg.id, name: leg.name });
+      break;
+    }
+  });
+  return spots;
+});
+const LegendArt = {};
+function legendArt(name) {
+  if (!LegendArt[name]) { const im = new Image(); im.src = spriteUrl(name); LegendArt[name] = im; }
+  return LegendArt[name];
+}
+/* Walkable interiors (Poke Center + gym). A room is drawn in the middle of an
+   otherwise void 48x48 map so the camera, collision and save code all work as-is.
+   Tiles: 23 floor, 24 counter, 25 exit mat, 26 gym floor, 27 statue, 28 leader,
+          29 talk/challenge spot, 30 void, 31 wall. */
+const IN = { FLOOR: 23, COUNTER: 24, MAT: 25, GFLOOR: 26, STATUE: 27, LEADER: 28, SPOT: 29, VOID: 30, WALL: 31 };
+const INTERIOR_BLOCKED = [IN.COUNTER, IN.STATUE, IN.LEADER, IN.VOID, IN.WALL];
+function buildRoom(rows) {
+  const m = Array.from({ length: MAP_SIZE }, () => Array(MAP_SIZE).fill(IN.VOID));
+  const key = { "#": IN.WALL, ".": IN.FLOOR, "=": IN.COUNTER, "M": IN.MAT, ",": IN.GFLOOR, "S": IN.STATUE, "L": IN.LEADER, "o": IN.SPOT };
+  const ox = Math.floor((MAP_SIZE - rows[0].length) / 2), oy = Math.floor((MAP_SIZE - rows.length) / 2);
+  let mat = null, spot = null, leader = null;
+  rows.forEach((row, j) => [...row].forEach((ch, i) => {
+    m[oy + j][ox + i] = key[ch] ?? IN.FLOOR;
+    if (ch === "M") mat = { x: ox + i, y: oy + j };
+    if (ch === "o") spot = { x: ox + i, y: oy + j };
+    if (ch === "L") leader = { x: ox + i, y: oy + j };
+  }));
+  return { map: m, mat, spot, leader };
+}
+const CENTER_ROOM = [
+  "###########",
+  "#...===...#",
+  "#...=L=...#",
+  "#.........#",
+  "#....o....#",
+  "#.........#",
+  "#==.....==#",
+  "#.........#",
+  "#####M#####",
+];
+const GYM_ROOM = [
+  "#############",
+  "#,,,,,L,,,,,#",
+  "#,,,,,o,,,,,#",
+  "#,S,,,,,,,S,#",
+  "#,,,,,,,,,,,#",
+  "#,S,,,,,,,S,#",
+  "#,,,,,,,,,,,#",
+  "#,S,,,,,,,S,#",
+  "#,,,,,,,,,,,#",
+  "#,,,,,,,,,,,#",
+  "#,,,S,,,S,,,#",
+  "#,,,,,,,,,,,#",
+  "######M######",
+];
+const GYM_TINT = { Rock: "#8d7b68", Water: "#4f8fc9", Electric: "#d8b437", Grass: "#5f9e4f", Poison: "#8a5aa8", Psychic: "#c45c9a",
+  Fire: "#c8613a", Ground: "#a9824f", Flying: "#8fb3d9", Bug: "#93a84a", Normal: "#b7ad9a", Ghost: "#6b5a8f", Fighting: "#a8553f",
+  Steel: "#9aa3ad", Ice: "#9fd3e6", Dragon: "#5b5fb8", Dark: "#4d4458", Fairy: "#e39cc0" };
+const Interiors = {
+  enter(kind) {
+    const room = buildRoom(kind === "gym" ? GYM_ROOM : CENTER_ROOM);
+    const g = MapManager.gym();
+    MapManager.interior = { kind, ...room, out: { x: Player.x, y: Player.y + 1 }, tint: kind === "gym" && g ? (GYM_TINT[g.type] || "#9a8f7c") : null, gym: kind === "gym" ? g : null };
+    Player.x = room.mat.x; Player.y = room.mat.y - 1; Player.facing = "up";
+    Player.trail = [{ x: Player.x, y: Player.y, facing: "up" }];
+    Follower.x = Player.x; Follower.y = Player.y + 1;
+    Camera.sync(true);
+    UIManager.showRegionLabel(kind === "gym" ? (g ? g.name + " · " + g.leader : "Gym") : MapManager.name() + " · Pokémon Center");
+  },
+  leave() {
+    const inn = MapManager.interior;
+    if (!inn) return;
+    MapManager.interior = null;
+    Player.x = inn.out.x; Player.y = inn.out.y; Player.facing = "down";
+    Player.trail = [{ x: Player.x, y: Player.y, facing: "down" }];
+    Follower.x = Player.x; Follower.y = Player.y - 1;
+    Camera.sync(true);
+    UIManager.showRegionLabel(MapManager.regionName() + " · " + MapManager.name());
+  },
+  step(t) {
+    const inn = MapManager.interior;
+    if (t === IN.MAT) { this.leave(); return; }
+    if (t === IN.SPOT) {
+      if (inn.kind === "center") Sites.center();
+      else Sites.gym();
+    }
+  },
+};
+
+/* HD-2D backdrops baked in Blender (JARVIS World Forge, oblique golden-hour bake).
+   One image per area + Poke Center + one gym per type, listed in /adventure-hd/index.json.
+   The image is the 48x48 ground grid, shortened vertically by the bake tilt; it is drawn
+   stretched back to 48*32 px so every ground tile stays aligned with collision. */
+const HD = {
+  keys: null,
+  imgs: {},
+  on: (() => { try { return localStorage.getItem("pv_adv_hd") !== "0"; } catch (_) { return true; } })(),
+  slug(n) { return String(n).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); },
+  key() {
+    const inn = MapManager.interior;
+    if (inn) return inn.kind === "gym" ? "gym-" + this.slug((inn.gym && inn.gym.type) || "normal") : "center";
+    return this.slug(MapManager.area().region + "-" + MapManager.area().name);
+  },
+  img() {
+    if (!this.on || !this.keys) return null;
+    const k = this.key();
+    if (!this.keys.has(k)) return null;
+    if (!this.imgs[k]) { const im = new Image(); im.src = "/adventure-hd/" + k + ".webp"; this.imgs[k] = im; }
+    const im = this.imgs[k];
+    return im.complete && im.naturalWidth ? im : null;
+  },
+  toggle() {
+    this.on = !this.on;
+    try { localStorage.setItem("pv_adv_hd", this.on ? "1" : "0"); } catch (_) {}
+    UIManager.showRegionLabel(this.on ? "HD-2D world on" : "Classic tiles");
+  },
+};
+fetch("/adventure-hd/index.json").then((r) => (r.ok ? r.json() : [])).then((list) => { HD.keys = new Set(list); }).catch(() => { HD.keys = new Set(); });
+
+const TrainerArt = {
+  imgs: {},
+  get(file) {
+    if (!file) return null;
+    if (!this.imgs[file]) { const im = new Image(); im.src = "/sprites/trainers/" + file + ".png"; this.imgs[file] = im; }
+    const im = this.imgs[file];
+    return im.complete && im.naturalWidth ? im : null;
+  },
+  roster() { return (typeof TRAINER_ROSTER !== "undefined" && TRAINER_ROSTER[MapManager.area().region]) || null; },
+  classOf(title) {
+    const t = String(title || "").toLowerCase();
+    if (t.startsWith("youngster")) return "youngster";
+    if (t.startsWith("lass")) return "lass";
+    if (t.startsWith("bug catcher")) return "bugcatcher";
+    if (t.startsWith("camper")) return "camper";
+    if (t.startsWith("hiker")) return "hiker";
+    if (t.startsWith("swimmer")) return "swimmer";
+    if (t.startsWith("ace trainer")) return "acetrainer";
+    if (t.startsWith("pkmn ranger") || t.startsWith("pokemon ranger")) return "ranger";
+    return "townsfolk";
+  },
+  // draw an 80x80 trainer sprite standing on the tile at (px, py)
+  draw(ctx, im, px, py, h, flip, dim) {
+    const w = h * im.naturalWidth / im.naturalHeight;
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,.25)";
+    ctx.beginPath(); ctx.ellipse(px + TILE / 2, py + TILE - 2, 11, 4, 0, 0, Math.PI * 2); ctx.fill();
+    if (dim) ctx.filter = "grayscale(1) brightness(.85)";
+    ctx.translate(px + TILE / 2, 0);
+    if (flip) ctx.scale(-1, 1);
+    ctx.drawImage(im, -w / 2, py + TILE - h + 4, w, h);
+    ctx.restore();
+  },
+};
+
+const Legends = {
+  at(x, y) { return (LEGEND_SHRINES[MapManager.current] || []).find((l) => l.x === x && l.y === y) || null; },
+  caught(name) { return (SaveSystem.state.caught || []).some((c) => c.name === name); },
+  touch(x, y) {
+    const l = this.at(x, y);
+    if (!l) return;
+    if (this.caught(l.name)) { UIManager.toastModal("SHRINE", l.name + " already joined you. The shrine is quiet."); return; }
+    EncounterSystem.startLegend(l);
+  },
+};
 
 const NPCS = AREAS.map((a, i) => ({
   region: i,
@@ -624,7 +819,10 @@ function spriteSlug(name) {
 }
 function dexId(name) {
   const slug = spriteSlug(name);
-  return (typeof DEX_ID !== "undefined" && (DEX_ID[slug] || DEX_ID[name.toLowerCase()])) || 0;
+  const hit = typeof DEX_ID !== "undefined" && (DEX_ID[slug] || DEX_ID[name.toLowerCase()]);
+  if (hit) return hit;
+  const row = typeof ADV_DEX !== "undefined" && ADV_DEX.find((r) => r[1].toLowerCase() === String(name).toLowerCase());
+  return row ? row[0] : 0;
 }
 const LOCAL_FOLLOW = {
   bulbasaur:1,charmander:1,squirtle:1,pikachu:1,caterpie:1,pidgey:1,rattata:1,
@@ -657,9 +855,10 @@ function pokeImgFallback(img) {
   img.setAttribute("data-fall", q.slice(1).join("|"));
   img.src = q[0];
 }
-function pokeImgTag(name) {
+function pokeImgTag(name, shiny) {
   const safe = safeSpeciesName(name);
-  const urls = spriteFallbacks(safe);
+  const id = shiny ? dexId(safe) : 0;
+  const urls = (id ? [`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${id}.png`] : []).concat(spriteFallbacks(safe));
   const src = escapeHtml(urls[0] || "");
   const fall = escapeHtml(urls.slice(1).join("|"));
   const alt = escapeHtml(safe);
@@ -682,7 +881,8 @@ const Camera = {
 const MapManager = {
   regions: MAPS,
   current: 0,
-  get map() { return this.regions[this.current]; },
+  interior: null,
+  get map() { return this.interior ? this.interior.map : this.regions[this.current]; },
   area() { return AREAS[this.current]; },
   name() { return this.area().name; },
   regionName() { return this.area().region; },
@@ -819,7 +1019,7 @@ const Player = {
     updateCompass();
     const nx = this.x + dx, ny = this.y + dy;
     const t = MapManager.tileAt(nx, ny);
-    if ([2, 8, 10, 12, 9, 18, 19, 20, 21].includes(t)) return;
+    if ([2, 8, 10, 12, 9, 18, 19, 20, 21].includes(t) || INTERIOR_BLOCKED.includes(t)) return;
     if (t === 3) {
       let dir = 'N';
       if (ny >= MAP_SIZE - 1) dir = 'S';
@@ -855,13 +1055,18 @@ const Player = {
     if (this.trail.length > 8) this.trail.length = 8;
     this.x = nx; this.y = ny;
     this.step = (this.step + 1) & 3;
-    if (t === 1) EncounterSystem.tryEncounter(areaEncounterRate(MapManager.area(), 1));
+    if (MapManager.interior) {
+      Interiors.step(t);
+      SaveSystem.save();
+      UIManager.updateCoords();
+      return;
+    }
+    if (t === SHRINE) Legends.touch(this.x, this.y);
+    else if (t === 1) EncounterSystem.tryEncounter(areaEncounterRate(MapManager.area(), 1));
     else if (t === 6) EncounterSystem.tryWater(areaEncounterRate(MapManager.area(), 6));
     else if (t === 11 && ["rock", "highland", "cave", "desert", "volcano", "snow", "ice"].includes(MapManager.area().biome)) EncounterSystem.tryEncounter(areaEncounterRate(MapManager.area(), 11));
-    else if (t === 4) { if (!this._inGym) { this._inGym = true; Sites.gym(); } }
-    else this._inGym = false;
-    if (t === 5) { if (!this._inCenter) { this._inCenter = true; Sites.center(); } }
-    else this._inCenter = false;
+    else if (t === 4) { Interiors.enter("gym"); return; }
+    if (t === 5) { Interiors.enter("center"); return; }
     if (t >= 13 && t <= 17) Sites.elite(t - 13);
     FieldTrainers.check();
     SaveSystem.save();
@@ -870,12 +1075,18 @@ const Player = {
   interact() {
     if (this.frozen) return;
     const { x, y, t } = facingTile();
-    const npc = NPCS.find(n => n.region === MapManager.current && n.x === x && n.y === y);
+    const npc = !MapManager.interior && NPCS.find(n => n.region === MapManager.current && n.x === x && n.y === y);
     if (npc) { UIManager.toastModal("TOWNSFOLK", npc.quote); return; }
     const tr = FieldTrainers.at(x, y);
     if (tr) { Sites.trainer(tr); return; }
-    if (t === 4) Sites.gym();
-    else if (t === 5) Sites.center();
+    if (MapManager.interior) {
+      if (t === IN.COUNTER || t === IN.LEADER) {
+        if (MapManager.interior.kind === "center") Sites.center(); else Sites.gym();
+      }
+      return;
+    }
+    if (t === 4) Interiors.enter("gym");
+    else if (t === 5) Interiors.enter("center");
     else if (t >= 13 && t <= 17) Sites.elite(t - 13);
   }
 };
@@ -952,16 +1163,36 @@ function areaEncounterRate(area, tile) {
   return rate;
 }
 
+// Wild level follows progress INSIDE the region (each region restarts at its
+// first route like the games), not the global area index - that made New Bark
+// (area 10) roll Lv 35+ wilds and late regions roll past Lv 100.
+function wildLevel(bonus) {
+  const area = MapManager.area();
+  const step = AREAS.filter((a, i) => i < MapManager.current && a.region === area.region).length;
+  return Math.min(70, 2 + step * 5 + (bonus || 0) + Math.floor(Math.random() * 4));
+}
+
+// Shiny odds: 1 in 256 on every wild and shrine encounter.
+const SHINY_ODDS = 256;
+function rollShiny() { return Math.random() < 1 / SHINY_ODDS; }
+
+// Legendaries never roll here (they live on fixed shrines). 55% the area's hand-picked pool,
+// 45% the rest of the region's full dex assigned to this area.
+function pickWild(pool, dex) {
+  const one = (l) => l[Math.floor(Math.random() * l.length)];
+  if (dex && dex.length && Math.random() < 0.45) return one(dex);
+  return one(pool);
+}
+
 const EncounterSystem = {
   current: null,
   handed: false,
   autoTimer: null,
   tryEncounter(rate) {
     if (Math.random() > (rate ?? 0.28)) return;
-    const pool = MapManager.area().pool || ["Pidgey"];
-    const name = pool[Math.floor(Math.random() * pool.length)];
+    const name = pickWild(MapManager.area().pool || ["Pidgey"], MapManager.area().dex);
     const poke = speciesOf(name);
-    this.current = { ...poke, kind: "wild", level: 5 + MapManager.current * 3 + Math.floor(Math.random() * 4) };
+    this.current = { ...poke, kind: "wild", level: wildLevel(0), shiny: rollShiny() };
     this.handed = false;
     Player.frozen = true;
     AudioFX.rustle();
@@ -983,9 +1214,9 @@ const EncounterSystem = {
     const pool = (MapManager.area().surf && MapManager.area().surf.length)
       ? MapManager.area().surf
       : ["Magikarp", "Psyduck"];
-    const name = pool[Math.floor(Math.random() * pool.length)];
+    const name = pickWild(pool, MapManager.area().dexSurf);
     const poke = speciesOf(name);
-    this.current = { ...poke, kind: "wild", habitat: "water", level: 6 + MapManager.current * 3 + Math.floor(Math.random() * 4) };
+    this.current = { ...poke, kind: "wild", habitat: "water", level: wildLevel(1), shiny: rollShiny() };
     this.handed = false;
     Player.frozen = true;
     AudioFX.splash();
@@ -1000,6 +1231,18 @@ const EncounterSystem = {
     UIManager.openWild(this.current);
     clearTimeout(this.autoTimer);
     this.autoTimer = setTimeout(() => this.fight(), 450);
+  },
+  startLegend(l) {
+    const poke = speciesOf(l.name);
+    this.current = { ...poke, kind: "wild", level: 50, legendary: true, shiny: rollShiny() };
+    this.handed = false;
+    Player.frozen = true;
+    UIManager.flash();
+    const seen = SaveSystem.state.seen || (SaveSystem.state.seen = []);
+    if (!seen.find(c => c.name === poke.name)) { seen.push({ name: poke.name, emoji: poke.emoji, color: poke.color }); SaveSystem.save(); UIManager.renderPokedex(); }
+    UIManager.openWild(this.current);
+    clearTimeout(this.autoTimer);
+    this.autoTimer = setTimeout(() => this.fight(), 900);
   },
   close() {
     clearTimeout(this.autoTimer);
@@ -1019,6 +1262,7 @@ const EncounterSystem = {
       type: "pv-adventure-encounter",
       name: poke.name,
       region: MapManager.name(),
+      gameRegion: MapManager.regionName(),
       level: poke.level,
       kind: poke.kind || "wild",
       catchable: poke.kind === "wild",
@@ -1026,6 +1270,8 @@ const EncounterSystem = {
       badge: poke.badge,
       e4Index: poke.e4Index,
       trainerId: poke.trainerId,
+      shiny: !!poke.shiny,
+      legendary: !!poke.legendary,
     });
     UIManager.openBattleHandoff(poke);
   },
@@ -1067,7 +1313,7 @@ const FieldTrainers = {
     }
     return out;
   },
-  list(r) { return this.byRegion[r] || []; },
+  list(r) { return MapManager.interior ? [] : (this.byRegion[r] || []); },
   at(x, y) {
     return this.list(MapManager.current).find((tr) => !tr.beaten && tr.x === x && tr.y === y);
   },
@@ -1231,16 +1477,18 @@ const UIManager = {
     f.classList.add('on');
     setTimeout(() => f.classList.remove('on'), 200);
   },
-  setSprite(name) {
+  setSprite(name, shiny) {
     const sp = document.getElementById('poke-sprite');
-    sp.innerHTML = pokeImgTag(name);
+    sp.innerHTML = pokeImgTag(name, shiny);
   },
   openWild(poke) {
     this.toastOpen = false;
     const water = poke && poke.habitat === 'water';
-    document.getElementById('modal-title').textContent = water ? 'A wild Pokémon surfaced!' : 'A wild Pokémon appeared!';
-    this.setSprite(poke.name);
-    document.getElementById('poke-name').textContent = poke.name + '  Lv' + poke.level;
+    document.getElementById('modal-title').textContent = poke.legendary
+      ? (poke.shiny ? '✨ A shiny legend awakens!' : 'A legend awakens!')
+      : poke.shiny ? '✨ A shiny Pokémon appeared!' : water ? 'A wild Pokémon surfaced!' : 'A wild Pokémon appeared!';
+    this.setSprite(poke.name, poke.shiny);
+    document.getElementById('poke-name').textContent = (poke.shiny ? '✨ ' : '') + poke.name + '  Lv' + poke.level;
     document.getElementById('modal-msg').textContent = water
       ? 'FIGHT starts an in-Adventure battle · RUN stays in the water'
       : 'FIGHT starts an in-Adventure battle · RUN stays in the grass';
@@ -1407,11 +1655,20 @@ const UIManager = {
           1:'#2e7d32',2:'#1b5e20',3:'#e2b53a',4:'#cc2b2b',5:'#f48fb1',
           6:'#1e88e5',7:'#ec407a',8:'#6d4c41',9:'#4527a0',10:'#5d4037',11:'#e0c068',
           12:'#263238',13:'#7c3aed',14:'#fb8c00',15:'#6a1b9a',16:'#c62828',17:'#ffd54f',
-          18:'#f4f1ea',19:'#d7ccc8',20:'#0d47a1',21:'#e65100'
+          18:'#f4f1ea',19:'#d7ccc8',20:'#0d47a1',21:'#e65100',22:'#ffd700',
+          23:'#f5efe1',24:'#d94a5a',25:'#b5372f',26:'#9a8f7c',27:'#6f6a63',28:'#e2b53a',29:'#ffd54f',30:'#0b0f18',31:'#5a5260'
         })[t] || '#142018';
         ctx.fillRect(x * s, y * s, s + 0.5, s + 0.5);
       }
     }
+    // legend shrines: gold diamonds, grey once caught
+    (LEGEND_SHRINES[MapManager.current] || []).forEach((l) => {
+      ctx.fillStyle = Legends.caught(l.name) ? '#777' : '#ffd700';
+      ctx.beginPath();
+      ctx.moveTo(l.x * s + s / 2, l.y * s - 2); ctx.lineTo(l.x * s + s + 2, l.y * s + s / 2);
+      ctx.lineTo(l.x * s + s / 2, l.y * s + s + 2); ctx.lineTo(l.x * s - 2, l.y * s + s / 2);
+      ctx.closePath(); ctx.fill();
+    });
     // camera viewport
     ctx.strokeStyle = 'rgba(255,255,255,.55)';
     ctx.lineWidth = 1;
@@ -1451,16 +1708,23 @@ const UIManager = {
     const baseX = Math.floor(camPx / TILE) - 1;
     const baseY = Math.floor(camPy / TILE) - 1;
     const overlays = [];
+    const hd = HD.img();
+    if (hd) ctx.drawImage(hd, -camPx, -camPy, MAP_SIZE * TILE, MAP_SIZE * TILE);
     for (let vy = -1; vy <= VIEW_TILES + 1; vy++) {
       for (let vx = -1; vx <= VIEW_TILES + 1; vx++) {
         const mx = baseX + vx + 1, my = baseY + vy + 1;
         const px = mx * TILE - camPx, py = my * TILE - camPy;
         const t = MapManager.tileAt(mx, my);
+        if (hd) {
+          // baked world: only the live bits (legend sprites, nurse / gym leader)
+          if (t === SHRINE || t === IN.LEADER) this.drawLive(ctx, t, px, py, mx, my);
+          continue;
+        }
         this.drawTile(ctx, t, px, py, mx, my);
         if ([2, 4, 5, 8, 9, 18, 19].includes(t) || (t >= 13 && t <= 17)) overlays.push({ t, px, py, mx, my });
       }
     }
-    NPCS.filter(n => n.region === MapManager.current).forEach(n => {
+    NPCS.filter(n => !MapManager.interior && n.region === MapManager.current).forEach(n => {
       const px = n.x * TILE - camPx, py = n.y * TILE - camPy;
       if (px < -40 || py < -40 || px > CANVAS_PX || py > CANVAS_PX) return;
       this.drawNpc(ctx, px, py, n.color);
@@ -1490,7 +1754,8 @@ const UIManager = {
     vg.addColorStop(1, 'rgba(8,14,24,0.38)');
     ctx.fillStyle = vg;
     ctx.fillRect(0, 0, CANVAS_PX, CANVAS_PX);
-    this.drawSky(ctx);
+    if (HD.img() && !MapManager.interior) this.tiltShift(ctx);
+    if (!MapManager.interior) this.drawSky(ctx);
     this.drawMini();
   },
   drawFollower(ctx, camPx, camPy) {
@@ -1510,6 +1775,8 @@ const UIManager = {
     }
   },
   drawNpc(ctx, px, py, color) {
+    const ro = TrainerArt.roster(), im = ro && TrainerArt.get(ro.townsfolk);
+    if (im) { TrainerArt.draw(ctx, im, px, py, 54, false, false); return; }
     ctx.fillStyle = 'rgba(0,0,0,.2)';
     ctx.beginPath(); ctx.ellipse(px + 16, py + 30, 10, 4, 0, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = color;
@@ -1518,6 +1785,12 @@ const UIManager = {
     ctx.fillRect(px + 10, py + 3, 12, 11);
   },
   drawFieldTrainer(ctx, px, py, tr) {
+    const ro = TrainerArt.roster(), im = ro && TrainerArt.get(ro[TrainerArt.classOf(tr.title)]);
+    if (im) {
+      TrainerArt.draw(ctx, im, px, py, 54, false, tr.beaten);
+      if (!tr.beaten) { ctx.fillStyle = "#cc2b2b"; ctx.beginPath(); ctx.arc(px + 28, py - 14, 3.5, 0, Math.PI * 2); ctx.fill(); }
+      return;
+    }
     ctx.fillStyle = 'rgba(0,0,0,.22)';
     ctx.beginPath(); ctx.ellipse(px + 16, py + 30, 10, 4, 0, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = tr.beaten ? '#8a8a8a' : tr.color;
@@ -1589,6 +1862,13 @@ const UIManager = {
     ctx.strokeRect(x + 4, y + 22, w - 8, h - 22);
   },
   drawTrainer(ctx, ppx, ppy, facing) {
+    // the region's protagonist (Red, Ethan, Brendan ... Florian), mirrored for left/right
+    const ro = TrainerArt.roster(), hero = ro && TrainerArt.get(ro.player);
+    if (hero) {
+      const bob = (Player.step % 4 === 1 || Player.step % 4 === 3) ? 1 : 0;
+      TrainerArt.draw(ctx, hero, ppx, ppy + bob, 58, facing === "right", false);
+      return;
+    }
     const im = TRAINER[facing] || TRAINER.down;
     ctx.fillStyle = 'rgba(0,0,0,.28)';
     ctx.beginPath(); ctx.ellipse(ppx + 16, ppy + 30, 12, 5, 0, 0, Math.PI * 2); ctx.fill();
@@ -1676,8 +1956,117 @@ const UIManager = {
       ctx.fillRect(px + 14, py + 14, 4, 4);
     }
   },
+  drawLive(ctx, t, px, py, mx, my) {
+    if (t === SHRINE) {
+      const l = Legends.at(mx, my);
+      if (!l || Legends.caught(l.name)) return;
+      const im = legendArt(l.name);
+      const bob = Math.sin(Date.now() / 380 + mx) * 2;
+      ctx.save();
+      ctx.shadowColor = "#ffe27a"; ctx.shadowBlur = 10;
+      if (im.complete && im.naturalWidth) ctx.drawImage(im, px - 6, py - 26 + bob, TILE + 12, TILE + 12);
+      ctx.restore();
+      return;
+    }
+    const gym = MapManager.interior && MapManager.interior.kind === "gym";
+    const lname = gym && MapManager.interior.gym && MapManager.interior.gym.leader;
+    if (gym && lname && !leaderSprite(lname) && dexId(lname)) {
+      const mon = legendArt(lname);
+      if (mon.complete && mon.naturalWidth) ctx.drawImage(mon, px - 14, py - 34, TILE + 28, TILE + 28);
+      return;
+    }
+    const real = TrainerArt.get(gym ? leaderSprite(lname) : "nurse");
+    if (real) { TrainerArt.draw(ctx, real, px, py - (gym ? 10 : 18), 60, false, false); return; }
+    const im = TRAINER.down;
+    if (!im || !im.complete || !im.naturalWidth) return;
+    const h = 46, w = h * im.naturalWidth / im.naturalHeight;
+    ctx.save();
+    if (!gym) ctx.filter = "hue-rotate(300deg) saturate(1.3)";
+    ctx.drawImage(im, px + TILE / 2 - w / 2, py + TILE - h - (gym ? 14 : 22), w, h);
+    ctx.restore();
+  },
+  tiltShift(ctx) {
+    // diorama look: soft blur fading in at the top and bottom of the view
+    const W = CANVAS_PX, band = Math.round(W * 0.24);
+    if (!this._ts) { this._ts = document.createElement("canvas"); this._ts.width = W; this._ts.height = band; }
+    const o = this._ts.getContext("2d");
+    [true, false].forEach((top) => {
+      o.globalCompositeOperation = "source-over";
+      o.clearRect(0, 0, W, band);
+      o.filter = "blur(2.6px)";
+      o.drawImage(this.canvas, 0, top ? 0 : W - band, W, band, 0, 0, W, band);
+      o.filter = "none";
+      o.globalCompositeOperation = "destination-in";
+      const g = o.createLinearGradient(0, 0, 0, band);
+      g.addColorStop(top ? 0 : 1, "rgba(0,0,0,1)");
+      g.addColorStop(top ? 1 : 0, "rgba(0,0,0,0)");
+      o.fillStyle = g;
+      o.fillRect(0, 0, W, band);
+      ctx.drawImage(this._ts, 0, top ? 0 : W - band);
+    });
+  },
+  drawInterior(ctx, t, px, py, mx, my) {
+    const inn = MapManager.interior || {};
+    const gym = inn.kind === "gym";
+    const checker = (mx + my) % 2;
+    if (t === IN.VOID) { ctx.fillStyle = "#0b0f18"; ctx.fillRect(px, py, TILE, TILE); return; }
+    if (t === IN.WALL) {
+      ctx.fillStyle = gym ? "#3a3340" : "#e9e2d0"; ctx.fillRect(px, py, TILE, TILE);
+      ctx.fillStyle = gym ? "#2a2430" : "#cfc6b0"; ctx.fillRect(px, py + TILE - 8, TILE, 8);
+      if (!gym) { ctx.fillStyle = "#d94a5a"; ctx.fillRect(px, py + 6, TILE, 4); }
+      return;
+    }
+    // floor family
+    if (gym) {
+      ctx.fillStyle = inn.tint || "#9a8f7c"; ctx.fillRect(px, py, TILE, TILE);
+      ctx.fillStyle = checker ? "rgba(255,255,255,.10)" : "rgba(0,0,0,.22)"; ctx.fillRect(px, py, TILE, TILE);
+      ctx.strokeStyle = "rgba(0,0,0,.18)"; ctx.lineWidth = 1; ctx.strokeRect(px + 0.5, py + 0.5, TILE - 1, TILE - 1);
+    }
+    else { ctx.fillStyle = checker ? "#f5efe1" : "#ebe3d0"; ctx.fillRect(px, py, TILE, TILE); }
+    if (t === IN.MAT) { ctx.fillStyle = "#b5372f"; ctx.fillRect(px + 3, py + 6, TILE - 6, TILE - 12); ctx.fillStyle = "#f1c96b"; ctx.fillRect(px + 7, py + 14, TILE - 14, 3); }
+    if (t === IN.SPOT) { ctx.strokeStyle = gym ? "#ffd54f" : "#ec6f86"; ctx.lineWidth = 2; ctx.strokeRect(px + 5, py + 5, TILE - 10, TILE - 10); }
+    if (t === IN.COUNTER) { ctx.fillStyle = "#d94a5a"; ctx.fillRect(px, py + 8, TILE, TILE - 8); ctx.fillStyle = "#fff"; ctx.fillRect(px, py + 8, TILE, 5); }
+    if (t === IN.STATUE) {
+      ctx.fillStyle = "#6f6a63"; ctx.fillRect(px + 7, py + 18, TILE - 14, 12);
+      ctx.fillStyle = "#b9b2a6"; ctx.beginPath(); ctx.arc(px + TILE / 2, py + 12, 9, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#cc2b2b"; ctx.fillRect(px + TILE / 2 - 9, py + 11, 18, 3);
+    }
+    if (t === IN.LEADER) {
+      if (!gym) { ctx.fillStyle = "#d94a5a"; ctx.fillRect(px, py + 8, TILE, TILE - 8); ctx.fillStyle = "#fff"; ctx.fillRect(px, py + 8, TILE, 5); }
+      else { ctx.fillStyle = "#e2b53a"; ctx.fillRect(px + 2, py + 20, TILE - 4, 10); }
+      const real = TrainerArt.get(gym ? leaderSprite(inn.gym && inn.gym.leader) : "nurse");
+      const im = real ? null : TRAINER.down;
+      if (real) TrainerArt.draw(ctx, real, px, py - (gym ? 10 : 18), 60, false, false);
+      if (im && im.complete && im.naturalWidth) {
+        const h = 46, w = h * im.naturalWidth / im.naturalHeight;
+        ctx.save();
+        if (!gym) ctx.filter = "hue-rotate(300deg) saturate(1.3)";
+        ctx.drawImage(im, px + TILE / 2 - w / 2, py + TILE - h - (gym ? 8 : 14), w, h);
+        ctx.restore();
+      }
+    }
+  },
   drawTile(ctx, t, px, py, mx, my) {
     px = Math.floor(px); py = Math.floor(py);
+    if (t >= IN.FLOOR && t <= IN.WALL) { this.drawInterior(ctx, t, px, py, mx, my); return; }
+    if (t === SHRINE) {
+      this.drawTile(ctx, 0, px, py, mx, my);
+      const l = Legends.at(mx, my);
+      const done = l && Legends.caught(l.name);
+      ctx.fillStyle = done ? '#6b6b6b' : '#d4af37';
+      ctx.fillRect(px + 3, py + TILE - 9, TILE - 6, 6);
+      ctx.fillStyle = done ? '#4a4a4a' : '#8a6d1d';
+      ctx.fillRect(px + 6, py + TILE - 4, TILE - 12, 3);
+      if (l && !done) {
+        const im = legendArt(l.name);
+        const bob = Math.sin(Date.now() / 380 + mx) * 2;
+        ctx.save();
+        ctx.shadowColor = '#ffe27a'; ctx.shadowBlur = 10;
+        if (im.complete && im.naturalWidth) ctx.drawImage(im, px - 6, py - 22 + bob, TILE + 12, TILE + 12);
+        ctx.restore();
+      }
+      return;
+    }
     if (mx < 0 || my < 0 || mx >= MAP_SIZE || my >= MAP_SIZE) {
       ctx.fillStyle = '#0b1220';
       ctx.fillRect(px, py, TILE, TILE);
@@ -1853,7 +2242,7 @@ const UIManager = {
 
 const SaveSystem = {
   KEY: 'pokeregions-save',
-  state: { x: Math.floor(MAP_SIZE / 2), y: Math.floor(MAP_SIZE / 2), region: 0, seen: [], caught: [], badges: [], e4: 0, leagues: {}, beatenTrainers: [], follower: null, worldVersion: 2 },
+  state: { x: Math.floor(MAP_SIZE / 2), y: Math.floor(MAP_SIZE / 2), region: 0, seen: [], caught: [], badges: [], e4: 0, leagues: {}, beatenTrainers: [], follower: null, worldVersion: 3 },
   load() {
     try {
       const raw = localStorage.getItem(this.KEY);
@@ -1897,9 +2286,16 @@ const SaveSystem = {
             this.state.leagues.Kanto = s.e4;
           }
         } else {
-          MapManager.current = Math.min(MAPS.length - 1, s.region ?? 0);
+          // v3 saves carry the area NAME, so adding areas never moves a player.
+          // v2 saves (index only) predate Spikemuth: shift anything after it by one.
+          const byName = s.areaName ? AREAS.findIndex((a) => a.name === s.areaName) : -1;
+          let idx = s.region ?? 0;
+          const spikemuth = AREAS.findIndex((a) => a.name === "Spikemuth");
+          if (byName >= 0) idx = byName;
+          else if (s.worldVersion === 2 && spikemuth >= 0 && idx >= spikemuth) idx += 1;
+          MapManager.current = Math.max(0, Math.min(MAPS.length - 1, idx));
         }
-        this.state.worldVersion = 2;
+        this.state.worldVersion = 3;
         const blocked = [2, 8, 10, 12, 9, 18, 19, 20, 21];
         if (blocked.includes(MapManager.tileAt(Player.x, Player.y))) {
           const mid = Math.floor(MAP_SIZE / 2);
@@ -1911,11 +2307,13 @@ const SaveSystem = {
     } catch (e) { console.warn('Load failed', e); }
   },
   save() {
-    this.state.x = Player.x;
-    this.state.y = Player.y;
+    const outdoor = MapManager.interior ? MapManager.interior.out : Player;
+    this.state.x = outdoor.x;
+    this.state.y = outdoor.y;
     this.state.region = MapManager.current;
+    this.state.areaName = MapManager.name();
     this.state.mapSize = MAP_SIZE;
-    this.state.worldVersion = 2;
+    this.state.worldVersion = 3;
     try { localStorage.setItem(this.KEY, JSON.stringify(this.state)); } catch(e){}
     UIManager.renderBadges();
     postStatus();
@@ -1929,6 +2327,11 @@ const Input = {
       if (e.key === 'p' || e.key === 'P') {
         e.preventDefault();
         Follower.cycle();
+        return;
+      }
+      if (e.key === 'h' || e.key === 'H') {
+        e.preventDefault();
+        HD.toggle();
         return;
       }
       if (e.key === 'm' || e.key === 'M') {
@@ -2059,7 +2462,9 @@ window.addEventListener('message', (e) => {
     EncounterSystem.autoTimer = null;
     EncounterSystem.current = null;
     EncounterSystem.handed = false;
-    // Back to this area's Poké Center, standing just outside the door.
+    // Back to this area's Poké Center, standing just outside the door
+    // (leave any gym/center interior first so outdoor coordinates apply).
+    MapManager.interior = null;
     const c = POI[MapManager.current].center;
     Player.x = c.x; Player.y = Math.min(MAP_SIZE - 2, c.y + 1);
     if ([2, 8, 10, 12, 9, 18, 19, 20, 21].includes(MapManager.tileAt(Player.x, Player.y))) {

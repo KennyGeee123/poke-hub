@@ -14,7 +14,8 @@ import {
   type GBMove,
 } from "@/lib/gbgame";
 import { spriteSlug } from "@/lib/sprites";
-import { SpriteImg } from "./SpriteImg";
+import { SpriteImg, SpriteEraContext } from "./SpriteImg";
+import type { PokemonEraId } from "@/lib/adventure-engine";
 import { hpPct } from "@/lib/battle";
 import { movesAtLevel, newlyLearned } from "@/lib/pokeapi-moves";
 import { appendNamedMoves } from "@/lib/card-moves";
@@ -26,6 +27,10 @@ import { getMonHp, healAllHp, moveMonHp, setMonHp } from "@/lib/gb-hp";
 import { pressGbDpad, pressGbFace } from "@/lib/gb-face";
 
 export type GBBattleFoe = {
+  /** Overworld region the fight started in (Johto -> HG/SS sprites). */
+  gameRegion?: string;
+  shiny?: boolean;
+  legendary?: boolean;
   name: string;
   level: number;
   kind?: "wild" | "gym" | "elite" | "champion" | "trainer";
@@ -65,7 +70,19 @@ function hpColor(pct: number): string {
   return "";
 }
 
+/** Battle drawn with the active era's game sprites (HG/SS in Johto, Emerald in Hoenn...). */
 export function GBBattleSession({
+  eraId,
+  ...props
+}: Parameters<typeof GBBattleSessionInner>[0] & { eraId?: PokemonEraId }) {
+  return (
+    <SpriteEraContext.Provider value={eraId}>
+      <GBBattleSessionInner {...props} />
+    </SpriteEraContext.Provider>
+  );
+}
+
+function GBBattleSessionInner({
   foe: foeProps,
   onDone,
   chrome = true,
@@ -598,6 +615,7 @@ export function GBBattleSession({
       )}
       {scene === "battle" && active && foe && (
         <BattleScreen
+          foeShiny={!!foeProps.shiny}
           me={active}
           meHp={activeHp}
           foe={foe}
@@ -817,6 +835,7 @@ function StarterPicker({
 }
 
 function BattleScreen({
+  foeShiny,
   me,
   meHp,
   foe,
@@ -840,6 +859,7 @@ function BattleScreen({
   onCatch,
   onRun,
 }: {
+  foeShiny?: boolean;
   me: GBMon;
   meHp: number;
   foe: GBMon;
@@ -894,7 +914,7 @@ function BattleScreen({
           <div className="gb-side gb-foe">
             <div className={`gb-stat ${foeLow}`}>
               <div className="gb-stat-name">
-                {foe.name.toUpperCase()} <span>Lv{foe.level}</span>
+                {foeShiny ? "✨ " : ""}{foe.name.toUpperCase()} <span>Lv{foe.level}</span>
               </div>
               <div className="gb-hpbar">
                 <span className={hpColor(foeHpPct)} style={{ width: `${foeHpPct}%` }} />
@@ -906,7 +926,8 @@ function BattleScreen({
             <SpriteImg
               className={`gb-actor gb-actor-foe gb-fx-${foeFx}`}
               name={foe.name}
-              alt={foe.name}
+              shiny={foeShiny}
+              alt={foeShiny ? `Shiny ${foe.name}` : foe.name}
             />
           </div>
           <div className="gb-side gb-me">

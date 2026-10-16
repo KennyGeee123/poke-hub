@@ -18,7 +18,8 @@
       quote: "A quiet hometown. Tall grass starts just past the fence." }),
     A({ region: "Kanto", name: "Viridian", biome: "forest", label: "Forest · Viridian woods",
       pool: ["Caterpie", "Pidgey", "Rattata", "Oddish"], surf: ["Magikarp"],
-      quote: "The forest path to Pewter is thick with Bug-types." }),
+      gym: G("Giovanni", "Ground", "Earth", "Rhydon", 28),
+      quote: "The forest path to Pewter is thick with Bug-types. Viridian's gym leader is never home... until the end." }),
     A({ region: "Kanto", name: "Pewter", biome: "rock", label: "Rock · Onix foothills",
       pool: ["Geodude", "Onix", "Machop", "Rattata", "Sandshrew"], surf: [],
       gym: G("Brock", "Rock", "Boulder", "Onix", 14),
@@ -316,6 +317,10 @@
       pool: ["Snom", "Snorunt", "Eiscue"], surf: [],
       gym: G("Melony", "Ice", "Ice", "Lapras", 28),
       quote: "MELONY's ice stadium (or Gordie's rock stadium). Hot baths in a cold city." }),
+    A({ region: "Galar", name: "Spikemuth", biome: "city", label: "Dark · Spikemuth alley",
+      pool: ["Zigzagoon", "Linoone", "Purrloin", "Nickit"], surf: ["Magikarp"],
+      gym: G("Piers", "Dark", "Dark", "Obstagoon", 30),
+      quote: "Piers plays the only show in town. No Dynamax in Spikemuth." }),
     A({ region: "Galar", name: "Hammerlocke", biome: "dragon", label: "Dragon · Hammerlocke energy",
       pool: ["Axew", "Dreepy", "Vikavolt"], surf: [],
       gym: G("Raihan", "Dragon", "Dragon", "Duraludon", 32),
@@ -359,7 +364,7 @@
       quote: "TULIP's psychic gym. The spa town hangs on a cliff." }),
     A({ region: "Paldea", name: "Glaseado", biome: "snow", label: "Ice · Glaseado mountain",
       pool: ["Cetoddle", "Snom", "Snorunt", "Bergmite"], surf: [],
-      gym: G("Grusha", "Ice", "Ice", "Beartic", 32),
+      gym: G("Grusha", "Ice", "Ice", "Altaria", 32),
       quote: "GRUSHA's ice gym. Snowboard the mountain to the gym door." }),
     A({ region: "Paldea", name: "Area Zero", biome: "cave", label: "Crater · Area Zero",
       pool: ["Gimmighoul", "Cyclizar", "Great Tusk"], surf: [],
@@ -453,6 +458,97 @@
     if (a.gym) a.gym.name = a.name + " Gym";
   });
 
+  /* Full regional dex: every species of a region's generation lives somewhere in
+     that region (needs adventure-dex.js loaded first). Hand-picked `pool`/`surf`
+     stay the common encounters; the rest of the generation goes into `dex`/`dexSurf`.
+     Weaker species (lower base stat total) land in early towns, stronger ones in
+     later towns, steered toward biomes that suit their types. Legendaries are
+     rare special encounters in the region's last towns, as in the games. */
+  const REGION_GEN = { Kanto: 1, Johto: 2, Hoenn: 3, Sinnoh: 4, Unova: 5, Kalos: 6, Alola: 7, Galar: 8, Paldea: 9 };
+  const GEN_RANGE = { 1: [1, 151], 2: [152, 251], 3: [252, 386], 4: [387, 493], 5: [494, 649], 6: [650, 721], 7: [722, 809], 8: [810, 905], 9: [906, 1025] };
+  const BIOME_TYPES = {
+    plains: ["Normal", "Flying", "Grass", "Bug"], forest: ["Bug", "Grass", "Poison"], jungle: ["Bug", "Grass", "Poison"],
+    rock: ["Rock", "Ground", "Fighting", "Steel"], highland: ["Rock", "Ground", "Fighting", "Flying"], cave: ["Rock", "Ground", "Dark", "Ghost", "Poison"],
+    city: ["Normal", "Electric", "Poison", "Steel", "Psychic", "Dark"], industrial: ["Electric", "Steel", "Poison", "Fire"],
+    electric: ["Electric", "Steel"], volcano: ["Fire", "Rock", "Ground"], desert: ["Ground", "Fire", "Rock"],
+    ice: ["Ice", "Water"], snow: ["Ice", "Water"], ocean: ["Water", "Flying"], beach: ["Water", "Flying", "Ground"],
+    fairy: ["Fairy", "Psychic", "Grass"], poison: ["Poison", "Bug", "Water"], swamp: ["Poison", "Water", "Bug"],
+    dragon: ["Dragon", "Flying"], sky: ["Flying", "Normal"],
+  };
+  function hasWater(a) { return !!(a.water || a.biome === "ocean" || a.biome === "beach" || (a.surf && a.surf.length > 1)); }
+  /* Every legendary + mythical has ONE fixed home (no random rolls), placed where
+     it lives in its own game: a shrine tile beside that town's main road. */
+  const LEGEND_HOMES = {
+    // Kanto
+    Cerulean: [150], Vermilion: [145], Fuchsia: [144], Cinnabar: [151], Indigo: [146],
+    // Johto
+    Azalea: [251], Ecruteak: [243, 244, 250], Cianwood: [249], Mahogany: [245],
+    // Hoenn
+    Lavaridge: [377, 383], Dewford: [378], Fortree: [379], Petalburg: [385],
+    Mossdeep: [380, 381, 386], Sootopolis: [382], "Ever Grande": [384],
+    // Sinnoh
+    Twinleaf: [481], Eterna: [492], Pastoria: [482, 489, 490], Canalave: [488, 491],
+    Snowpoint: [480, 486], Sunyshore: [485], "Sinnoh League": [483, 484, 487, 493],
+    // Unova
+    Striaton: [640], Nacrene: [649], Castelia: [494, 648], Nimbasa: [642], Driftveil: [639, 645],
+    Mistralton: [638, 641], Icirrus: [646, 647], "Unova League": [643, 644],
+    // Kalos
+    Cyllage: [719], Shalour: [721], Lumiose: [720], Laverre: [716], Anistar: [717, 718],
+    // Alola
+    "Iki Town": [808, 809], Melemele: [785, 794, 798], Akala: [786, 797, 802], Ulaula: [787, 795, 807],
+    Poni: [788, 805, 806], Aether: [772, 773, 793, 801, 803, 804], "Vast Poni": [789, 790, 791, 792, 799],
+    Lanakila: [796, 800],
+    // Galar
+    Postwick: [888, 889], Turffield: [893], Hulbury: [891, 892], Hammerlocke: [890],
+    Circhester: [894, 895, 896, 897, 898],
+    // Paldea + Hisui + Kitakami + Blueberry
+    Cortondo: [1001], Glaseado: [1002], Alfornada: [1003], Medali: [1004], "Area Zero": [1007, 1008],
+    Highlands: [905], Mossui: [1025], "Oni Mountain": [1017], "Kitakami Wilds": [1014, 1015, 1016], Terarium: [1024],
+  };
+  const LEGEND_IDS = {};
+  Object.keys(LEGEND_HOMES).forEach(function (k) { LEGEND_HOMES[k].forEach(function (id) { LEGEND_IDS[id] = k; }); });
+  AREAS.forEach(function (a) { a.legendSpots = []; });
+  if (root.ADV_DEX) {
+    Object.keys(LEGEND_HOMES).forEach(function (home) {
+      const area = AREAS.find(function (a) { return a.name === home; });
+      if (!area) return;
+      LEGEND_HOMES[home].forEach(function (id) {
+        const row = root.ADV_DEX[id - 1];
+        if (row && row[0] === id) area.legendSpots.push({ id: id, name: row[1] });
+      });
+    });
+  }
+
+  if (root.ADV_DEX) {
+    Object.keys(REGION_GEN).forEach(function (region) {
+      const areas = AREAS.filter(function (a) { return a.region === region; });
+      const towns = areas.filter(function (a) { return !a.league; });
+      if (!towns.length) return;
+      const range = GEN_RANGE[REGION_GEN[region]];
+      const listed = {};
+      areas.forEach(function (a) { (a.pool || []).concat(a.surf || []).forEach(function (n) { listed[String(n).toLowerCase()] = 1; }); });
+      const gen = root.ADV_DEX.filter(function (r) { return r[0] >= range[0] && r[0] <= range[1]; });
+      const bsts = gen.map(function (r) { return r[3]; }).sort(function (x, y) { return x - y; });
+      areas.forEach(function (a) { a.dex = []; a.dexSurf = []; });
+      gen.forEach(function (r) {
+        const name = r[1], types = r[2], bst = r[3], rarity = r[4];
+        if (LEGEND_IDS[r[0]]) return; // fixed shrine, never a random roll
+        if (listed[name.toLowerCase()]) return;
+        const t = bsts.indexOf(bst) / Math.max(1, bsts.length - 1);
+        const target = t * (towns.length - 1);
+        let best = towns[0], bestScore = -1e9;
+        towns.forEach(function (a, i) {
+          const fit = (BIOME_TYPES[a.biome] || []).filter(function (ty) { return types.indexOf(ty) >= 0; }).length;
+          const score = -Math.abs(i - target) + fit * 1.6;
+          if (score > bestScore) { bestScore = score; best = a; }
+        });
+        const pureWater = types.length === 1 && types[0] === "Water";
+        if (pureWater && hasWater(best)) best.dexSurf.push(name);
+        else best.dex.push(name);
+      });
+    });
+  }
+
   const REGIONS = [];
   AREAS.forEach(function (a) {
     if (REGIONS.indexOf(a.region) < 0) REGIONS.push(a.region);
@@ -501,6 +597,8 @@
     duskull:355,dusclops:356,tropius:357,chimecho:358,absol:359,wynaut:360,snorunt:361,glalie:362,spheal:363,sealeo:364,walrein:365,
     clamperl:366,huntail:367,gorebyss:368,relicanth:369,luvdisc:370,bagon:371,shelgon:372,salamence:373,
     beldum:374,metang:375,metagross:376,regirock:377,regice:378,registeel:379,latias:380,latios:381,kyogre:382,groudon:383,rayquaza:384,
+    lugia:249,"ho-oh":250,hooh:250,celebi:251,jirachi:385,deoxys:386,
+    phione:489,manaphy:490,darkrai:491,shaymin:492,arceus:493,victini:494,
     turtwig:387,grotle:388,torterra:389,chimchar:390,monferno:391,infernape:392,piplup:393,prinplup:394,empoleon:395,
     starly:396,staravia:397,staraptor:398,bidoof:399,bibarel:400,kricketot:401,kricketune:402,shinx:403,luxio:404,luxray:405,
     budew:406,roserade:407,cranidos:408,rampardos:409,shieldon:410,bastiodon:411,burmy:412,wormadam:413,mothim:414,
@@ -580,7 +678,21 @@
     ogerpon:1017,archaludon:1018,hydrapple:1019,gougingfire:1020,ragingbolt:1021,ironboulder:1022,ironcrown:1023,terapagos:1024,pecharunt:1025,
   };
 
+  /* Trainer sprites (Pokemon Showdown trainer art, vendored to /sprites/trainers/):
+     10 per era = the region's protagonist + 9 locals, each from that generation where it exists. */
+  const TRAINER_ROSTER = {"Kanto": {"player": "red-gen3", "youngster": "youngster-gen3", "lass": "lass-gen3", "bugcatcher": "bugcatcher-gen3", "camper": "camper-gen3", "hiker": "hiker-gen3", "swimmer": "swimmerf-gen3", "acetrainer": "acetrainer-gen3", "ranger": "pokemonrangerf-gen3", "townsfolk": "gentleman-gen3"}, "Johto": {"player": "ethan", "youngster": "youngster-gen4", "lass": "lass-gen4", "bugcatcher": "bugcatcher-gen2", "camper": "camper-gen2", "hiker": "hiker-gen4", "swimmer": "swimmer-gen4", "acetrainer": "acetrainer-gen4", "ranger": "pokemonrangerf-gen4", "townsfolk": "gentleman-gen4"}, "Hoenn": {"player": "brendan-gen3", "youngster": "youngster-gen3", "lass": "lass-gen3", "bugcatcher": "bugcatcher-gen3", "camper": "camper-gen3", "hiker": "hiker-gen3", "swimmer": "swimmerf-gen3", "acetrainer": "acetrainer-gen3", "ranger": "pokemonrangerf-gen3", "townsfolk": "gentleman-gen3"}, "Sinnoh": {"player": "lucas-gen4pt", "youngster": "youngster-gen4", "lass": "lass-gen4", "bugcatcher": "bugcatcher-gen4dp", "camper": "camper-gen3", "hiker": "hiker-gen4", "swimmer": "swimmer-gen4", "acetrainer": "acetrainer-gen4", "ranger": "pokemonrangerf-gen4", "townsfolk": "gentleman-gen4"}, "Unova": {"player": "hilbert", "youngster": "youngster", "lass": "lass", "bugcatcher": "bugcatcher", "camper": "camper", "hiker": "hiker", "swimmer": "swimmer", "acetrainer": "acetrainer", "ranger": "pokemonrangerf", "townsfolk": "gentleman"}, "Kalos": {"player": "calem", "youngster": "youngster-gen6", "lass": "lass-gen6", "bugcatcher": "bugcatcher-gen6", "camper": "camper-gen6", "hiker": "hiker-gen6", "swimmer": "swimmer-gen6", "acetrainer": "acetrainer-gen6", "ranger": "pokemonrangerf-gen6", "townsfolk": "gentleman-gen6"}, "Alola": {"player": "elio", "youngster": "youngster-gen7", "lass": "lass-gen7", "bugcatcher": "bugcatcher-gen6", "camper": "camper-gen6", "hiker": "hiker-gen7", "swimmer": "swimmer-gen7", "acetrainer": "acetrainer-gen7", "ranger": "pokemonrangerf-gen6", "townsfolk": "gentleman-gen7"}, "Galar": {"player": "victor", "youngster": "youngster-gen8", "lass": "lass-gen8", "bugcatcher": "bugcatcher-gen6", "camper": "camper-gen6", "hiker": "hiker-gen8", "swimmer": "swimmer-gen8", "acetrainer": "acetrainer-gen7", "ranger": "pokemonrangerf-gen6", "townsfolk": "gentleman-gen8"}, "Paldea": {"player": "florian-s", "youngster": "youngster-gen9", "lass": "lass-gen8", "bugcatcher": "bugcatcher-gen6", "camper": "camper-gen6", "hiker": "hiker-gen9", "swimmer": "swimmer-gen8", "acetrainer": "acetrainer-gen7", "ranger": "pokemonrangerf-gen6", "townsfolk": "gentleman-gen8"}};
+  ["Hisui:Sinnoh", "Orre:Hoenn", "Kitakami:Paldea", "Blueberry:Paldea"].forEach(function (p) {
+    const k = p.split(":"); TRAINER_ROSTER[k[0]] = TRAINER_ROSTER[k[1]];
+  });
+  const LEADER_SPRITES = ["bea", "blaine", "brassius", "brawly", "brock", "brycen", "bugsy", "burgh", "byron", "candice", "chuck", "cilan", "clair", "clay", "clemont", "crasherwake", "drayden", "elesa", "erika", "falkner", "fantina", "flannery", "gardenia", "giovanni", "grant", "grusha", "hala", "hapu", "iono", "jasmine", "kabu", "katy", "kofu", "koga", "korrina", "larry", "lenora", "ltsurge", "maylene", "melony", "milo", "misty", "morty", "nanu", "nessa", "norman", "nurse", "olivia", "olympia", "opal", "piers", "pryce", "raihan", "ramos", "roark", "roxanne", "ryme", "sabrina", "skyla", "tate", "tulip", "valerie", "viola", "volkner", "wallace", "wattson", "whitney", "winona", "wulfric"];
+  function leaderSprite(name) {
+    const k = String(name || "").toLowerCase().split("&")[0].replace(/[^a-z]/g, "");
+    return LEADER_SPRITES.indexOf(k) >= 0 ? k : null;
+  }
+  root.TRAINER_ROSTER = TRAINER_ROSTER;
+  root.leaderSprite = leaderSprite;
   root.AREAS = AREAS;
+  root.LEGEND_HOMES = LEGEND_HOMES;
   root.REGIONS = REGIONS;
   root.BIOME_STYLE = BIOME_STYLE;
   root.DEX_ID = DEX_ID;

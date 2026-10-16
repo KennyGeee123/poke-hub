@@ -46,6 +46,16 @@ import { awardRouteBadge, leagueStanding, routePartner, startersForEra } from "@
 import { mergeRouteBooks, routeBookFromRetro, syncRouteBookToRetro } from "@/lib/adventure-session";
 import { WorldSprite } from "./adventure/WorldSprite";
 
+// Battles use the sprites of the game the overworld region comes from.
+const REGION_ERA: Record<string, PokemonEraId> = {
+  Kanto: "vintage_kanto", Johto: "neo_johto", Hoenn: "advanced_hoenn", Orre: "advanced_hoenn",
+  Sinnoh: "diamond_sinnoh", Hisui: "diamond_sinnoh", Unova: "black_unova", Kalos: "mega_kalos",
+  Alola: "sun_alola", Galar: "sword_galar", Paldea: "modern_paldea", Kitakami: "modern_paldea", Blueberry: "modern_paldea",
+};
+function eraForRegion(region?: string): PokemonEraId | undefined {
+  return region ? REGION_ERA[region] : undefined;
+}
+
 const RETRO_KEYS = new Set([
   "ArrowUp",
   "ArrowDown",
@@ -65,6 +75,8 @@ const RETRO_KEYS = new Set([
   "M",
   "p",
   "P",
+  "h",
+  "H",
 ]);
 
 export function AdventureView() {
@@ -163,6 +175,9 @@ export function AdventureView() {
         e4Index: typeof d.e4Index === "number" ? d.e4Index : undefined,
         leader: typeof d.leader === "string" ? d.leader : undefined,
         trainerId: typeof d.trainerId === "string" ? d.trainerId : undefined,
+        gameRegion: typeof d.gameRegion === "string" ? d.gameRegion : undefined,
+        shiny: d.shiny === true,
+        legendary: d.legendary === true,
       });
       postIframe({ type: "pv-adventure-pause" });
     };
@@ -808,6 +823,7 @@ export function AdventureView() {
               <div className="w-full max-w-md max-h-[96%] overflow-auto rounded-2xl shadow-2xl">
                 <GBBattleSession
                   foe={gbBattleFoe}
+                  eraId={eraForRegion(gbBattleFoe.gameRegion) || adventureState.world.activeEraId || "vintage_kanto"}
                   chrome
                   onDone={(result) => {
                     setGbBattleFoe(null);

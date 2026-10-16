@@ -26,6 +26,9 @@ export const LOCAL_SPRITE_SLUGS = new Set([
 
 export function spriteSlug(name: string): string {
   const cleaned = name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Flabébé -> flabebe
+    .replace(/[\u2018\u2019]/g, "") // Farfetch’d / Sirfetch’d
     .toLowerCase()
     .replace(/\(.*?\)/g, "")
     .replace(/[♀♂δ★:'']/g, "")

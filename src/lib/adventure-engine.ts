@@ -1387,6 +1387,36 @@ export type EraSpawnOptions = {
   localOrigin?: { xPct: number; yPct: number };
 };
 
+// Spawn weights by rarity: commons fill the grass, legendaries are a rare sighting.
+const SPAWN_WEIGHT: Record<string, number> = {
+  common: 50,
+  uncommon: 25,
+  rare: 9,
+  epic: 2.5,
+  legendary: 0.6,
+};
+
+function seededRng(seed: number): () => number {
+  let t = seed >>> 0;
+  return () => {
+    t = (t + 0x6d2b79f5) >>> 0;
+    let r = Math.imul(t ^ (t >>> 15), t | 1);
+    r ^= r + Math.imul(r ^ (r >>> 7), r | 61);
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function weightedPick(list: NationalDexPokemon[], rnd: () => number): NationalDexPokemon {
+  let total = 0;
+  for (const p of list) total += SPAWN_WEIGHT[p.rarity] ?? 10;
+  let r = rnd() * total;
+  for (const p of list) {
+    r -= SPAWN_WEIGHT[p.rarity] ?? 10;
+    if (r <= 0) return p;
+  }
+  return list[list.length - 1];
+}
+
 export function generateEraSpawns(
   eraId?: PokemonEraId,
   count = 7,
@@ -1464,8 +1494,14 @@ export function generateEraSpawns(
 
   // 2. Field spawns. The first legacy cohort sits in the walk ring (meters, not
   // coarse percent) so the camera still has Pokémon. The rest fill the ×120 plane.
+  // Same spawns for the whole rotation window, a fresh roll each rotation.
+  const rotation = Math.floor(timestamp / ERA_CYCLE_DURATION_MS);
+  const rnd = seededRng(rotation * 7919 + gen * 104729);
+  // The walk ring (what you meet first) is basic-stage only: no fully evolved
+  // starters or legendaries standing next to a new player.
+  const basicPool = pool.filter((p) => p.bst < 400 && p.rarity !== "legendary");
   for (let i = 0; i < fieldTotal; i++) {
-    const chosen = pool[i % pool.length];
+    const chosen = weightedPick(i < legacyGeneral && basicPool.length ? basicPool : pool, rnd);
     let x: number;
     let y: number;
     let dxM: number;
@@ -1484,7 +1520,8 @@ export function generateEraSpawns(
       dyM = (y - origin.yPct) * FIELD_METERS_PER_PCT;
     }
 
-    const level = Math.round(16 + (i % 20));
+    // Stronger species show up at higher levels (BST 200 -> ~Lv 5, BST 600 -> ~Lv 45).
+    const level = Math.max(2, Math.min(70, Math.round((chosen.bst - 150) / 10 + rnd() * 6)));
     const cp = Math.round(chosen.baseCp * (1 + (level - 20) * 0.04));
 
     const geo = geoOffsetFromMeters(centerGeo.lat, centerGeo.lng, dxM, dyM);
