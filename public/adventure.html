@@ -2303,6 +2303,11 @@ const SaveSystem = {
         }
         Camera.sync(true);
         if (s.follower) Follower.name = s.follower;
+        // back inside the building they were in (saved x/y is the tile just below its door)
+        if (s.interior === "center" || (s.interior === "gym" && MapManager.gym())) {
+          Player.y = Math.max(1, Player.y - 1);
+          Interiors.enter(s.interior);
+        }
       }
     } catch (e) { console.warn('Load failed', e); }
   },
@@ -2312,6 +2317,8 @@ const SaveSystem = {
     this.state.y = outdoor.y;
     this.state.region = MapManager.current;
     this.state.areaName = MapManager.name();
+    // resume inside a Poke Center / gym if that is where the player stopped
+    this.state.interior = MapManager.interior ? MapManager.interior.kind : null;
     this.state.mapSize = MAP_SIZE;
     this.state.worldVersion = 3;
     try { localStorage.setItem(this.KEY, JSON.stringify(this.state)); } catch(e){}

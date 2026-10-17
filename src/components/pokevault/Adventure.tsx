@@ -100,7 +100,20 @@ export function AdventureView() {
       return next;
     });
   }, []);
-  const [viewMode, setViewMode] = useState<"living_world" | "retro_gb">("living_world");
+  // Adventure opens in the Blender-baked HD world; the last choice is remembered per browser.
+  const [viewMode, setViewModeState] = useState<"living_world" | "retro_gb">(() => {
+    try {
+      return window.localStorage.getItem("pv_adventure_view") === "living_world" ? "living_world" : "retro_gb";
+    } catch {
+      return "retro_gb";
+    }
+  });
+  const setViewMode = (m: "living_world" | "retro_gb") => {
+    setViewModeState(m);
+    try {
+      window.localStorage.setItem("pv_adventure_view", m);
+    } catch {}
+  };
 
   const retroIframeRef = useRef<HTMLIFrameElement | null>(null);
   const [gbBattleFoe, setGbBattleFoe] = useState<GBBattleFoe | null>(null);
@@ -513,7 +526,7 @@ export function AdventureView() {
           </button>
           <button
             type="button"
-            aria-label="Retro Game Boy mode"
+            aria-label="HD world mode"
             aria-pressed={viewMode === "retro_gb"}
             onClick={() => setViewMode("retro_gb")}
             className={`px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 ${
@@ -523,7 +536,7 @@ export function AdventureView() {
             }`}
           >
             <Gamepad2 className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">RETRO GAME BOY</span>
+            <span className="hidden sm:inline">HD WORLD</span>
           </button>
         </div>
       </div>
