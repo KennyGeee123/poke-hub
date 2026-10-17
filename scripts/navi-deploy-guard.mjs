@@ -42,24 +42,30 @@ export function checkTicket(token, hash, now = Math.floor(Date.now() / 1000)) {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const env = process.env.VERCEL_ENV;
+  const appDir = process.cwd();
   if (env !== "production") {
-    console.log(`[navi-deploy-gate] ${env || "local"} build: no ticket needed.`);
+    const d = deployHash(appDir);
+    console.log(`[navi-deploy-gate] ${env || "local"} build: no ticket needed. code ${d.hash.slice(0, 12)} groups ${JSON.stringify(d.groups)}`);
     process.exit(0);
   }
-  const appDir = process.cwd();
   let ticket = null;
   try {
     ticket = JSON.parse(fs.readFileSync(path.join(appDir, TICKET_PATH), "utf8"));
   } catch {
     /* no ticket */
   }
-  const { hash, files } = deployHash(appDir);
+  const { hash, files, groups } = deployHash(appDir);
   const r = ticket ? checkTicket(ticket.ticket, hash) : { ok: false, reason: "no deploy ticket" };
   if (!r.ok) {
     console.error(`\n[navi-deploy-gate] PRODUCTION DEPLOY BLOCKED by Decoherence: ${r.reason}.`);
     console.error("[navi-deploy-gate] Production needs Kenneth's Touch ID. On his Mac run:");
     console.error("[navi-deploy-gate]   node ~/kmcommand2/netnavi-core/ops/navi-gate-pass.mjs deploy-ticket <app dir>");
-    console.error(`[navi-deploy-gate] code fingerprint ${hash.slice(0, 12)} over ${files} files\n`);
+    console.error(`[navi-deploy-gate] code fingerprint ${hash.slice(0, 12)} over ${files} files`);
+    if (ticket && ticket.groups) {
+      const diff = Object.keys({ ...groups, ...ticket.groups }).filter((k) => groups[k] !== ticket.groups[k]);
+      console.error(`[navi-deploy-gate] differs from the signed code in: ${diff.join(", ") || "(none)"}`);
+    }
+    console.error("");
     process.exit(1);
   }
   console.log(`[navi-deploy-gate] Touch ID ticket OK (signed ${new Date(r.payload.i * 1000).toISOString()}, code ${hash.slice(0, 12)}).`);
