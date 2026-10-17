@@ -87,6 +87,7 @@ export function HDBattleArena({
   adventureState,
   onBattleEnd,
   onStateUpdate,
+  onMakeLead,
   catchable = true,
   foeKind = "wild",
   creatureId,
@@ -97,6 +98,8 @@ export function HDBattleArena({
   onBattleEnd: (result: "win" | "lose" | "run" | "caught") => void;
   /** Persist rewards / ball use back into the Adventure state. */
   onStateUpdate?: (state: AdventureState) => void;
+  /** A chosen switch becomes the main for the walk and the next fight. */
+  onMakeLead?: (mon: BattlePokemon) => void;
   catchable?: boolean;
   foeKind?: "wild" | "gym" | "league";
   /** Map creature this fight came from (removed from the map when caught). */
@@ -781,11 +784,12 @@ export function HDBattleArena({
                 ← Back
               </button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid max-h-72 grid-cols-1 gap-2 overflow-y-auto sm:grid-cols-2" data-roster-switch="hd">
               {party.map((p, idx) => (
                 <button
                   key={`${p.name}-${idx}`}
                   type="button"
+                  data-roster-row={p.species}
                   disabled={isTurnBusy || idx === activePartyIdx || p.currentHp <= 0}
                   onClick={async () => {
                     const forced = (partyRef.current[activeIdxRef.current]?.currentHp ?? 0) <= 0;
@@ -794,8 +798,10 @@ export function HDBattleArena({
                     setPlayerAnim("");
                     setMenuView("main");
                     appendLog(`Go, ${p.name}!`);
-                    // Switching by choice costs your turn; replacing a fainted mon does not.
+                    // Switching by choice costs your turn and becomes the new main.
+                    // Replacing a fainted mon stays on this fight only.
                     if (!forced) {
+                      onMakeLead?.(p);
                       setIsTurnBusy(true);
                       await wait(700);
                       await foeCounterAttack();

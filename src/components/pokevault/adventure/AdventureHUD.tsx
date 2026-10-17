@@ -39,6 +39,7 @@ export function AdventureHUD({
   onOpenInventory,
   onOpenQuests,
   onOpenBuddy,
+  onOpenRoster,
   onOpenVault,
   onToggleNearby,
   onForceSwitchEra,
@@ -51,6 +52,7 @@ export function AdventureHUD({
   onOpenInventory: () => void;
   onOpenQuests: () => void;
   onOpenBuddy: () => void;
+  onOpenRoster?: () => void;
   onOpenVault: () => void;
   onToggleNearby: () => void;
   onForceSwitchEra?: (eraId: PokemonEraId) => void;
@@ -236,7 +238,7 @@ export function AdventureHUD({
         <div className="pointer-events-auto relative flex items-center justify-center">
           {/* Expanding Radial Menu Options */}
           {radialOpen && (
-            <div className="absolute bottom-16 flex items-center justify-center w-72 h-44 pointer-events-auto animate-fade-in">
+            <div className="absolute bottom-16 flex h-auto min-h-44 w-80 items-center justify-center pointer-events-auto animate-fade-in">
               {/* Radial Backdrop */}
               <div className="absolute inset-0 bg-neutral-950/90 backdrop-blur-lg rounded-3xl border border-neutral-800 shadow-2xl" />
 
@@ -280,6 +282,21 @@ export function AdventureHUD({
                   <ShoppingBag className="w-6 h-6 text-emerald-400" />
                   <span className="text-[10px] font-bold text-neutral-200">SHOP</span>
                 </button>
+
+                {/* Roster — pick the main from the full party */}
+                {onOpenRoster && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRadialOpen(false);
+                      onOpenRoster();
+                    }}
+                    className="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-neutral-800 transition"
+                  >
+                    <Users className="w-6 h-6 text-emerald-400" />
+                    <span className="text-[10px] font-bold text-neutral-200">ROSTER</span>
+                  </button>
+                )}
 
                 {/* 4. Buddy */}
                 <button

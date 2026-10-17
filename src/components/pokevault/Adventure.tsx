@@ -33,15 +33,25 @@ import { AdventureEvolutionModal } from "./adventure/AdventureEvolutionModal";
 import { AdventureShopModal } from "./adventure/AdventureShopModal";
 import { AdventureInventoryModal } from "./adventure/AdventureInventoryModal";
 import { AdventureBuddyModal } from "./adventure/AdventureBuddyModal";
+import { AdventureRosterModal } from "./adventure/AdventureRosterModal";
 import { AdventureQuestsModal } from "./adventure/AdventureQuestsModal";
 import { AdventureNearbyDrawer } from "./adventure/AdventureNearbyDrawer";
 import { AdventurePokedexModal } from "./adventure/AdventurePokedexModal";
 import { toast } from "sonner";
 import { HDBattleArena, type BattlePokemon } from "./adventure/HDBattleArena";
 import { GBBattleSession, type GBBattleFoe } from "./GBBattleSession";
-import { healParty, isDittoName } from "@/lib/gbgame";
+import { fetchParty, healParty, isDittoName, setPartyLeadByName, type GBMon } from "@/lib/gbgame";
 import { readRepelSteps } from "@/lib/repel";
-import { partyWithCardMoves } from "@/lib/card-moves";
+import { gameType, partyWithCardMoves, speciesFromCardName, type ScannedFighter } from "@/lib/card-moves";
+import {
+  buddyNickname,
+  mergeRoster,
+  orderBySpecies,
+  readRosterLead,
+  speciesKey,
+  writeRosterLead,
+  type RosterMon,
+} from "@/lib/roster-lead";
 import { settleScannedCardMoves } from "@/lib/adventure-party";
 import { healAllHp } from "@/lib/gb-hp";
 import { awardRouteBadge, leagueStanding, routePartner, startersForEra } from "@/lib/route-towns";
@@ -137,6 +147,7 @@ export function AdventureView() {
   };
 
   const retroIframeRef = useRef<HTMLIFrameElement | null>(null);
+  const applyLeadRef = useRef<(raw: string, tellIframe: boolean) => void>(() => {});
   const [gbBattleFoe, setGbBattleFoe] = useState<GBBattleFoe | null>(null);
   const gbBattleOpenRef = useRef(false);
   gbBattleOpenRef.current = !!gbBattleFoe;
@@ -192,6 +203,10 @@ export function AdventureView() {
       const d = e.data;
       if (!d || typeof d !== "object") return;
       if (retroIframeRef.current && e.source !== retroIframeRef.current.contentWindow) return;
+      if (d.type === "pv-adventure-set-lead" && typeof d.name === "string") {
+        applyLeadRef.current(d.name, false);
+        return;
+      }
       if (d.type === "pv-adventure-heal") {
         healAllHp();
         healParty().catch((err) => console.error(err));
@@ -259,6 +274,9 @@ export function AdventureView() {
   const [inventoryOpen, setInventoryOpen] = useState(false);
   const [questsOpen, setQuestsOpen] = useState(false);
   const [buddyOpen, setBuddyOpen] = useState(false);
+  const [rosterOpen, setRosterOpen] = useState(false);
+  const [rosterLead, setRosterLead] = useState<string | null>(() => readRosterLead());
+  const [gbRoster, setGbRoster] = useState<GBMon[]>([]);
   const [nearbyOpen, setNearbyOpen] = useState(false);
   const [pokedexOpen, setPokedexOpen] = useState(false);
   const [partnerTown, setPartnerTown] = useState<string | null>(null);
@@ -276,7 +294,7 @@ export function AdventureView() {
   });
 
   // Default Player Party for HD Battles
-  const [playerParty, setPlayerParty] = useState<BattlePokemon[]>([
+  const [playerParty, setPlayerParty] = useState<BattlePokemon[]>(() => orderBySpecies([
     {
       name: "Sparky (Pikachu)",
       species: "Pikachu",
@@ -361,7 +379,7 @@ export function AdventureView() {
         },
       ],
     },
-  ]);
+  ], readRosterLead()));
 
   // Handle Updates to Adventure Engine State
   const handleStateUpdate = (updated: AdventureState) => {
@@ -403,12 +421,80 @@ export function AdventureView() {
     });
   };
 
-  // Hometown partner leads gym fights for this era. Sparky still leads until one is chosen.
+  useEffect(() => {
+    let live = true;
+    fetchParty()
+      .then((party) => {
+        if (live) setGbRoster(party);
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [rosterLead, rosterOpen]);
+
+  const rosterRows = useMemo(
+    () => buildRosterRows(playerParty, gbRoster, adventureState.world.scannedFighters, rosterLead),
+    [playerParty, gbRoster, adventureState.world.scannedFighters, rosterLead],
+  );
+
+  const applyLead = (raw: string, tellIframe = true) => {
+    const species = writeRosterLead(raw);
+    if (!species) return;
+    setRosterLead(species);
+    setPlayerParty((prev) => orderBySpecies(prev, species));
+    void setPartyLeadByName(species)
+      .then((party) => setGbRoster(party))
+      .catch((err) => console.error(err));
+    setAdventureState((prev) => {
+      const house = playerParty.find((mon) => speciesKey(mon.species) === speciesKey(species));
+      const nickname = buddyNickname(species, house?.name);
+      if (
+        prev.buddy.species.toLowerCase() === species.toLowerCase() &&
+        prev.buddy.nickname === nickname
+      ) {
+        return prev;
+      }
+      const next = {
+        ...prev,
+        buddy: { ...prev.buddy, species, nickname },
+      };
+      saveAdventureState(next);
+      return next;
+    });
+    if (tellIframe) {
+      try {
+        retroIframeRef.current?.contentWindow?.postMessage(
+          { type: "pv-adventure-lead", name: species },
+          window.location.origin,
+        );
+      } catch {
+        /* iframe not mounted */
+      }
+    }
+  };
+  applyLeadRef.current = applyLead;
+
+  useEffect(() => {
+    if (!rosterLead) return;
+    applyLeadRef.current(rosterLead, false);
+  }, [rosterLead]);
+
+  useEffect(() => {
+    const onLead = (event: Event) => {
+      const species = (event as CustomEvent).detail?.species;
+      if (typeof species === "string" && species) applyLeadRef.current(species, true);
+    };
+    window.addEventListener("pv-roster-lead", onLead as EventListener);
+    return () => window.removeEventListener("pv-roster-lead", onLead as EventListener);
+  }, []);
+
+  // A chosen roster lead stays out front. Until then, the hometown partner still leads.
   const battleParty = useMemo(() => {
     const eraId = adventureState.world.activeEraId || "vintage_kanto";
     const saved = adventureState.world.partner;
-    let party = playerParty;
-    if (saved && saved.eraId === eraId) {
+    let party = rosterRows.map((row) => rowToBattle(row, playerParty, gbRoster));
+    if (!rosterLead && saved && saved.eraId === eraId) {
       const partner = routePartner(eraId, saved.species);
       if (partner) {
         const level = 14;
@@ -439,7 +525,8 @@ export function AdventureView() {
             },
           ],
         };
-        party = [lead, ...playerParty.slice(1)];
+        const rest = party.filter((mon) => speciesKey(mon.species) !== speciesKey(partner.species));
+        party = [lead, ...rest.slice(1)];
       }
     }
     return partyWithCardMoves(party, adventureState.world.scannedFighters);
@@ -448,6 +535,9 @@ export function AdventureView() {
     adventureState.world.partner,
     adventureState.world.scannedFighters,
     playerParty,
+    gbRoster,
+    rosterLead,
+    rosterRows,
   ]);
 
   const choosePartner = (species: string) => {
@@ -592,6 +682,7 @@ export function AdventureView() {
               playerParty={battleParty}
               adventureState={adventureState}
               onStateUpdate={handleStateUpdate}
+              onMakeLead={(mon) => applyLead(mon.species)}
               catchable={battleCtx.kind === "wild"}
               foeKind={battleCtx.kind}
               creatureId={battleCtx.creatureId}
@@ -705,6 +796,7 @@ export function AdventureView() {
                 onOpenInventory={() => setInventoryOpen(true)}
                 onOpenQuests={() => setQuestsOpen(true)}
                 onOpenBuddy={() => setBuddyOpen(true)}
+                onOpenRoster={() => setRosterOpen(true)}
                 onOpenVault={() => {
                   window.dispatchEvent(new CustomEvent("pv-goto", { detail: "vault" }));
                 }}
@@ -849,6 +941,15 @@ export function AdventureView() {
               onStateUpdate={handleStateUpdate}
             />
           )}
+
+          {rosterOpen && (
+            <AdventureRosterModal
+              roster={rosterRows}
+              leadSpecies={rosterLead || rosterRows[0]?.species || null}
+              onMakeLead={(species) => applyLead(species)}
+              onClose={() => setRosterOpen(false)}
+            />
+          )}
         </div>
       ) : (
         /* ───────────────────────────────────────────────────────────── */
@@ -955,4 +1056,76 @@ export function AdventureView() {
       )}
     </div>
   );
+}
+
+const CARD_ROSTER_LEVEL = 50;
+
+function buildRosterRows(
+  house: BattlePokemon[],
+  party: GBMon[],
+  book: Record<string, ScannedFighter> | undefined,
+  lead: string | null,
+): RosterMon[] {
+  return mergeRoster({
+    lead,
+    house: house.map((mon) => ({
+      id: mon.name,
+      name: mon.name,
+      species: mon.species,
+      level: mon.level,
+      maxHp: mon.maxHp,
+      types: mon.types,
+      source: "house" as const,
+    })),
+    party: party.map((mon) => ({
+      id: mon.id,
+      name: mon.name,
+      species: speciesFromCardName(mon.name),
+      level: mon.level,
+      maxHp: mon.max_hp,
+      types: (mon.types.length ? mon.types : ["Normal"]).map((type) => gameType(type)),
+      source: "party" as const,
+    })),
+    cards: Object.values(book || {})
+      .filter((fighter) => fighter.species && (fighter.cardIds.length || fighter.moves.length))
+      .map((fighter) => ({
+        id: fighter.cardIds[0] || fighter.species,
+        name: fighter.species,
+        species: fighter.species,
+        level: CARD_ROSTER_LEVEL,
+        maxHp: Math.round(CARD_ROSTER_LEVEL * 4.2 + 25),
+        types: (fighter.types.length ? fighter.types : ["Normal"]).map((type) => gameType(type)),
+        source: "card" as const,
+      })),
+  });
+}
+
+function rowToBattle(row: RosterMon, house: BattlePokemon[], party: GBMon[]): BattlePokemon {
+  const houseHit = house.find((mon) => speciesKey(mon.species) === speciesKey(row.species));
+  const saved = party.find((mon) => speciesKey(mon.name) === speciesKey(row.species));
+  const fromParty = (saved?.attacks ?? []).map((move) => ({
+    name: move.name,
+    type: gameType(move.type),
+    power:
+      move.damage > 0
+        ? Math.max(10, Math.min(160, move.damage))
+        : move.name.toLowerCase() === "transform"
+          ? 0
+          : 40,
+    pp: 15,
+    maxPp: 15,
+    description: move.text || "",
+  }));
+  if (row.source === "house" && houseHit && !fromParty.length) {
+    return { ...houseHit, species: row.species, currentHp: houseHit.maxHp };
+  }
+  return {
+    name: row.name,
+    species: row.species,
+    level: row.level,
+    maxHp: row.maxHp,
+    currentHp: row.maxHp,
+    types: row.types.length ? row.types : (houseHit?.types ?? ["Normal"]),
+    moves: fromParty.length ? fromParty : (houseHit?.moves ?? []),
+  };
 }

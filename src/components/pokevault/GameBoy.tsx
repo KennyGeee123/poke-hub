@@ -9,6 +9,7 @@ import {
   makeMonFromCard,
   releaseMon,
   saveMonStats,
+  setPartyLead,
   wildFoeMon,
   xpForNext,
   type GBMon,
@@ -18,7 +19,7 @@ import { SpriteImg } from "./SpriteImg";
 import { hpPct } from "@/lib/battle";
 import { movesLearnedOnLevel, settleScannedCardMoves } from "@/lib/adventure-party";
 import { movesAtLevel, newlyLearned } from "@/lib/pokeapi-moves";
-import { appendNamedMoves } from "@/lib/card-moves";
+import { appendNamedMoves, speciesFromCardName } from "@/lib/card-moves";
 import { CatchFx, type CatchPhase } from "./CatchFx";
 import { ARENA_CLIP, FX_VIDEOS_ENABLED, battleClipFor } from "@/lib/battle-cine";
 import { pressGbDpad, pressGbFace } from "@/lib/gb-face";
@@ -361,6 +362,22 @@ export function GameBoyView() {
     await foeTurn();
   }
 
+  function announceLead(name: string) {
+    window.dispatchEvent(
+      new CustomEvent("pv-roster-lead", {
+        detail: { species: speciesFromCardName(name), name },
+      }),
+    );
+  }
+
+  async function makeLead(mon: GBMon) {
+    const next = await setPartyLead(mon.id);
+    setParty(next);
+    partyRef.current = next;
+    announceLead(mon.name);
+    setNotice(`${mon.name.toUpperCase()} is the main.`);
+  }
+
   async function switchTo(mon: GBMon) {
     if (busy || !active || mon.id === active.id) return;
     if (faintedRef.current.has(mon.id)) return;
@@ -368,6 +385,10 @@ export function GameBoyView() {
     setPane("main");
     setActive(mon);
     setActiveHp(mon.max_hp);
+    const next = await setPartyLead(mon.id);
+    setParty(next);
+    partyRef.current = next;
+    announceLead(mon.name);
     setLog((l) => [`↺ Go! ${mon.name.toUpperCase()}!`, ...l]);
     await wait(500);
     await foeTurn();
@@ -527,6 +548,7 @@ export function GameBoyView() {
             <PartyView
               party={party}
               onBattle={(m) => startBattle(m)}
+              onLead={(m) => void makeLead(m)}
               onAdd={() => setScene("starter")}
               onRelease={release}
               onBack={() => setScene("menu")}
@@ -722,12 +744,14 @@ function Menu({
 function PartyView({
   party,
   onBattle,
+  onLead,
   onAdd,
   onRelease,
   onBack,
 }: {
   party: GBMon[];
   onBattle: (m: GBMon) => void;
+  onLead: (m: GBMon) => void;
   onAdd: () => void;
   onRelease: (id: string) => void;
   onBack: () => void;
@@ -749,9 +773,9 @@ function PartyView({
   return (
     <div className="gb-page">
       <div className="gb-line gb-line-hd">▼ YOUR PARTY ▼</div>
-      <div className="gb-line gb-line-sm">FIGHT in grass · CATCH from BAG</div>
-      <div className="gb-party">
-        {party.map((m) => (
+      <div className="gb-line gb-line-sm">LEAD walks with you and starts the next fight.</div>
+      <div className="gb-party" data-roster-switch="gb">
+        {party.map((m, index) => (
           <div className="gb-pm" key={m.id}>
             <SpriteImg className="gb-sprite" name={m.name} alt={m.name} />
             <div className="gb-pm-info">
@@ -779,6 +803,14 @@ function PartyView({
             <div className="gb-pm-acts">
               <button className="gb-mi gb-mi-sm" onClick={() => onBattle(m)}>
                 FIGHT
+              </button>
+              <button
+                className="gb-mi gb-mi-sm"
+                data-roster-row={m.name}
+                disabled={index === 0}
+                onClick={() => onLead(m)}
+              >
+                {index === 0 ? "MAIN" : "LEAD"}
               </button>
               <button className="gb-mi gb-mi-sm gb-mi-x" onClick={() => onRelease(m.id)}>
                 RELEASE

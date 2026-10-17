@@ -8,6 +8,7 @@ import {
   levelDamage,
   rentalStarter,
   saveMonStats,
+  setPartyLead,
   attacksAfterTransform,
   wildFoeMon,
   xpForNext,
@@ -20,7 +21,7 @@ import type { PokemonEraId } from "@/lib/adventure-engine";
 import { hpPct } from "@/lib/battle";
 import { movesLearnedOnLevel } from "@/lib/adventure-party";
 import { movesAtLevel, newlyLearned } from "@/lib/pokeapi-moves";
-import { appendNamedMoves } from "@/lib/card-moves";
+import { appendNamedMoves, speciesFromCardName } from "@/lib/card-moves";
 import { CatchFx, type CatchPhase } from "./CatchFx";
 import { ARENA_CLIP, FX_VIDEOS_ENABLED } from "@/lib/battle-cine";
 import { MoveFx, type MoveFxData } from "./MoveFx";
@@ -485,6 +486,14 @@ function GBBattleSessionInner({
     setPane("main");
     putActive(mon);
     putActiveHp(getMonHp(mon));
+    const next = await setPartyLead(mon.id);
+    setParty(next);
+    partyRef.current = next;
+    window.dispatchEvent(
+      new CustomEvent("pv-roster-lead", {
+        detail: { species: speciesFromCardName(mon.name), name: mon.name },
+      }),
+    );
     setLog((l) => [`↺ Go! ${mon.name.toUpperCase()}!`, ...l]);
     await wait(500);
     await foeTurn();

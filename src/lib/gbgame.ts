@@ -3,6 +3,7 @@ import type { TCGCard } from "./pokemon-api";
 import { animatedSpriteUrl, staticSpriteUrl } from "./sprites";
 import { healAllHp } from "./gb-hp";
 import { appendNamedMoves, isPokemonSupertype, speciesFromCardName } from "./card-moves";
+import { partyInLeadOrder, speciesKey, withLeadSlots } from "./roster-lead";
 
 export type GBMove = {
   name: string;
@@ -325,13 +326,39 @@ function rowToMon(r: any): GBMon {
 
 export async function fetchParty(): Promise<GBMon[]> {
   const uid = await currentUserId();
-  if (!uid) return readLocalParty();
+  if (!uid) return partyInLeadOrder(readLocalParty());
   const { data, error } = await supabase
     .from("gb_party")
     .select("*")
     .order("created_at", { ascending: true });
   if (error) throw error;
-  return (data ?? []).map(rowToMon);
+  return partyInLeadOrder((data ?? []).map(rowToMon));
+}
+
+/** Move this party member to the front. The next fight starts with them. */
+export async function setPartyLead(id: string): Promise<GBMon[]> {
+  const next = withLeadSlots(await fetchParty(), id);
+  const uid = await currentUserId();
+  if (!uid) {
+    writeLocalParty(next);
+    return next;
+  }
+  for (const mon of next) {
+    const { error } = await supabase.from("gb_party").update({ slot: mon.slot }).eq("id", mon.id);
+    if (error) throw error;
+  }
+  return next;
+}
+
+/** Same as setPartyLead, matched by species so "Charizard ex" leads the Charizard row. */
+export async function setPartyLeadByName(name: string): Promise<GBMon[]> {
+  const party = await fetchParty();
+  const key = speciesKey(name);
+  const hit = party.find(
+    (mon) => speciesKey(mon.name) === key || mon.name.toLowerCase() === name.toLowerCase(),
+  );
+  if (!hit) return party;
+  return setPartyLead(hit.id);
 }
 
 export function makeMonFromSpecies(

@@ -250,6 +250,21 @@
   .e4-pip.on { background:#7c3aed; }
   .e4-pip.champ { background:#e2b53a; }
   #hint { font-size:11px; text-align:center; color:#5a5346; margin-top:8px; line-height:1.35; }
+  #roster-btn { font-size: 11px; font-weight: 800; letter-spacing: .04em; }
+  #roster-sheet {
+    position: absolute; top: 46px; right: 8px; z-index: 30; width: 220px; max-height: 70%;
+    overflow: auto; display: none; background: #9bbc0f; color: #0f380f;
+    border: 3px solid #0f380f; padding: 8px; font-family: inherit;
+  }
+  #roster-sheet.on { display: block; }
+  #roster-sheet .roster-hd { font-weight: 800; letter-spacing: 1px; margin-bottom: 4px; }
+  #roster-sheet p { font-size: 11px; margin: 0 0 8px; }
+  #roster-sheet button {
+    display: block; width: 100%; text-align: left; margin: 0 0 4px; padding: 6px 8px;
+    border: 2px solid #0f380f; background: #8bac0f; color: #0f380f; font-weight: 800;
+    font-family: inherit; cursor: pointer;
+  }
+  #roster-sheet button[data-main="1"] { background: #0f380f; color: #9bbc0f; }
 </style>
 </head>
 <body>
@@ -259,8 +274,10 @@
         <div id="compass"><div id="compass-needle"></div><span>N</span></div>
         <div id="region-chip">PEWTER</div>
         <div id="biome-chip">Plains · Mountain foothills</div>
-        <button type="button" id="follower-chip" title="Tap to cycle who walks with you">Walk with —</button>
-        <div id="party-hud" title="Tap a pip to walk with them"></div>
+        <button type="button" id="follower-chip" title="Who is out front">Walk with —</button>
+        <button type="button" id="roster-btn" title="Pick the main from your roster">ROSTER</button>
+        <div id="party-hud" title="Tap a pip to make them the main"></div>
+        <div id="roster-sheet" role="dialog" aria-label="Roster"></div>
       </div>
       <div id="region-label">KANTO</div>
       <canvas id="game" width="576" height="576"></canvas>
@@ -1015,6 +1032,33 @@ function behindPos() {
   return { x: Player.x - d, y: Player.y };
 }
 
+function leadSpecies(name) {
+  let s = String(name || "").trim();
+  let prev = "";
+  const suf = /(?:\s+|-)(?:V-UNION|VMAX|VSTAR|GX|EX|V|BREAK|LV\.X|Prime|LEGEND)$/i;
+  while (s && s !== prev) {
+    prev = s;
+    s = s.replace(suf, "").trim();
+  }
+  return s || String(name || "");
+}
+function promotePartyLead(name) {
+  try {
+    const raw = localStorage.getItem("pv.gb.party.v1");
+    const party = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(party) || party.length < 2) return;
+    const key = leadSpecies(name).toLowerCase();
+    const idx = party.findIndex((m) => {
+      const n = m && m.name ? String(m.name) : "";
+      return n.toLowerCase() === String(name).toLowerCase() || leadSpecies(n).toLowerCase() === key;
+    });
+    if (idx <= 0) return;
+    const next = party.slice();
+    next.unshift(next.splice(idx, 1)[0]);
+    next.forEach((m, i) => { if (m) m.slot = i; });
+    localStorage.setItem("pv.gb.party.v1", JSON.stringify(next));
+  } catch (_) {}
+}
 const Follower = {
   name: null,
   x: Math.floor(MAP_SIZE / 2),
@@ -1026,19 +1070,33 @@ const Follower = {
     try {
       const raw = localStorage.getItem('pv.gb.party.v1');
       const party = raw ? JSON.parse(raw) : [];
-      if (Array.isArray(party)) party.forEach((m) => add(m && m.name));
+      if (Array.isArray(party) && party.length) {
+        const any = party.some((m) => m && typeof m.slot === "number");
+        const ordered = any
+          ? party.slice().sort((a, b) => ((a && a.slot) ?? 999) - ((b && b.slot) ?? 999))
+          : party.slice();
+        ordered.forEach((m) => add(m && m.name));
+        if (names.length) return names;
+      }
     } catch (_) {}
     (SaveSystem.state.caught || []).forEach((p) => add(p.name));
-    (SaveSystem.state.seen || []).forEach((p) => add(p.name));
     if (!names.length) add("Pikachu");
     return names;
   },
-  set(name) {
+  set(name, opts) {
+    const promote = !opts || opts.promote !== false;
+    const notify = !opts || opts.notify !== false;
+    if (promote) promotePartyLead(name);
     const roster = this.roster();
-    if (name && !roster.includes(name) && roster.length) name = roster[0];
+    if (name && !roster.includes(name) && roster.length) {
+      const key = leadSpecies(name).toLowerCase();
+      const hit = roster.find((n) => leadSpecies(n).toLowerCase() === key);
+      name = hit || roster[0];
+    }
     this.name = name || roster[0] || "Pikachu";
     SaveSystem.state.follower = this.name;
     SaveSystem.save();
+    if (notify) postParent({ type: "pv-adventure-set-lead", name: this.name });
     const trail = Player.trail[0];
     if (trail) { this.x = trail.x; this.y = trail.y; this.facing = trail.facing; }
     else {
@@ -1048,6 +1106,7 @@ const Follower = {
     followerSprite(this.name);
     UIManager.renderPartyHud();
     UIManager.renderFollowerChip();
+    UIManager.renderRoster();
     UIManager.renderPokedex();
   },
   cycle() {
@@ -1536,9 +1595,32 @@ const UIManager = {
     el.querySelectorAll('[data-walk]').forEach((pip) => {
       pip.addEventListener('click', (e) => {
         e.stopPropagation();
-        Follower.set(pip.getAttribute('data-walk'));
+        Follower.set(pip.getAttribute('data-walk'), { promote: true, notify: true });
       });
     });
+  },
+  renderRoster() {
+    const el = document.getElementById('roster-sheet');
+    if (!el) return;
+    const roster = Follower.roster();
+    const walking = leadSpecies(Follower.name || "");
+    el.innerHTML = `<div class="roster-hd">ROSTER</div><p>Pick who walks with you and starts the next fight.</p>` +
+      roster.map((name) => {
+        const main = leadSpecies(name).toLowerCase() === walking.toLowerCase();
+        return `<button type="button" data-lead="${escapeHtml(name)}" data-main="${main ? "1" : "0"}">${main ? "MAIN · " : ""}${escapeHtml(name)}</button>`;
+      }).join("");
+    el.querySelectorAll("[data-lead]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        Follower.set(btn.getAttribute("data-lead"), { promote: true, notify: true });
+      });
+    });
+  },
+  toggleRoster() {
+    const el = document.getElementById("roster-sheet");
+    if (!el) return;
+    this.renderRoster();
+    el.classList.toggle("on");
   },
   showRegionLabel(name) {
     const el = document.getElementById('region-label');
@@ -2512,9 +2594,11 @@ window.addEventListener('load', () => {
   UIManager.init();
   SaveSystem.load();
   FieldTrainers.init();
-  Follower.set(SaveSystem.state.follower || Follower.roster()[0] || null);
+  Follower.set(Follower.roster()[0] || SaveSystem.state.follower || null, { promote: false, notify: false });
   const chip = document.getElementById('follower-chip');
-  if (chip) chip.addEventListener('click', () => Follower.cycle());
+  if (chip) chip.addEventListener('click', () => UIManager.toggleRoster());
+  const rosterBtn = document.getElementById('roster-btn');
+  if (rosterBtn) rosterBtn.addEventListener('click', () => UIManager.toggleRoster());
   const rchip = document.getElementById('region-chip');
   if (rchip) rchip.addEventListener('click', () => UIManager.openAtlas());
   const atlasClose = document.getElementById('atlas-close');
@@ -2599,6 +2683,9 @@ window.addEventListener('message', (e) => {
   }
   if (d.type === 'pv-adventure-trainer-won' && d.id) {
     FieldTrainers.mark(d.id);
+  }
+  if (d.type === 'pv-adventure-lead' && d.name) {
+    Follower.set(String(d.name), { promote: true, notify: false });
   }
   if (d.type === 'pv-adventure-caught' && d.name) {
     const name = String(d.name);

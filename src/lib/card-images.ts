@@ -132,14 +132,14 @@ export function hdImg(
   card: Pick<TCGCard, "images"> & { id?: string; name?: string; number?: string; set?: ImgCard["set"] },
   opts?: { tile?: boolean },
 ): { src: string; srcSet?: string; sizes?: string } {
-  const src = directScan(fallbackCardImages(card, { tile: !!opts?.tile }));
+  const src = directScan(fallbackCardImages(card as ImgCard, { tile: !!opts?.tile }));
   return { src, sizes: opts?.tile ? "140px" : "600px" };
 }
 
 export function hdLarge(
   card: Pick<TCGCard, "images"> & { id?: string; name?: string; number?: string; set?: ImgCard["set"] },
 ): string {
-  return directScan(fallbackCardImages(card));
+  return directScan(fallbackCardImages(card as ImgCard));
 }
 
 /** Ordered Scrydex scans. Tile → medium, then large. Detail → large, then medium.
