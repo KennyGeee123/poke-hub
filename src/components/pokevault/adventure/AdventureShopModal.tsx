@@ -5,8 +5,10 @@ import {
   EVOLUTION_STONES,
   CAPTURE_ITEMS,
   BOOST_ITEMS,
+  REPEL_ITEMS,
   buyShopItem,
 } from "@/lib/adventure-engine";
+import { BallMark } from "./BallMark";
 
 export function AdventureShopModal({
   adventureState,
@@ -17,13 +19,13 @@ export function AdventureShopModal({
   onClose: () => void;
   onStateUpdate: (updated: AdventureState) => void;
 }) {
-  const [activeTab, setActiveTab] = useState<"featured" | "stones" | "capture" | "boosts">(
+  const [activeTab, setActiveTab] = useState<"featured" | "stones" | "capture" | "boosts" | "repels">(
     "featured",
   );
   const [purchaseToast, setPurchaseToast] = useState<string | null>(null);
 
   function handleBuy(
-    type: "stone" | "capture" | "boost" | "rare_candy",
+    type: "stone" | "capture" | "boost" | "rare_candy" | "repel",
     id: string,
     name: string,
     price: number,
@@ -82,7 +84,8 @@ export function AdventureShopModal({
           {[
             { id: "featured", label: "Featured & Candy" },
             { id: "stones", label: "Evolution Stones" },
-            { id: "capture", label: "Capture Items" },
+            { id: "capture", label: "Balls" },
+            { id: "repels", label: "Repels" },
             { id: "boosts", label: "Adventure Boosts" },
           ].map((t) => (
             <button
@@ -198,13 +201,16 @@ export function AdventureShopModal({
                   key={item.id}
                   className="p-3.5 rounded-2xl bg-neutral-900/80 border border-neutral-800 flex items-center justify-between"
                 >
-                  <div>
+                  <div className="flex items-center gap-2">
+                    {item.colors ? <BallMark colors={item.colors} /> : null}
+                    <div>
                     <h5 className="text-xs font-bold text-white font-mono">{item.name}</h5>
                     <span className="text-[10px] text-neutral-400 font-mono">
                       {item.category === "ball"
                         ? `Catch Rate x${item.multiplier}`
                         : item.description}
                     </span>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-amber-400 font-mono">
@@ -213,6 +219,42 @@ export function AdventureShopModal({
                     <button
                       type="button"
                       onClick={() => handleBuy("capture", item.id, item.name, item.priceCoins)}
+                      className="px-3 py-1 rounded-lg bg-neutral-800 hover:bg-amber-500 hover:text-neutral-950 font-bold font-mono text-xs text-neutral-200 transition"
+                    >
+                      Buy
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeTab === "repels" && (
+            <div className="grid grid-cols-1 gap-3">
+              <p className="text-[11px] text-neutral-400 font-mono">
+                {adventureState.inventory.repelSteps > 0
+                  ? `Repel is active for ${adventureState.inventory.repelSteps} more steps.`
+                  : "No Repel is active. A new spray replaces the one you are using."}
+              </p>
+              {Object.values(REPEL_ITEMS).map((item) => (
+                <div
+                  key={item.id}
+                  data-repel={item.id}
+                  className="p-3.5 rounded-2xl bg-neutral-900/80 border border-neutral-800 flex items-center justify-between"
+                >
+                  <div>
+                    <h5 className="text-xs font-bold text-white font-mono">{item.name}</h5>
+                    <span className="text-[10px] text-neutral-400 font-mono">
+                      {item.steps} steps · you have {adventureState.inventory.repels?.[item.id] || 0}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-amber-400 font-mono">
+                      {item.priceCoins} 🪙
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleBuy("repel", item.id, item.name, item.priceCoins)}
                       className="px-3 py-1 rounded-lg bg-neutral-800 hover:bg-amber-500 hover:text-neutral-950 font-bold font-mono text-xs text-neutral-200 transition"
                     >
                       Buy

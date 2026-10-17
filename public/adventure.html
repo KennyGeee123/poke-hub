@@ -221,12 +221,13 @@
   #modal h3 { font-size: 13px; margin: 8px 0 4px; letter-spacing: 1px; color: #6b7280; font-weight: 700; text-transform: uppercase; position: relative; z-index: 1; }
   #poke-sprite {
     font-size: 80px; margin: 4px 0; line-height: 1; min-height: 112px;
-    display: flex; align-items: center; justify-content: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
     background: radial-gradient(circle at 50% 70%, #cde8a8, #7dd3a0 60%, transparent 61%);
     border-radius: 50%;
     position: relative; z-index: 0;
   }
-  #poke-sprite img { width: 112px; height: 112px; image-rendering: pixelated; object-fit: contain; filter: drop-shadow(3px 3px 0 rgba(0,0,0,.35)); }
+  #poke-sprite img { width: 112px; height: 112px; image-rendering: auto; object-fit: contain; filter: drop-shadow(3px 3px 0 rgba(0,0,0,.35)); }
+  #poke-sprite .sprite-host { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; color: #3d4a32; line-height: 1.2; }
   #poke-name { font-size: 22px; font-weight: 800; letter-spacing: 1px; margin-top: 4px; }
   #modal-msg { margin: 10px 0; min-height: 22px; font-weight: 700; color: #0f380f; }
   #modal-buttons { display: flex; gap: 12px; justify-content: center; margin-top: 12px; }
@@ -274,7 +275,7 @@
       <h2>📕 Pokédex</h2>
       <ul id="pokedex-list"></ul>
       <div id="empty">No Pokémon seen yet.<br>Explore tall grass in the wilds!</div>
-      <div id="hint">Tap the town chip (or press M) for the world atlas — every region from Kanto to Paldea, Hisui, Orre, Kitakami, and Blueberry.<br>Wilds use Pokémon sprites, not TCG cards. Wade water for surf encounters. 4 gym badges of a region open that region's league.</div>
+      <div id="hint">Tap the town chip (or press M) for the world atlas — every region from Kanto to Paldea, Hisui, Orre, Kitakami, and Blueberry.<br>Grass shows game sprites. An encounter opens the creature render. Wade water for surf encounters. 4 gym badges of a region open that region's league.</div>
       <div id="controls">
         Arrows / WASD to move · Space interact<br>
         <button id="reset-btn">Reset Save</button>
@@ -330,15 +331,15 @@ if (window.parent !== window) document.documentElement.classList.add("embedded")
 const TEX = {};
 const TRAINER = {};
 function loadImg(src) { const im = new Image(); im.src = src; return im; }
-TEX.grass = loadImg('/adventure-assets/tex-grass.jpg');
-TEX.path = loadImg('/adventure-assets/tex-path.jpg');
-TEX.tall = loadImg('/adventure-assets/tex-tallgrass.jpg');
-TEX.water = loadImg('/adventure-assets/tex-water.jpg');
-TEX.deep = loadImg('/adventure-assets/tex-deep.jpg');
-TEX.sand = loadImg('/adventure-assets/tex-sand.jpg');
-TEX.rock = loadImg('/adventure-assets/tex-rock.jpg');
-TEX.ash = loadImg('/adventure-assets/tex-ash.jpg');
-TEX.wall = loadImg('/adventure-assets/tex-wall.jpg');
+TEX.grass = loadImg('/adventure-assets/tex-grass.png');
+TEX.path = loadImg('/adventure-assets/tex-path.png');
+TEX.tall = loadImg('/adventure-assets/tex-tallgrass.png');
+TEX.water = loadImg('/adventure-assets/tex-water.png');
+TEX.deep = loadImg('/adventure-assets/tex-deep.png');
+TEX.sand = loadImg('/adventure-assets/tex-sand.png');
+TEX.rock = loadImg('/adventure-assets/tex-rock.png');
+TEX.ash = loadImg('/adventure-assets/tex-ash.png');
+TEX.wall = loadImg('/adventure-assets/tex-wall.png');
 TRAINER.down = loadImg('/adventure-assets/trainer-down.png');
 TRAINER.up = loadImg('/adventure-assets/trainer-up.png');
 TRAINER.left = loadImg('/adventure-assets/trainer-left.png');
@@ -829,25 +830,60 @@ const LOCAL_FOLLOW = {
   jigglypuff:1,meowth:1,psyduck:1,machop:1,geodude:1,gastly:1,eevee:1,snorlax:1,
   dratini:1,mewtwo:1,chikorita:1,totodile:1,cyndaquil:1,jynx:1,onix:1,
 };
-function spriteFallbacks(name) {
+/* Printed scans only when the Classic print is that species. Not Mew VMAX, not a duo card. */
+const PRINTED_SPECIES_SCAN = {
+  charizard: "me55c-4",
+  pikachu: "me55c-58",
+  gengar: "me55c-94",
+  magikarp: "me55c-203",
+  genesect: "me55c-11g",
+};
+function spriteHostLabel(url) {
+  const u = String(url || "");
+  if (u.indexOf("/sprites/gen5/") >= 0) return "Gen 5 sprite";
+  if (u.indexOf("pokemondb.net/sprites/home") >= 0) return "Pokémon Home";
+  if (u.indexOf("pokemonshowdown.com/sprites/gen5") >= 0) return "Showdown";
+  if (u.indexOf("pokemonshowdown.com/sprites/dex") >= 0) return "Showdown";
+  if (u.indexOf("official-artwork") >= 0) return "Official artwork";
+  if (u.indexOf("images.scrydex.com") >= 0) return "Printed card";
+  if (u.indexOf("pokemondb.net/artwork") >= 0) return "PokémonDB art";
+  return "Sprite";
+}
+/* Walker and grass standees. Pixel sprites first. No gif (the canvas keeps one frame). No card photo. */
+function overworldSpriteUrls(name) {
   const slug = spriteSlug(name);
   const id = dexId(name);
   const urls = [];
   if (LOCAL_FOLLOW[slug]) urls.push(`/sprites/gen5/${slug}.png`);
-  if (id) {
-    urls.push(`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`);
-    urls.push(`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`);
-  }
+  urls.push(`https://play.pokemonshowdown.com/sprites/gen5/${slug}.png`);
   urls.push(`https://img.pokemondb.net/sprites/home/normal/${slug}.png`);
-  urls.push(`https://img.pokemondb.net/artwork/large/${slug}.jpg`);
+  urls.push(`https://play.pokemonshowdown.com/sprites/dex/${slug}.png`);
+  if (id) urls.push(`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`);
+  return urls;
+}
+/* Encounter picture. Official artwork by dex number, then Home, then a matching printed scan. */
+function renderSpriteUrls(name) {
+  const slug = spriteSlug(name);
+  const id = dexId(name);
+  const urls = [];
+  if (id) urls.push(`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`);
+  urls.push(`https://img.pokemondb.net/sprites/home/normal/${slug}.png`);
+  const scan = PRINTED_SPECIES_SCAN[slug];
+  if (scan) urls.push(`https://images.scrydex.com/pokemon/${scan}/large`);
+  if (LOCAL_FOLLOW[slug]) urls.push(`/sprites/gen5/${slug}.png`);
   urls.push(`https://play.pokemonshowdown.com/sprites/gen5/${slug}.png`);
   urls.push(`https://play.pokemonshowdown.com/sprites/dex/${slug}.png`);
   return urls;
 }
-function spriteUrl(name) { return spriteFallbacks(name)[0]; }
-function staticSpriteUrl(name) {
-  const urls = spriteFallbacks(name);
-  return urls[1] || urls[0];
+function spriteFallbacks(name) { return overworldSpriteUrls(name); }
+function spriteUrl(name) { return overworldSpriteUrls(name)[0]; }
+function staticSpriteUrl(name) { return overworldSpriteUrls(name)[0]; }
+function pokeImgMark(img) {
+  const host = img.parentElement && img.parentElement.querySelector(".sprite-host");
+  if (host) host.textContent = spriteHostLabel(img.currentSrc || img.src);
+  const u = img.currentSrc || img.src || "";
+  const pixel = /\/sprites\/gen5\/|pokemonshowdown\.com\/sprites\/(gen5|dex)\//.test(u);
+  img.style.imageRendering = pixel ? "pixelated" : "auto";
 }
 function pokeImgFallback(img) {
   const q = (img.getAttribute("data-fall") || "").split("|").filter(Boolean);
@@ -855,14 +891,18 @@ function pokeImgFallback(img) {
   img.setAttribute("data-fall", q.slice(1).join("|"));
   img.src = q[0];
 }
-function pokeImgTag(name, shiny) {
+function pokeImgTag(name, mode, shiny) {
   const safe = safeSpeciesName(name);
   const id = shiny ? dexId(safe) : 0;
-  const urls = (id ? [`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${id}.png`] : []).concat(spriteFallbacks(safe));
+  const base = mode === "render" ? renderSpriteUrls(safe) : overworldSpriteUrls(safe);
+  const urls = (id ? [`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${id}.png`] : []).concat(base);
   const src = escapeHtml(urls[0] || "");
   const fall = escapeHtml(urls.slice(1).join("|"));
   const alt = escapeHtml(safe);
-  return `<img src="${src}" alt="${alt}" data-fall="${fall}" onerror="pokeImgFallback(this)" />`;
+  const host = mode === "render"
+    ? `<span class="sprite-host">${escapeHtml(spriteHostLabel(urls[0] || ""))}</span>`
+    : "";
+  return `<img src="${src}" alt="${alt}" data-fall="${fall}" onload="pokeImgMark(this)" onerror="pokeImgFallback(this)" />${host}`;
 }
 
 const Camera = {
@@ -929,7 +969,7 @@ const FOLLOW_IMG = {};
 function followerSprite(name) {
   if (!name) return null;
   if (!FOLLOW_IMG[name]) {
-    const urls = spriteFallbacks(name);
+    const urls = overworldSpriteUrls(name);
     const im = new Image();
     let i = 0;
     im.src = urls[0];
@@ -940,6 +980,31 @@ function followerSprite(name) {
     FOLLOW_IMG[name] = im;
   }
   return FOLLOW_IMG[name];
+}
+/* About one grass tile in twelve, capped at six nearest the player. Same species pool as encounters. */
+function grassWildSpots(camPx, camPy) {
+  const pool = (MapManager.area() && MapManager.area().pool) || [];
+  if (!pool.length) return [];
+  const baseX = Math.floor(camPx / TILE) - 1;
+  const baseY = Math.floor(camPy / TILE) - 1;
+  const hits = [];
+  for (let vy = 0; vy <= VIEW_TILES; vy++) {
+    for (let vx = 0; vx <= VIEW_TILES; vx++) {
+      const mx = baseX + vx + 1;
+      const my = baseY + vy + 1;
+      if (MapManager.tileAt(mx, my) !== 1) continue;
+      const h = (Math.imul(mx, 374761393) ^ Math.imul(my, 668265263)) >>> 0;
+      if ((h % 12) !== 0) continue;
+      if (mx === Math.floor(Player.x) && my === Math.floor(Player.y)) continue;
+      const speciesHash = (Math.imul(mx, 2246822519) ^ Math.imul(my, 3266489917)) >>> 0;
+      const name = pool[speciesHash % pool.length];
+      const dx = mx - Player.x;
+      const dy = my - Player.y;
+      hits.push({ name, mx, my, h, dist: dx * dx + dy * dy });
+    }
+  }
+  hits.sort((a, b) => a.dist - b.dist || a.h - b.h);
+  return hits.slice(0, 6);
 }
 function behindPos() {
   const d = 0.9;
@@ -1184,11 +1249,21 @@ function pickWild(pool, dex) {
   return one(pool);
 }
 
+function repelHolds() {
+  var key = "pv.adventure.repelSteps";
+  var n = 0;
+  try { n = parseInt(localStorage.getItem(key) || "0", 10) || 0; } catch (e) { return false; }
+  if (n <= 0) return false;
+  try { localStorage.setItem(key, String(n - 1)); } catch (e) {}
+  return true;
+}
+
 const EncounterSystem = {
   current: null,
   handed: false,
   autoTimer: null,
   tryEncounter(rate) {
+    if (repelHolds()) return;
     if (Math.random() > (rate ?? 0.28)) return;
     const name = pickWild(MapManager.area().pool || ["Pidgey"], MapManager.area().dex);
     const poke = speciesOf(name);
@@ -1210,6 +1285,7 @@ const EncounterSystem = {
     this.autoTimer = setTimeout(() => this.fight(), 450);
   },
   tryWater(rate) {
+    if (repelHolds()) return;
     if (Math.random() > (rate ?? 0.26)) return;
     const pool = (MapManager.area().surf && MapManager.area().surf.length)
       ? MapManager.area().surf
@@ -1479,7 +1555,7 @@ const UIManager = {
   },
   setSprite(name, shiny) {
     const sp = document.getElementById('poke-sprite');
-    sp.innerHTML = pokeImgTag(name, shiny);
+    sp.innerHTML = pokeImgTag(name, "render", shiny);
   },
   openWild(poke) {
     this.toastOpen = false;
@@ -1734,6 +1810,7 @@ const UIManager = {
       if (px < -40 || py < -40 || px > CANVAS_PX || py > CANVAS_PX) return;
       this.drawFieldTrainer(ctx, px, py, tr);
     });
+    this.drawGrassWilds(ctx, camPx, camPy);
     Follower.tick();
     const followBehind = Follower.name && Follower.y <= Player.y + 0.05;
     if (followBehind) this.drawFollower(ctx, camPx, camPy);
@@ -1757,6 +1834,22 @@ const UIManager = {
     if (HD.img() && !MapManager.interior) this.tiltShift(ctx);
     if (!MapManager.interior) this.drawSky(ctx);
     this.drawMini();
+  },
+  drawGrassWilds(ctx, camPx, camPy) {
+    const spots = grassWildSpots(camPx, camPy);
+    spots.forEach((s) => {
+      const im = followerSprite(s.name);
+      const px = s.mx * TILE - camPx;
+      const py = s.my * TILE - camPy;
+      if (!(im && im.complete && im.naturalWidth > 8)) return;
+      ctx.fillStyle = 'rgba(0,0,0,.18)';
+      ctx.beginPath();
+      ctx.ellipse(px + 16, py + 28, 7, 3, 0, 0, Math.PI * 2);
+      ctx.fill();
+      const h = 28;
+      const w = Math.max(16, Math.min(32, im.naturalWidth * h / im.naturalHeight));
+      ctx.drawImage(im, px + TILE / 2 - w / 2, py + TILE - h + 2, w, h);
+    });
   },
   drawFollower(ctx, camPx, camPy) {
     const im = followerSprite(Follower.name);

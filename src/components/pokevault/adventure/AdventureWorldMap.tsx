@@ -61,6 +61,7 @@ import {
 } from "@/lib/gods-eye-world";
 import { earnedStopIds, routeStopLayout, type RouteStop } from "@/lib/route-towns";
 import { dryRouteStart, marchGbaWalk, type WildEncounter } from "@/lib/adventure-step";
+import { tickRepelStep } from "@/lib/repel";
 import {
   forceSwitchEra,
   generateEraSpawns,
@@ -359,6 +360,7 @@ export function AdventureWorldMap({
       metersY,
       zoom,
       eraId: adventureState.world.activeEraId || "vintage_kanto",
+      holdWild: tickRepelStep,
     });
     if (!step.moved) return null;
     if (step.encounter && !encounterLock.current) {
@@ -989,7 +991,7 @@ export function AdventureWorldMap({
                 >
                   <div className="relative flex items-center justify-center">
                     <img
-                      src="/adventure-assets/tex-tallgrass.jpg"
+                      src="/adventure-assets/tex-tallgrass.png"
                       alt=""
                       className="w-10 h-10 object-cover rounded-sm shadow-[0_4px_8px_rgba(0,0,0,0.45)]"
                       style={{ imageRendering: "auto" }}

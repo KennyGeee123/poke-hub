@@ -179,12 +179,17 @@ describe("prints TCGdex is missing", () => {
 
 describe("busy TCGdex answers", () => {
   it("retries a 502 once instead of leaving the box empty", async () => {
-    let calls = 0;
+    let setCalls = 0;
     globalThis.fetch = (async (input: RequestInfo | URL) => {
-      // The gold-rarity lookup (rarity=...) is separate; this test counts set loads only.
-      if (/rarity=/.test(String(input))) return new Response("[]", { status: 200 });
-      calls += 1;
-      if (calls === 1) return new Response("busy", { status: 502 });
+      const url = String(input);
+      if (url.includes("rarity=")) {
+        return new Response("[]", {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      setCalls += 1;
+      if (setCalls === 1) return new Response("busy", { status: 502 });
       return new Response(JSON.stringify(box("swsh11tg", "Lost Origin Trainer Gallery", 30)), {
         status: 200,
         headers: { "content-type": "application/json" },
@@ -192,7 +197,29 @@ describe("busy TCGdex answers", () => {
     }) as typeof fetch;
     const cards = await tcgdexGetSetCards("swsh11tg");
     expect(cards.length).toBe(30);
-    expect(calls).toBe(2);
+    expect(setCalls).toBe(2);
+  });
+
+  it("stamps gold-tier rarities on every box, not only the 30th", async () => {
+    const urls: string[] = [];
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = String(input);
+      urls.push(url);
+      const json = (body: unknown) =>
+        new Response(JSON.stringify(body), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      if (url.includes("/sets/")) return json(box("sv08", "Surging Sparks", 3));
+      if (/rarity=Hyper(?:\+|%20)rare/i.test(url)) {
+        return json([{ id: "sv08-003", name: "Pikachu ex" }]);
+      }
+      return json([]);
+    }) as typeof fetch;
+    const cards = await tcgdexGetSetCards("sv08");
+    expect(urls.some((u) => u.includes("rarity="))).toBe(true);
+    expect(cards.find((c) => c.id === "sv08-003")?.rarity).toBe("Hyper rare");
+    expect(cards.find((c) => c.id === "sv08-001")?.rarity).toBeUndefined();
   });
 
   it("does not retry a 404 (that id just is not on TCGdex)", async () => {

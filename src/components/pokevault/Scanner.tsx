@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { hdImg } from "@/lib/card-images";
+import { CardScan } from "./CardScan";
 import { useServerFn } from "@tanstack/react-start";
 import { searchCards, getMarketPrice, type TCGCard } from "@/lib/pokemon-api";
 import { useVault, formatPrice } from "@/lib/vault";
@@ -15,6 +15,13 @@ import { formatCardNumber } from "@/lib/card-identity";
 import { Paywall, TrialBanner } from "./Paywall";
 
 type Phase = "idle" | "live" | "captured" | "identifying" | "searching" | "results";
+
+function catalogNote(raw: string): string {
+  if (/gateway|auth|unauthorized|jwt|sign in|not configured|middleware/i.test(raw)) {
+    return "Photo saved. The card reader is offline, so type the name or the printed number and match the catalog.";
+  }
+  return raw || "Could not read the card. Type the name or number printed on it.";
+}
 type Identified = {
   name: string;
   hp?: string | null;
@@ -158,7 +165,11 @@ function ScannerInner({
       const r: any = await identifyFn({ data: { imageDataUrl: dataUrl } });
       if (r?.guest && typeof r.guest.used === "number") setGuestScansUsed(r.guest.used);
       if (!r?.ok) {
-        setError(friendlyScanError(r?.error, "Could not identify card. Try typing the name."));
+        setError(
+          /gateway|not configured|middleware/i.test(String(r?.error || ""))
+            ? catalogNote(String(r?.error))
+            : friendlyScanError(r?.error, "Could not identify card. Try typing the name."),
+        );
         setPhase("captured");
         return;
       }
@@ -168,9 +179,30 @@ function ScannerInner({
       onScanSuccess();
       await runSearch(card);
     } catch (e: any) {
-      setError(friendlyScanError(e?.message, "Identification failed."));
+      setError(
+        /gateway|not configured|middleware/i.test(String(e?.message || ""))
+          ? catalogNote(String(e?.message))
+          : friendlyScanError(e?.message, "Identification failed."),
+      );
       setPhase("captured");
     }
+  }
+
+  function onPhotoFile(file: File | undefined) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = String(reader.result || "");
+      if (!dataUrl.startsWith("data:image")) {
+        setError("Choose a photo of the card.");
+        return;
+      }
+      setSnap(dataUrl);
+      setPhase("identifying");
+      stopCamera();
+      void autoIdentify(dataUrl);
+    };
+    reader.readAsDataURL(file);
   }
 
   async function runSearch(hint?: Identified) {
@@ -181,7 +213,10 @@ function ScannerInner({
       // Strip trailing tags ("ex", "V", "VMAX", "GX") for a broader base match,
       // then quote the core name (TCG API requires quotes for multi-word values,
       // and wildcards must live OUTSIDE the quotes).
-      const cleaned = raw.replace(/[“”"]/g, "").trim();
+      const cleaned = raw
+        .replace(/[“”"]/g, "")
+        .replace(/\b\d+\s*\/\s*\d+\b/g, "")
+        .trim();
       const core =
         cleaned.replace(/\s+(ex|EX|V|VMAX|VSTAR|GX|BREAK|LV\.?X)$/i, "").trim() || cleaned;
       const quote = (s: string) => `"${s.replace(/"/g, "")}"`;
@@ -215,7 +250,7 @@ function ScannerInner({
       setPhase("results");
     } catch {
       setError("Search failed. Try again.");
-      setPhase("captured");
+      setPhase(snap ? "captured" : "idle");
     }
   }
 
@@ -233,7 +268,7 @@ function ScannerInner({
       </div>
 
       <div className="pv-scan-stage">
-        {phase === "idle" && (
+        {(phase === "idle" || (phase === "searching" && !snap)) && (
           <div className="pv-scan-idle">
             <div className="pv-pokeball-lg" aria-hidden />
             <div className="pv-scan-cta-title">READY TO SCAN</div>
@@ -244,6 +279,37 @@ function ScannerInner({
             <button className="pv-scan-go" onClick={startCamera}>
               📷 Activate Scanner
             </button>
+            <form
+              className="pv-scan-search"
+              data-scanner-catalog
+              onSubmit={(e) => {
+                e.preventDefault();
+                void runSearch();
+              }}
+            >
+              <input
+                className="pv-scan-input"
+                placeholder="Or type the name or number, like Charizard 4/102"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+              <button className="pv-scan-find" type="submit" disabled={!query.trim()}>
+                Match catalog
+              </button>
+            </form>
+            <label className="pv-scan-retake">
+              Upload a card photo
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                hidden
+                onChange={(e) => {
+                  onPhotoFile(e.target.files?.[0]);
+                  e.target.value = "";
+                }}
+              />
+            </label>
             {error && <div className="pv-scan-err">{error}</div>}
           </div>
         )}
@@ -307,7 +373,8 @@ function ScannerInner({
                   </div>
                 ) : (
                   <div className="pv-scan-id-sub">
-                    AI vision will read the card. Edit the name if it's wrong.
+                    Type the name or the printed number. The catalog match works when the card
+                    reader is offline.
                   </div>
                 )}
                 <div className="pv-scan-search">
@@ -361,6 +428,21 @@ function ScannerInner({
               <span>
                 🎴 {results.length} possible {results.length === 1 ? "match" : "matches"}
               </span>
+              <button
+                type="button"
+                className="pv-scan-retake"
+                onClick={() => {
+                  setSnap(null);
+                  setPhase("idle");
+                  setResults([]);
+                  setQuery("");
+                  setIdent(null);
+                  setError(null);
+                  setLearnNote(null);
+                }}
+              >
+                New scan
+              </button>
             </div>
             {learnNote && (
               <p className="pv-scan-learn" data-scan-note>
@@ -373,7 +455,7 @@ function ScannerInner({
               <div className="pv-scan-grid">
                 {results.map((c) => (
                   <div key={c.id} className="pv-scan-match" onClick={() => onOpen(c.id)}>
-                    <img {...hdImg(c)} alt={c.name} loading="lazy" />
+                    <CardScan card={c} alt={c.name} />
                     <div className="pv-scan-match-info">
                       <div className="pv-scan-match-name">{c.name}</div>
                       <div className="pv-scan-match-set">

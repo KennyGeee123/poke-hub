@@ -19,17 +19,20 @@ const greninja = {
 };
 
 describe("card image chain", () => {
-  it("tiles never lead with high.webp and carry no high srcset", () => {
+  it("tiles lead with the Scrydex medium scan and carry no srcset", () => {
     const t = hdImg(greninja, { tile: true });
-    expect(t.src).toEndWith("/low.webp");
+    expect(t.src).toBe("https://images.scrydex.com/pokemon/me55-148/medium");
     expect(t.srcSet).toBeUndefined();
+    expect(t.src).not.toContain("tcgdex");
+    expect(t.src).not.toContain("tcgplayer");
   });
 
-  it("retries the same art through the proxy before anything else", () => {
+  it("retries that Scrydex scan through the proxy and never asks the old CDNs", () => {
     const urls = fallbackCardImages(greninja, { tile: true });
-    expect(urls[0]).toBe("https://assets.tcgdex.net/en/me/30th/148/low.webp");
-    expect(urls[1]).toBe(proxiedCardImage(urls[0]));
-    expect(urls.some((u) => u.includes("high.webp"))).toBe(true);
+    expect(urls[0]).toBe("https://images.scrydex.com/pokemon/me55-148/medium");
+    expect(urls[1]).toBe("https://images.scrydex.com/pokemon/me55-148/large");
+    expect(urls).toContain(proxiedCardImage(urls[0]));
+    expect(urls.some((u) => /tcgdex|tcgplayer|pokemontcg\.io/i.test(u))).toBe(false);
   });
 
   it("never paints a direct pokemontcg URL for TCGdex-only 30th boxes", () => {
@@ -78,6 +81,50 @@ describe("card image chain", () => {
       src: "",
     };
     expect(looksLikePlaceholderScan(real)).toBe(false);
+  });
+
+  it("flags the Scrydex placeholder sizes and keeps a real medium scan", () => {
+    expect(
+      looksLikePlaceholderScan({
+        naturalWidth: 367,
+        naturalHeight: 511,
+        currentSrc: "https://images.scrydex.com/pokemon/sv08-1/medium",
+        src: "",
+      }),
+    ).toBe(true);
+    expect(
+      looksLikePlaceholderScan({
+        naturalWidth: 367,
+        naturalHeight: 512,
+        currentSrc: "https://images.scrydex.com/pokemon/sv8-1/medium",
+        src: "",
+      }),
+    ).toBe(false);
+  });
+
+  it("classic tiles lead with the Scrydex scan even when a TCGPlayer photo is stored", () => {
+    const urls = fallbackCardImages(
+      {
+        id: "30th-c-004",
+        name: "Genesect EX",
+        number: "004",
+        set: { id: "30th-c", name: "Classic Collection" } as any,
+        images: {
+          small: "https://tcgplayer-cdn.tcgplayer.com/product/716158_200w.jpg",
+          large: "https://tcgplayer-cdn.tcgplayer.com/product/716158_in_1000x1000.jpg",
+        },
+      },
+      { tile: true },
+    );
+    expect(urls[0]).toBe("https://images.scrydex.com/pokemon/me55c-11g/medium");
+    expect(urls[0]).not.toContain("me55c-11/medium");
+  });
+
+  it("other box sets lead with Scrydex and end on Art pending", () => {
+    const urls = fallbackCardImages(greninja, { tile: true });
+    expect(urls[0]).toBe("https://images.scrydex.com/pokemon/me55-148/medium");
+    expect(isArtPending(urls[urls.length - 1])).toBe(true);
+    expect(urls.some((u) => u.includes("assets.tcgdex.net"))).toBe(false);
   });
 });
 

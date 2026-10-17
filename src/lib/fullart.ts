@@ -7,6 +7,7 @@
 // Official Ultra Rare / Illustration Rare scans are already that look — shown full-bleed.
 // Optional AI path: opts.aiArt replaces the silk + subject. Overlay stays ours.
 import type { TCGCard } from "./pokemon-api";
+import { fallbackCardImages } from "./card-images";
 import {
   ARTIST_REFS,
   GENERATION_REFS,
@@ -76,20 +77,9 @@ export function proxiedImageUrl(url: string): string {
   return `/api/public/card-image?url=${encodeURIComponent(url)}`;
 }
 
-/** Best available scan URLs for a card, highest-res first. */
+/** Scrydex scans for a card, highest-res first. The Art pending tile is omitted. */
 export function cardArtCandidates(card: TCGCard): string[] {
-  const out: string[] = [];
-  const add = (u?: string) => {
-    if (u && !out.includes(u)) out.push(u);
-  };
-  add(card.images?.large);
-  add(card.images?.small);
-  const setId = card.set?.id;
-  if (setId && card.number) {
-    add(`https://images.pokemontcg.io/${setId}/${card.number}_hires.png`);
-    add(`https://images.pokemontcg.io/${setId}/${card.number}.png`);
-  }
-  return out;
+  return fallbackCardImages(card).filter((u) => !!u && !u.startsWith("data:"));
 }
 
 export async function loadCardImage(card: TCGCard): Promise<HTMLImageElement> {

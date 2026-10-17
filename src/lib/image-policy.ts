@@ -1,13 +1,13 @@
 /**
  * Where card art may come from.
- * Default: API art first (TCGdex / pokemontcg.io, the same sources the MCP tools `get_card` and `get_hd_image` use),
- * then the shipped TCGPlayer / Scrydex scans for cards NO API has art for (today: the 30 Classic Collection cards,
- * whose TCGdex image is null in every language and whose pokemontcg.io ids 404), then the "Art pending" tile.
+ * Card scans are Scrydex (images.scrydex.com). TCGdex and pokemontcg.io stay
+ * on the allow-list so a strict build can still recognize those hosts, but
+ * the image chain does not request them. TCGPlayer photos are not scans.
  * Set VITE_STRICT_API_IMAGES=1 to refuse every non-API host: those cards then show "Art pending" until an API publishes art.
  */
 export const STRICT_API_IMAGES = String(import.meta.env?.VITE_STRICT_API_IMAGES ?? "") === "1";
 
-const API_ART_HOSTS = /^(assets\.tcgdex\.net|images\.pokemontcg\.io)$/i;
+const API_ART_HOSTS = /^(assets\.tcgdex\.net|images\.pokemontcg\.io|images\.scrydex\.com)$/i;
 
 /** True for a URL the TCG APIs serve (directly or through our same-origin proxy), or a data: placeholder. */
 export function isApiArtUrl(url: string): boolean {

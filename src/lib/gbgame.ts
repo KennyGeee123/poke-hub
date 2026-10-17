@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { TCGCard } from "./pokemon-api";
 import { animatedSpriteUrl, staticSpriteUrl } from "./sprites";
 import { healAllHp } from "./gb-hp";
-import { appendNamedMoves, speciesFromCardName } from "./card-moves";
+import { appendNamedMoves, isPokemonSupertype, speciesFromCardName } from "./card-moves";
 
 export type GBMove = {
   name: string;
@@ -29,6 +29,41 @@ export type GBMon = {
 
 const LS_PARTY = "pv.gb.party.v1";
 
+export function isDittoName(name: string): boolean {
+  const slug = name
+    .toLowerCase()
+    .replace(/\(.*?\)/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  return slug === "ditto" || slug.startsWith("ditto-");
+}
+
+/** Copies the foe's moves, then the turn ends. Power stays 0 so it is not a hit. */
+export const TRANSFORM_MOVE: GBMove = {
+  name: "Transform",
+  damage: 0,
+  type: "Normal",
+  text: "Ditto copies the other fighter's moves. This turn ends.",
+};
+
+export function speciesMoves(name: string, level: number, type = "Colorless"): GBMove[] {
+  if (isDittoName(name)) return [{ ...TRANSFORM_MOVE }];
+  const lvl = Math.max(2, Math.min(60, level || 5));
+  return [
+    { name: "Tackle", damage: 8 + lvl, type: type || "Colorless" },
+    { name: "Scratch", damage: 10 + lvl, type: "Colorless" },
+  ];
+}
+
+/** Moves Ditto keeps after Transform. Another Transform is left out so it cannot loop. */
+export function attacksAfterTransform(source: GBMove[]): GBMove[] {
+  const copied = source
+    .filter((m) => m.name.toLowerCase() !== "transform")
+    .map((m) => ({ ...m }));
+  if (copied.length) return copied;
+  return [{ name: "Struggle", damage: 10, type: "Normal", text: "A last-ditch hit." }];
+}
+
 const parseDmg = (s?: string) => {
   const n = parseInt((s || "").replace(/\D/g, ""));
   return isNaN(n) ? 0 : n;
@@ -44,7 +79,7 @@ export function movesFromCard(card: TCGCard): GBMove[] {
   if (!atks.length) {
     atks.push({ name: "Tackle", damage: 10, text: undefined, type: card.types?.[0] });
   }
-  return atks.slice(0, 4);
+  return atks;
 }
 
 export function baseHpFromCard(card: TCGCard): number {
@@ -90,10 +125,7 @@ export function wildFoeMon(name: string, level: number): GBMon {
     level: lvl,
     xp: 0,
     max_hp: Math.round(36 + lvl * 4),
-    attacks: [
-      { name: "Tackle", damage: 8 + lvl, type: "Colorless" },
-      { name: "Scratch", damage: 10 + lvl, type: "Colorless" },
-    ],
+    attacks: speciesMoves(name, lvl),
     sprite_url: sprite,
     image_url: sprite,
     wins: 0,
@@ -200,6 +232,71 @@ function readLocalParty(): GBMon[] {
   }
 }
 
+/** Replace one species' attacks with the scanned card's current choices. */
+export async function replaceSpeciesMovesOnParty(species: string, moves: GBMove[]): Promise<void> {
+  const key = species.trim().toLowerCase();
+  if (!key) return;
+  const party = await fetchParty();
+  const next: GBMon[] = [];
+  const dirty: GBMon[] = [];
+  for (const mon of party) {
+    const names = [speciesFromCardName(mon.name).toLowerCase(), mon.name.toLowerCase()];
+    if (!names.includes(key)) {
+      next.push(mon);
+      continue;
+    }
+    const attacks = moves.map((move) => ({ ...move }));
+    const same =
+      attacks.length === mon.attacks.length &&
+      attacks.every((move, i) => move.name.toLowerCase() === mon.attacks[i]?.name.toLowerCase());
+    if (same) {
+      next.push(mon);
+      continue;
+    }
+    const updated = { ...mon, attacks };
+    next.push(updated);
+    dirty.push(updated);
+  }
+  if (!dirty.length) return;
+  const uid = await currentUserId();
+  if (!uid) {
+    writeLocalParty(next);
+    return;
+  }
+  for (const mon of dirty) await saveMonStats(mon);
+}
+
+/** Append a species' moves onto the matching party member. Earlier moves stay. */
+export async function appendSpeciesMovesToParty(species: string, extra: GBMove[]): Promise<void> {
+  const key = species.trim().toLowerCase();
+  if (!key || !extra.length) return;
+  const party = await fetchParty();
+  const next: GBMon[] = [];
+  const dirty: GBMon[] = [];
+  for (const mon of party) {
+    const names = [speciesFromCardName(mon.name).toLowerCase(), mon.name.toLowerCase()];
+    if (!names.includes(key)) {
+      next.push(mon);
+      continue;
+    }
+    const attacks = appendNamedMoves(mon.attacks, extra);
+    if (attacks.length === mon.attacks.length) {
+      next.push(mon);
+      continue;
+    }
+    const updated = { ...mon, attacks };
+    next.push(updated);
+    dirty.push(updated);
+  }
+  if (!dirty.length) return;
+  const uid = await currentUserId();
+  if (!uid) {
+    writeLocalParty(next);
+    return;
+  }
+  for (const mon of dirty) await saveMonStats(mon);
+}
+
 function writeLocalParty(party: GBMon[]): void {
   try {
     localStorage.setItem(LS_PARTY, JSON.stringify(party));
@@ -251,10 +348,7 @@ export function makeMonFromSpecies(
     level: lvl,
     xp: 0,
     max_hp: Math.round(36 + lvl * 4),
-    attacks: [
-      { name: "Tackle", damage: 8 + lvl, type: types[0] || "Colorless" },
-      { name: "Scratch", damage: 10 + lvl, type: "Colorless" },
-    ],
+    attacks: speciesMoves(name, lvl, types[0] || "Colorless"),
     sprite_url: sprite,
     image_url: sprite,
     wins: 0,
@@ -288,18 +382,30 @@ export async function addSpeciesToParty(
  * A scanned card joins that species. Printed attacks are appended.
  * A second Pikachu card does not open a second party slot.
  */
-export async function mergeCardMoves(card: TCGCard, level = 50): Promise<GBMon | null> {
-  if (card.supertype !== "Pokémon") return null;
+export async function mergeCardMoves(
+  card: TCGCard,
+  level = 50,
+  extra: GBMove[] = [],
+): Promise<GBMon | null> {
+  if (!isPokemonSupertype(card.supertype)) return null;
   const species = speciesFromCardName(card.name);
   const party = await fetchParty();
   const printed = (card.attacks ?? []).length ? movesFromCard(card) : [];
+  const incoming = appendNamedMoves(printed, extra);
   const existing = party.find(
     (m) =>
       m.card_id === card.id ||
       speciesFromCardName(m.name).toLowerCase() === species.toLowerCase(),
   );
-  if (!existing) return addToParty(card, level);
-  const attacks = appendNamedMoves(existing.attacks, printed);
+  if (!existing) {
+    const mon = await addToParty(card, level);
+    const attacks = appendNamedMoves(mon.attacks, extra);
+    if (attacks.length === mon.attacks.length) return mon;
+    const next = { ...mon, attacks };
+    await saveMonStats(next);
+    return next;
+  }
+  const attacks = appendNamedMoves(existing.attacks, incoming);
   if (attacks.length === existing.attacks.length) return existing;
   const next = { ...existing, attacks };
   await saveMonStats(next);

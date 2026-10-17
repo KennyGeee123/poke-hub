@@ -1,10 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import {
   appendNamedMoves,
+  installCardLearnset,
+  knownCardMoves,
   learnPrintedMoves,
   partyWithCardMoves,
   scanLearnNote,
   speciesFromCardName,
+  teachMachineMove,
 } from "./card-moves";
 
 const pikachu = {
@@ -78,6 +81,22 @@ describe("scanned card moves", () => {
       "Nuzzle",
     ]);
     expect(third.book.pikachu.moves.find((m) => m.name === "Nuzzle")?.power).toBe(20);
+  });
+
+  test("a TCGdex Pokemon row still teaches the printed attacks", () => {
+    const learned = learnPrintedMoves(undefined, {
+      id: "sv03.5-006",
+      name: "Charizard ex",
+      supertype: "Pokemon",
+      types: ["Fire"],
+      attacks: [
+        { name: "Brave Wing", damage: "60+" },
+        { name: "Explosive Vortex", damage: "330" },
+      ],
+    });
+    expect(learned.species).toBe("Charizard");
+    expect(learned.added).toEqual(["Brave Wing", "Explosive Vortex"]);
+    expect(learned.book.charizard.moves).toHaveLength(2);
   });
 
   test("card suffixes map onto the base species and trainers do nothing", () => {
@@ -175,5 +194,108 @@ describe("scanned card moves", () => {
     expect(scanLearnNote({ id: "t", name: "Bill", supertype: "Trainer" }, [], null)).toBe(
       "Added to your vault.",
     );
+  });
+
+  test("a scanned card fights with level-up moves, and a TM is a choice", () => {
+    const printed = learnPrintedMoves(undefined, {
+      id: "sv03.5-006",
+      name: "Charizard ex",
+      supertype: "Pokémon",
+      types: ["Fire"],
+      attacks: [{ name: "Brave Wing", damage: "60", text: "Discard an Energy." }],
+    }).book;
+    const dumped = {
+      ...printed.charizard,
+      moves: [
+        ...printed.charizard.moves,
+        {
+          name: "Earthquake",
+          type: "Ground",
+          power: 100,
+          pp: 15,
+          maxPp: 15,
+          description: "TM move.",
+        },
+        {
+          name: "Flamethrower",
+          type: "Fire",
+          power: 90,
+          pp: 20,
+          maxPp: 20,
+          description: "Inflicts regular damage with no additional effect.",
+        },
+      ],
+    };
+    const book = installCardLearnset(
+      { charizard: dumped },
+      "Charizard",
+      [
+        {
+          name: "Scratch",
+          type: "Normal",
+          power: 40,
+          text: "Scratches.",
+          source: "level-up",
+          level: 1,
+        },
+        {
+          name: "Flamethrower",
+          type: "Fire",
+          power: 90,
+          text: "Inflicts regular damage with no additional effect.",
+          source: "level-up",
+          level: 36,
+        },
+        { name: "Earthquake", type: "Ground", power: 100, source: "machine" },
+      ],
+    );
+    expect(book.charizard.moves.map((move) => move.name)).toEqual(["Brave Wing"]);
+    expect(knownCardMoves(book.charizard, 10).map((move) => move.name)).toEqual([
+      "Brave Wing",
+      "Scratch",
+    ]);
+    expect(knownCardMoves(book.charizard, 38).map((move) => move.name)).toEqual([
+      "Brave Wing",
+      "Scratch",
+      "Flamethrower",
+    ]);
+    const party = partyWithCardMoves([pikachu], book);
+    const zard = partyWithCardMoves(
+      [
+        {
+          name: "Blaze (Charizard)",
+          species: "Charizard",
+          level: 38,
+          maxHp: 165,
+          currentHp: 165,
+          types: ["Fire"],
+          moves: [
+            { name: "Dragon Claw", type: "Dragon", power: 80, pp: 15, maxPp: 15, description: "starter" },
+          ],
+        },
+      ],
+      book,
+    );
+    expect(zard[0].moves.map((move) => move.name)).toEqual(["Brave Wing", "Scratch", "Flamethrower"]);
+    expect(party[0].moves[0].name).toBe("Thunderbolt");
+    const taught = teachMachineMove(book, "Charizard", {
+      name: "Earthquake",
+      type: "Ground",
+      power: 100,
+      pp: 15,
+      maxPp: 15,
+      description: "TM move.",
+    });
+    expect(taught.added).toBe(true);
+    expect(knownCardMoves(taught.book.charizard, 10).map((move) => move.name)).toContain("Earthquake");
+    const early = teachMachineMove(taught.book, "Charizard", {
+      name: "Flamethrower",
+      type: "Fire",
+      power: 90,
+      pp: 15,
+      maxPp: 15,
+      description: "TM move.",
+    });
+    expect(early.added).toBe(false);
   });
 });

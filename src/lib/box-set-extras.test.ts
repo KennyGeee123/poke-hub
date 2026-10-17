@@ -60,7 +60,7 @@ describe("box set extras", () => {
     const mag = out.find((c) => c.name === "Magikarp");
     expect(mag).toBeTruthy();
     expect(mag!.number).toMatch(/0?30/);
-    expect(mag!.images.small).toMatch(/tcgplayer\.com\/product\/716210/);
+    expect(mag!.images.small).toBe("https://images.scrydex.com/pokemon/me55c-203/medium");
     expect(out.some((c) => c.number === "R" && c.name === "Mew")).toBe(true);
   });
 
@@ -72,7 +72,18 @@ describe("box set extras", () => {
     const out = addBoxSetExtras("30th-c", [broken]);
     expect(out).toHaveLength(30); // Magikarp kept + 29 other classic cards added
     const mag = out.find((c) => c.name === "Magikarp")!;
-    expect(mag.images.small).toMatch(/tcgplayer\.com\/product\/716210/);
+    expect(mag.images.small).toBe("https://images.scrydex.com/pokemon/me55c-203/medium");
+    expect(mag.images.large).toBe("https://images.scrydex.com/pokemon/me55c-203/large");
+  });
+
+  it("replaces a TCGPlayer product photo with the Scrydex scan of the printed card", () => {
+    const photo = card("30th-c", "030", "Magikarp", {
+      small: "https://tcgplayer-cdn.tcgplayer.com/product/716210_200w.jpg",
+      large: "https://tcgplayer-cdn.tcgplayer.com/product/716210_in_1000x1000.jpg",
+    });
+    const out = addBoxSetExtras("30th-c", [photo]);
+    const mag = out.find((c) => c.name === "Magikarp")!;
+    expect(mag.images.large).toBe("https://images.scrydex.com/pokemon/me55c-203/large");
   });
 
   it("leaves sets with nothing missing alone", () => {

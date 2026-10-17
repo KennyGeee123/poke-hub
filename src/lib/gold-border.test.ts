@@ -52,6 +52,13 @@ describe("Classic Collection: only prints with a real gold frame are framed", ()
     expect(isGoldBorderCard({ id: "30th-c-001", name: "Charizard", set: { id: "30th-c" } })).toBe(
       true,
     );
+    // me55c-4 is Charizard 4/102. The printed gold edge is on that scan.
+    expect(isGoldBorderCard({ id: "me55c-4", name: "Charizard", set: { id: "me55c" } })).toBe(
+      true,
+    );
+    expect(isGoldBorderCard({ id: "me55c-11g", name: "Genesect EX" })).toBe(false);
+    expect(isGoldBorderCard({ id: "me55c-106m", name: "M Gardevoir EX" })).toBe(false);
+    expect(isGoldBorderCard({ id: "me55c-114", name: "Mew VMAX" })).toBe(false);
     expect(isGoldBorderCard({ id: "30th-c-030", name: "Magikarp", set: { id: "30th-c" } })).toBe(
       true,
     );

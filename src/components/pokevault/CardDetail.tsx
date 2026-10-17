@@ -77,7 +77,7 @@ export function CardDetail({
     setLoaded(false);
     setDataReady(false);
     setDegraded(false);
-    setImgSrc(stub.images?.large || stub.images?.small || "");
+    setImgSrc(fallbackCardImages(stub).find((u) => !u.startsWith("data:")) || "");
     setSelectedGrade("raw_nm");
     failedImgs.current = new Set();
     let live = true;
@@ -101,7 +101,7 @@ export function CardDetail({
     failedImgs.current = new Set();
     setLoaded(false);
     const list = fallbackCardImages(card);
-    setImgSrc(list[0] || card.images?.large || card.images?.small || "");
+    setImgSrc(list[0] || "");
     resolveHDImage(card)
       .then((url) => {
         if (url && url !== (card.images?.large || "") && !failedImgs.current.has(url)) {

@@ -65,7 +65,7 @@ for (const s of SETS) for (const c of s.cards) byCardId.set(String(c.id).toLower
 /**
  * The shipped print for this exact card id (and name, when given). Used to
  * give TCGdex cards with image:null (all 30 Classic Collection cards) their
- * own TCGPlayer scan instead of guessing a URL from the number.
+ * own Scrydex scan instead of guessing a URL from the number.
  */
 export function shippedPrint(
   id: string,
@@ -113,7 +113,11 @@ export function addBoxSetExtras(setId: string, box: TCGCard[]): TCGCard[] {
       const key = printKey(c);
       const hit = byLocal.get(key);
       if (hit) {
-        if (imageBroken(hit) && (c.images?.small || c.images?.large)) {
+        const shippedIsScry = /images\.scrydex\.com/i.test(
+          `${c.images?.small || ""} ${c.images?.large || ""}`,
+        );
+        const currentIsTcgp = /tcgplayer/i.test(`${hit.images?.small || ""} ${hit.images?.large || ""}`);
+        if ((imageBroken(hit) || (shippedIsScry && currentIsTcgp)) && (c.images?.small || c.images?.large)) {
           hit.images = {
             small: c.images.small || hit.images.small,
             large: c.images.large || c.images.small || hit.images.large,

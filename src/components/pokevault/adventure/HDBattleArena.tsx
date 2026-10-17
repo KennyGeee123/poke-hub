@@ -19,6 +19,7 @@ import {
   type AdventureState,
   type CaptureItemId,
   CAPTURE_ITEMS,
+  ballItemIds,
   addAdventureXp,
   cloneAdventureState,
   saveAdventureState,
@@ -26,6 +27,7 @@ import {
 import { addWildCatchToParty } from "@/lib/adventure-party";
 import { MoveFx, type MoveFxData } from "../MoveFx";
 import { adventureMoveShow } from "@/lib/move-show";
+import { BallMark } from "./BallMark";
 
 export interface BattlePokemon {
   name: string;
@@ -173,7 +175,37 @@ export function HDBattleArena({
       name: "Tackle",
       type: "Normal",
       power: 40,
+      pp: 35,
+      maxPp: 35,
+      description: "Full body charge.",
     };
+    if (foeMove.name === "Transform") {
+      const meNow = partyRef.current[activeIdxRef.current];
+      const copied = (meNow?.moves || [])
+        .filter((mv) => mv.name.toLowerCase() !== "transform")
+        .map((mv) => ({ ...mv }));
+      const next = {
+        ...f,
+        moves: copied.length
+          ? copied
+          : [
+              {
+                name: "Struggle",
+                type: "Normal",
+                power: 50,
+                pp: 1,
+                maxPp: 1,
+                description: "A last-ditch hit.",
+              },
+            ],
+      };
+      foeRef.current = next;
+      setFoe(next);
+      appendLog(`Foe ${f.name} transformed into ${meNow?.name || "the foe"}!`);
+      showMove("Transform", "Normal", "ai");
+      await wait(400);
+      return;
+    }
     appendLog(`Foe ${f.name} used ${foeMove.name.toUpperCase()}!`);
     showMove(foeMove.name, foeMove.type, "ai");
     setFoeAnim("attack");
@@ -183,7 +215,9 @@ export function HDBattleArena({
 
     const foeMult = getTypeEffectiveness(foeMove.type, me.types);
     const foeDmg =
-      foeMult === 0 ? 0 : Math.max(5, Math.round(f.level * 2.0 * (foeMove.power / 50) * foeMult));
+      foeMove.power <= 0 || foeMult === 0
+        ? 0
+        : Math.max(5, Math.round(f.level * 2.0 * (foeMove.power / 50) * foeMult));
     if (foeMult > 1) appendLog("It's super effective!");
     else if (foeMult === 0) appendLog("It had no effect!");
 
@@ -247,12 +281,36 @@ export function HDBattleArena({
     await wait(740);
     setPlayerAnim("");
 
-    // Calculate Damage
     const f = foeRef.current;
+    if (move.name === "Transform") {
+      const copied = f.moves
+        .filter((mv) => mv.name.toLowerCase() !== "transform")
+        .map((mv) => ({ ...mv }));
+      patchActive((m) => ({
+        ...m,
+        moves: copied.length
+          ? copied
+          : [
+              {
+                name: "Struggle",
+                type: "Normal",
+                power: 50,
+                pp: 1,
+                maxPp: 1,
+                description: "A last-ditch hit.",
+              },
+            ],
+      }));
+      appendLog(`${me.name} transformed into ${f.name}!`);
+      await foeCounterAttack();
+      setIsTurnBusy(false);
+      return;
+    }
     const mult = getTypeEffectiveness(move.type, f.types);
     const isCrit = mult > 0 && Math.random() < 0.12;
     const baseDmg = Math.round(me.level * 2.5 * (move.power / 50) * mult * (isCrit ? 1.5 : 1.0));
-    const finalDmg = mult === 0 ? 0 : Math.max(8, baseDmg + Math.floor(Math.random() * 6));
+    const finalDmg =
+      move.power <= 0 || mult === 0 ? 0 : Math.max(8, baseDmg + Math.floor(Math.random() * 6));
 
     setFoeAnim("hit");
     await wait(400);
@@ -608,7 +666,7 @@ export function HDBattleArena({
               </button>
             </div>
             <div
-              className={`grid grid-cols-2 gap-2 ${playerMon.moves.length > 4 ? "max-h-[9.25rem] overflow-y-auto pr-1" : ""}`}
+              className={`grid grid-cols-2 gap-2 ${playerMon.moves.length > 4 ? "max-h-[18rem] overflow-y-auto pr-1" : ""}`}
               data-move-box="hd"
               data-move-count={playerMon.moves.length}
             >
@@ -623,7 +681,18 @@ export function HDBattleArena({
                     className="p-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 hover:border-cyan-500/50 transition flex flex-col justify-between text-left disabled:opacity-40"
                   >
                     <div className="flex items-center justify-between w-full">
-                      <span className="font-bold text-white text-xs font-mono">{m.name}</span>
+                      <span className="font-bold text-white text-xs font-mono">
+                        {m.name}
+                        {m.description?.startsWith("Breeding") ? (
+                          <span className="ml-1 text-[9px] text-pink-300">Breeding</span>
+                        ) : m.description?.startsWith("TM") ? (
+                          <span className="ml-1 text-[9px] text-amber-300">TM</span>
+                        ) : m.description?.startsWith("Tutor") ? (
+                          <span className="ml-1 text-[9px] text-violet-300">Tutor</span>
+                        ) : m.description?.startsWith("Train") ? (
+                          <span className="ml-1 text-[9px] text-emerald-300">Train</span>
+                        ) : null}
+                      </span>
                       <span
                         className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${conf.bg} ${conf.text}`}
                       >
@@ -670,19 +739,25 @@ export function HDBattleArena({
                 <span className="text-[10px] text-neutral-400">Restore +50 HP</span>
               </button>
 
-              {(["poke_ball", "great_ball", "ultra_ball"] as CaptureItemId[]).map((ballId) => {
+              {ballItemIds()
+                .filter((ballId) => (adventureState.inventory.captureItems[ballId] || 0) > 0)
+                .map((ballId) => {
                 const b = CAPTURE_ITEMS[ballId];
                 const count = adventureState.inventory.captureItems[ballId] || 0;
                 return (
                   <button
                     key={ballId}
                     type="button"
+                    data-ball={ballId}
                     disabled={count <= 0 || isTurnBusy || !catchable}
                     onClick={() => throwBall(ballId)}
                     className="p-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 flex flex-col gap-1 text-left disabled:opacity-40"
                   >
                     <div className="flex items-center justify-between text-xs font-bold text-amber-400 font-mono">
-                      <span>{b.name}</span>
+                      <span className="flex items-center gap-1.5">
+                        {b.colors ? <BallMark colors={b.colors} size={16} /> : null}
+                        {b.name}
+                      </span>
                       <span className="text-neutral-400 text-[10px]">x{count}</span>
                     </div>
                     <span className="text-[10px] text-neutral-400">

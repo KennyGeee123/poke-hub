@@ -2,6 +2,7 @@
 import {
   mapTcgdexCard,
   tcgdexGetCard,
+  stampGoldRarities,
   tcgdexGetSetCards,
   tcgdexGetSets,
   tcgdexRecentCards,
@@ -827,8 +828,11 @@ export async function getAllCardsBySet(
       // Only skip the network when we already have the full printed box.
       if (cached?.length && expectedCount > 0 && cached.length >= expectedCount) {
         const full = sortSetCards(addBoxSetExtras(setId, cached));
-        if (full.length > cached.length) paint(full, full.length);
-        return { data: full, totalCount: Math.max(full.length, expectedCount) };
+        // Cached shells have no rarity. Stamp gold-tier ids so every box still glitters.
+        const stamped = await stampGoldRarities(full, lang);
+        paint(stamped, Math.max(stamped.length, expectedCount));
+        writeCachedSetCards(setId, stamped);
+        return { data: stamped, totalCount: Math.max(stamped.length, expectedCount) };
       }
     }
   }

@@ -1,5 +1,6 @@
 // Full Art Studio: pick a card → extended full-bleed fan design → preview → save / download.
 import { useCallback, useEffect, useRef, useState } from "react";
+import { CardScan } from "./CardScan";
 import type { TCGCard } from "@/lib/pokemon-api";
 import { getCard, getDiscoverFast, searchCards } from "@/lib/pokemon-api";
 import { useVault } from "@/lib/vault";
@@ -605,12 +606,7 @@ function CardPicker({ onPick }: { onPick: (c: TCGCard) => void }) {
         <div className="pv-fa-grid">
           {list.map((c) => (
             <button key={c.id} type="button" className="pv-fa-pick" onClick={() => onPick(c)}>
-              <img
-                src={c.images?.small || c.images?.large}
-                alt=""
-                loading="lazy"
-                decoding="async"
-              />
+              <CardScan card={c} tile alt="" />
               <span>{c.name}</span>
             </button>
           ))}

@@ -8,6 +8,7 @@ import {
   levelDamage,
   rentalStarter,
   saveMonStats,
+  attacksAfterTransform,
   wildFoeMon,
   xpForNext,
   type GBMon,
@@ -17,6 +18,7 @@ import { spriteSlug } from "@/lib/sprites";
 import { SpriteImg, SpriteEraContext } from "./SpriteImg";
 import type { PokemonEraId } from "@/lib/adventure-engine";
 import { hpPct } from "@/lib/battle";
+import { movesLearnedOnLevel } from "@/lib/adventure-party";
 import { movesAtLevel, newlyLearned } from "@/lib/pokeapi-moves";
 import { appendNamedMoves } from "@/lib/card-moves";
 import { CatchFx, type CatchPhase } from "./CatchFx";
@@ -337,7 +339,26 @@ function GBBattleSessionInner({
     if (busy || !active || !foe) return;
     setBusy(true);
     setPane("main");
-    const { dmg, eff } = advDamage(move, active.level, foe.types, active.types);
+    if (move.name === "Transform") {
+      const copied = attacksAfterTransform(foe.attacks);
+      const next = { ...active, attacks: copied };
+      putActive(next);
+      setParty((p) => p.map((x) => (x.id === next.id ? next : x)));
+      partyRef.current = partyRef.current.map((x) => (x.id === next.id ? next : x));
+      showMove(move.name, "Normal", "player");
+      setLog((l) => [
+        `▶ ${active.name.toUpperCase()} transformed into ${foe.name.toUpperCase()}!`,
+        ...l,
+      ]);
+      await wait(740);
+      setMoveFx(null);
+      await foeTurn();
+      return;
+    }
+    const harmless = move.damage <= 0;
+    const { dmg, eff } = harmless
+      ? { dmg: 0, eff: "normal" as const }
+      : advDamage(move, active.level, foe.types, active.types);
     showMove(move.name, active.types?.[0], "player");
     setFoeFx("flash");
     await wait(740);
@@ -345,7 +366,9 @@ function GBBattleSessionInner({
     const newFoeHp = Math.max(0, foeHpRef.current - dmg);
     putFoeHp(newFoeHp);
     setLog((l) => [
-      `▶ ${active.name.toUpperCase()} used ${move.name}!  ${dmg} dmg${eff === "super" ? " ★ super effective!" : eff === "weak" ? " (not very effective)" : ""}`,
+      harmless
+        ? `▶ ${active.name.toUpperCase()} used ${move.name}!`
+        : `▶ ${active.name.toUpperCase()} used ${move.name}!  ${dmg} dmg${eff === "super" ? " ★ super effective!" : eff === "weak" ? " (not very effective)" : ""}`,
       ...l,
     ]);
     await wait(360);
@@ -368,8 +391,27 @@ function GBBattleSessionInner({
       setBusy(false);
       return;
     }
-    const fmove = foe.attacks[Math.floor(Math.random() * foe.attacks.length)];
-    const fdmg = advDamage(fmove, foe.level, active.types, foe.types).dmg;
+    const fmove = foe.attacks[Math.floor(Math.random() * Math.max(1, foe.attacks.length))];
+    if (!fmove) {
+      setBusy(false);
+      return;
+    }
+    if (fmove.name === "Transform") {
+      const copied = attacksAfterTransform(active.attacks);
+      const next = { ...foe, attacks: copied };
+      foeRef.current = next;
+      setFoe(next);
+      showMove(fmove.name, "Normal", "ai");
+      setLog((l) => [
+        `◀ Foe ${foe.name.toUpperCase()} transformed into ${active.name.toUpperCase()}!`,
+        ...l,
+      ]);
+      await wait(740);
+      setMoveFx(null);
+      setBusy(false);
+      return;
+    }
+    const fdmg = fmove && fmove.damage > 0 ? advDamage(fmove, foe.level, active.types, foe.types).dmg : 0;
     showMove(fmove.name, foe.types?.[0], "ai");
     setMeFx("flash");
     await wait(740);
@@ -520,7 +562,8 @@ function GBBattleSessionInner({
       const learnedLogs: string[] = [];
       if (leveled) {
         try {
-          const learned = await newlyLearned(mon.name, oldLevel, mon.level);
+          const fromCard = await movesLearnedOnLevel(mon.name, oldLevel, mon.level);
+          const learned = fromCard ?? (await newlyLearned(mon.name, oldLevel, mon.level));
           if (learned.length) {
             const attacks = appendNamedMoves(mon.attacks, learned);
             for (const nm of learned) {
@@ -993,8 +1036,9 @@ function BattleScreen({
               <button
                 key={i}
                 className="gb-move"
-                disabled={busy || !m.damage}
-                onClick={() => m.damage && onMove(m)}
+                disabled={busy}
+                title={m.text || (m.damage ? "" : "Status move")}
+                onClick={() => onMove(m)}
               >
                 {m.name} {m.damage ? <span>·{m.damage}</span> : null}
               </button>

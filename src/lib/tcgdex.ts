@@ -240,6 +240,16 @@ export function mapTcgdexSet(s: any, lang = "en"): TCGSet {
   };
 }
 
+/** TCGdex categories are unaccented. The app stores the accented Pokémon supertype. */
+function appSupertype(category?: string): string | undefined {
+  if (!category) return undefined;
+  const folded = category.toLowerCase().replace(/é/g, "e");
+  if (folded === "pokemon") return "Pokémon";
+  if (folded === "trainer") return "Trainer";
+  if (folded === "energy") return "Energy";
+  return category;
+}
+
 export function mapTcgdexCard(card: any, setOverride?: any, lang = "en"): TCGCard {
   const setSrc = setOverride ?? card?.set ?? {};
   const setMapped = mapTcgdexSet(setSrc, lang);
@@ -275,7 +285,7 @@ export function mapTcgdexCard(card: any, setOverride?: any, lang = "en"): TCGCar
     id: String(card?.id ?? ""),
     name: String(card?.name ?? ""),
     lang,
-    supertype: card?.category,
+    supertype: appSupertype(card?.category),
     hp,
     types: card?.types,
     evolvesFrom: card?.evolveFrom,
@@ -486,9 +496,11 @@ async function loadTcgdexSetCards(setId: string, lang: string): Promise<TCGCard[
     }
     if (mapped.length > best.length) best = mapped;
     const want = Number(raw?.cardCount?.total || raw?.cardCount?.official || 0);
-    if (want > 0 && mapped.length >= want) return mapped;
+    // Every box, not only the 30th family: the set payload has no rarity, so gold frames
+    // never appeared until these ids were stamped.
+    if (want > 0 && mapped.length >= want) return stampGoldRarities(mapped, lang);
   }
-  return best;
+  return best.length ? stampGoldRarities(best, lang) : best;
 }
 
 const SET_GOLD_RARITIES = [
@@ -528,9 +540,9 @@ function goldCacheSet(key: string, ids: [string, string][]) {
 }
 
 /**
- * TCGdex's set listing carries no rarity, so gold-tier prints (the 30th box's Special Illustration Rares)
- * could never get their gold frame. Ask TCGdex's own rarity filter which ids in this box are gold-tier
- * and stamp exactly those. 4 small requests; any miss leaves the cards untouched.
+ * TCGdex's set listing carries no rarity, so gold-tier prints never got a gold frame.
+ * Ask TCGdex's own rarity filter which ids in this box are gold-tier and stamp exactly those.
+ * One small request per gold rarity; any miss leaves the cards untouched.
  */
 export async function stampGoldRarities(cards: TCGCard[], lang = "en"): Promise<TCGCard[]> {
   const setIds = [...new Set(cards.map((c) => cardSetKey(c.id)).filter(Boolean))].filter((id) =>

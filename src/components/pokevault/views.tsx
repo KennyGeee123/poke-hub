@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from "react";
-import { hdImg } from "@/lib/card-images";
 import { useCardImageChain } from "@/lib/use-card-image";
+import { CardScan } from "./CardScan";
 import type { TCGCard, TCGSet } from "@/lib/pokemon-api";
 import {
   getMarketPrice,
@@ -187,17 +187,13 @@ export function DiscoverView({ onOpen, onTab }: { onOpen: OnOpen; onTab: (t: str
             )}
           </div>
           <div className="pv-hero-img">
-            <img
-              src={hero.images.small || hero.images.large}
-              srcSet={
-                hero.images.large
-                  ? `${hero.images.small} 245w, ${hero.images.large} 600w`
-                  : undefined
-              }
-              sizes="(max-width: 700px) 40vw, 220px"
+            <CardScan
+              card={hero}
+              tile
+              eager
               alt={hero.name}
               fetchPriority="high"
-              decoding="async"
+              sizes="(max-width: 700px) 40vw, 220px"
             />
           </div>
         </div>
@@ -623,7 +619,7 @@ export function SetsView({ onPickSet }: { onPickSet: (s: TCGSet) => void }) {
           return (
             <div
               key={s.id}
-              className="pv-set-el"
+              className={`pv-set-el${chip === "box" ? " pv-gold-set" : ""}`}
               onClick={() => onPickSet(s)}
               role="button"
               tabIndex={0}
@@ -1215,13 +1211,7 @@ export function VaultView({ onOpen }: { onOpen: OnOpen }) {
           <div className="pv-latest">
             {sorted.slice(0, 8).map((e) => (
               <div key={e.card.id} className="pv-latest-row" onClick={() => onOpen(e.card.id)}>
-                <img
-                  className="pv-latest-img"
-                  {...hdImg(e.card, { tile: true })}
-                  alt={e.card.name}
-                  loading="lazy"
-                  decoding="async"
-                />
+                <CardScan card={e.card} tile className="pv-latest-img" alt={e.card.name} />
                 <div className="pv-latest-meta">
                   <div className="pv-latest-name">{e.card.name}</div>
                   <div className="pv-latest-sub">

@@ -39,8 +39,10 @@ import { AdventurePokedexModal } from "./adventure/AdventurePokedexModal";
 import { toast } from "sonner";
 import { HDBattleArena, type BattlePokemon } from "./adventure/HDBattleArena";
 import { GBBattleSession, type GBBattleFoe } from "./GBBattleSession";
-import { healParty } from "@/lib/gbgame";
+import { healParty, isDittoName } from "@/lib/gbgame";
+import { readRepelSteps } from "@/lib/repel";
 import { partyWithCardMoves } from "@/lib/card-moves";
+import { settleScannedCardMoves } from "@/lib/adventure-party";
 import { healAllHp } from "@/lib/gb-hp";
 import { awardRouteBadge, leagueStanding, routePartner, startersForEra } from "@/lib/route-towns";
 import { mergeRouteBooks, routeBookFromRetro, syncRouteBookToRetro } from "@/lib/adventure-session";
@@ -83,9 +85,28 @@ export function AdventureView() {
   const [adventureState, setAdventureState] = useState<AdventureState>(loadAdventureState);
 
   useEffect(() => {
+    void settleScannedCardMoves().then(() => setAdventureState(loadAdventureState()));
+  }, []);
+
+  useEffect(() => {
     const onCardMoves = () => setAdventureState(loadAdventureState());
     window.addEventListener("pv-card-moves", onCardMoves);
-    return () => window.removeEventListener("pv-card-moves", onCardMoves);
+    const onRepel = () => {
+      const steps = readRepelSteps();
+      if (steps === null) return;
+      setAdventureState((prev) =>
+        prev.inventory.repelSteps === steps
+          ? prev
+          : { ...prev, inventory: { ...prev.inventory, repelSteps: steps } },
+      );
+    };
+    window.addEventListener("pv-repel", onRepel);
+    window.addEventListener("storage", onRepel);
+    return () => {
+      window.removeEventListener("pv-card-moves", onCardMoves);
+      window.removeEventListener("pv-repel", onRepel);
+      window.removeEventListener("storage", onRepel);
+    };
   }, []);
 
   useEffect(() => {
@@ -356,7 +377,11 @@ export function AdventureView() {
   ) => {
     setAdventureState((prev) => {
       const result = updatePlayerLocation(prev, newCoords, distMeters, newGeo);
-      if (result.newlyDiscovered && result.newlyDiscovered.length > 0) {
+      if (
+        result.newlyDiscovered &&
+        result.newlyDiscovered.length > 0 &&
+        (readRepelSteps() ?? 0) <= 0
+      ) {
         const first = result.newlyDiscovered[0];
         toast.success(`✨ Wild ${first.species} nearby! Walk up & catch · CP ${first.cp}`, {
           icon: "⚡",
@@ -460,24 +485,37 @@ export function AdventureView() {
       maxHp: Math.round(level * 4.2 + 25),
       currentHp: Math.round(level * 4.2 + 25),
       types,
-      moves: [
-        {
-          name: "Tackle",
-          type: "Normal",
-          power: 40,
-          pp: 35,
-          maxPp: 35,
-          description: "Full body charge.",
-        },
-        {
-          name: types[0] === "Fire" ? "Ember" : types[0] === "Water" ? "Water Gun" : "Quick Strike",
-          type: types[0] || "Normal",
-          power: 65,
-          pp: 20,
-          maxPp: 20,
-          description: "Signature elemental strike.",
-        },
-      ],
+      moves:
+        isDittoName(foeSpecies) || isDittoName(foeName)
+          ? [
+              {
+                name: "Transform",
+                type: "Normal",
+                power: 0,
+                pp: 10,
+                maxPp: 10,
+                description: "Copies the other fighter's moves. This turn ends.",
+              },
+            ]
+          : [
+              {
+                name: "Tackle",
+                type: "Normal",
+                power: 40,
+                pp: 35,
+                maxPp: 35,
+                description: "Full body charge.",
+              },
+              {
+                name:
+                  types[0] === "Fire" ? "Ember" : types[0] === "Water" ? "Water Gun" : "Quick Strike",
+                type: types[0] || "Normal",
+                power: 65,
+                pp: 20,
+                maxPp: 20,
+                description: "Signature elemental strike.",
+              },
+            ],
     };
     setCurrentBattleFoe(foe);
     setHdBattleOpen(true);
@@ -774,6 +812,7 @@ export function AdventureView() {
             <AdventureInventoryModal
               adventureState={adventureState}
               onClose={() => setInventoryOpen(false)}
+              onStateUpdate={handleStateUpdate}
               onOpenEvolution={() => {
                 setInventoryOpen(false);
                 setEvolutionOpen(true);

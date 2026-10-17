@@ -2,6 +2,7 @@ import { PristineMoveCustomizer } from "./PristineMoveCustomizer";
 import React, { useEffect, useRef, useState } from "react";
 import type { TCGCard } from "@/lib/pokemon-api";
 import { formatPrice } from "@/lib/vault";
+import { fallbackCardImages } from "@/lib/card-images";
 import { calculateGradedValue, getGradeMeta, predetermineCardGrade } from "@/lib/card-grades";
 import { getCardLevelAndStats, type PokemonStats } from "@/lib/card-stats";
 import { QuantumLaserScanner, QuantumFlipCard } from "./QuantumTransferAnimation";
@@ -47,7 +48,9 @@ export function VisualGradeScannerModal({
   onClose: () => void;
 }) {
   const [frontSrc, setFrontSrc] = useState<string>(
-    initialImageUrl || card.images.large || card.images.small,
+    initialImageUrl ||
+      fallbackCardImages(card).find((u) => u && !u.startsWith("data:")) ||
+      "",
   );
   const [backSrc, setBackSrc] = useState<string>(DEFAULT_CARD_BACK);
   const [activeSide, setActiveSide] = useState<"front" | "back">("front");

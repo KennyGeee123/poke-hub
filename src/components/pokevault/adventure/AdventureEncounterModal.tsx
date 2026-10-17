@@ -6,7 +6,9 @@ import {
   type CaptureItemId,
   CAPTURE_ITEMS,
   attemptCapture,
+  ballItemIds,
 } from "@/lib/adventure-engine";
+import { BallMark } from "./BallMark";
 import { addWildCatchToParty } from "@/lib/adventure-party";
 import { WorldSprite } from "./WorldSprite";
 
@@ -38,9 +40,9 @@ export function AdventureEncounterModal({
     rareCandyChance: boolean;
   } | null>(null);
 
-  const availableBalls = (
-    ["poke_ball", "great_ball", "ultra_ball", "master_ball"] as CaptureItemId[]
-  ).filter((b) => (adventureState.inventory.captureItems[b] || 0) > 0);
+  const availableBalls = ballItemIds().filter(
+    (b) => (adventureState.inventory.captureItems[b] || 0) > 0,
+  );
 
   const availableBerries = (
     ["razz_berry", "nanab_berry", "pinap_berry", "golden_razz"] as CaptureItemId[]
@@ -262,21 +264,26 @@ export function AdventureEncounterModal({
             {/* Balls Picker */}
             <div className="flex items-center justify-between text-xs font-mono">
               <span className="text-neutral-400 font-bold">POKÉ BALLS</span>
-              <div className="flex items-center gap-1.5">
-                {availableBalls.map((b) => (
-                  <button
-                    key={b}
-                    type="button"
-                    onClick={() => setSelectedBall(b)}
-                    className={`px-2.5 py-1 rounded-lg border text-[11px] font-bold transition ${
-                      selectedBall === b
-                        ? "bg-cyan-500 text-neutral-950 border-cyan-400 shadow"
-                        : "bg-neutral-900 border-neutral-800 text-neutral-300"
-                    }`}
-                  >
-                    {CAPTURE_ITEMS[b].name} ({adventureState.inventory.captureItems[b] || 0})
-                  </button>
-                ))}
+              <div className="flex items-center gap-1.5 overflow-x-auto max-w-[70%]">
+                {availableBalls.map((b) => {
+                  const item = CAPTURE_ITEMS[b];
+                  return (
+                    <button
+                      key={b}
+                      type="button"
+                      data-ball={b}
+                      onClick={() => setSelectedBall(b)}
+                      className={`px-2 py-1 rounded-lg border text-[11px] font-bold transition flex items-center gap-1 shrink-0 ${
+                        selectedBall === b
+                          ? "bg-cyan-500 text-neutral-950 border-cyan-400 shadow"
+                          : "bg-neutral-900 border-neutral-800 text-neutral-300"
+                      }`}
+                    >
+                      {item.colors ? <BallMark colors={item.colors} size={16} /> : null}
+                      {item.name} ({adventureState.inventory.captureItems[b] || 0})
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
